@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.3/src/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.4/src/block.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>block.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container">
                     <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rand_core/index.html">
                         <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -437,6 +437,108 @@
 <span id="435">435</span>
 <span id="436">436</span>
 <span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -534,7 +636,7 @@
 <span class="doccomment">/// [`fill_bytes`] / [`try_fill_bytes`] is called on a large array. These methods</span>
 <span class="doccomment">/// also handle the bookkeeping of when to generate a new batch of values.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// No whole generated `u32` values are thown away and all values are consumed</span>
+<span class="doccomment">/// No whole generated `u32` values are thrown away and all values are consumed</span>
 <span class="doccomment">/// in-order. [`next_u32`] simply takes the next available `u32` value.</span>
 <span class="doccomment">/// [`next_u64`] is implemented by combining two `u32` values, least</span>
 <span class="doccomment">/// significant first. [`fill_bytes`] and [`try_fill_bytes`] consume a whole</span>
@@ -791,27 +893,21 @@
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">next_u32</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">u32</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">*</span> <span class="number">2</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">usize</span>;
-        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">*</span> <span class="number">2</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">index</span> <span class="op">-</span> <span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">if</span> <span class="ident">index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() {
             <span class="self">self</span>.<span class="ident">core</span>.<span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">results</span>);
             <span class="self">self</span>.<span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
+            <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
             <span class="comment">// `self.half_used` is by definition `false`</span>
             <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">index</span> <span class="op">=</span> <span class="number">0</span>;
         }
+
+        <span class="kw">let</span> <span class="ident">shift</span> <span class="op">=</span> <span class="number">32</span> <span class="op">*</span> (<span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
         <span class="self">self</span>.<span class="ident">half_used</span> <span class="op">=</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">half_used</span>;
         <span class="self">self</span>.<span class="ident">index</span> <span class="op">+</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">half_used</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-        <span class="comment">// Index as if this is a u32 slice.</span>
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="ident">results</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span>(<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>() <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u64</span>] <span class="kw">as</span> <span class="kw-2">*const</span> [<span class="ident">u32</span>]);
-            <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
-                <span class="kw-2">*</span><span class="ident">results</span>.<span class="ident">get_unchecked</span>(<span class="ident">index</span>)
-            } <span class="kw">else</span> {
-                <span class="kw-2">*</span><span class="ident">results</span>.<span class="ident">get_unchecked</span>(<span class="ident">index</span> <span class="op">^</span> <span class="number">1</span>)
-            }
-        }
+        (<span class="self">self</span>.<span class="ident">results</span>.<span class="ident">as_ref</span>()[<span class="ident">index</span>] <span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">shift</span>) <span class="kw">as</span> <span class="ident">u32</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -874,5 +970,113 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span>: <span class="ident">BlockRngCore</span> <span class="op">+</span> <span class="ident">CryptoRng</span><span class="op">&gt;</span> <span class="ident">CryptoRng</span> <span class="kw">for</span> <span class="ident">BlockRng</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">mod</span> <span class="ident">test</span> {
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">SeedableRng</span>, <span class="ident">RngCore</span>};
+    <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::block</span>::{<span class="ident">BlockRng</span>, <span class="ident">BlockRng64</span>, <span class="ident">BlockRngCore</span>};
+
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+    <span class="kw">struct</span> <span class="ident">DummyRng</span> {
+        <span class="ident">counter</span>: <span class="ident">u32</span>,
+    }
+
+    <span class="kw">impl</span> <span class="ident">BlockRngCore</span> <span class="kw">for</span> <span class="ident">DummyRng</span> {
+        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">u32</span>;
+
+        <span class="kw">type</span> <span class="ident">Results</span> <span class="op">=</span> [<span class="ident">u32</span>; <span class="number">16</span>];
+
+        <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Results</span>) {
+            <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">results</span> {
+                <span class="kw-2">*</span><span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">counter</span>;
+                <span class="self">self</span>.<span class="ident">counter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">wrapping_add</span>(<span class="number">3511615421</span>);
+            }
+        }
+    }
+
+    <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">DummyRng</span> {
+        <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">4</span>];
+
+        <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="ident"><span class="self">Self</span>::Seed</span>) -&gt; <span class="self">Self</span> {
+            <span class="ident">DummyRng</span> { <span class="ident">counter</span>: <span class="ident">u32::from_le_bytes</span>(<span class="ident">seed</span>) }
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">blockrng_next_u32_vs_next_u64</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">BlockRng</span>::<span class="op">&lt;</span><span class="ident">DummyRng</span><span class="op">&gt;</span><span class="ident">::from_seed</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng3</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">clone</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[..<span class="number">4</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[<span class="number">4</span>..<span class="number">12</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[<span class="number">12</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[..<span class="number">4</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[<span class="number">4</span>..<span class="number">8</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[<span class="number">8</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[..<span class="number">8</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[<span class="number">8</span>..<span class="number">12</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[<span class="number">12</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">a</span>, <span class="ident">c</span>);
+    }
+
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
+    <span class="kw">struct</span> <span class="ident">DummyRng64</span> {
+        <span class="ident">counter</span>: <span class="ident">u64</span>,
+    }
+
+    <span class="kw">impl</span> <span class="ident">BlockRngCore</span> <span class="kw">for</span> <span class="ident">DummyRng64</span> {
+        <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">u64</span>;
+
+        <span class="kw">type</span> <span class="ident">Results</span> <span class="op">=</span> [<span class="ident">u64</span>; <span class="number">8</span>];
+
+        <span class="kw">fn</span> <span class="ident">generate</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">results</span>: <span class="kw-2">&amp;mut</span> <span class="ident"><span class="self">Self</span>::Results</span>) {
+            <span class="kw">for</span> <span class="ident">r</span> <span class="kw">in</span> <span class="ident">results</span> {
+                <span class="kw-2">*</span><span class="ident">r</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">counter</span>;
+                <span class="self">self</span>.<span class="ident">counter</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">counter</span>.<span class="ident">wrapping_add</span>(<span class="number">2781463553396133981</span>);
+            }
+        }
+    }
+
+    <span class="kw">impl</span> <span class="ident">SeedableRng</span> <span class="kw">for</span> <span class="ident">DummyRng64</span> {
+        <span class="kw">type</span> <span class="ident">Seed</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">8</span>];
+
+        <span class="kw">fn</span> <span class="ident">from_seed</span>(<span class="ident">seed</span>: <span class="ident"><span class="self">Self</span>::Seed</span>) -&gt; <span class="self">Self</span> {
+            <span class="ident">DummyRng64</span> { <span class="ident">counter</span>: <span class="ident">u64::from_le_bytes</span>(<span class="ident">seed</span>) }
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">test</span>]</span>
+    <span class="kw">fn</span> <span class="ident">blockrng64_next_u32_vs_next_u64</span>() {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng1</span> <span class="op">=</span> <span class="ident">BlockRng64</span>::<span class="op">&lt;</span><span class="ident">DummyRng64</span><span class="op">&gt;</span><span class="ident">::from_seed</span>([<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>]);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng2</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">clone</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">rng3</span> <span class="op">=</span> <span class="ident">rng1</span>.<span class="ident">clone</span>();
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">a</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[..<span class="number">4</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[<span class="number">4</span>..<span class="number">12</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">a</span>[<span class="number">12</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng1</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">b</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[..<span class="number">4</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[<span class="number">4</span>..<span class="number">8</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">b</span>[<span class="number">8</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng2</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        <span class="macro">assert_ne!</span>(<span class="ident">a</span>, <span class="ident">b</span>);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[..<span class="number">4</span>], <span class="kw-2">&amp;</span><span class="ident">b</span>[..<span class="number">4</span>]);
+        <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">a</span>[<span class="number">4</span>..<span class="number">12</span>], <span class="kw-2">&amp;</span><span class="ident">b</span>[<span class="number">8</span>..]);
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">c</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">16</span>];
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[..<span class="number">8</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u64</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[<span class="number">8</span>..<span class="number">12</span>]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        (<span class="kw-2">&amp;mut</span> <span class="ident">c</span>[<span class="number">12</span>..]).<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">rng3</span>.<span class="ident">next_u32</span>().<span class="ident">to_le_bytes</span>());
+        <span class="macro">assert_eq!</span>(<span class="ident">b</span>, <span class="ident">c</span>);
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="rand_core" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

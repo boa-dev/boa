@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.1/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../hashbrown/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../hashbrown/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/hashbrown-0.12.3/src/set.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>set.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../hashbrown/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../hashbrown/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../hashbrown/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2347,6 +2347,447 @@
 <span id="2347">2347</span>
 <span id="2348">2348</span>
 <span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
+<span id="2391">2391</span>
+<span id="2392">2392</span>
+<span id="2393">2393</span>
+<span id="2394">2394</span>
+<span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
+<span id="2426">2426</span>
+<span id="2427">2427</span>
+<span id="2428">2428</span>
+<span id="2429">2429</span>
+<span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
+<span id="2441">2441</span>
+<span id="2442">2442</span>
+<span id="2443">2443</span>
+<span id="2444">2444</span>
+<span id="2445">2445</span>
+<span id="2446">2446</span>
+<span id="2447">2447</span>
+<span id="2448">2448</span>
+<span id="2449">2449</span>
+<span id="2450">2450</span>
+<span id="2451">2451</span>
+<span id="2452">2452</span>
+<span id="2453">2453</span>
+<span id="2454">2454</span>
+<span id="2455">2455</span>
+<span id="2456">2456</span>
+<span id="2457">2457</span>
+<span id="2458">2458</span>
+<span id="2459">2459</span>
+<span id="2460">2460</span>
+<span id="2461">2461</span>
+<span id="2462">2462</span>
+<span id="2463">2463</span>
+<span id="2464">2464</span>
+<span id="2465">2465</span>
+<span id="2466">2466</span>
+<span id="2467">2467</span>
+<span id="2468">2468</span>
+<span id="2469">2469</span>
+<span id="2470">2470</span>
+<span id="2471">2471</span>
+<span id="2472">2472</span>
+<span id="2473">2473</span>
+<span id="2474">2474</span>
+<span id="2475">2475</span>
+<span id="2476">2476</span>
+<span id="2477">2477</span>
+<span id="2478">2478</span>
+<span id="2479">2479</span>
+<span id="2480">2480</span>
+<span id="2481">2481</span>
+<span id="2482">2482</span>
+<span id="2483">2483</span>
+<span id="2484">2484</span>
+<span id="2485">2485</span>
+<span id="2486">2486</span>
+<span id="2487">2487</span>
+<span id="2488">2488</span>
+<span id="2489">2489</span>
+<span id="2490">2490</span>
+<span id="2491">2491</span>
+<span id="2492">2492</span>
+<span id="2493">2493</span>
+<span id="2494">2494</span>
+<span id="2495">2495</span>
+<span id="2496">2496</span>
+<span id="2497">2497</span>
+<span id="2498">2498</span>
+<span id="2499">2499</span>
+<span id="2500">2500</span>
+<span id="2501">2501</span>
+<span id="2502">2502</span>
+<span id="2503">2503</span>
+<span id="2504">2504</span>
+<span id="2505">2505</span>
+<span id="2506">2506</span>
+<span id="2507">2507</span>
+<span id="2508">2508</span>
+<span id="2509">2509</span>
+<span id="2510">2510</span>
+<span id="2511">2511</span>
+<span id="2512">2512</span>
+<span id="2513">2513</span>
+<span id="2514">2514</span>
+<span id="2515">2515</span>
+<span id="2516">2516</span>
+<span id="2517">2517</span>
+<span id="2518">2518</span>
+<span id="2519">2519</span>
+<span id="2520">2520</span>
+<span id="2521">2521</span>
+<span id="2522">2522</span>
+<span id="2523">2523</span>
+<span id="2524">2524</span>
+<span id="2525">2525</span>
+<span id="2526">2526</span>
+<span id="2527">2527</span>
+<span id="2528">2528</span>
+<span id="2529">2529</span>
+<span id="2530">2530</span>
+<span id="2531">2531</span>
+<span id="2532">2532</span>
+<span id="2533">2533</span>
+<span id="2534">2534</span>
+<span id="2535">2535</span>
+<span id="2536">2536</span>
+<span id="2537">2537</span>
+<span id="2538">2538</span>
+<span id="2539">2539</span>
+<span id="2540">2540</span>
+<span id="2541">2541</span>
+<span id="2542">2542</span>
+<span id="2543">2543</span>
+<span id="2544">2544</span>
+<span id="2545">2545</span>
+<span id="2546">2546</span>
+<span id="2547">2547</span>
+<span id="2548">2548</span>
+<span id="2549">2549</span>
+<span id="2550">2550</span>
+<span id="2551">2551</span>
+<span id="2552">2552</span>
+<span id="2553">2553</span>
+<span id="2554">2554</span>
+<span id="2555">2555</span>
+<span id="2556">2556</span>
+<span id="2557">2557</span>
+<span id="2558">2558</span>
+<span id="2559">2559</span>
+<span id="2560">2560</span>
+<span id="2561">2561</span>
+<span id="2562">2562</span>
+<span id="2563">2563</span>
+<span id="2564">2564</span>
+<span id="2565">2565</span>
+<span id="2566">2566</span>
+<span id="2567">2567</span>
+<span id="2568">2568</span>
+<span id="2569">2569</span>
+<span id="2570">2570</span>
+<span id="2571">2571</span>
+<span id="2572">2572</span>
+<span id="2573">2573</span>
+<span id="2574">2574</span>
+<span id="2575">2575</span>
+<span id="2576">2576</span>
+<span id="2577">2577</span>
+<span id="2578">2578</span>
+<span id="2579">2579</span>
+<span id="2580">2580</span>
+<span id="2581">2581</span>
+<span id="2582">2582</span>
+<span id="2583">2583</span>
+<span id="2584">2584</span>
+<span id="2585">2585</span>
+<span id="2586">2586</span>
+<span id="2587">2587</span>
+<span id="2588">2588</span>
+<span id="2589">2589</span>
+<span id="2590">2590</span>
+<span id="2591">2591</span>
+<span id="2592">2592</span>
+<span id="2593">2593</span>
+<span id="2594">2594</span>
+<span id="2595">2595</span>
+<span id="2596">2596</span>
+<span id="2597">2597</span>
+<span id="2598">2598</span>
+<span id="2599">2599</span>
+<span id="2600">2600</span>
+<span id="2601">2601</span>
+<span id="2602">2602</span>
+<span id="2603">2603</span>
+<span id="2604">2604</span>
+<span id="2605">2605</span>
+<span id="2606">2606</span>
+<span id="2607">2607</span>
+<span id="2608">2608</span>
+<span id="2609">2609</span>
+<span id="2610">2610</span>
+<span id="2611">2611</span>
+<span id="2612">2612</span>
+<span id="2613">2613</span>
+<span id="2614">2614</span>
+<span id="2615">2615</span>
+<span id="2616">2616</span>
+<span id="2617">2617</span>
+<span id="2618">2618</span>
+<span id="2619">2619</span>
+<span id="2620">2620</span>
+<span id="2621">2621</span>
+<span id="2622">2622</span>
+<span id="2623">2623</span>
+<span id="2624">2624</span>
+<span id="2625">2625</span>
+<span id="2626">2626</span>
+<span id="2627">2627</span>
+<span id="2628">2628</span>
+<span id="2629">2629</span>
+<span id="2630">2630</span>
+<span id="2631">2631</span>
+<span id="2632">2632</span>
+<span id="2633">2633</span>
+<span id="2634">2634</span>
+<span id="2635">2635</span>
+<span id="2636">2636</span>
+<span id="2637">2637</span>
+<span id="2638">2638</span>
+<span id="2639">2639</span>
+<span id="2640">2640</span>
+<span id="2641">2641</span>
+<span id="2642">2642</span>
+<span id="2643">2643</span>
+<span id="2644">2644</span>
+<span id="2645">2645</span>
+<span id="2646">2646</span>
+<span id="2647">2647</span>
+<span id="2648">2648</span>
+<span id="2649">2649</span>
+<span id="2650">2650</span>
+<span id="2651">2651</span>
+<span id="2652">2652</span>
+<span id="2653">2653</span>
+<span id="2654">2654</span>
+<span id="2655">2655</span>
+<span id="2656">2656</span>
+<span id="2657">2657</span>
+<span id="2658">2658</span>
+<span id="2659">2659</span>
+<span id="2660">2660</span>
+<span id="2661">2661</span>
+<span id="2662">2662</span>
+<span id="2663">2663</span>
+<span id="2664">2664</span>
+<span id="2665">2665</span>
+<span id="2666">2666</span>
+<span id="2667">2667</span>
+<span id="2668">2668</span>
+<span id="2669">2669</span>
+<span id="2670">2670</span>
+<span id="2671">2671</span>
+<span id="2672">2672</span>
+<span id="2673">2673</span>
+<span id="2674">2674</span>
+<span id="2675">2675</span>
+<span id="2676">2676</span>
+<span id="2677">2677</span>
+<span id="2678">2678</span>
+<span id="2679">2679</span>
+<span id="2680">2680</span>
+<span id="2681">2681</span>
+<span id="2682">2682</span>
+<span id="2683">2683</span>
+<span id="2684">2684</span>
+<span id="2685">2685</span>
+<span id="2686">2686</span>
+<span id="2687">2687</span>
+<span id="2688">2688</span>
+<span id="2689">2689</span>
+<span id="2690">2690</span>
+<span id="2691">2691</span>
+<span id="2692">2692</span>
+<span id="2693">2693</span>
+<span id="2694">2694</span>
+<span id="2695">2695</span>
+<span id="2696">2696</span>
+<span id="2697">2697</span>
+<span id="2698">2698</span>
+<span id="2699">2699</span>
+<span id="2700">2700</span>
+<span id="2701">2701</span>
+<span id="2702">2702</span>
+<span id="2703">2703</span>
+<span id="2704">2704</span>
+<span id="2705">2705</span>
+<span id="2706">2706</span>
+<span id="2707">2707</span>
+<span id="2708">2708</span>
+<span id="2709">2709</span>
+<span id="2710">2710</span>
+<span id="2711">2711</span>
+<span id="2712">2712</span>
+<span id="2713">2713</span>
+<span id="2714">2714</span>
+<span id="2715">2715</span>
+<span id="2716">2716</span>
+<span id="2717">2717</span>
+<span id="2718">2718</span>
+<span id="2719">2719</span>
+<span id="2720">2720</span>
+<span id="2721">2721</span>
+<span id="2722">2722</span>
+<span id="2723">2723</span>
+<span id="2724">2724</span>
+<span id="2725">2725</span>
+<span id="2726">2726</span>
+<span id="2727">2727</span>
+<span id="2728">2728</span>
+<span id="2729">2729</span>
+<span id="2730">2730</span>
+<span id="2731">2731</span>
+<span id="2732">2732</span>
+<span id="2733">2733</span>
+<span id="2734">2734</span>
+<span id="2735">2735</span>
+<span id="2736">2736</span>
+<span id="2737">2737</span>
+<span id="2738">2738</span>
+<span id="2739">2739</span>
+<span id="2740">2740</span>
+<span id="2741">2741</span>
+<span id="2742">2742</span>
+<span id="2743">2743</span>
+<span id="2744">2744</span>
+<span id="2745">2745</span>
+<span id="2746">2746</span>
+<span id="2747">2747</span>
+<span id="2748">2748</span>
+<span id="2749">2749</span>
+<span id="2750">2750</span>
+<span id="2751">2751</span>
+<span id="2752">2752</span>
+<span id="2753">2753</span>
+<span id="2754">2754</span>
+<span id="2755">2755</span>
+<span id="2756">2756</span>
+<span id="2757">2757</span>
+<span id="2758">2758</span>
+<span id="2759">2759</span>
+<span id="2760">2760</span>
+<span id="2761">2761</span>
+<span id="2762">2762</span>
+<span id="2763">2763</span>
+<span id="2764">2764</span>
+<span id="2765">2765</span>
+<span id="2766">2766</span>
+<span id="2767">2767</span>
+<span id="2768">2768</span>
+<span id="2769">2769</span>
+<span id="2770">2770</span>
+<span id="2771">2771</span>
+<span id="2772">2772</span>
+<span id="2773">2773</span>
+<span id="2774">2774</span>
+<span id="2775">2775</span>
+<span id="2776">2776</span>
+<span id="2777">2777</span>
+<span id="2778">2778</span>
+<span id="2779">2779</span>
+<span id="2780">2780</span>
+<span id="2781">2781</span>
+<span id="2782">2782</span>
+<span id="2783">2783</span>
+<span id="2784">2784</span>
+<span id="2785">2785</span>
+<span id="2786">2786</span>
+<span id="2787">2787</span>
+<span id="2788">2788</span>
+<span id="2789">2789</span>
+<span id="2790">2790</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::TryReserveError</span>;
 <span class="kw">use</span> <span class="ident">alloc::borrow::ToOwned</span>;
 <span class="kw">use</span> <span class="ident">core::borrow::Borrow</span>;
@@ -3249,6 +3690,47 @@
             .<span class="ident">from_key</span>(<span class="ident">value</span>)
             .<span class="ident">or_insert_with</span>(<span class="op">|</span><span class="op">|</span> (<span class="ident">f</span>(<span class="ident">value</span>), ()))
             .<span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Gets the given value&#39;s corresponding entry in the set for in-place manipulation.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">/// use hashbrown::hash_set::Entry::*;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut singles = HashSet::new();</span>
+    <span class="doccomment">/// let mut dupes = HashSet::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// for ch in &quot;a short treatise on fungi&quot;.chars() {</span>
+    <span class="doccomment">///     if let Vacant(dupe_entry) = dupes.entry(ch) {</span>
+    <span class="doccomment">///         // We haven&#39;t already seen a duplicate, so</span>
+    <span class="doccomment">///         // check if we&#39;ve at least seen it once.</span>
+    <span class="doccomment">///         match singles.entry(ch) {</span>
+    <span class="doccomment">///             Vacant(single_entry) =&gt; {</span>
+    <span class="doccomment">///                 // We found a new character for the first time.</span>
+    <span class="doccomment">///                 single_entry.insert()</span>
+    <span class="doccomment">///             }</span>
+    <span class="doccomment">///             Occupied(single_entry) =&gt; {</span>
+    <span class="doccomment">///                 // We&#39;ve already seen this once, &quot;move&quot; it to dupes.</span>
+    <span class="doccomment">///                 single_entry.remove();</span>
+    <span class="doccomment">///                 dupe_entry.insert();</span>
+    <span class="doccomment">///             }</span>
+    <span class="doccomment">///         }</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(!singles.contains(&amp;&#39;t&#39;) &amp;&amp; dupes.contains(&amp;&#39;t&#39;));</span>
+    <span class="doccomment">/// assert!(singles.contains(&amp;&#39;u&#39;) &amp;&amp; !dupes.contains(&amp;&#39;u&#39;));</span>
+    <span class="doccomment">/// assert!(!singles.contains(&amp;&#39;v&#39;) &amp;&amp; !dupes.contains(&amp;&#39;v&#39;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">entry</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">value</span>: <span class="ident">T</span>) -&gt; <span class="ident">Entry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">map</span>.<span class="ident">entry</span>(<span class="ident">value</span>) {
+            <span class="ident">map::Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="ident">Entry::Occupied</span>(<span class="ident">OccupiedEntry</span> { <span class="ident">inner</span>: <span class="ident">entry</span> }),
+            <span class="ident">map::Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; <span class="ident">Entry::Vacant</span>(<span class="ident">VacantEntry</span> { <span class="ident">inner</span>: <span class="ident">entry</span> }),
+        }
     }
 
     <span class="doccomment">/// Returns `true` if `self` has no elements in common with `other`.</span>
@@ -4192,6 +4674,406 @@
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
     <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>()
+    }
+}
+
+<span class="doccomment">/// A view into a single entry in a set, which may either be vacant or occupied.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This `enum` is constructed from the [`entry`] method on [`HashSet`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`HashSet`]: struct.HashSet.html</span>
+<span class="doccomment">/// [`entry`]: struct.HashSet.html#method.entry</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet, OccupiedEntry};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut set = HashSet::new();</span>
+<span class="doccomment">/// set.extend([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]);</span>
+<span class="doccomment">/// assert_eq!(set.len(), 3);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Existing value (insert)</span>
+<span class="doccomment">/// let entry: Entry&lt;_, _&gt; = set.entry(&quot;a&quot;);</span>
+<span class="doccomment">/// let _raw_o: OccupiedEntry&lt;_, _&gt; = entry.insert();</span>
+<span class="doccomment">/// assert_eq!(set.len(), 3);</span>
+<span class="doccomment">/// // Nonexistent value (insert)</span>
+<span class="doccomment">/// set.entry(&quot;d&quot;).insert();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Existing value (or_insert)</span>
+<span class="doccomment">/// set.entry(&quot;b&quot;).or_insert();</span>
+<span class="doccomment">/// // Nonexistent value (or_insert)</span>
+<span class="doccomment">/// set.entry(&quot;e&quot;).or_insert();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// println!(&quot;Our HashSet: {:?}&quot;, set);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut vec: Vec&lt;_&gt; = set.iter().copied().collect();</span>
+<span class="doccomment">/// // The `Iter` iterator produces items in arbitrary order, so the</span>
+<span class="doccomment">/// // items must be sorted to test them against a sorted array.</span>
+<span class="doccomment">/// vec.sort_unstable();</span>
+<span class="doccomment">/// assert_eq!(vec, [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;]);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span> <span class="op">=</span> <span class="ident">Global</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span>,
+{
+    <span class="doccomment">/// An occupied entry.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet};</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;_&gt; = [&quot;a&quot;, &quot;b&quot;].into();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// match set.entry(&quot;a&quot;) {</span>
+    <span class="doccomment">///     Entry::Vacant(_) =&gt; unreachable!(),</span>
+    <span class="doccomment">///     Entry::Occupied(_) =&gt; { }</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="ident">Occupied</span>(<span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>),
+
+    <span class="doccomment">/// A vacant entry.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet};</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// match set.entry(&quot;a&quot;) {</span>
+    <span class="doccomment">///     Entry::Occupied(_) =&gt; unreachable!(),</span>
+    <span class="doccomment">///     Entry::Vacant(_) =&gt; { }</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="ident">Vacant</span>(<span class="ident">VacantEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>),
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Entry::Vacant</span>(<span class="kw-2">ref</span> <span class="ident">v</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Entry&quot;</span>).<span class="ident">field</span>(<span class="ident">v</span>).<span class="ident">finish</span>(),
+            <span class="ident">Entry::Occupied</span>(<span class="kw-2">ref</span> <span class="ident">o</span>) =&gt; <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;Entry&quot;</span>).<span class="ident">field</span>(<span class="ident">o</span>).<span class="ident">finish</span>(),
+        }
+    }
+}
+
+<span class="doccomment">/// A view into an occupied entry in a `HashSet`.</span>
+<span class="doccomment">/// It is part of the [`Entry`] enum.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Entry`]: enum.Entry.html</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet, OccupiedEntry};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut set = HashSet::new();</span>
+<span class="doccomment">/// set.extend([&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let _entry_o: OccupiedEntry&lt;_, _&gt; = set.entry(&quot;a&quot;).insert();</span>
+<span class="doccomment">/// assert_eq!(set.len(), 3);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Existing key</span>
+<span class="doccomment">/// match set.entry(&quot;a&quot;) {</span>
+<span class="doccomment">///     Entry::Vacant(_) =&gt; unreachable!(),</span>
+<span class="doccomment">///     Entry::Occupied(view) =&gt; {</span>
+<span class="doccomment">///         assert_eq!(view.get(), &amp;&quot;a&quot;);</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(set.len(), 3);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Existing key (take)</span>
+<span class="doccomment">/// match set.entry(&quot;c&quot;) {</span>
+<span class="doccomment">///     Entry::Vacant(_) =&gt; unreachable!(),</span>
+<span class="doccomment">///     Entry::Occupied(view) =&gt; {</span>
+<span class="doccomment">///         assert_eq!(view.remove(), &quot;c&quot;);</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// assert_eq!(set.get(&amp;&quot;c&quot;), None);</span>
+<span class="doccomment">/// assert_eq!(set.len(), 2);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">=</span> <span class="ident">Global</span><span class="op">&gt;</span> {
+    <span class="ident">inner</span>: <span class="ident">map::OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, (), <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_struct</span>(<span class="string">&quot;OccupiedEntry&quot;</span>)
+            .<span class="ident">field</span>(<span class="string">&quot;value&quot;</span>, <span class="self">self</span>.<span class="ident">get</span>())
+            .<span class="ident">finish</span>()
+    }
+}
+
+<span class="doccomment">/// A view into a vacant entry in a `HashSet`.</span>
+<span class="doccomment">/// It is part of the [`Entry`] enum.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`Entry`]: enum.Entry.html</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Examples</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet, VacantEntry};</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let mut set = HashSet::&lt;&amp;str&gt;::new();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// let entry_v: VacantEntry&lt;_, _&gt; = match set.entry(&quot;a&quot;) {</span>
+<span class="doccomment">///     Entry::Vacant(view) =&gt; view,</span>
+<span class="doccomment">///     Entry::Occupied(_) =&gt; unreachable!(),</span>
+<span class="doccomment">/// };</span>
+<span class="doccomment">/// entry_v.insert();</span>
+<span class="doccomment">/// assert!(set.contains(&quot;a&quot;) &amp;&amp; set.len() == 1);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// // Nonexistent key (insert)</span>
+<span class="doccomment">/// match set.entry(&quot;b&quot;) {</span>
+<span class="doccomment">///     Entry::Vacant(view) =&gt; view.insert(),</span>
+<span class="doccomment">///     Entry::Occupied(_) =&gt; unreachable!(),</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// assert!(set.contains(&quot;b&quot;) &amp;&amp; set.len() == 2);</span>
+<span class="doccomment">/// ```</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">VacantEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">=</span> <span class="ident">Global</span><span class="op">&gt;</span> {
+    <span class="ident">inner</span>: <span class="ident">map::VacantEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, (), <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">fmt::Debug</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">VacantEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="ident">f</span>.<span class="ident">debug_tuple</span>(<span class="string">&quot;VacantEntry&quot;</span>).<span class="ident">field</span>(<span class="self">self</span>.<span class="ident">get</span>()).<span class="ident">finish</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">Entry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Sets the value of the entry, and returns an OccupiedEntry.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">/// let entry = set.entry(&quot;horseyland&quot;).insert();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(entry.get(), &amp;&quot;horseyland&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>) -&gt; <span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Hash</span>,
+        <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Entry::Occupied</span>(<span class="ident">entry</span>) =&gt; <span class="ident">entry</span>,
+            <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) =&gt; <span class="ident">entry</span>.<span class="ident">insert_entry</span>(),
+        }
+    }
+
+    <span class="doccomment">/// Ensures a value is in the entry by inserting if it was vacant.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // nonexistent key</span>
+    <span class="doccomment">/// set.entry(&quot;poneyland&quot;).or_insert();</span>
+    <span class="doccomment">/// assert!(set.contains(&quot;poneyland&quot;));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // existing key</span>
+    <span class="doccomment">/// set.entry(&quot;poneyland&quot;).or_insert();</span>
+    <span class="doccomment">/// assert!(set.contains(&quot;poneyland&quot;));</span>
+    <span class="doccomment">/// assert_eq!(set.len(), 1);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">or_insert</span>(<span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Hash</span>,
+        <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Entry::Vacant</span>(<span class="ident">entry</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">entry</span>.<span class="ident">insert</span>();
+        }
+    }
+
+    <span class="doccomment">/// Returns a reference to this entry&#39;s value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">/// set.entry(&quot;poneyland&quot;).or_insert();</span>
+    <span class="doccomment">/// // existing key</span>
+    <span class="doccomment">/// assert_eq!(set.entry(&quot;poneyland&quot;).get(), &amp;&quot;poneyland&quot;);</span>
+    <span class="doccomment">/// // nonexistent key</span>
+    <span class="doccomment">/// assert_eq!(set.entry(&quot;horseland&quot;).get(), &amp;&quot;horseland&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident">Entry::Occupied</span>(<span class="kw-2">ref</span> <span class="ident">entry</span>) =&gt; <span class="ident">entry</span>.<span class="ident">get</span>(),
+            <span class="ident">Entry::Vacant</span>(<span class="kw-2">ref</span> <span class="ident">entry</span>) =&gt; <span class="ident">entry</span>.<span class="ident">get</span>(),
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Gets a reference to the value in the entry.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">/// set.entry(&quot;poneyland&quot;).or_insert();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// match set.entry(&quot;poneyland&quot;) {</span>
+    <span class="doccomment">///     Entry::Vacant(_) =&gt; panic!(),</span>
+    <span class="doccomment">///     Entry::Occupied(entry) =&gt; assert_eq!(entry.get(), &amp;&quot;poneyland&quot;),</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">key</span>()
+    }
+
+    <span class="doccomment">/// Takes the value out of the entry, and returns it.</span>
+    <span class="doccomment">/// Keeps the allocated memory for reuse.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">/// use hashbrown::hash_set::Entry;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">/// // The set is empty</span>
+    <span class="doccomment">/// assert!(set.is_empty() &amp;&amp; set.capacity() == 0);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// set.entry(&quot;poneyland&quot;).or_insert();</span>
+    <span class="doccomment">/// let capacity_before_remove = set.capacity();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// if let Entry::Occupied(o) = set.entry(&quot;poneyland&quot;) {</span>
+    <span class="doccomment">///     assert_eq!(o.remove(), &quot;poneyland&quot;);</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(set.contains(&quot;poneyland&quot;), false);</span>
+    <span class="doccomment">/// // Now set hold none elements but capacity is equal to the old one</span>
+    <span class="doccomment">/// assert!(set.len() == 0 &amp;&amp; set.capacity() == capacity_before_remove);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">remove_entry</span>().<span class="number">0</span>
+    }
+
+    <span class="doccomment">/// Replaces the entry, returning the old value. The new value in the hash map will be</span>
+    <span class="doccomment">/// the value used to create this entry.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Panics</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Will panic if this OccupiedEntry was created through [`Entry::insert`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///  use hashbrown::hash_set::{Entry, HashSet};</span>
+    <span class="doccomment">///  use std::rc::Rc;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///  let mut set: HashSet&lt;Rc&lt;String&gt;&gt; = HashSet::new();</span>
+    <span class="doccomment">///  let key_one = Rc::new(&quot;Stringthing&quot;.to_string());</span>
+    <span class="doccomment">///  let key_two = Rc::new(&quot;Stringthing&quot;.to_string());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///  set.insert(key_one.clone());</span>
+    <span class="doccomment">///  assert!(Rc::strong_count(&amp;key_one) == 2 &amp;&amp; Rc::strong_count(&amp;key_two) == 1);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///  match set.entry(key_two.clone()) {</span>
+    <span class="doccomment">///      Entry::Occupied(entry) =&gt; {</span>
+    <span class="doccomment">///          let old_key: Rc&lt;String&gt; = entry.replace();</span>
+    <span class="doccomment">///          assert!(Rc::ptr_eq(&amp;key_one, &amp;old_key));</span>
+    <span class="doccomment">///      }</span>
+    <span class="doccomment">///      Entry::Vacant(_) =&gt; panic!(),</span>
+    <span class="doccomment">///  }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">///  assert!(Rc::strong_count(&amp;key_one) == 1 &amp;&amp; Rc::strong_count(&amp;key_two) == 2);</span>
+    <span class="doccomment">///  assert!(set.contains(&amp;&quot;Stringthing&quot;.to_owned()));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">replace</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">replace_key</span>()
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span>: <span class="ident">Allocator</span> <span class="op">+</span> <span class="ident">Clone</span><span class="op">&gt;</span> <span class="ident">VacantEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span> {
+    <span class="doccomment">/// Gets a reference to the value that would be used when inserting</span>
+    <span class="doccomment">/// through the `VacantEntry`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">/// assert_eq!(set.entry(&quot;poneyland&quot;).get(), &amp;&quot;poneyland&quot;);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">key</span>()
+    }
+
+    <span class="doccomment">/// Take ownership of the value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::hash_set::{Entry, HashSet};</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// match set.entry(&quot;poneyland&quot;) {</span>
+    <span class="doccomment">///     Entry::Occupied(_) =&gt; panic!(),</span>
+    <span class="doccomment">///     Entry::Vacant(v) =&gt; assert_eq!(v.into_value(), &quot;poneyland&quot;),</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_value</span>(<span class="self">self</span>) -&gt; <span class="ident">T</span> {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">into_key</span>()
+    }
+
+    <span class="doccomment">/// Sets the value of the entry with the VacantEntry&#39;s value.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use hashbrown::HashSet;</span>
+    <span class="doccomment">/// use hashbrown::hash_set::Entry;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut set: HashSet&lt;&amp;str&gt; = HashSet::new();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// if let Entry::Vacant(o) = set.entry(&quot;poneyland&quot;) {</span>
+    <span class="doccomment">///     o.insert();</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// assert!(set.contains(&quot;poneyland&quot;));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="self">self</span>)
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Hash</span>,
+        <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+    {
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">insert</span>(());
+    }
+
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;inline-more&quot;</span>, <span class="ident">inline</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">insert_entry</span>(<span class="self">self</span>) -&gt; <span class="ident">OccupiedEntry</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">T</span>, <span class="ident">S</span>, <span class="ident">A</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">T</span>: <span class="ident">Hash</span>,
+        <span class="ident">S</span>: <span class="ident">BuildHasher</span>,
+    {
+        <span class="ident">OccupiedEntry</span> {
+            <span class="ident">inner</span>: <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">insert_entry</span>(()),
+        }
     }
 }
 

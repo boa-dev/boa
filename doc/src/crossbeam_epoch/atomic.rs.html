@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-epoch-0.9.9/src/atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../crossbeam_epoch/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../crossbeam_epoch/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../crossbeam_epoch/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/crossbeam-epoch-0.9.10/src/atomic.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>atomic.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../crossbeam_epoch/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../crossbeam_epoch/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../crossbeam_epoch/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1616,6 +1616,106 @@
 <span id="1616">1616</span>
 <span id="1617">1617</span>
 <span id="1618">1618</span>
+<span id="1619">1619</span>
+<span id="1620">1620</span>
+<span id="1621">1621</span>
+<span id="1622">1622</span>
+<span id="1623">1623</span>
+<span id="1624">1624</span>
+<span id="1625">1625</span>
+<span id="1626">1626</span>
+<span id="1627">1627</span>
+<span id="1628">1628</span>
+<span id="1629">1629</span>
+<span id="1630">1630</span>
+<span id="1631">1631</span>
+<span id="1632">1632</span>
+<span id="1633">1633</span>
+<span id="1634">1634</span>
+<span id="1635">1635</span>
+<span id="1636">1636</span>
+<span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
+<span id="1644">1644</span>
+<span id="1645">1645</span>
+<span id="1646">1646</span>
+<span id="1647">1647</span>
+<span id="1648">1648</span>
+<span id="1649">1649</span>
+<span id="1650">1650</span>
+<span id="1651">1651</span>
+<span id="1652">1652</span>
+<span id="1653">1653</span>
+<span id="1654">1654</span>
+<span id="1655">1655</span>
+<span id="1656">1656</span>
+<span id="1657">1657</span>
+<span id="1658">1658</span>
+<span id="1659">1659</span>
+<span id="1660">1660</span>
+<span id="1661">1661</span>
+<span id="1662">1662</span>
+<span id="1663">1663</span>
+<span id="1664">1664</span>
+<span id="1665">1665</span>
+<span id="1666">1666</span>
+<span id="1667">1667</span>
+<span id="1668">1668</span>
+<span id="1669">1669</span>
+<span id="1670">1670</span>
+<span id="1671">1671</span>
+<span id="1672">1672</span>
+<span id="1673">1673</span>
+<span id="1674">1674</span>
+<span id="1675">1675</span>
+<span id="1676">1676</span>
+<span id="1677">1677</span>
+<span id="1678">1678</span>
+<span id="1679">1679</span>
+<span id="1680">1680</span>
+<span id="1681">1681</span>
+<span id="1682">1682</span>
+<span id="1683">1683</span>
+<span id="1684">1684</span>
+<span id="1685">1685</span>
+<span id="1686">1686</span>
+<span id="1687">1687</span>
+<span id="1688">1688</span>
+<span id="1689">1689</span>
+<span id="1690">1690</span>
+<span id="1691">1691</span>
+<span id="1692">1692</span>
+<span id="1693">1693</span>
+<span id="1694">1694</span>
+<span id="1695">1695</span>
+<span id="1696">1696</span>
+<span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">core::borrow</span>::{<span class="ident">Borrow</span>, <span class="ident">BorrowMut</span>};
 <span class="kw">use</span> <span class="ident">core::cmp</span>;
 <span class="kw">use</span> <span class="ident">core::fmt</span>;
@@ -1870,7 +1970,7 @@
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">+</span> <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="ident">len</span>;
         <span class="kw">let</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">mem::align_of</span>::<span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">alloc::Layout::from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">alloc::alloc</span>(<span class="ident">layout</span>) <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>;
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">alloc::alloc</span>(<span class="ident">layout</span>).<span class="ident">cast</span>::<span class="op">&lt;</span><span class="ident">Array</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>();
         <span class="kw">if</span> <span class="ident">ptr</span>.<span class="ident">is_null</span>() {
             <span class="ident">alloc::handle_alloc_error</span>(<span class="ident">layout</span>);
         }
@@ -1923,6 +2023,7 @@
     <span class="doccomment">/// use crossbeam_epoch::Atomic;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">init</span>: <span class="ident">T</span>) -&gt; <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::init</span>(<span class="ident">init</span>)
@@ -1938,6 +2039,7 @@
     <span class="doccomment">/// use crossbeam_epoch::Atomic;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::init(1234);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="ident">init</span>: <span class="ident">T::Init</span>) -&gt; <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="ident"><span class="self">Self</span>::from</span>(<span class="ident">Owned::init</span>(<span class="ident">init</span>))
@@ -1960,7 +2062,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::null();</span>
     <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">crossbeam_const_fn_trait_bound</span>, <span class="ident">not</span>(<span class="ident">crossbeam_loom</span>)))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">crossbeam_no_const_fn_trait_bound</span>), <span class="ident">not</span>(<span class="ident">crossbeam_loom</span>)))]</span>
     <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">null</span>() -&gt; <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">Self</span> {
             <span class="ident">data</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
@@ -1969,7 +2071,7 @@
     }
 
     <span class="doccomment">/// Returns a new null atomic pointer.</span>
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">crossbeam_const_fn_trait_bound</span>, <span class="ident">not</span>(<span class="ident">crossbeam_loom</span>))))]</span>
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">all</span>(<span class="ident">not</span>(<span class="ident">crossbeam_no_const_fn_trait_bound</span>), <span class="ident">not</span>(<span class="ident">crossbeam_loom</span>))))]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">null</span>() -&gt; <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
         <span class="self">Self</span> {
             <span class="ident">data</span>: <span class="ident">AtomicUsize::new</span>(<span class="number">0</span>),
@@ -1991,6 +2093,7 @@
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = a.load(SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">ord</span>: <span class="ident">Ordering</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">Shared::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">load</span>(<span class="ident">ord</span>)) }
@@ -2016,6 +2119,7 @@
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = a.load_consume(guard);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">load_consume</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">Shared::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">load_consume</span>()) }
@@ -2033,8 +2137,10 @@
     <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
+    <span class="doccomment">/// # unsafe { drop(a.load(SeqCst, &amp;crossbeam_epoch::pin()).into_owned()); } // avoid leak</span>
     <span class="doccomment">/// a.store(Shared::null(), SeqCst);</span>
     <span class="doccomment">/// a.store(Owned::new(1234), SeqCst);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">store</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Pointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new</span>: <span class="ident">P</span>, <span class="ident">ord</span>: <span class="ident">Ordering</span>) {
         <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">store</span>(<span class="ident">new</span>.<span class="ident">into_usize</span>(), <span class="ident">ord</span>);
@@ -2055,6 +2161,7 @@
     <span class="doccomment">/// let a = Atomic::new(1234);</span>
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = a.swap(Shared::null(), SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(p.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">swap</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">P</span>: <span class="ident">Pointer</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">new</span>: <span class="ident">P</span>, <span class="ident">ord</span>: <span class="ident">Ordering</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident">Shared::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">swap</span>(<span class="ident">new</span>.<span class="ident">into_usize</span>(), <span class="ident">ord</span>)) }
@@ -2089,6 +2196,7 @@
     <span class="doccomment">/// let curr = a.load(SeqCst, guard);</span>
     <span class="doccomment">/// let res1 = a.compare_exchange(curr, Shared::null(), SeqCst, SeqCst, guard);</span>
     <span class="doccomment">/// let res2 = a.compare_exchange(curr, Owned::new(5678), SeqCst, SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(curr.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare_exchange</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">P</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2144,6 +2252,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut new = Owned::new(5678);</span>
     <span class="doccomment">/// let mut ptr = a.load(SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(a.load(SeqCst, guard).into_owned()); } // avoid leak</span>
     <span class="doccomment">/// loop {</span>
     <span class="doccomment">///     match a.compare_exchange_weak(ptr, new, SeqCst, SeqCst, guard) {</span>
     <span class="doccomment">///         Ok(p) =&gt; {</span>
@@ -2164,6 +2273,7 @@
     <span class="doccomment">///         Err(err) =&gt; curr = err.current,</span>
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # unsafe { drop(curr.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compare_exchange_weak</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">P</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2226,6 +2336,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let res2 = a.fetch_update(SeqCst, SeqCst, guard, |x| None);</span>
     <span class="doccomment">/// assert!(res2.is_err());</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fetch_update</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">F</span><span class="op">&gt;</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
@@ -2284,6 +2395,7 @@
     <span class="doccomment">/// let curr = a.load(SeqCst, guard);</span>
     <span class="doccomment">/// let res1 = a.compare_and_set(curr, Shared::null(), SeqCst, guard);</span>
     <span class="doccomment">/// let res2 = a.compare_and_set(curr, Owned::new(5678), SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(curr.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// TODO: remove in the next major version.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
@@ -2341,6 +2453,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut new = Owned::new(5678);</span>
     <span class="doccomment">/// let mut ptr = a.load(SeqCst, guard);</span>
+    <span class="doccomment">/// # unsafe { drop(a.load(SeqCst, guard).into_owned()); } // avoid leak</span>
     <span class="doccomment">/// loop {</span>
     <span class="doccomment">///     match a.compare_and_set_weak(ptr, new, SeqCst, guard) {</span>
     <span class="doccomment">///         Ok(p) =&gt; {</span>
@@ -2361,6 +2474,7 @@
     <span class="doccomment">///         Err(err) =&gt; curr = err.current,</span>
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # unsafe { drop(curr.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="comment">// TODO: remove in the next major version.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
@@ -2495,6 +2609,52 @@
             <span class="ident">Owned::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>.<span class="ident">into_inner</span>())
         }
     }
+
+    <span class="doccomment">/// Takes ownership of the pointee if it is non-null.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This consumes the atomic and converts it into [`Owned`]. As [`Atomic`] doesn&#39;t have a</span>
+    <span class="doccomment">/// destructor and doesn&#39;t drop the pointee while [`Owned`] does, this is suitable for</span>
+    <span class="doccomment">/// destructors of data structures.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method may be called only if the pointer is valid and nobody else is holding a</span>
+    <span class="doccomment">/// reference to the same object, or the pointer is null.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use std::mem;</span>
+    <span class="doccomment">/// # use crossbeam_epoch::Atomic;</span>
+    <span class="doccomment">/// struct DataStructure {</span>
+    <span class="doccomment">///     ptr: Atomic&lt;usize&gt;,</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// impl Drop for DataStructure {</span>
+    <span class="doccomment">///     fn drop(&amp;mut self) {</span>
+    <span class="doccomment">///         // By now the DataStructure lives only in our thread and we are sure we don&#39;t hold</span>
+    <span class="doccomment">///         // any Shared or &amp; to it ourselves, but it may be null, so we have to be careful.</span>
+    <span class="doccomment">///         let old = mem::replace(&amp;mut self.ptr, Atomic::null());</span>
+    <span class="doccomment">///         unsafe {</span>
+    <span class="doccomment">///             if let Some(x) = old.try_into_owned() {</span>
+    <span class="doccomment">///                 drop(x)</span>
+    <span class="doccomment">///             }</span>
+    <span class="doccomment">///         }</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_into_owned</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="comment">// FIXME: See self.into_owned()</span>
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">crossbeam_loom</span>)]</span>
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">unsync_load</span>();
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">crossbeam_loom</span>))]</span>
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">data</span>.<span class="ident">into_inner</span>();
+        <span class="kw">if</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">data</span>).<span class="number">0</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="prelude-val">None</span>
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Owned::from_usize</span>(<span class="ident">data</span>))
+        }
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Pointable</span><span class="op">&gt;</span> <span class="ident">fmt::Debug</span> <span class="kw">for</span> <span class="ident">Atomic</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -2543,6 +2703,7 @@
     <span class="doccomment">/// use crossbeam_epoch::{Atomic, Owned};</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// let a = Atomic::&lt;i32&gt;::from(Owned::new(1234));</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">owned</span>: <span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">owned</span>.<span class="ident">data</span>;
@@ -2726,6 +2887,7 @@
     <span class="doccomment">/// let o = Owned::new(1234);</span>
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = o.into_shared(guard);</span>
+    <span class="doccomment">/// # unsafe { drop(p.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::needless_lifetimes</span>)]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">into_shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">Guard</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
@@ -2909,6 +3071,7 @@
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = a.load(SeqCst, guard);</span>
     <span class="doccomment">/// assert_eq!(p.as_raw(), raw);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_raw</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">*const</span> <span class="ident">T</span> {
         <span class="kw">let</span> (<span class="ident">raw</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -2947,6 +3110,7 @@
     <span class="doccomment">/// assert!(a.load(SeqCst, guard).is_null());</span>
     <span class="doccomment">/// a.store(Owned::new(1234), SeqCst);</span>
     <span class="doccomment">/// assert!(!a.load(SeqCst, guard).is_null());</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_null</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> (<span class="ident">raw</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -2983,6 +3147,7 @@
     <span class="doccomment">/// unsafe {</span>
     <span class="doccomment">///     assert_eq!(p.deref(), &amp;1234);</span>
     <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">deref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">T</span> {
         <span class="kw">let</span> (<span class="ident">raw</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -3024,6 +3189,7 @@
     <span class="doccomment">/// unsafe {</span>
     <span class="doccomment">///     assert_eq!(p.deref(), &amp;vec![1, 2, 3, 4, 5]);</span>
     <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">deref_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="kw-2">mut</span> <span class="ident">T</span> {
         <span class="kw">let</span> (<span class="ident">raw</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -3060,6 +3226,7 @@
     <span class="doccomment">/// unsafe {</span>
     <span class="doccomment">///     assert_eq!(p.as_ref(), Some(&amp;1234));</span>
     <span class="doccomment">/// }</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">as_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;g</span> <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">let</span> (<span class="ident">raw</span>, <span class="kw">_</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -3099,6 +3266,36 @@
         <span class="ident">Owned::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>)
     }
 
+    <span class="doccomment">/// Takes ownership of the pointee if it is not null.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Safety</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// This method may be called only if the pointer is valid and nobody else is holding a</span>
+    <span class="doccomment">/// reference to the same object, or if the pointer is null.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Examples</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// use crossbeam_epoch::{self as epoch, Atomic};</span>
+    <span class="doccomment">/// use std::sync::atomic::Ordering::SeqCst;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let a = Atomic::new(1234);</span>
+    <span class="doccomment">/// unsafe {</span>
+    <span class="doccomment">///     let guard = &amp;epoch::unprotected();</span>
+    <span class="doccomment">///     let p = a.load(SeqCst, guard);</span>
+    <span class="doccomment">///     if let Some(x) = p.try_into_owned() {</span>
+    <span class="doccomment">///         drop(x);</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">try_into_owned</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Owned</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_null</span>() {
+            <span class="prelude-val">None</span>
+        } <span class="kw">else</span> {
+            <span class="prelude-val">Some</span>(<span class="ident">Owned::from_usize</span>(<span class="self">self</span>.<span class="ident">data</span>))
+        }
+    }
+
     <span class="doccomment">/// Returns the tag stored within the pointer.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
@@ -3111,6 +3308,7 @@
     <span class="doccomment">/// let guard = &amp;epoch::pin();</span>
     <span class="doccomment">/// let p = a.load(SeqCst, guard);</span>
     <span class="doccomment">/// assert_eq!(p.tag(), 2);</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
         <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">tag</span>) <span class="op">=</span> <span class="ident">decompose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>);
@@ -3134,6 +3332,7 @@
     <span class="doccomment">/// assert_eq!(p1.tag(), 0);</span>
     <span class="doccomment">/// assert_eq!(p2.tag(), 2);</span>
     <span class="doccomment">/// assert_eq!(p1.as_raw(), p2.as_raw());</span>
+    <span class="doccomment">/// # unsafe { drop(a.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_tag</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">tag</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Shared</span><span class="op">&lt;</span><span class="lifetime">&#39;g</span>, <span class="ident">T</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> { <span class="ident"><span class="self">Self</span>::from_usize</span>(<span class="ident">compose_tag</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>(<span class="self">self</span>.<span class="ident">data</span>, <span class="ident">tag</span>)) }
@@ -3154,6 +3353,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let p = Shared::from(Box::into_raw(Box::new(1234)) as *const _);</span>
     <span class="doccomment">/// assert!(!p.is_null());</span>
+    <span class="doccomment">/// # unsafe { drop(p.into_owned()); } // avoid leak</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">raw</span>: <span class="kw-2">*const</span> <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">raw</span> <span class="op">=</span> <span class="ident">raw</span> <span class="kw">as</span> <span class="ident">usize</span>;
@@ -3230,7 +3430,7 @@
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">array_init</span>() {
         <span class="kw">let</span> <span class="ident">owned</span> <span class="op">=</span> <span class="ident">Owned</span>::<span class="op">&lt;</span>[<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>]<span class="op">&gt;</span><span class="ident">::init</span>(<span class="number">10</span>);
-        <span class="kw">let</span> <span class="ident">arr</span>: <span class="kw-2">&amp;</span>[<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">owned</span>;
+        <span class="kw">let</span> <span class="ident">arr</span>: <span class="kw-2">&amp;</span>[<span class="ident">MaybeUninit</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>] <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">owned</span>;
         <span class="macro">assert_eq!</span>(<span class="ident">arr</span>.<span class="ident">len</span>(), <span class="number">10</span>);
     }
 }

@@ -12,7 +12,7 @@ locked data. The original guard is return if the closure returns <code>None</cod
 <p>This operation cannot fail as the <code>RwLockWriteGuard</code> passed
 in already locked the data.</p>
 <p>This is an associated function that needs to be
-used as <code>RwLockWriteGuard::map(...)</code>. A method would interfere with methods of
+used as <code>RwLockWriteGuard::try_map(...)</code>. A method would interfere with methods of
 the same name on the contents of the locked data.</p>
 </div></details><details class="rustdoc-toggle method-toggle" open><summary><section id="method.unlocked" class="method has-srclink"><span class="rightside"><a class="srclink" href="../src/lock_api/rwlock.rs.html#1540-1550">source</a></span><h4 class="code-header">pub fn <a href="#method.unlocked" class="fnname">unlocked</a>&lt;F, U&gt;(s: <a class="primitive" href="https://doc.rust-lang.org/1.64.0/std/primitive.reference.html">&amp;mut </a>Self, f: F) -&gt; U <span class="where fmt-newline">where<br>&nbsp;&nbsp;&nbsp;&nbsp;F: <a class="trait" href="https://doc.rust-lang.org/1.64.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>() -&gt; U,&nbsp;</span></h4></section></summary><div class="docblock"><p>Temporarily unlocks the <code>RwLock</code> to execute the given function.</p>
 <p>This is safe because <code>&amp;mut</code> guarantees that there exist no other

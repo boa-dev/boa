@@ -2,20 +2,20 @@
 <p>This module contains documentation for defining custom VarULE types,
 especially those using complex custom dynamically sized types.</p>
 <p>In <em>most cases</em> you should be able to create custom VarULE types using
-<a href="../../attr.make_ule.html"><code>#[make_varule]</code></a>.</p>
+<a href="crate::make_ule"><code>#[make_varule]</code></a>.</p>
 <h2 id="example"><a href="#example">Example</a></h2>
 <p>For example, if your regular stack type is:</p>
 
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">zerovec::ZeroVec</span>;
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">zerofrom::ZeroFrom</span>;
 <span class="kw">use</span> <span class="ident">zerovec::ule</span>::<span class="kw-2">*</span>;
-<span class="kw">use</span> <span class="ident">zerofrom::ZeroFrom</span>;
+<span class="kw">use</span> <span class="ident">zerovec::ZeroVec</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Foo</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
-   <span class="ident">field1</span>: <span class="ident">char</span>,
-   <span class="ident">field2</span>: <span class="ident">u32</span>,
-   <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
-   <span class="ident">field3</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u32</span><span class="op">&gt;</span>   
+    <span class="ident">field1</span>: <span class="ident">char</span>,
+    <span class="ident">field2</span>: <span class="ident">u32</span>,
+    <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">borrow</span>)]</span>
+    <span class="ident">field3</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
 }</code></pre></div>
 <p>then the ULE type will be implemented as follows. Ideally, you should have
 <code>EncodeAsVarULE</code> and <code>ZeroFrom</code> implementations on <code>Foo</code> pertaining to <code>FooULE</code>,
@@ -50,16 +50,16 @@ to enable human-readable serialization and deserialization.</p>
 <span class="kw">unsafe</span> <span class="kw">impl</span> <span class="ident">VarULE</span> <span class="kw">for</span> <span class="ident">FooULE</span> {
     <span class="kw">fn</span> <span class="ident">validate_byte_slice</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ZeroVecError</span><span class="op">&gt;</span> {
         <span class="comment">// validate each field</span>
-        <span class="op">&lt;</span><span class="ident">char</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE::validate_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">0</span>..<span class="number">4</span>]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-        <span class="op">&lt;</span><span class="ident">char</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE::validate_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">4</span>..<span class="number">8</span>]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ZeroVec</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="ident">::parse_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">8</span>..]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
+        <span class="op">&lt;</span><span class="ident">char</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE::validate_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">0</span>..<span class="number">3</span>]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
+        <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE::validate_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">3</span>..<span class="number">7</span>]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">ZeroVec</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="ident">::parse_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">bytes</span>[<span class="number">7</span>..]).<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">ZeroVecError::parse</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>())<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(())
     }
     <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_byte_slice_unchecked</span>(<span class="ident">bytes</span>: <span class="kw-2">&amp;</span>[<span class="ident">u8</span>]) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">as_ptr</span>();
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">bytes</span>.<span class="ident">len</span>();
         <span class="comment">// subtract the length of the char and u32 to get the length of the array</span>
-        <span class="kw">let</span> <span class="ident">len_new</span> <span class="op">=</span> (<span class="ident">len</span> <span class="op">-</span> <span class="number">8</span>) <span class="op">/</span> <span class="number">4</span>;
+        <span class="kw">let</span> <span class="ident">len_new</span> <span class="op">=</span> (<span class="ident">len</span> <span class="op">-</span> <span class="number">7</span>) <span class="op">/</span> <span class="number">4</span>;
         <span class="comment">// it&#39;s hard constructing custom DSTs, we fake a pointer/length construction</span>
         <span class="comment">// eventually we can use the Pointer::Metadata APIs when they stabilize</span>
         <span class="kw">let</span> <span class="ident">fake_slice</span> <span class="op">=</span> <span class="ident">core::ptr::slice_from_raw_parts</span>(<span class="ident">ptr</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="op">&lt;</span><span class="ident">u32</span> <span class="kw">as</span> <span class="ident">AsULE</span><span class="op">&gt;</span><span class="ident">::ULE</span>, <span class="ident">len_new</span>);
@@ -113,7 +113,7 @@ to enable human-readable serialization and deserialization.</p>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">foos</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="ident">Foo</span> {<span class="ident">field1</span>: <span class="string">&#39;u&#39;</span>, <span class="ident">field2</span>: <span class="number">983</span>, <span class="ident">field3</span>: <span class="ident">ZeroVec::alloc_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">1212</span>,<span class="number">2309</span>,<span class="number">500</span>,<span class="number">7000</span>])},
                         <span class="ident">Foo</span> {<span class="ident">field1</span>: <span class="string">&#39;l&#39;</span>, <span class="ident">field2</span>: <span class="number">1010</span>, <span class="ident">field3</span>: <span class="ident">ZeroVec::alloc_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="number">1932</span>, <span class="number">0</span>, <span class="number">8888</span>, <span class="number">91237</span>])}];
 
-    <span class="kw">let</span> <span class="ident">vzv</span> <span class="op">=</span> <span class="ident">VarZeroVec::from</span>(<span class="kw-2">&amp;</span><span class="ident">foos</span>);
+    <span class="kw">let</span> <span class="ident">vzv</span> <span class="op">=</span> <span class="ident">VarZeroVec</span>::<span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="ident">::from</span>(<span class="kw-2">&amp;</span><span class="ident">foos</span>);
 
     <span class="macro">assert_eq!</span>(<span class="ident">char::from_unaligned</span>(<span class="ident">vzv</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">field1</span>), <span class="string">&#39;u&#39;</span>);
     <span class="macro">assert_eq!</span>(<span class="ident">u32::from_unaligned</span>(<span class="ident">vzv</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">unwrap</span>().<span class="ident">field2</span>), <span class="number">983</span>);

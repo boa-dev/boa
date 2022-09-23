@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.1.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../os_str_bytes/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/os_str_bytes-6.3.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../os_str_bytes/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../os_str_bytes/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -430,6 +430,197 @@
 <span id="430">430</span>
 <span id="431">431</span>
 <span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
+<span id="502">502</span>
+<span id="503">503</span>
+<span id="504">504</span>
+<span id="505">505</span>
+<span id="506">506</span>
+<span id="507">507</span>
+<span id="508">508</span>
+<span id="509">509</span>
+<span id="510">510</span>
+<span id="511">511</span>
+<span id="512">512</span>
+<span id="513">513</span>
+<span id="514">514</span>
+<span id="515">515</span>
+<span id="516">516</span>
+<span id="517">517</span>
+<span id="518">518</span>
+<span id="519">519</span>
+<span id="520">520</span>
+<span id="521">521</span>
+<span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
+<span id="547">547</span>
+<span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
+<span id="558">558</span>
+<span id="559">559</span>
+<span id="560">560</span>
+<span id="561">561</span>
+<span id="562">562</span>
+<span id="563">563</span>
+<span id="564">564</span>
+<span id="565">565</span>
+<span id="566">566</span>
+<span id="567">567</span>
+<span id="568">568</span>
+<span id="569">569</span>
+<span id="570">570</span>
+<span id="571">571</span>
+<span id="572">572</span>
+<span id="573">573</span>
+<span id="574">574</span>
+<span id="575">575</span>
+<span id="576">576</span>
+<span id="577">577</span>
+<span id="578">578</span>
+<span id="579">579</span>
+<span id="580">580</span>
+<span id="581">581</span>
+<span id="582">582</span>
+<span id="583">583</span>
+<span id="584">584</span>
+<span id="585">585</span>
+<span id="586">586</span>
+<span id="587">587</span>
+<span id="588">588</span>
+<span id="589">589</span>
+<span id="590">590</span>
+<span id="591">591</span>
+<span id="592">592</span>
+<span id="593">593</span>
+<span id="594">594</span>
+<span id="595">595</span>
+<span id="596">596</span>
+<span id="597">597</span>
+<span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
+<span id="602">602</span>
+<span id="603">603</span>
+<span id="604">604</span>
+<span id="605">605</span>
+<span id="606">606</span>
+<span id="607">607</span>
+<span id="608">608</span>
+<span id="609">609</span>
+<span id="610">610</span>
+<span id="611">611</span>
+<span id="612">612</span>
+<span id="613">613</span>
+<span id="614">614</span>
+<span id="615">615</span>
+<span id="616">616</span>
+<span id="617">617</span>
+<span id="618">618</span>
+<span id="619">619</span>
+<span id="620">620</span>
+<span id="621">621</span>
+<span id="622">622</span>
+<span id="623">623</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This crate allows interacting with the data stored by [`OsStr`] and</span>
 <span class="doccomment">//! [`OsString`], without resorting to panics or corruption for invalid UTF-8.</span>
 <span class="doccomment">//! Thus, methods can be used that are already defined on [`[u8]`][slice] and</span>
@@ -455,7 +646,7 @@
 <span class="doccomment">//! - The encoding will be compatible with UTF-8. In particular, splitting an</span>
 <span class="doccomment">//!   encoded byte sequence by a UTF-8–encoded character always produces other</span>
 <span class="doccomment">//!   valid byte sequences. They can be re-encoded without error using</span>
-<span class="doccomment">//!   [`OsStrBytes::from_raw_bytes`] and similar methods.</span>
+<span class="doccomment">//!   [`RawOsString::into_os_string`] and similar methods.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - All characters valid in platform strings are representable. [`OsStr`] and</span>
 <span class="doccomment">//!   [`OsString`] can always be losslessly reconstructed from extracted bytes.</span>
@@ -505,9 +696,26 @@
 <span class="doccomment">//!   For more information, see [`RawOsStr`][memchr complexity].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - **raw\_os\_str** -</span>
-<span class="doccomment">//!   Enables use of [`RawOsStr`] and [`RawOsString`].</span>
+<span class="doccomment">//!   Provides:</span>
+<span class="doccomment">//!   - [`iter`]</span>
+<span class="doccomment">//!   - [`Pattern`]</span>
+<span class="doccomment">//!   - [`RawOsStr`]</span>
+<span class="doccomment">//!   - [`RawOsStrCow`]</span>
+<span class="doccomment">//!   - [`RawOsString`]</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ### Optional Features</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - **checked\_conversions** -</span>
+<span class="doccomment">//!   Provides:</span>
+<span class="doccomment">//!   - [`EncodingError`]</span>
+<span class="doccomment">//!   - [`OsStrBytes::from_raw_bytes`]</span>
+<span class="doccomment">//!   - [`OsStringBytes::from_raw_vec`]</span>
+<span class="doccomment">//!   - [`RawOsStr::from_raw_bytes`]</span>
+<span class="doccomment">//!   - [`RawOsString::from_raw_vec`]</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   Because this feature should not be used in libraries, the</span>
+<span class="doccomment">//!   &quot;OS_STR_BYTES_CHECKED_CONVERSIONS&quot; environment variable must be defined</span>
+<span class="doccomment">//!   during compilation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - **print\_bytes** -</span>
 <span class="doccomment">//!   Provides implementations of [`print_bytes::ToBytes`] for [`RawOsStr`] and</span>
@@ -530,21 +738,23 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Complexity</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! The time complexities of trait methods will vary based on what</span>
-<span class="doccomment">//! functionality is available for the platform. At worst, they will all be</span>
-<span class="doccomment">//! linear, but some can take constant time. For example,</span>
-<span class="doccomment">//! [`OsStringBytes::from_raw_vec`] might be able to reuse the allocation for</span>
-<span class="doccomment">//! its argument.</span>
+<span class="doccomment">//! Conversion method complexities will vary based on what functionality is</span>
+<span class="doccomment">//! available for the platform. At worst, they will all be linear, but some can</span>
+<span class="doccomment">//! take constant time. For example, [`RawOsString::into_os_string`] might be</span>
+<span class="doccomment">//! able to reuse its allocation.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # Examples</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
+<span class="doccomment">//! # use std::io;</span>
+<span class="doccomment">//! #</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;raw_os_str&quot;)]</span>
+<span class="doccomment">//! # {</span>
 <span class="doccomment">//! # #[cfg(any())]</span>
 <span class="doccomment">//! use std::env;</span>
 <span class="doccomment">//! use std::fs;</span>
-<span class="doccomment">//! # use std::io;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! use os_str_bytes::OsStrBytes;</span>
+<span class="doccomment">//! use os_str_bytes::RawOsStr;</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! # mod env {</span>
 <span class="doccomment">//! #   use std::env;</span>
@@ -558,12 +768,13 @@
 <span class="doccomment">//! # }</span>
 <span class="doccomment">//! #</span>
 <span class="doccomment">//! for file in env::args_os().skip(1) {</span>
-<span class="doccomment">//!     if file.to_raw_bytes().first() != Some(&amp;b&#39;-&#39;) {</span>
+<span class="doccomment">//!     if !RawOsStr::new(&amp;file).starts_with(&#39;-&#39;) {</span>
 <span class="doccomment">//!         let string = &quot;Hello, world!&quot;;</span>
 <span class="doccomment">//!         fs::write(&amp;file, string)?;</span>
 <span class="doccomment">//!         assert_eq!(string, fs::read_to_string(file)?);</span>
 <span class="doccomment">//!     }</span>
 <span class="doccomment">//! }</span>
+<span class="doccomment">//! # }</span>
 <span class="doccomment">//! #</span>
 <span class="doccomment">//! # Ok::&lt;_, io::Error&gt;(())</span>
 <span class="doccomment">//! ```</span>
@@ -578,6 +789,7 @@
 <span class="doccomment">//! [sealed]: https://rust-lang.github.io/api-guidelines/future-proofing.html#c-sealed</span>
 <span class="doccomment">//! [print\_bytes]: https://crates.io/crates/print_bytes</span>
 
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>), <span class="ident">allow</span>(<span class="ident">deprecated</span>))]</span>
 <span class="comment">// Only require a nightly compiler when building documentation for docs.rs.</span>
 <span class="comment">// This is a private option that should not be used.</span>
 <span class="comment">// https://github.com/rust-lang/docs.rs/issues/147#issuecomment-389544407</span>
@@ -602,6 +814,41 @@
 <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 <span class="kw">use</span> <span class="ident">std::result</span>;
 
+<span class="macro">macro_rules!</span> <span class="ident">if_checked_conversions</span> {
+    ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span>)<span class="op">+</span> ) =&gt; {
+        $(
+            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>)]</span>
+            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>
+        )<span class="op">+</span>
+    };
+}
+
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">os_str_bytes_docs_rs</span>))]</span>
+<span class="macro">if_checked_conversions!</span> {
+    <span class="kw">const</span> <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="macro">env!</span>(
+        <span class="string">&quot;OS_STR_BYTES_CHECKED_CONVERSIONS&quot;</span>,
+        <span class="string">&quot;The &#39;OS_STR_BYTES_CHECKED_CONVERSIONS&#39; environment variable must be \
+         defined to use the &#39;checked_conversions&#39; feature.&quot;</span>,
+    );
+}
+
+<span class="attribute">#[<span class="ident">rustfmt::skip</span>]</span>
+<span class="macro">macro_rules!</span> <span class="ident">deprecated_checked_conversion</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">message</span>:<span class="ident">expr</span> , <span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span> ) =&gt; {
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(
+            <span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>),
+            <span class="ident">deprecated</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">message</span>
+        )]</span>
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>
+    };
+}
+
+<span class="macro">macro_rules!</span> <span class="ident">expect_encoded</span> {
+    ( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>:<span class="ident">expr</span> ) =&gt; {
+        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">result</span>.<span class="ident">expect</span>(<span class="string">&quot;invalid raw bytes&quot;</span>)
+    };
+}
+
 <span class="macro">macro_rules!</span> <span class="ident">if_raw_str</span> {
     ( $(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">item</span>:<span class="ident">item</span>)<span class="op">+</span> ) =&gt; {
         $(
@@ -612,16 +859,24 @@
 }
 
 <span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>),
-    <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm32/mod.rs&quot;</span>
+    <span class="ident">all</span>(<span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>),
+    <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;wasm/mod.rs&quot;</span>
 )]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">windows</span>, <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;windows/mod.rs&quot;</span>)]</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(
-    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_arch</span> <span class="op">=</span> <span class="string">&quot;wasm32&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>), <span class="ident">windows</span>)),
+    <span class="ident">not</span>(<span class="ident">any</span>(<span class="ident">all</span>(<span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>, <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>), <span class="ident">windows</span>)),
     <span class="ident">path</span> <span class="op">=</span> <span class="string">&quot;common/mod.rs&quot;</span>
 )]</span>
 <span class="kw">mod</span> <span class="ident">imp</span>;
 
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">any</span>(
+    <span class="ident">all</span>(
+        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;raw_os_str&quot;</span>,
+        <span class="ident">target_family</span> <span class="op">=</span> <span class="string">&quot;wasm&quot;</span>,
+        <span class="ident">target_os</span> <span class="op">=</span> <span class="string">&quot;unknown&quot;</span>,
+    ),
+    <span class="ident">windows</span>,
+))]</span>
 <span class="kw">mod</span> <span class="ident">util</span>;
 
 <span class="macro">if_raw_str!</span> {
@@ -632,38 +887,68 @@
 
     <span class="kw">mod</span> <span class="ident">raw_str</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">raw_str::RawOsStr</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">raw_str::RawOsStrCow</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">raw_str::RawOsString</span>;
 }
 
-<span class="doccomment">/// The error that occurs when a byte sequence is not representable in the</span>
-<span class="doccomment">/// platform encoding.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [`Result::unwrap`] should almost always be called on results containing</span>
-<span class="doccomment">/// this error. It should be known whether or not byte sequences are properly</span>
-<span class="doccomment">/// encoded for the platform, since [the module-level documentation][encoding]</span>
-<span class="doccomment">/// discourages using encoded bytes in interchange. Results are returned</span>
-<span class="doccomment">/// primarily to make panicking behavior explicit.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// On Unix, this error is never returned, but [`OsStrExt`] or [`OsStringExt`]</span>
-<span class="doccomment">/// should be used instead if that needs to be guaranteed.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [encoding]: self#encoding</span>
-<span class="doccomment">/// [`OsStrExt`]: ::std::os::unix::ffi::OsStrExt</span>
-<span class="doccomment">/// [`OsStringExt`]: ::std::os::unix::ffi::OsStringExt</span>
-<span class="doccomment">/// [`Result::unwrap`]: ::std::result::Result::unwrap</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodingError</span>(<span class="ident">imp::EncodingError</span>);
+<span class="macro">deprecated_checked_conversion!</span> {
+    <span class="string">&quot;use `OsStrBytes::assert_from_raw_bytes` or \
+     `OsStringBytes::assert_from_raw_vec` instead, or enable the \
+     &#39;checked_conversions&#39; feature&quot;</span>,
+    <span class="doccomment">/// The error that occurs when a byte sequence is not representable in the</span>
+    <span class="doccomment">/// platform encoding.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [`Result::unwrap`] should almost always be called on results containing</span>
+    <span class="doccomment">/// this error. It should be known whether or not byte sequences are</span>
+    <span class="doccomment">/// properly encoded for the platform, since [the module-level</span>
+    <span class="doccomment">/// documentation][encoding] discourages using encoded bytes in</span>
+    <span class="doccomment">/// interchange. Results are returned primarily to make panicking behavior</span>
+    <span class="doccomment">/// explicit.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// On Unix, this error is never returned, but [`OsStrExt`] or</span>
+    <span class="doccomment">/// [`OsStringExt`] should be used instead if that needs to be guaranteed.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [encoding]: self#encoding</span>
+    <span class="doccomment">/// [`OsStrExt`]: ::std::os::unix::ffi::OsStrExt</span>
+    <span class="doccomment">/// [`OsStringExt`]: ::std::os::unix::ffi::OsStringExt</span>
+    <span class="doccomment">/// [`Result::unwrap`]: ::std::result::Result::unwrap</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(
+        <span class="ident">os_str_bytes_docs_rs</span>,
+        <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>))
+    )]</span>
+    <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">EncodingError</span>(<span class="ident">imp::EncodingError</span>);
+}
 
 <span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">EncodingError</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">formatter</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">fmt</span>(<span class="ident">formatter</span>)
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">fmt</span>(<span class="ident">f</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">Error</span> <span class="kw">for</span> <span class="ident">EncodingError</span> {}
 
 <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">EncodingError</span><span class="op">&gt;</span>;
+
+<span class="kw">fn</span> <span class="ident">from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(
+    <span class="ident">string</span>: <span class="ident">S</span>,
+) -&gt; <span class="ident">result::Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">OsStr</span><span class="op">&gt;</span>, <span class="ident">imp::EncodingError</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+    <span class="kw">match</span> <span class="ident">string</span>.<span class="ident">into</span>() {
+        <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; <span class="ident">imp::os_str_from_bytes</span>(<span class="ident">string</span>),
+        <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">imp::os_string_from_vec</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="ident">Cow::Owned</span>),
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">cow_os_str_into_path</span>(<span class="ident">string</span>: <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">OsStr</span><span class="op">&gt;</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">Path</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">string</span> {
+        <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">Path::new</span>(<span class="ident">string</span>)),
+        <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">string</span>.<span class="ident">into</span>()),
+    }
+}
 
 <span class="doccomment">/// A platform agnostic variant of [`OsStrExt`].</span>
 <span class="doccomment">///</span>
@@ -672,14 +957,12 @@
 <span class="doccomment">/// [module]: self</span>
 <span class="doccomment">/// [`OsStrExt`]: ::std::os::unix::ffi::OsStrExt</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OsStrBytes</span>: <span class="ident">private::Sealed</span> <span class="op">+</span> <span class="ident">ToOwned</span> {
-    <span class="doccomment">/// Converts a byte slice into an equivalent platform-native string.</span>
+    <span class="doccomment">/// Converts a byte string into an equivalent platform-native string.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Provided byte strings should always be valid for the [unspecified</span>
-    <span class="doccomment">/// encoding] used by this crate.</span>
+    <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See documentation for [`EncodingError`].</span>
+    <span class="doccomment">/// Panics if the string is not valid for the [unspecified encoding] used</span>
+    <span class="doccomment">/// by this crate.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -692,32 +975,70 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let os_string = env::current_exe()?;</span>
     <span class="doccomment">/// let os_bytes = os_string.to_raw_bytes();</span>
-    <span class="doccomment">/// assert_eq!(os_string, OsStr::from_raw_bytes(os_bytes).unwrap());</span>
+    <span class="doccomment">/// assert_eq!(os_string, OsStr::assert_from_raw_bytes(os_bytes));</span>
     <span class="doccomment">/// #</span>
     <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [unspecified encoding]: self#encoding</span>
-    <span class="kw">fn</span> <span class="ident">from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
+    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;method should not be used for validation&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>;
 
-    <span class="doccomment">/// Converts a platform-native string into an equivalent byte slice.</span>
+    <span class="macro">deprecated_checked_conversion!</span> {
+        <span class="string">&quot;use `assert_from_raw_bytes` instead, or enable the \
+         &#39;checked_conversions&#39; feature&quot;</span>,
+        <span class="doccomment">/// Converts a byte string into an equivalent platform-native string.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// [`assert_from_raw_bytes`] should almost always be used instead. For</span>
+        <span class="doccomment">/// more information, see [`EncodingError`].</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Errors</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// See documentation for [`EncodingError`].</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Examples</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use std::env;</span>
+        <span class="doccomment">/// use std::ffi::OsStr;</span>
+        <span class="doccomment">/// # use std::io;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// use os_str_bytes::OsStrBytes;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let os_string = env::current_exe()?;</span>
+        <span class="doccomment">/// let os_bytes = os_string.to_raw_bytes();</span>
+        <span class="doccomment">/// assert_eq!(os_string, OsStr::from_raw_bytes(os_bytes).unwrap());</span>
+        <span class="doccomment">/// #</span>
+        <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// [`assert_from_raw_bytes`]: Self::assert_from_raw_bytes</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(
+            <span class="ident">os_str_bytes_docs_rs</span>,
+            <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>))
+        )]</span>
+        <span class="kw">fn</span> <span class="ident">from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
+        <span class="kw">where</span>
+            <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>;
+    }
+
+    <span class="doccomment">/// Converts a platform-native string into an equivalent byte string.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned bytes string will use an [unspecified encoding].</span>
+    <span class="doccomment">/// The returned string will use an [unspecified encoding].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::env;</span>
-    <span class="doccomment">/// # use std::io;</span>
+    <span class="doccomment">/// use std::ffi::OsStr;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// use os_str_bytes::OsStrBytes;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let os_string = env::current_exe()?;</span>
-    <span class="doccomment">/// println!(&quot;{:?}&quot;, os_string.to_raw_bytes());</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
+    <span class="doccomment">/// let string = &quot;foobar&quot;;</span>
+    <span class="doccomment">/// let os_string = OsStr::new(string);</span>
+    <span class="doccomment">/// assert_eq!(string.as_bytes(), &amp;*os_string.to_raw_bytes());</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [unspecified encoding]: self#encoding</span>
@@ -727,18 +1048,19 @@
 
 <span class="kw">impl</span> <span class="ident">OsStrBytes</span> <span class="kw">for</span> <span class="ident">OsStr</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="macro">expect_encoded!</span>(<span class="ident">from_raw_bytes</span>(<span class="ident">string</span>))
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="kw">match</span> <span class="ident">string</span>.<span class="ident">into</span>() {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>) =&gt; {
-                <span class="ident">imp::os_str_from_bytes</span>(<span class="ident">string</span>).<span class="ident">map_err</span>(<span class="ident">EncodingError</span>)
-            }
-            <span class="ident">Cow::Owned</span>(<span class="ident">string</span>) =&gt; {
-                <span class="ident">OsStringBytes::from_raw_vec</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="ident">Cow::Owned</span>)
-            }
-        }
+        <span class="ident">from_raw_bytes</span>(<span class="ident">string</span>).<span class="ident">map_err</span>(<span class="ident">EncodingError</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -749,14 +1071,19 @@
 
 <span class="kw">impl</span> <span class="ident">OsStrBytes</span> <span class="kw">for</span> <span class="ident">Path</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">cow_os_str_into_path</span>(<span class="ident">OsStr::assert_from_raw_bytes</span>(<span class="ident">string</span>))
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_raw_bytes</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">S</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="ident">S</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="self">Self</span><span class="op">&gt;</span><span class="op">&gt;</span>
     <span class="kw">where</span>
         <span class="ident">S</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, [<span class="ident">u8</span>]<span class="op">&gt;</span><span class="op">&gt;</span>,
     {
-        <span class="ident">OsStr::from_raw_bytes</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="op">|</span><span class="ident">os_string</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">os_string</span> {
-            <span class="ident">Cow::Borrowed</span>(<span class="ident">os_string</span>) =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">os_string</span>)),
-            <span class="ident">Cow::Owned</span>(<span class="ident">os_string</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">os_string</span>.<span class="ident">into</span>()),
-        })
+        <span class="ident">OsStr::from_raw_bytes</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="ident">cow_os_str_into_path</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -772,14 +1099,12 @@
 <span class="doccomment">/// [module]: self</span>
 <span class="doccomment">/// [`OsStringExt`]: ::std::os::unix::ffi::OsStringExt</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">OsStringBytes</span>: <span class="ident">private::Sealed</span> <span class="op">+</span> <span class="ident">Sized</span> {
-    <span class="doccomment">/// Converts a byte vector into an equivalent platform-native string.</span>
+    <span class="doccomment">/// Converts a byte string into an equivalent platform-native string.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Provided byte strings should always be valid for the [unspecified</span>
-    <span class="doccomment">/// encoding] used by this crate.</span>
+    <span class="doccomment">/// # Panics</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// # Errors</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See documentation for [`EncodingError`].</span>
+    <span class="doccomment">/// Panics if the string is not valid for the [unspecified encoding] used</span>
+    <span class="doccomment">/// by this crate.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -792,30 +1117,66 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let os_string = env::current_exe()?;</span>
     <span class="doccomment">/// let os_bytes = os_string.clone().into_raw_vec();</span>
-    <span class="doccomment">/// assert_eq!(os_string, OsString::from_raw_vec(os_bytes).unwrap());</span>
+    <span class="doccomment">/// assert_eq!(os_string, OsString::assert_from_raw_vec(os_bytes));</span>
     <span class="doccomment">/// #</span>
     <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [unspecified encoding]: self#encoding</span>
-    <span class="kw">fn</span> <span class="ident">from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    <span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;method should not be used for validation&quot;</span>]</span>
+    <span class="attribute">#[<span class="ident">track_caller</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span>;
 
-    <span class="doccomment">/// Converts a platform-native string into an equivalent byte vector.</span>
+    <span class="macro">deprecated_checked_conversion!</span> {
+        <span class="string">&quot;use `assert_from_raw_vec` instead, or enable the \
+         &#39;checked_conversions&#39; feature&quot;</span>,
+        <span class="doccomment">/// Converts a byte string into an equivalent platform-native string.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// [`assert_from_raw_vec`] should almost always be used instead. For</span>
+        <span class="doccomment">/// more information, see [`EncodingError`].</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Errors</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// See documentation for [`EncodingError`].</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Examples</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">/// use std::env;</span>
+        <span class="doccomment">/// use std::ffi::OsString;</span>
+        <span class="doccomment">/// # use std::io;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// use os_str_bytes::OsStringBytes;</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// let os_string = env::current_exe()?;</span>
+        <span class="doccomment">/// let os_bytes = os_string.clone().into_raw_vec();</span>
+        <span class="doccomment">/// assert_eq!(os_string, OsString::from_raw_vec(os_bytes).unwrap());</span>
+        <span class="doccomment">/// #</span>
+        <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
+        <span class="doccomment">/// ```</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// [`assert_from_raw_vec`]: Self::assert_from_raw_vec</span>
+        <span class="attribute">#[<span class="ident">cfg_attr</span>(
+            <span class="ident">os_str_bytes_docs_rs</span>,
+            <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;checked_conversions&quot;</span>))
+        )]</span>
+        <span class="kw">fn</span> <span class="ident">from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>;
+    }
+
+    <span class="doccomment">/// Converts a platform-native string into an equivalent byte string.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// The returned byte string will use an [unspecified encoding].</span>
+    <span class="doccomment">/// The returned string will use an [unspecified encoding].</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
-    <span class="doccomment">/// use std::env;</span>
-    <span class="doccomment">/// # use std::io;</span>
+    <span class="doccomment">/// use std::ffi::OsString;</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// use os_str_bytes::OsStringBytes;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let os_string = env::current_exe()?;</span>
-    <span class="doccomment">/// println!(&quot;{:?}&quot;, os_string.into_raw_vec());</span>
-    <span class="doccomment">/// #</span>
-    <span class="doccomment">/// # Ok::&lt;_, io::Error&gt;(())</span>
+    <span class="doccomment">/// let string = &quot;foobar&quot;.to_owned();</span>
+    <span class="doccomment">/// let os_string: OsString = string.clone().into();</span>
+    <span class="doccomment">/// assert_eq!(string.into_bytes(), os_string.into_raw_vec());</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [unspecified encoding]: self#encoding</span>
@@ -824,6 +1185,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">OsStringBytes</span> <span class="kw">for</span> <span class="ident">OsString</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="macro">expect_encoded!</span>(<span class="ident">imp::os_string_from_vec</span>(<span class="ident">string</span>))
+    }
+
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">imp::os_string_from_vec</span>(<span class="ident">string</span>).<span class="ident">map_err</span>(<span class="ident">EncodingError</span>)
@@ -836,6 +1202,11 @@
 }
 
 <span class="kw">impl</span> <span class="ident">OsStringBytes</span> <span class="kw">for</span> <span class="ident">PathBuf</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">assert_from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">OsString::assert_from_raw_vec</span>(<span class="ident">string</span>).<span class="ident">into</span>()
+    }
+
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from_raw_vec</span>(<span class="ident">string</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="ident">OsString::from_raw_vec</span>(<span class="ident">string</span>).<span class="ident">map</span>(<span class="ident">Into::into</span>)
@@ -853,7 +1224,14 @@
     <span class="kw">use</span> <span class="ident">std::path::Path</span>;
     <span class="kw">use</span> <span class="ident">std::path::PathBuf</span>;
 
+    <span class="macro">if_raw_str!</span> {
+        <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
+
+        <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::RawOsStr</span>;
+    }
+
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Sealed</span> {}
+
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">char</span> {}
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">OsStr</span> {}
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">OsString</span> {}
@@ -861,6 +1239,10 @@
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">PathBuf</span> {}
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">str</span> {}
     <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">String</span> {}
+
+    <span class="macro">if_raw_str!</span> {
+        <span class="kw">impl</span> <span class="ident">Sealed</span> <span class="kw">for</span> <span class="ident">Cow</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span>, <span class="ident">RawOsStr</span><span class="op">&gt;</span> {}
+    }
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="os_str_bytes" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

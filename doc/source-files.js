@@ -70,7 +70,7 @@ var sourcesIndex = JSON.parse('{\
 "num_integer":["",[],["average.rs","lib.rs","roots.rs"]],\
 "num_traits":["",[["ops",[],["checked.rs","euclid.rs","inv.rs","mod.rs","mul_add.rs","overflowing.rs","saturating.rs","wrapping.rs"]]],["bounds.rs","cast.rs","float.rs","identities.rs","int.rs","lib.rs","macros.rs","pow.rs","real.rs","sign.rs"]],\
 "once_cell":["",[],["imp_std.rs","lib.rs","race.rs"]],\
-"os_str_bytes":["",[["common",[],["mod.rs","raw.rs"]]],["iter.rs","lib.rs","pattern.rs","raw_str.rs","util.rs"]],\
+"os_str_bytes":["",[["common",[],["mod.rs","raw.rs"]]],["iter.rs","lib.rs","pattern.rs","raw_str.rs"]],\
 "parking_lot":["",[],["condvar.rs","deadlock.rs","elision.rs","fair_mutex.rs","lib.rs","mutex.rs","once.rs","raw_fair_mutex.rs","raw_mutex.rs","raw_rwlock.rs","remutex.rs","rwlock.rs","util.rs"]],\
 "parking_lot_core":["",[["thread_parker",[],["linux.rs","mod.rs"]]],["lib.rs","parking_lot.rs","spinwait.rs","util.rs","word_lock.rs"]],\
 "perf_event_open_sys":["",[],["bindings.rs","lib.rs"]],\
@@ -81,7 +81,7 @@ var sourcesIndex = JSON.parse('{\
 "postcard":["",[["de",[],["deserializer.rs","mod.rs"]],["ser",[],["flavors.rs","mod.rs","serializer.rs"]]],["accumulator.rs","error.rs","lib.rs","varint.rs"]],\
 "postcard_cobs":["",[],["dec.rs","enc.rs","lib.rs"]],\
 "ppv_lite86":["",[["x86_64",[],["mod.rs","sse2.rs"]]],["lib.rs","soft.rs","types.rs"]],\
-"proc_macro2":["",[],["detection.rs","fallback.rs","lib.rs","marker.rs","parse.rs","wrapper.rs"]],\
+"proc_macro2":["",[],["detection.rs","fallback.rs","lib.rs","marker.rs","parse.rs","rcvec.rs","wrapper.rs"]],\
 "proc_macro_error":["",[["imp",[],["fallback.rs"]]],["diagnostic.rs","dummy.rs","lib.rs","macros.rs","sealed.rs"]],\
 "proc_macro_error_attr":["",[],["lib.rs","parse.rs","settings.rs"]],\
 "quote":["",[],["ext.rs","format.rs","ident_fragment.rs","lib.rs","runtime.rs","spanned.rs","to_tokens.rs"]],\
@@ -113,7 +113,7 @@ var sourcesIndex = JSON.parse('{\
 "termcolor":["",[],["lib.rs"]],\
 "textwrap":["",[],["core.rs","indentation.rs","lib.rs","line_ending.rs","word_separators.rs","word_splitters.rs","wrap_algorithms.rs"]],\
 "time":["",[],["display.rs","duration.rs","lib.rs","parse.rs","sys.rs"]],\
-"tinystr":["",[],["ascii.rs","error.rs","int_ops.rs","lib.rs","macros.rs","serde.rs","ule.rs"]],\
+"tinystr":["",[],["ascii.rs","error.rs","int_ops.rs","lib.rs","macros.rs","serde.rs","ule.rs","ule_07.rs"]],\
 "tinyvec":["",[["array",[],["generated_impl.rs"]]],["array.rs","arrayvec.rs","arrayvec_drain.rs","lib.rs","slicevec.rs","tinyvec.rs"]],\
 "tinyvec_macros":["",[],["lib.rs"]],\
 "unicode_general_category":["",[],["category.rs","lib.rs","tables.rs"]],\
@@ -131,7 +131,6 @@ var sourcesIndex = JSON.parse('{\
 "yoke_derive":["",[],["lib.rs","visitor.rs"]],\
 "zerofrom":["",[],["lib.rs","macro_impls.rs","zero_from.rs"]],\
 "zerofrom_derive":["",[],["lib.rs","visitor.rs"]],\
-"zerovec":["",[["map",[],["borrowed.rs","kv.rs","map.rs","mod.rs","serde.rs","vecs.rs"]],["map2d",[],["borrowed.rs","map.rs","mod.rs","serde.rs"]],["ule",[],["chars.rs","custom.rs","encode.rs","mod.rs","multi.rs","option.rs","plain.rs","slices.rs","tuple.rs"]],["varzerovec",[],["components.rs","mod.rs","owned.rs","serde.rs","slice.rs","vec.rs"]],["zerovec",[],["mod.rs","serde.rs","slice.rs"]]],["error.rs","lib.rs","yoke_impls.rs","zerofrom_impls.rs"]],\
-"zerovec_derive":["",[],["lib.rs","make_ule.rs","make_varule.rs","ule.rs","utils.rs","varule.rs"]]\
+"zerovec":["",[["flexzerovec",[],["mod.rs","owned.rs","slice.rs","vec.rs"]],["map",[],["borrowed.rs","kv.rs","map.rs","mod.rs","vecs.rs"]],["map2d",[],["borrowed.rs","cursor.rs","map.rs","mod.rs"]],["ule",[],["chars.rs","custom.rs","encode.rs","mod.rs","multi.rs","option.rs","plain.rs","slices.rs","tuple.rs"]],["varzerovec",[],["components.rs","mod.rs","owned.rs","slice.rs","vec.rs"]],["zerovec",[],["mod.rs","slice.rs"]]],["error.rs","lib.rs","zerofrom_impls.rs"]]\
 }');
 createSourceSidebar();

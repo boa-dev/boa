@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.39/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/proc-macro2-1.0.43/src/parse.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parse.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../proc_macro2/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../proc_macro2/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -863,12 +863,19 @@
 <span id="863">863</span>
 <span id="864">864</span>
 <span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::fallback</span>::{
     <span class="ident">is_ident_continue</span>, <span class="ident">is_ident_start</span>, <span class="ident">Group</span>, <span class="ident">LexError</span>, <span class="ident">Literal</span>, <span class="ident">Span</span>, <span class="ident">TokenStream</span>,
+    <span class="ident">TokenStreamBuilder</span>,
 };
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Delimiter</span>, <span class="ident">Punct</span>, <span class="ident">Spacing</span>, <span class="ident">TokenTree</span>};
-<span class="kw">use</span> <span class="ident">std::char</span>;
-<span class="kw">use</span> <span class="ident">std::str</span>::{<span class="ident">Bytes</span>, <span class="ident">CharIndices</span>, <span class="ident">Chars</span>};
+<span class="kw">use</span> <span class="ident">core::char</span>;
+<span class="kw">use</span> <span class="ident">core::str</span>::{<span class="ident">Bytes</span>, <span class="ident">CharIndices</span>, <span class="ident">Chars</span>};
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
@@ -1015,14 +1022,13 @@
 }
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">token_stream</span>(<span class="kw-2">mut</span> <span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">TokenStream</span>, <span class="ident">LexError</span><span class="op">&gt;</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">TokenStreamBuilder::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="kw">loop</span> {
         <span class="ident">input</span> <span class="op">=</span> <span class="ident">skip_whitespace</span>(<span class="ident">input</span>);
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) <span class="op">=</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>) {
-            <span class="ident">trees</span>.<span class="ident">extend</span>(<span class="ident">tt</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, ())) <span class="op">=</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>, <span class="kw-2">&amp;mut</span> <span class="ident">trees</span>) {
             <span class="ident">input</span> <span class="op">=</span> <span class="ident">rest</span>;
             <span class="kw">continue</span>;
         }
@@ -1033,7 +1039,7 @@
         <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">input</span>.<span class="ident">bytes</span>().<span class="ident">next</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">first</span>) =&gt; <span class="ident">first</span>,
             <span class="prelude-val">None</span> =&gt; <span class="kw">match</span> <span class="ident">stack</span>.<span class="ident">last</span>() {
-                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">TokenStream::from</span>(<span class="ident">trees</span>)),
+                <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">trees</span>.<span class="ident">build</span>()),
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="prelude-val">Some</span>((<span class="ident">lo</span>, <span class="ident">_frame</span>)) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">LexError</span> {
@@ -1056,7 +1062,7 @@
             <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
             <span class="kw">let</span> <span class="ident">frame</span> <span class="op">=</span> (<span class="ident">lo</span>, <span class="ident">frame</span>);
             <span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">frame</span>);
-            <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+            <span class="ident">trees</span> <span class="op">=</span> <span class="ident">TokenStreamBuilder::new</span>();
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">close_delimiter</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">first</span> {
             <span class="string">b&#39;)&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Parenthesis</span>),
             <span class="string">b&#39;]&#39;</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Delimiter::Bracket</span>),
@@ -1074,7 +1080,7 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">lex_error</span>(<span class="ident">input</span>));
             }
             <span class="ident">input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">advance</span>(<span class="number">1</span>);
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Group::new</span>(<span class="ident">open_delimiter</span>, <span class="ident">TokenStream::from</span>(<span class="ident">trees</span>));
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">g</span> <span class="op">=</span> <span class="ident">Group::new</span>(<span class="ident">open_delimiter</span>, <span class="ident">trees</span>.<span class="ident">build</span>());
             <span class="ident">g</span>.<span class="ident">set_span</span>(<span class="ident">Span</span> {
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="ident">lo</span>,
@@ -1082,7 +1088,7 @@
                 <span class="ident">hi</span>: <span class="ident">input</span>.<span class="ident">off</span>,
             });
             <span class="ident">trees</span> <span class="op">=</span> <span class="ident">outer</span>;
-            <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">TokenTree::Group</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">g</span>)));
+            <span class="ident">trees</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Group</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">g</span>)));
         } <span class="kw">else</span> {
             <span class="kw">let</span> (<span class="ident">rest</span>, <span class="kw-2">mut</span> <span class="ident">tt</span>) <span class="op">=</span> <span class="kw">match</span> <span class="ident">leaf_token</span>(<span class="ident">input</span>) {
                 <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">tt</span>)) =&gt; (<span class="ident">rest</span>, <span class="ident">tt</span>),
@@ -1094,7 +1100,7 @@
                 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
                 <span class="ident">hi</span>: <span class="ident">rest</span>.<span class="ident">off</span>,
             }));
-            <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">tt</span>);
+            <span class="ident">trees</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">tt</span>);
             <span class="ident">input</span> <span class="op">=</span> <span class="ident">rest</span>;
         }
     }
@@ -1651,7 +1657,7 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">doc_comment</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">TokenTree</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">doc_comment</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">input</span>: <span class="ident">Cursor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>, <span class="ident">trees</span>: <span class="kw-2">&amp;mut</span> <span class="ident">TokenStreamBuilder</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, ()<span class="op">&gt;</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">span_locations</span>)]</span>
     <span class="kw">let</span> <span class="ident">lo</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">off</span>;
     <span class="kw">let</span> (<span class="ident">rest</span>, (<span class="ident">comment</span>, <span class="ident">inner</span>)) <span class="op">=</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>)<span class="question-mark">?</span>;
@@ -1671,25 +1677,31 @@
         <span class="ident">scan_for_bare_cr</span> <span class="op">=</span> <span class="ident">rest</span>;
     }
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">trees</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
-    <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;#&#39;</span>, <span class="ident">Spacing::Alone</span>)));
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">pound</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;#&#39;</span>, <span class="ident">Spacing::Alone</span>);
+    <span class="ident">pound</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
+    <span class="ident">trees</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">pound</span>));
+
     <span class="kw">if</span> <span class="ident">inner</span> {
-        <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;!&#39;</span>, <span class="ident">Spacing::Alone</span>).<span class="ident">into</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bang</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;!&#39;</span>, <span class="ident">Spacing::Alone</span>);
+        <span class="ident">bang</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
+        <span class="ident">trees</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">bang</span>));
     }
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stream</span> <span class="op">=</span> <span class="macro">vec!</span>[
-        <span class="ident">TokenTree::Ident</span>(<span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <span class="ident">span</span>)),
-        <span class="ident">TokenTree::Punct</span>(<span class="ident">Punct::new</span>(<span class="string">&#39;=&#39;</span>, <span class="ident">Spacing::Alone</span>)),
-        <span class="ident">TokenTree::Literal</span>(<span class="ident"><span class="kw">crate</span>::Literal::string</span>(<span class="ident">comment</span>)),
-    ];
-    <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">stream</span> {
-        <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-    }
-    <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group::new</span>(<span class="ident">Delimiter::Bracket</span>, <span class="ident">TokenStream::from</span>(<span class="ident">stream</span>));
-    <span class="ident">trees</span>.<span class="ident">push</span>(<span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">group</span>).<span class="ident">into</span>());
-    <span class="kw">for</span> <span class="ident">tt</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">trees</span> {
-        <span class="ident">tt</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
-    }
-    <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, <span class="ident">trees</span>))
+
+    <span class="kw">let</span> <span class="ident">doc_ident</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Ident::new</span>(<span class="string">&quot;doc&quot;</span>, <span class="ident">span</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">equal</span> <span class="op">=</span> <span class="ident">Punct::new</span>(<span class="string">&#39;=&#39;</span>, <span class="ident">Spacing::Alone</span>);
+    <span class="ident">equal</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">literal</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Literal::string</span>(<span class="ident">comment</span>);
+    <span class="ident">literal</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bracketed</span> <span class="op">=</span> <span class="ident">TokenStreamBuilder::with_capacity</span>(<span class="number">3</span>);
+    <span class="ident">bracketed</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Ident</span>(<span class="ident">doc_ident</span>));
+    <span class="ident">bracketed</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Punct</span>(<span class="ident">equal</span>));
+    <span class="ident">bracketed</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Literal</span>(<span class="ident">literal</span>));
+    <span class="kw">let</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident">Group::new</span>(<span class="ident">Delimiter::Bracket</span>, <span class="ident">bracketed</span>.<span class="ident">build</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::Group::_new_stable</span>(<span class="ident">group</span>);
+    <span class="ident">group</span>.<span class="ident">set_span</span>(<span class="ident">span</span>);
+    <span class="ident">trees</span>.<span class="ident">push_token_from_parser</span>(<span class="ident">TokenTree::Group</span>(<span class="ident">group</span>));
+
+    <span class="prelude-val">Ok</span>((<span class="ident">rest</span>, ()))
 }
 
 <span class="kw">fn</span> <span class="ident">doc_comment_contents</span>(<span class="ident">input</span>: <span class="ident">Cursor</span>) -&gt; <span class="ident">PResult</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {

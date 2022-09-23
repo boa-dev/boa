@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.10.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bumpalo/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/bumpalo-3.11.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../bumpalo/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../bumpalo/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1847,6 +1847,176 @@
 <span id="1847">1847</span>
 <span id="1848">1848</span>
 <span id="1849">1849</span>
+<span id="1850">1850</span>
+<span id="1851">1851</span>
+<span id="1852">1852</span>
+<span id="1853">1853</span>
+<span id="1854">1854</span>
+<span id="1855">1855</span>
+<span id="1856">1856</span>
+<span id="1857">1857</span>
+<span id="1858">1858</span>
+<span id="1859">1859</span>
+<span id="1860">1860</span>
+<span id="1861">1861</span>
+<span id="1862">1862</span>
+<span id="1863">1863</span>
+<span id="1864">1864</span>
+<span id="1865">1865</span>
+<span id="1866">1866</span>
+<span id="1867">1867</span>
+<span id="1868">1868</span>
+<span id="1869">1869</span>
+<span id="1870">1870</span>
+<span id="1871">1871</span>
+<span id="1872">1872</span>
+<span id="1873">1873</span>
+<span id="1874">1874</span>
+<span id="1875">1875</span>
+<span id="1876">1876</span>
+<span id="1877">1877</span>
+<span id="1878">1878</span>
+<span id="1879">1879</span>
+<span id="1880">1880</span>
+<span id="1881">1881</span>
+<span id="1882">1882</span>
+<span id="1883">1883</span>
+<span id="1884">1884</span>
+<span id="1885">1885</span>
+<span id="1886">1886</span>
+<span id="1887">1887</span>
+<span id="1888">1888</span>
+<span id="1889">1889</span>
+<span id="1890">1890</span>
+<span id="1891">1891</span>
+<span id="1892">1892</span>
+<span id="1893">1893</span>
+<span id="1894">1894</span>
+<span id="1895">1895</span>
+<span id="1896">1896</span>
+<span id="1897">1897</span>
+<span id="1898">1898</span>
+<span id="1899">1899</span>
+<span id="1900">1900</span>
+<span id="1901">1901</span>
+<span id="1902">1902</span>
+<span id="1903">1903</span>
+<span id="1904">1904</span>
+<span id="1905">1905</span>
+<span id="1906">1906</span>
+<span id="1907">1907</span>
+<span id="1908">1908</span>
+<span id="1909">1909</span>
+<span id="1910">1910</span>
+<span id="1911">1911</span>
+<span id="1912">1912</span>
+<span id="1913">1913</span>
+<span id="1914">1914</span>
+<span id="1915">1915</span>
+<span id="1916">1916</span>
+<span id="1917">1917</span>
+<span id="1918">1918</span>
+<span id="1919">1919</span>
+<span id="1920">1920</span>
+<span id="1921">1921</span>
+<span id="1922">1922</span>
+<span id="1923">1923</span>
+<span id="1924">1924</span>
+<span id="1925">1925</span>
+<span id="1926">1926</span>
+<span id="1927">1927</span>
+<span id="1928">1928</span>
+<span id="1929">1929</span>
+<span id="1930">1930</span>
+<span id="1931">1931</span>
+<span id="1932">1932</span>
+<span id="1933">1933</span>
+<span id="1934">1934</span>
+<span id="1935">1935</span>
+<span id="1936">1936</span>
+<span id="1937">1937</span>
+<span id="1938">1938</span>
+<span id="1939">1939</span>
+<span id="1940">1940</span>
+<span id="1941">1941</span>
+<span id="1942">1942</span>
+<span id="1943">1943</span>
+<span id="1944">1944</span>
+<span id="1945">1945</span>
+<span id="1946">1946</span>
+<span id="1947">1947</span>
+<span id="1948">1948</span>
+<span id="1949">1949</span>
+<span id="1950">1950</span>
+<span id="1951">1951</span>
+<span id="1952">1952</span>
+<span id="1953">1953</span>
+<span id="1954">1954</span>
+<span id="1955">1955</span>
+<span id="1956">1956</span>
+<span id="1957">1957</span>
+<span id="1958">1958</span>
+<span id="1959">1959</span>
+<span id="1960">1960</span>
+<span id="1961">1961</span>
+<span id="1962">1962</span>
+<span id="1963">1963</span>
+<span id="1964">1964</span>
+<span id="1965">1965</span>
+<span id="1966">1966</span>
+<span id="1967">1967</span>
+<span id="1968">1968</span>
+<span id="1969">1969</span>
+<span id="1970">1970</span>
+<span id="1971">1971</span>
+<span id="1972">1972</span>
+<span id="1973">1973</span>
+<span id="1974">1974</span>
+<span id="1975">1975</span>
+<span id="1976">1976</span>
+<span id="1977">1977</span>
+<span id="1978">1978</span>
+<span id="1979">1979</span>
+<span id="1980">1980</span>
+<span id="1981">1981</span>
+<span id="1982">1982</span>
+<span id="1983">1983</span>
+<span id="1984">1984</span>
+<span id="1985">1985</span>
+<span id="1986">1986</span>
+<span id="1987">1987</span>
+<span id="1988">1988</span>
+<span id="1989">1989</span>
+<span id="1990">1990</span>
+<span id="1991">1991</span>
+<span id="1992">1992</span>
+<span id="1993">1993</span>
+<span id="1994">1994</span>
+<span id="1995">1995</span>
+<span id="1996">1996</span>
+<span id="1997">1997</span>
+<span id="1998">1998</span>
+<span id="1999">1999</span>
+<span id="2000">2000</span>
+<span id="2001">2001</span>
+<span id="2002">2002</span>
+<span id="2003">2003</span>
+<span id="2004">2004</span>
+<span id="2005">2005</span>
+<span id="2006">2006</span>
+<span id="2007">2007</span>
+<span id="2008">2008</span>
+<span id="2009">2009</span>
+<span id="2010">2010</span>
+<span id="2011">2011</span>
+<span id="2012">2012</span>
+<span id="2013">2013</span>
+<span id="2014">2014</span>
+<span id="2015">2015</span>
+<span id="2016">2016</span>
+<span id="2017">2017</span>
+<span id="2018">2018</span>
+<span id="2019">2019</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">doc</span> <span class="op">=</span> <span class="macro">include_str!</span>(<span class="string">&quot;../README.md&quot;</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
@@ -2101,10 +2271,46 @@
 <span class="doccomment">/// [`Result`]: https://doc.rust-lang.org/std/result/enum.Result.html</span>
 <span class="doccomment">/// [`Ok`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Ok</span>
 <span class="doccomment">/// [`Err`]: https://doc.rust-lang.org/std/result/enum.Result.html#variant.Err</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ### `Bump` Allocation Limits</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `bumpalo` supports setting a limit on the maximum bytes of memory that can</span>
+<span class="doccomment">/// be allocated for use in a particular `Bump` arena. This limit can be set and removed with</span>
+<span class="doccomment">/// [`set_allocation_limit`][Bump::set_allocation_limit].</span>
+<span class="doccomment">/// The allocation limit is only enforced when allocating new backing chunks for</span>
+<span class="doccomment">/// a `Bump`. Updating the allocation limit will not affect existing allocations</span>
+<span class="doccomment">/// or any future allocations within the `Bump`&#39;s current chunk.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #### Example</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">/// let bump = bumpalo::Bump::new();</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(bump.allocation_limit(), None);</span>
+<span class="doccomment">/// bump.set_allocation_limit(Some(0));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert!(bump.try_alloc(5).is_err());</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// bump.set_allocation_limit(Some(6));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(bump.allocation_limit(), Some(6));</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// bump.set_allocation_limit(None);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// assert_eq!(bump.allocation_limit(), None);</span>
+<span class="doccomment">/// ```</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #### Warning</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Because of backwards compatibility, allocations that fail</span>
+<span class="doccomment">/// due to allocation limits will not present differently than</span>
+<span class="doccomment">/// errors due to resource exhaustion.</span>
+
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Bump</span> {
     <span class="comment">// The current chunk we are bump allocating within.</span>
     <span class="ident">current_chunk_footer</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">allocation_limit</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">C</span>)]</span>
@@ -2125,6 +2331,12 @@
 
     <span class="comment">// Bump allocation finger that is always in the range `self.data..=self`.</span>
     <span class="ident">ptr</span>: <span class="ident">Cell</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+
+    <span class="comment">// The bytes allocated in all chunks so far, the canonical empty chunk has</span>
+    <span class="comment">// a size of 0 and for all other chunks, `allocated_bytes` will be</span>
+    <span class="comment">// the allocated_bytes of the current chunk plus the allocated bytes</span>
+    <span class="comment">// of the `prev` chunk.</span>
+    <span class="ident">allocated_bytes</span>: <span class="ident">usize</span>,
 }
 
 <span class="doccomment">/// A wrapper type for the canonical, statically allocated empty chunk.</span>
@@ -2154,6 +2366,9 @@
     <span class="ident">prev</span>: <span class="ident">Cell::new</span>(<span class="kw">unsafe</span> {
         <span class="ident">NonNull::new_unchecked</span>(<span class="kw-2">&amp;</span><span class="ident">EMPTY_CHUNK</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">EmptyChunkFooter</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ChunkFooter</span>)
     }),
+
+    <span class="comment">// Empty chunks count as 0 allocated bytes in an arena.</span>
+    <span class="ident">allocated_bytes</span>: <span class="number">0</span>,
 });
 
 <span class="kw">impl</span> <span class="ident">EmptyChunkFooter</span> {
@@ -2256,6 +2471,15 @@
 <span class="comment">// take the alignment into account.</span>
 <span class="kw">const</span> <span class="ident">DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">FIRST_ALLOCATION_GOAL</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
 
+<span class="doccomment">/// The memory size and alignment details for a potential new chunk</span>
+<span class="doccomment">/// allocation.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="kw">struct</span> <span class="ident">NewChunkMemoryDetails</span> {
+    <span class="ident">new_size_without_footer</span>: <span class="ident">usize</span>,
+    <span class="ident">align</span>: <span class="ident">usize</span>,
+    <span class="ident">size</span>: <span class="ident">usize</span>,
+}
+
 <span class="doccomment">/// Wrapper around `Layout::from_size_align` that adds debug assertions.</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
 <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">layout_from_size_align</span>(<span class="ident">size</span>: <span class="ident">usize</span>, <span class="ident">align</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Layout</span> {
@@ -2269,6 +2493,12 @@
 <span class="attribute">#[<span class="ident">inline</span>(<span class="ident">never</span>)]</span>
 <span class="kw">fn</span> <span class="ident">allocation_size_overflow</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>() -&gt; <span class="ident">T</span> {
     <span class="macro">panic!</span>(<span class="string">&quot;requested allocation size overflowed&quot;</span>)
+}
+
+<span class="comment">// This can be migrated to directly use `usize::abs_diff` when the MSRV</span>
+<span class="comment">// reaches `1.60`</span>
+<span class="kw">fn</span> <span class="ident">abs_diff</span>(<span class="ident">a</span>: <span class="ident">usize</span>, <span class="ident">b</span>: <span class="ident">usize</span>) -&gt; <span class="ident">usize</span> {
+    <span class="ident">usize::max</span>(<span class="ident">a</span>, <span class="ident">b</span>) <span class="op">-</span> <span class="ident">usize::min</span>(<span class="ident">a</span>, <span class="ident">b</span>)
 }
 
 <span class="kw">impl</span> <span class="ident">Bump</span> {
@@ -2320,18 +2550,138 @@
         <span class="kw">if</span> <span class="ident">capacity</span> <span class="op">==</span> <span class="number">0</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Bump</span> {
                 <span class="ident">current_chunk_footer</span>: <span class="ident">Cell::new</span>(<span class="ident">EMPTY_CHUNK</span>.<span class="ident">get</span>()),
+                <span class="ident">allocation_limit</span>: <span class="ident">Cell::new</span>(<span class="prelude-val">None</span>),
             });
         }
 
-        <span class="kw">let</span> <span class="ident">chunk_footer</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::new_chunk</span>(
-            <span class="prelude-val">None</span>,
-            <span class="kw">unsafe</span> { <span class="ident">layout_from_size_align</span>(<span class="ident">capacity</span>, <span class="number">1</span>) },
-            <span class="ident">EMPTY_CHUNK</span>.<span class="ident">get</span>(),
-        )
-        .<span class="ident">ok_or</span>(<span class="ident">AllocErr</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">layout_from_size_align</span>(<span class="ident">capacity</span>, <span class="number">1</span>) };
+
+        <span class="kw">let</span> <span class="ident">chunk_footer</span> <span class="op">=</span> <span class="kw">unsafe</span> {
+            <span class="ident"><span class="self">Self</span>::new_chunk</span>(
+                <span class="ident">Bump::new_chunk_memory_details</span>(<span class="prelude-val">None</span>, <span class="ident">layout</span>).<span class="ident">ok_or</span>(<span class="ident">AllocErr</span>)<span class="question-mark">?</span>,
+                <span class="ident">layout</span>,
+                <span class="ident">EMPTY_CHUNK</span>.<span class="ident">get</span>(),
+            )
+            .<span class="ident">ok_or</span>(<span class="ident">AllocErr</span>)<span class="question-mark">?</span>
+        };
 
         <span class="prelude-val">Ok</span>(<span class="ident">Bump</span> {
             <span class="ident">current_chunk_footer</span>: <span class="ident">Cell::new</span>(<span class="ident">chunk_footer</span>),
+            <span class="ident">allocation_limit</span>: <span class="ident">Cell::new</span>(<span class="prelude-val">None</span>),
+        })
+    }
+
+    <span class="doccomment">/// The allocation limit for this arena in bytes.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::with_capacity(0);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(bump.allocation_limit(), None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// bump.set_allocation_limit(Some(6));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(bump.allocation_limit(), Some(6));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// bump.set_allocation_limit(None);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(bump.allocation_limit(), None);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocation_limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">allocation_limit</span>.<span class="ident">get</span>()
+    }
+
+    <span class="doccomment">/// Set the allocation limit in bytes for this arena.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// The allocation limit is only enforced when allocating new backing chunks for</span>
+    <span class="doccomment">/// a `Bump`. Updating the allocation limit will not affect existing allocations</span>
+    <span class="doccomment">/// or any future allocations within the `Bump`&#39;s current chunk.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ## Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">/// let bump = bumpalo::Bump::with_capacity(0);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// bump.set_allocation_limit(Some(0));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert!(bump.try_alloc(5).is_err());</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_allocation_limit</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">limit</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="self">self</span>.<span class="ident">allocation_limit</span>.<span class="ident">set</span>(<span class="ident">limit</span>)
+    }
+
+    <span class="doccomment">/// How much headroom an arena has before it hits its allocation</span>
+    <span class="doccomment">/// limit.</span>
+    <span class="kw">fn</span> <span class="ident">allocation_limit_remaining</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">allocation_limit</span>.<span class="ident">get</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">allocation_limit</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">allocated_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">allocated_bytes</span>();
+            <span class="kw">if</span> <span class="ident">allocated_bytes</span> <span class="op">&gt;</span> <span class="ident">allocation_limit</span> {
+                <span class="prelude-val">None</span>
+            } <span class="kw">else</span> {
+                <span class="prelude-val">Some</span>(<span class="ident">abs_diff</span>(<span class="ident">allocation_limit</span>, <span class="ident">allocated_bytes</span>))
+            }
+        })
+    }
+
+    <span class="doccomment">/// Whether a request to allocate a new chunk with a given size for a given</span>
+    <span class="doccomment">/// requested layout will fit under the allocation limit set on a `Bump`.</span>
+    <span class="kw">fn</span> <span class="ident">chunk_fits_under_limit</span>(
+        <span class="ident">allocation_limit_remaining</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">new_chunk_memory_details</span>: <span class="ident">NewChunkMemoryDetails</span>,
+    ) -&gt; <span class="ident">bool</span> {
+        <span class="ident">allocation_limit_remaining</span>
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">allocation_limit_left</span><span class="op">|</span> {
+                <span class="ident">allocation_limit_left</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">new_chunk_memory_details</span>.<span class="ident">new_size_without_footer</span>
+            })
+            .<span class="ident">unwrap_or</span>(<span class="bool-val">true</span>)
+    }
+
+    <span class="doccomment">/// Determine the memory details including final size, alignment and</span>
+    <span class="doccomment">/// final size without footer for a new chunk that would be allocated</span>
+    <span class="doccomment">/// to fulfill an allocation request.</span>
+    <span class="kw">fn</span> <span class="ident">new_chunk_memory_details</span>(
+        <span class="ident">new_size_without_footer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+        <span class="ident">requested_layout</span>: <span class="ident">Layout</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NewChunkMemoryDetails</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_size_without_footer</span> <span class="op">=</span>
+            <span class="ident">new_size_without_footer</span>.<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER</span>);
+
+        <span class="comment">// We want to have CHUNK_ALIGN or better alignment</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">CHUNK_ALIGN</span>;
+
+        <span class="comment">// If we already know we need to fulfill some request,</span>
+        <span class="comment">// make sure we allocate at least enough to satisfy it</span>
+        <span class="ident">align</span> <span class="op">=</span> <span class="ident">align</span>.<span class="ident">max</span>(<span class="ident">requested_layout</span>.<span class="ident">align</span>());
+        <span class="kw">let</span> <span class="ident">requested_size</span> <span class="op">=</span>
+            <span class="ident">round_up_to</span>(<span class="ident">requested_layout</span>.<span class="ident">size</span>(), <span class="ident">align</span>).<span class="ident">unwrap_or_else</span>(<span class="ident">allocation_size_overflow</span>);
+        <span class="ident">new_size_without_footer</span> <span class="op">=</span> <span class="ident">new_size_without_footer</span>.<span class="ident">max</span>(<span class="ident">requested_size</span>);
+
+        <span class="comment">// We want our allocations to play nice with the memory allocator,</span>
+        <span class="comment">// and waste as little memory as possible.</span>
+        <span class="comment">// For small allocations, this means that the entire allocation</span>
+        <span class="comment">// including the chunk footer and mallocs internal overhead is</span>
+        <span class="comment">// as close to a power of two as we can go without going over.</span>
+        <span class="comment">// For larger allocations, we only need to get close to a page</span>
+        <span class="comment">// boundary without going over.</span>
+        <span class="kw">if</span> <span class="ident">new_size_without_footer</span> <span class="op">&lt;</span> <span class="ident">PAGE_STRATEGY_CUTOFF</span> {
+            <span class="ident">new_size_without_footer</span> <span class="op">=</span>
+                (<span class="ident">new_size_without_footer</span> <span class="op">+</span> <span class="ident">OVERHEAD</span>).<span class="ident">next_power_of_two</span>() <span class="op">-</span> <span class="ident">OVERHEAD</span>;
+        } <span class="kw">else</span> {
+            <span class="ident">new_size_without_footer</span> <span class="op">=</span>
+                <span class="ident">round_up_to</span>(<span class="ident">new_size_without_footer</span> <span class="op">+</span> <span class="ident">OVERHEAD</span>, <span class="number">0x1000</span>)<span class="question-mark">?</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
+        }
+
+        <span class="macro">debug_assert_eq!</span>(<span class="ident">align</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="ident">new_size_without_footer</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">new_size_without_footer</span>
+            .<span class="ident">checked_add</span>(<span class="ident">FOOTER_SIZE</span>)
+            .<span class="ident">unwrap_or_else</span>(<span class="ident">allocation_size_overflow</span>);
+
+        <span class="prelude-val">Some</span>(<span class="ident">NewChunkMemoryDetails</span> {
+            <span class="ident">new_size_without_footer</span>,
+            <span class="ident">size</span>,
+            <span class="ident">align</span>,
         })
     }
 
@@ -2340,74 +2690,50 @@
     <span class="doccomment">/// If given, `layouts` is a tuple of the current chunk size and the</span>
     <span class="doccomment">/// layout of the allocation request that triggered us to fall back to</span>
     <span class="doccomment">/// allocating a new chunk of memory.</span>
-    <span class="kw">fn</span> <span class="ident">new_chunk</span>(
-        <span class="ident">new_size_without_footer</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>,
+    <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">new_chunk</span>(
+        <span class="ident">new_chunk_memory_details</span>: <span class="ident">NewChunkMemoryDetails</span>,
         <span class="ident">requested_layout</span>: <span class="ident">Layout</span>,
         <span class="ident">prev</span>: <span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>,
     ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">unsafe</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">new_size_without_footer</span> <span class="op">=</span>
-                <span class="ident">new_size_without_footer</span>.<span class="ident">unwrap_or</span>(<span class="ident">DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER</span>);
+        <span class="kw">let</span> <span class="ident">NewChunkMemoryDetails</span> {
+            <span class="ident">new_size_without_footer</span>,
+            <span class="ident">align</span>,
+            <span class="ident">size</span>,
+        } <span class="op">=</span> <span class="ident">new_chunk_memory_details</span>;
 
-            <span class="comment">// We want to have CHUNK_ALIGN or better alignment</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">align</span> <span class="op">=</span> <span class="ident">CHUNK_ALIGN</span>;
+        <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>);
 
-            <span class="comment">// If we already know we need to fulfill some request,</span>
-            <span class="comment">// make sure we allocate at least enough to satisfy it</span>
-            <span class="ident">align</span> <span class="op">=</span> <span class="ident">align</span>.<span class="ident">max</span>(<span class="ident">requested_layout</span>.<span class="ident">align</span>());
-            <span class="kw">let</span> <span class="ident">requested_size</span> <span class="op">=</span> <span class="ident">round_up_to</span>(<span class="ident">requested_layout</span>.<span class="ident">size</span>(), <span class="ident">align</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="ident">allocation_size_overflow</span>);
-            <span class="ident">new_size_without_footer</span> <span class="op">=</span> <span class="ident">new_size_without_footer</span>.<span class="ident">max</span>(<span class="ident">requested_size</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">requested_layout</span>.<span class="ident">size</span>());
 
-            <span class="comment">// We want our allocations to play nice with the memory allocator,</span>
-            <span class="comment">// and waste as little memory as possible.</span>
-            <span class="comment">// For small allocations, this means that the entire allocation</span>
-            <span class="comment">// including the chunk footer and mallocs internal overhead is</span>
-            <span class="comment">// as close to a power of two as we can go without going over.</span>
-            <span class="comment">// For larger allocations, we only need to get close to a page</span>
-            <span class="comment">// boundary without going over.</span>
-            <span class="kw">if</span> <span class="ident">new_size_without_footer</span> <span class="op">&lt;</span> <span class="ident">PAGE_STRATEGY_CUTOFF</span> {
-                <span class="ident">new_size_without_footer</span> <span class="op">=</span>
-                    (<span class="ident">new_size_without_footer</span> <span class="op">+</span> <span class="ident">OVERHEAD</span>).<span class="ident">next_power_of_two</span>() <span class="op">-</span> <span class="ident">OVERHEAD</span>;
-            } <span class="kw">else</span> {
-                <span class="ident">new_size_without_footer</span> <span class="op">=</span>
-                    <span class="ident">round_up_to</span>(<span class="ident">new_size_without_footer</span> <span class="op">+</span> <span class="ident">OVERHEAD</span>, <span class="number">0x1000</span>)<span class="question-mark">?</span> <span class="op">-</span> <span class="ident">OVERHEAD</span>;
-            }
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>);
+        <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
 
-            <span class="macro">debug_assert_eq!</span>(<span class="ident">align</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
-            <span class="macro">debug_assert_eq!</span>(<span class="ident">new_size_without_footer</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">new_size_without_footer</span>
-                .<span class="ident">checked_add</span>(<span class="ident">FOOTER_SIZE</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="ident">allocation_size_overflow</span>);
-            <span class="kw">let</span> <span class="ident">layout</span> <span class="op">=</span> <span class="ident">layout_from_size_align</span>(<span class="ident">size</span>, <span class="ident">align</span>);
+        <span class="comment">// The `ChunkFooter` is at the end of the chunk.</span>
+        <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">new_size_without_footer</span>);
+        <span class="macro">debug_assert_eq!</span>((<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">align</span>, <span class="number">0</span>);
+        <span class="macro">debug_assert_eq!</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
+        <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ChunkFooter</span>;
 
-            <span class="macro">debug_assert!</span>(<span class="ident">size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">requested_layout</span>.<span class="ident">size</span>());
+        <span class="comment">// The bump pointer is initialized to the end of the range we will</span>
+        <span class="comment">// bump out of.</span>
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>));
 
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">alloc</span>(<span class="ident">layout</span>);
-            <span class="kw">let</span> <span class="ident">data</span> <span class="op">=</span> <span class="ident">NonNull::new</span>(<span class="ident">data</span>)<span class="question-mark">?</span>;
+        <span class="comment">// The `allocated_bytes` of a new chunk counts the total size</span>
+        <span class="comment">// of the chunks, not how much of the chunks are used.</span>
+        <span class="kw">let</span> <span class="ident">allocated_bytes</span> <span class="op">=</span> <span class="ident">prev</span>.<span class="ident">as_ref</span>().<span class="ident">allocated_bytes</span> <span class="op">+</span> <span class="ident">new_size_without_footer</span>;
 
-            <span class="comment">// The `ChunkFooter` is at the end of the chunk.</span>
-            <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">data</span>.<span class="ident">as_ptr</span>().<span class="ident">add</span>(<span class="ident">new_size_without_footer</span>);
-            <span class="macro">debug_assert_eq!</span>((<span class="ident">data</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">%</span> <span class="ident">align</span>, <span class="number">0</span>);
-            <span class="macro">debug_assert_eq!</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">%</span> <span class="ident">CHUNK_ALIGN</span>, <span class="number">0</span>);
-            <span class="kw">let</span> <span class="ident">footer_ptr</span> <span class="op">=</span> <span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">ChunkFooter</span>;
+        <span class="ident">ptr::write</span>(
+            <span class="ident">footer_ptr</span>,
+            <span class="ident">ChunkFooter</span> {
+                <span class="ident">data</span>,
+                <span class="ident">layout</span>,
+                <span class="ident">prev</span>: <span class="ident">Cell::new</span>(<span class="ident">prev</span>),
+                <span class="ident">ptr</span>,
+                <span class="ident">allocated_bytes</span>,
+            },
+        );
 
-            <span class="comment">// The bump pointer is initialized to the end of the range we will</span>
-            <span class="comment">// bump out of.</span>
-            <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">Cell::new</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="ident">u8</span>));
-
-            <span class="ident">ptr::write</span>(
-                <span class="ident">footer_ptr</span>,
-                <span class="ident">ChunkFooter</span> {
-                    <span class="ident">data</span>,
-                    <span class="ident">layout</span>,
-                    <span class="ident">prev</span>: <span class="ident">Cell::new</span>(<span class="ident">prev</span>),
-                    <span class="ident">ptr</span>,
-                },
-            );
-
-            <span class="prelude-val">Some</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span>))
-        }
+        <span class="prelude-val">Some</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">footer_ptr</span>))
     }
 
     <span class="doccomment">/// Reset this bump allocator.</span>
@@ -2449,7 +2775,7 @@
                 <span class="kw">return</span>;
             }
 
-            <span class="kw">let</span> <span class="ident">cur_chunk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cur_chunk</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
 
             <span class="comment">// Deallocate all chunks except the current one</span>
             <span class="kw">let</span> <span class="ident">prev_chunk</span> <span class="op">=</span> <span class="ident">cur_chunk</span>.<span class="ident">as_ref</span>().<span class="ident">prev</span>.<span class="ident">replace</span>(<span class="ident">EMPTY_CHUNK</span>.<span class="ident">get</span>());
@@ -2457,6 +2783,9 @@
 
             <span class="comment">// Reset the bump finger to the end of the chunk.</span>
             <span class="ident">cur_chunk</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>.<span class="ident">set</span>(<span class="ident">cur_chunk</span>.<span class="ident">cast</span>());
+
+            <span class="comment">// Reset the allocated size of the chunk.</span>
+            <span class="ident">cur_chunk</span>.<span class="ident">as_mut</span>().<span class="ident">allocated_bytes</span> <span class="op">=</span> <span class="ident">cur_chunk</span>.<span class="ident">as_ref</span>().<span class="ident">layout</span>.<span class="ident">size</span>();
 
             <span class="macro">debug_assert!</span>(
                 <span class="self">self</span>.<span class="ident">current_chunk_footer</span>
@@ -2669,7 +2998,6 @@
         <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull::from</span>(<span class="self">self</span>.<span class="ident">alloc_with</span>(<span class="ident">f</span>));
-        <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
             <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
                 <span class="comment">//SAFETY:</span>
@@ -2691,7 +3019,7 @@
                 <span class="comment">// reclaim any alignment padding we might have added (which</span>
                 <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
                 <span class="comment">// this result.</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">inner_result_ptr</span>.<span class="ident">cast</span>()) {
                     <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
                     <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
                     <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">==</span> <span class="ident">rewind_footer</span> {
@@ -2779,7 +3107,6 @@
         <span class="kw">let</span> <span class="ident">rewind_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="ident">rewind_ptr</span> <span class="op">=</span> <span class="kw">unsafe</span> { <span class="ident">rewind_footer</span>.<span class="ident">as_ref</span>() }.<span class="ident">ptr</span>.<span class="ident">get</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">inner_result_ptr</span> <span class="op">=</span> <span class="ident">NonNull::from</span>(<span class="self">self</span>.<span class="ident">try_alloc_with</span>(<span class="ident">f</span>)<span class="question-mark">?</span>);
-        <span class="kw">let</span> <span class="ident">inner_result_address</span> <span class="op">=</span> <span class="ident">inner_result_ptr</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
         <span class="kw">match</span> <span class="kw">unsafe</span> { <span class="ident">inner_result_ptr</span>.<span class="ident">as_mut</span>() } {
             <span class="prelude-val">Ok</span>(<span class="ident">t</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">unsafe</span> {
                 <span class="comment">//SAFETY:</span>
@@ -2801,7 +3128,7 @@
                 <span class="comment">// reclaim any alignment padding we might have added (which</span>
                 <span class="comment">// `dealloc` cannot do) if we didn&#39;t allocate a new chunk for</span>
                 <span class="comment">// this result.</span>
-                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">NonNull::new_unchecked</span>(<span class="ident">inner_result_address</span> <span class="kw">as</span> <span class="kw-2">*mut</span> <span class="kw">_</span>)) {
+                <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_last_allocation</span>(<span class="ident">inner_result_ptr</span>.<span class="ident">cast</span>()) {
                     <span class="kw">let</span> <span class="ident">current_footer_p</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
                     <span class="kw">let</span> <span class="ident">current_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">current_footer_p</span>.<span class="ident">as_ref</span>().<span class="ident">ptr</span>;
                     <span class="kw">if</span> <span class="ident">current_footer_p</span> <span class="op">==</span> <span class="ident">rewind_footer</span> {
@@ -3165,6 +3492,7 @@
     <span class="kw">fn</span> <span class="ident">alloc_layout_slow</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">layout</span>: <span class="ident">Layout</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">NonNull</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="kw">unsafe</span> {
             <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>();
+            <span class="kw">let</span> <span class="ident">allocation_limit_remaining</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">allocation_limit_remaining</span>();
 
             <span class="comment">// Get a new chunk from the global allocator.</span>
             <span class="kw">let</span> <span class="ident">current_footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
@@ -3178,18 +3506,39 @@
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">base_size</span> <span class="op">=</span> (<span class="ident">current_layout</span>.<span class="ident">size</span>() <span class="op">-</span> <span class="ident">FOOTER_SIZE</span>)
                 .<span class="ident">checked_mul</span>(<span class="number">2</span>)<span class="question-mark">?</span>
                 .<span class="ident">max</span>(<span class="ident">min_new_chunk_size</span>);
-            <span class="kw">let</span> <span class="ident">sizes</span> <span class="op">=</span> <span class="ident">iter::from_fn</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="kw">if</span> <span class="ident">base_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_new_chunk_size</span> {
+            <span class="kw">let</span> <span class="ident">chunk_memory_details</span> <span class="op">=</span> <span class="ident">iter::from_fn</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="kw">let</span> <span class="ident">bypass_min_chunk_size_for_small_limits</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">allocation_limit</span>() {
+                    <span class="prelude-val">Some</span>(<span class="ident">limit</span>)
+                        <span class="kw">if</span> <span class="ident">layout</span>.<span class="ident">size</span>() <span class="op">&lt;</span> <span class="ident">limit</span>
+                            <span class="op">&amp;&amp;</span> <span class="ident">base_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">layout</span>.<span class="ident">size</span>()
+                            <span class="op">&amp;&amp;</span> <span class="ident">limit</span> <span class="op">&lt;</span> <span class="ident">DEFAULT_CHUNK_SIZE_WITHOUT_FOOTER</span>
+                            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">allocated_bytes</span>() <span class="op">==</span> <span class="number">0</span> =&gt;
+                    {
+                        <span class="bool-val">true</span>
+                    }
+                    <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
+                };
+
+                <span class="kw">if</span> <span class="ident">base_size</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">min_new_chunk_size</span> <span class="op">|</span><span class="op">|</span> <span class="ident">bypass_min_chunk_size_for_small_limits</span> {
                     <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">base_size</span>;
                     <span class="ident">base_size</span> <span class="op">=</span> <span class="ident">base_size</span> <span class="op">/</span> <span class="number">2</span>;
-                    <span class="prelude-val">Some</span>(<span class="ident">size</span>)
+                    <span class="ident">Bump::new_chunk_memory_details</span>(<span class="prelude-val">Some</span>(<span class="ident">size</span>), <span class="ident">layout</span>)
                 } <span class="kw">else</span> {
                     <span class="prelude-val">None</span>
                 }
             });
 
-            <span class="kw">let</span> <span class="ident">new_footer</span> <span class="op">=</span> <span class="ident">sizes</span>
-                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">size</span><span class="op">|</span> <span class="ident">Bump::new_chunk</span>(<span class="prelude-val">Some</span>(<span class="ident">size</span>), <span class="ident">layout</span>, <span class="ident">current_footer</span>))
+            <span class="kw">let</span> <span class="ident">new_footer</span> <span class="op">=</span> <span class="ident">chunk_memory_details</span>
+                .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">chunk_memory_details</span><span class="op">|</span> {
+                    <span class="kw">if</span> <span class="ident">Bump::chunk_fits_under_limit</span>(
+                        <span class="ident">allocation_limit_remaining</span>,
+                        <span class="ident">chunk_memory_details</span>,
+                    ) {
+                        <span class="ident">Bump::new_chunk</span>(<span class="ident">chunk_memory_details</span>, <span class="ident">layout</span>, <span class="ident">current_footer</span>)
+                    } <span class="kw">else</span> {
+                        <span class="prelude-val">None</span>
+                    }
+                })
                 .<span class="ident">next</span>()<span class="question-mark">?</span>;
 
             <span class="macro">debug_assert_eq!</span>(
@@ -3357,24 +3706,9 @@
     <span class="doccomment">/// assert!(bytes &gt;= core::mem::size_of::&lt;u32&gt;() * 5);</span>
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">allocated_bytes</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">usize</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
+        <span class="kw">let</span> <span class="ident">footer</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">current_chunk_footer</span>.<span class="ident">get</span>();
 
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bytes</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="kw">unsafe</span> {
-            <span class="kw">while</span> <span class="op">!</span><span class="ident">footer</span>.<span class="ident">as_ref</span>().<span class="ident">is_empty</span>() {
-                <span class="kw">let</span> <span class="ident">foot</span> <span class="op">=</span> <span class="ident">footer</span>.<span class="ident">as_ref</span>();
-
-                <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">ptr</span>.<span class="ident">get</span>().<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="macro">debug_assert!</span>(<span class="ident">ptr</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span>);
-
-                <span class="ident">bytes</span> <span class="op">+</span><span class="op">=</span> <span class="ident">foot</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="kw">_</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">-</span> <span class="ident">ptr</span>;
-
-                <span class="ident">footer</span> <span class="op">=</span> <span class="ident">foot</span>.<span class="ident">prev</span>.<span class="ident">get</span>();
-            }
-        }
-
-        <span class="ident">bytes</span>
+        <span class="kw">unsafe</span> { <span class="ident">footer</span>.<span class="ident">as_ref</span>().<span class="ident">allocated_bytes</span> }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -3619,15 +3953,20 @@
     }
 }
 
+<span class="comment">// NB: Only tests which require private types, fields, or methods should be in</span>
+<span class="comment">// here. Anything that can just be tested via public API surface should be in</span>
+<span class="comment">// `bumpalo/tests/all/*`.</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="comment">// Uses private type `ChunkFooter`.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">chunk_footer_is_five_words</span>() {
-        <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">5</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">ChunkFooter</span><span class="op">&gt;</span>(), <span class="ident">mem::size_of</span>::<span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>() <span class="op">*</span> <span class="number">6</span>);
     }
 
+    <span class="comment">// Uses private `alloc` module.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::cognitive_complexity</span>)]</span>
     <span class="kw">fn</span> <span class="ident">test_realloc</span>() {
@@ -3677,6 +4016,7 @@
         }
     }
 
+    <span class="comment">// Uses our private `alloc` module.</span>
     <span class="attribute">#[<span class="ident">test</span>]</span>
     <span class="kw">fn</span> <span class="ident">invalid_read</span>() {
         <span class="kw">use</span> <span class="ident">alloc::Alloc</span>;

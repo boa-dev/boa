@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../zerovec/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.8.1/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../zerovec/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -470,6 +470,35 @@
 <span id="470">470</span>
 <span id="471">471</span>
 <span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
+<span id="485">485</span>
+<span id="486">486</span>
+<span id="487">487</span>
+<span id="488">488</span>
+<span id="489">489</span>
+<span id="490">490</span>
+<span id="491">491</span>
+<span id="492">492</span>
+<span id="493">493</span>
+<span id="494">494</span>
+<span id="495">495</span>
+<span id="496">496</span>
+<span id="497">497</span>
+<span id="498">498</span>
+<span id="499">499</span>
+<span id="500">500</span>
+<span id="501">501</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -507,7 +536,7 @@
 <span class="doccomment">//! # Cargo features</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate has five optional features:</span>
-<span class="doccomment">//!  -  `serde` and `serde_serialize`: Allows serializing and deserializing `zerovec`&#39;s abstractions via [`serde`](https://docs.rs/serde)</span>
+<span class="doccomment">//!  -  `serde`: Allows serializing and deserializing `zerovec`&#39;s abstractions via [`serde`](https://docs.rs/serde)</span>
 <span class="doccomment">//!  -   `yoke`: Enables implementations of `Yokeable` from the [`yoke`](https://docs.rs/yoke/) crate, which is also useful</span>
 <span class="doccomment">//!              in situations involving a lot of zero-copy deserialization.</span>
 <span class="doccomment">//!  - `derive`: Makes it easier to use custom types in these collections by providing the [`#[make_ule]`](crate::make_ule) and</span>
@@ -526,8 +555,8 @@
 <span class="doccomment">//! Serialize and deserialize a struct with ZeroVec and VarZeroVec with Bincode:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//! # #[cfg(feature = &quot;serde_serialize&quot;)] {</span>
-<span class="doccomment">//! use zerovec::{ZeroVec, VarZeroVec};</span>
+<span class="doccomment">//! # #[cfg(feature = &quot;serde&quot;)] {</span>
+<span class="doccomment">//! use zerovec::{VarZeroVec, ZeroVec};</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! // This example requires the &quot;serde&quot; feature</span>
 <span class="doccomment">//! #[derive(serde::Serialize, serde::Deserialize)]</span>
@@ -542,27 +571,26 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let data = DataStruct {</span>
 <span class="doccomment">//!     nums: ZeroVec::from_slice_or_alloc(&amp;[211, 281, 421, 461]),</span>
-<span class="doccomment">//!     chars: ZeroVec::from_slice_or_alloc(&amp;[&#39;ö&#39;, &#39;冇&#39;, &#39;म&#39;]),</span>
+<span class="doccomment">//!     chars: ZeroVec::alloc_from_slice(&amp;[&#39;ö&#39;, &#39;冇&#39;, &#39;म&#39;]),</span>
 <span class="doccomment">//!     strs: VarZeroVec::from(&amp;[&quot;hello&quot;, &quot;world&quot;]),</span>
 <span class="doccomment">//! };</span>
-<span class="doccomment">//! let bincode_bytes = bincode::serialize(&amp;data)</span>
-<span class="doccomment">//!     .expect(&quot;Serialization should be successful&quot;);</span>
-<span class="doccomment">//! assert_eq!(bincode_bytes.len(), 74);</span>
+<span class="doccomment">//! let bincode_bytes = bincode::serialize(&amp;data).expect(&quot;Serialization should be successful&quot;);</span>
+<span class="doccomment">//! assert_eq!(bincode_bytes.len(), 67);</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! let deserialized: DataStruct = bincode::deserialize(&amp;bincode_bytes)</span>
-<span class="doccomment">//!     .expect(&quot;Deserialization should be successful&quot;);</span>
+<span class="doccomment">//! let deserialized: DataStruct =</span>
+<span class="doccomment">//!     bincode::deserialize(&amp;bincode_bytes).expect(&quot;Deserialization should be successful&quot;);</span>
 <span class="doccomment">//! assert_eq!(deserialized.nums.first(), Some(211));</span>
 <span class="doccomment">//! assert_eq!(deserialized.chars.get(1), Some(&#39;冇&#39;));</span>
 <span class="doccomment">//! assert_eq!(deserialized.strs.get(1), Some(&quot;world&quot;));</span>
 <span class="doccomment">//! // The deserialization will not have allocated anything</span>
 <span class="doccomment">//! assert!(matches!(deserialized.nums, ZeroVec::Borrowed(_)));</span>
-<span class="doccomment">//! # } // feature = &quot;serde_serialize&quot;</span>
+<span class="doccomment">//! # } // feature = &quot;serde&quot;</span>
 <span class="doccomment">//! ```</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Use custom types inside of ZeroVec:</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! ```rust</span>
-<span class="doccomment">//! # #[cfg(all(feature = &quot;serde_serialize&quot;, feature = &quot;derive&quot;))] {</span>
+<span class="doccomment">//! # #[cfg(all(feature = &quot;serde&quot;, feature = &quot;derive&quot;))] {</span>
 <span class="doccomment">//! use zerovec::{ZeroVec, VarZeroVec, ZeroMap};</span>
 <span class="doccomment">//! use std::borrow::Cow;</span>
 <span class="doccomment">//! use zerovec::ule::encode_varule_to_box;</span>
@@ -621,7 +649,7 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let bincode_bytes = bincode::serialize(&amp;data)</span>
 <span class="doccomment">//!     .expect(&quot;Serialization should be successful&quot;);</span>
-<span class="doccomment">//! assert_eq!(bincode_bytes.len(), 180);</span>
+<span class="doccomment">//! assert_eq!(bincode_bytes.len(), 168);</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! let deserialized: Data = bincode::deserialize(&amp;bincode_bytes)</span>
 <span class="doccomment">//!     .expect(&quot;Deserialization should be successful&quot;);</span>
@@ -673,7 +701,10 @@
         <span class="ident">clippy::indexing_slicing</span>,
         <span class="ident">clippy::unwrap_used</span>,
         <span class="ident">clippy::expect_used</span>,
-        <span class="ident">clippy::panic</span>
+        <span class="ident">clippy::panic</span>,
+        <span class="comment">// TODO(#1668): enable clippy::exhaustive_structs,</span>
+        <span class="comment">// TODO(#1668): enable clippy::exhaustive_enums,</span>
+        <span class="comment">// TODO(#2266): enable missing_debug_implementations,</span>
     )
 )]</span>
 <span class="comment">// this crate does a lot of nuanced lifetime manipulation, being explicit</span>
@@ -683,6 +714,7 @@
 <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">alloc</span>;
 
 <span class="kw">mod</span> <span class="ident">error</span>;
+<span class="kw">mod</span> <span class="ident">flexzerovec</span>;
 <span class="kw">mod</span> <span class="ident">map</span>;
 <span class="kw">mod</span> <span class="ident">map2d</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -704,6 +736,8 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::varzerovec</span>::{<span class="ident">slice::VarZeroSlice</span>, <span class="ident">vec::VarZeroVec</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::zerovec</span>::{<span class="ident">ZeroSlice</span>, <span class="ident">ZeroVec</span>};
 
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">flexzerovec::chunk_to_usize</span>;
+
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">__zerovec_internal_reexport</span> {
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerofrom::ZeroFrom</span>;
@@ -724,9 +758,9 @@
     <span class="doccomment">//! relaxed lifetime constraints.</span>
     <span class="doccomment">//!</span>
     <span class="doccomment">//! The [`ZeroMapKV`] trait is required to be implemented on any type that needs to be used</span>
-    <span class="doccomment">//! within a map type. [`ZeroVecLike`], [`BorrowedZeroVecLike`], and [`MutableZeroVecLike`] are</span>
-    <span class="doccomment">//! all traits used in the internal workings of the map types, and should typically not be used</span>
-    <span class="doccomment">//! or implemented by users of this crate.</span>
+    <span class="doccomment">//! within a map type. [`ZeroVecLike`] and [`MutableZeroVecLike`] are traits used in the</span>
+    <span class="doccomment">//! internal workings of the map types, and should typically not be used or implemented by</span>
+    <span class="doccomment">//! users of this crate.</span>
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map::ZeroMap</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map::ZeroMapBorrowed</span>;
@@ -735,8 +769,7 @@
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map2d::ZeroMap2d</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map2d::ZeroMap2dBorrowed</span>;
 
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map</span>::{<span class="ident">BorrowedZeroVecLike</span>, <span class="ident">MutableZeroVecLike</span>, <span class="ident">ZeroMapKV</span>, <span class="ident">ZeroVecLike</span>};
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map2d::KeyError</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map</span>::{<span class="ident">MutableZeroVecLike</span>, <span class="ident">ZeroMapKV</span>, <span class="ident">ZeroVecLike</span>};
 }
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">vecs</span> {
@@ -756,7 +789,9 @@
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">no_inline</span>)]</span>
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::varzerovec</span>::{<span class="ident">VarZeroSlice</span>, <span class="ident">VarZeroVec</span>};
 
-    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::varzerovec::VarZeroVecOwned</span>;
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::varzerovec</span>::{<span class="ident">Index16</span>, <span class="ident">Index32</span>, <span class="ident">VarZeroVecFormat</span>, <span class="ident">VarZeroVecOwned</span>};
+
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::flexzerovec</span>::{<span class="ident">FlexZeroSlice</span>, <span class="ident">FlexZeroVec</span>, <span class="ident">FlexZeroVecOwned</span>};
 }
 
 <span class="comment">// Proc macro reexports</span>
@@ -806,27 +841,43 @@
 <span class="doccomment">/// struct Date {</span>
 <span class="doccomment">///     y: u64,</span>
 <span class="doccomment">///     m: u8,</span>
-<span class="doccomment">///     d: u8</span>
+<span class="doccomment">///     d: u8,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[derive(serde::Serialize, serde::Deserialize)]</span>
 <span class="doccomment">/// struct Dates&lt;&#39;a&gt; {</span>
 <span class="doccomment">///     #[serde(borrow)]</span>
-<span class="doccomment">///     dates: ZeroVec&lt;&#39;a, Date&gt;   </span>
+<span class="doccomment">///     dates: ZeroVec&lt;&#39;a, Date&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let dates = Dates { dates: ZeroVec::alloc_from_slice(&amp;[Date {y: 1985, m: 9, d: 3}, Date {y: 1970, m: 2, d: 20}, Date {y: 1990, m: 6, d: 13}]) };</span>
+<span class="doccomment">/// let dates = Dates {</span>
+<span class="doccomment">///     dates: ZeroVec::alloc_from_slice(&amp;[</span>
+<span class="doccomment">///         Date {</span>
+<span class="doccomment">///             y: 1985,</span>
+<span class="doccomment">///             m: 9,</span>
+<span class="doccomment">///             d: 3,</span>
+<span class="doccomment">///         },</span>
+<span class="doccomment">///         Date {</span>
+<span class="doccomment">///             y: 1970,</span>
+<span class="doccomment">///             m: 2,</span>
+<span class="doccomment">///             d: 20,</span>
+<span class="doccomment">///         },</span>
+<span class="doccomment">///         Date {</span>
+<span class="doccomment">///             y: 1990,</span>
+<span class="doccomment">///             m: 6,</span>
+<span class="doccomment">///             d: 13,</span>
+<span class="doccomment">///         },</span>
+<span class="doccomment">///     ]),</span>
+<span class="doccomment">/// };</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let bincode_bytes = bincode::serialize(&amp;dates)</span>
-<span class="doccomment">///     .expect(&quot;Serialization should be successful&quot;);</span>
+<span class="doccomment">/// let bincode_bytes = bincode::serialize(&amp;dates).expect(&quot;Serialization should be successful&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Will deserialize without allocations</span>
-<span class="doccomment">/// let deserialized: Dates = bincode::deserialize(&amp;bincode_bytes)</span>
-<span class="doccomment">///     .expect(&quot;Deserialization should be successful&quot;);</span>
+<span class="doccomment">/// let deserialized: Dates =</span>
+<span class="doccomment">///     bincode::deserialize(&amp;bincode_bytes).expect(&quot;Deserialization should be successful&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(deserialized.dates.get(1).unwrap().y, 1970);</span>
 <span class="doccomment">/// assert_eq!(deserialized.dates.get(2).unwrap().d, 13);</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>)]</span>
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">zerovec_derive::make_ule</span>;
@@ -877,10 +928,10 @@
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```rust</span>
-<span class="doccomment">/// use zerovec::{ZeroVec, VarZeroVec, ZeroMap};</span>
 <span class="doccomment">/// use std::borrow::Cow;</span>
-<span class="doccomment">/// use zerovec::ule::encode_varule_to_box;</span>
 <span class="doccomment">/// use zerofrom::ZeroFrom;</span>
+<span class="doccomment">/// use zerovec::ule::encode_varule_to_box;</span>
+<span class="doccomment">/// use zerovec::{VarZeroVec, ZeroMap, ZeroVec};</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // custom fixed-size ULE type for ZeroVec</span>
 <span class="doccomment">/// #[zerovec::make_ule(DateULE)]</span>
@@ -888,7 +939,7 @@
 <span class="doccomment">/// struct Date {</span>
 <span class="doccomment">///     y: u64,</span>
 <span class="doccomment">///     m: u8,</span>
-<span class="doccomment">///     d: u8</span>
+<span class="doccomment">///     d: u8,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // custom variable sized VarULE type for VarZeroVec</span>
@@ -909,34 +960,41 @@
 <span class="doccomment">///     important_people: VarZeroVec&lt;&#39;a, PersonULE&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// let person1 = Person {</span>
-<span class="doccomment">///     birthday: Date { y: 1990, m: 9, d: 7},</span>
+<span class="doccomment">///     birthday: Date {</span>
+<span class="doccomment">///         y: 1990,</span>
+<span class="doccomment">///         m: 9,</span>
+<span class="doccomment">///         d: 7,</span>
+<span class="doccomment">///     },</span>
 <span class="doccomment">///     favorite_character: &#39;π&#39;,</span>
-<span class="doccomment">///     name: Cow::from(&quot;Kate&quot;)</span>
+<span class="doccomment">///     name: Cow::from(&quot;Kate&quot;),</span>
 <span class="doccomment">/// };</span>
 <span class="doccomment">/// let person2 = Person {</span>
-<span class="doccomment">///     birthday: Date { y: 1960, m: 5, d: 25},</span>
+<span class="doccomment">///     birthday: Date {</span>
+<span class="doccomment">///         y: 1960,</span>
+<span class="doccomment">///         m: 5,</span>
+<span class="doccomment">///         d: 25,</span>
+<span class="doccomment">///     },</span>
 <span class="doccomment">///     favorite_character: &#39;冇&#39;,</span>
-<span class="doccomment">///     name: Cow::from(&quot;Jesse&quot;)</span>
+<span class="doccomment">///     name: Cow::from(&quot;Jesse&quot;),</span>
 <span class="doccomment">/// };</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let important_people = VarZeroVec::from(&amp;[person1, person2]);</span>
 <span class="doccomment">/// let data = Data { important_people };</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// let bincode_bytes = bincode::serialize(&amp;data)</span>
-<span class="doccomment">///     .expect(&quot;Serialization should be successful&quot;);</span>
+<span class="doccomment">/// let bincode_bytes = bincode::serialize(&amp;data).expect(&quot;Serialization should be successful&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Will deserialize without allocations</span>
-<span class="doccomment">/// let deserialized: Data = bincode::deserialize(&amp;bincode_bytes)</span>
-<span class="doccomment">///     .expect(&quot;Deserialization should be successful&quot;);</span>
+<span class="doccomment">/// let deserialized: Data =</span>
+<span class="doccomment">///     bincode::deserialize(&amp;bincode_bytes).expect(&quot;Deserialization should be successful&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// assert_eq!(&amp;deserialized.important_people.get(1).unwrap().name, &quot;Jesse&quot;);</span>
 <span class="doccomment">/// assert_eq!(&amp;deserialized.important_people.get(0).unwrap().name, &quot;Kate&quot;);</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Since VarZeroVec produces PersonULE types, it&#39;s convenient to use ZeroFrom</span>
 <span class="doccomment">/// // to recoup Person values in a zero-copy way</span>
-<span class="doccomment">/// let person_converted: Person = ZeroFrom::zero_from(deserialized.important_people.get(1).unwrap());</span>
+<span class="doccomment">/// let person_converted: Person =</span>
+<span class="doccomment">///     ZeroFrom::zero_from(deserialized.important_people.get(1).unwrap());</span>
 <span class="doccomment">/// assert_eq!(person_converted.name, &quot;Jesse&quot;);</span>
 <span class="doccomment">/// assert_eq!(person_converted.birthday.y, 1960);</span>
 <span class="doccomment">/// ```</span>

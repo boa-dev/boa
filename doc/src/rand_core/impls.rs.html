@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.3/src/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/rand_core-0.6.4/src/impls.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>impls.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="icon" href="https://www.rust-lang.org/favicon.ico"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container"><img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../rand_core/index.html"><div class="logo-container">
                     <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../rand_core/index.html">
                         <img src="https://www.rust-lang.org/logos/rust-logo-128x128-blk.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -184,6 +184,29 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
 </pre><pre class="rust"><code><span class="comment">// Copyright 2018 Developers of the Rand project.</span>
 <span class="comment">//</span>
 <span class="comment">// Licensed under the Apache License, Version 2.0 &lt;LICENSE-APACHE or</span>
@@ -238,36 +261,59 @@
     }
 }
 
-<span class="macro">macro_rules!</span> <span class="ident">fill_via_chunks</span> {
-    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span>:<span class="ident">ty</span>) =&gt; {{
-        <span class="kw">const</span> <span class="ident">SIZE</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">chunk_size_u8</span> <span class="op">=</span> <span class="ident">min</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">SIZE</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="ident">chunk_size</span> <span class="op">=</span> (<span class="ident">chunk_size_u8</span> <span class="op">+</span> <span class="ident">SIZE</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">SIZE</span>;
+<span class="kw">trait</span> <span class="ident">Observable</span>: <span class="ident">Copy</span> {
+    <span class="kw">type</span> <span class="ident">Bytes</span>: <span class="ident">AsRef</span><span class="op">&lt;</span>[<span class="ident">u8</span>]<span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">to_le_bytes</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Bytes</span>;
 
-        <span class="comment">// The following can be replaced with safe code, but unfortunately it&#39;s</span>
-        <span class="comment">// ca. 8% slower.</span>
-        <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
-            <span class="kw">unsafe</span> {
-                <span class="ident">core::ptr::copy_nonoverlapping</span>(
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>,
-                    <span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">as_mut_ptr</span>(),
-                    <span class="ident">chunk_size_u8</span>);
-            }
-        } <span class="kw">else</span> {
-            <span class="kw">for</span> (<span class="kw-2">&amp;</span><span class="ident">n</span>, <span class="ident">chunk</span>) <span class="kw">in</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">src</span>.<span class="ident">iter</span>().<span class="ident">zip</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">dst</span>.<span class="ident">chunks_mut</span>(<span class="ident">SIZE</span>)) {
-                <span class="kw">let</span> <span class="ident">tmp</span> <span class="op">=</span> <span class="ident">n</span>.<span class="ident">to_le</span>();
-                <span class="kw">let</span> <span class="ident">src_ptr</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">tmp</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">ty</span> <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>;
-                <span class="kw">unsafe</span> {
-                    <span class="ident">core::ptr::copy_nonoverlapping</span>(
-                        <span class="ident">src_ptr</span>,
-                        <span class="ident">chunk</span>.<span class="ident">as_mut_ptr</span>(),
-                        <span class="ident">chunk</span>.<span class="ident">len</span>());
-                }
-            }
+    <span class="comment">// Contract: observing self is memory-safe (implies no uninitialised padding)</span>
+    <span class="kw">fn</span> <span class="ident">as_byte_slice</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>];
+}
+<span class="kw">impl</span> <span class="ident">Observable</span> <span class="kw">for</span> <span class="ident">u32</span> {
+    <span class="kw">type</span> <span class="ident">Bytes</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">4</span>];
+    <span class="kw">fn</span> <span class="ident">to_le_bytes</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Bytes</span> {
+        <span class="self">self</span>.<span class="ident">to_le_bytes</span>()
+    }
+    <span class="kw">fn</span> <span class="ident">as_byte_slice</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
+        <span class="kw">unsafe</span> { <span class="ident">core::slice::from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) }
+    }
+}
+<span class="kw">impl</span> <span class="ident">Observable</span> <span class="kw">for</span> <span class="ident">u64</span> {
+    <span class="kw">type</span> <span class="ident">Bytes</span> <span class="op">=</span> [<span class="ident">u8</span>; <span class="number">8</span>];
+    <span class="kw">fn</span> <span class="ident">to_le_bytes</span>(<span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Bytes</span> {
+        <span class="self">self</span>.<span class="ident">to_le_bytes</span>()
+    }
+    <span class="kw">fn</span> <span class="ident">as_byte_slice</span>(<span class="ident">x</span>: <span class="kw-2">&amp;</span>[<span class="self">Self</span>]) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u8</span>] {
+        <span class="kw">let</span> <span class="ident">ptr</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">as_ptr</span>() <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">u8</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">x</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>();
+        <span class="kw">unsafe</span> { <span class="ident">core::slice::from_raw_parts</span>(<span class="ident">ptr</span>, <span class="ident">len</span>) }
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">fill_via_chunks</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Observable</span><span class="op">&gt;</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">T</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">core::mem::size_of</span>::<span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span>();
+    <span class="kw">let</span> <span class="ident">byte_len</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">src</span>.<span class="ident">len</span>() <span class="op">*</span> <span class="ident">size</span>, <span class="ident">dest</span>.<span class="ident">len</span>());
+    <span class="kw">let</span> <span class="ident">num_chunks</span> <span class="op">=</span> (<span class="ident">byte_len</span> <span class="op">+</span> <span class="ident">size</span> <span class="op">-</span> <span class="number">1</span>) <span class="op">/</span> <span class="ident">size</span>;
+
+    <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">target_endian</span> <span class="op">=</span> <span class="string">&quot;little&quot;</span>) {
+        <span class="comment">// On LE we can do a simple copy, which is 25-50% faster:</span>
+        <span class="ident">dest</span>[..<span class="ident">byte_len</span>].<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">T::as_byte_slice</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[..<span class="ident">num_chunks</span>])[..<span class="ident">byte_len</span>]);
+    } <span class="kw">else</span> {
+        <span class="comment">// This code is valid on all arches, but slower than the above:</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">dest</span>[..<span class="ident">byte_len</span>].<span class="ident">chunks_exact_mut</span>(<span class="ident">size</span>);
+        <span class="kw">for</span> <span class="ident">chunk</span> <span class="kw">in</span> <span class="kw-2">&amp;mut</span> <span class="ident">iter</span> {
+            <span class="ident">chunk</span>.<span class="ident">copy_from_slice</span>(<span class="ident">src</span>[<span class="ident">i</span>].<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>());
+            <span class="ident">i</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
         }
+        <span class="kw">let</span> <span class="ident">chunk</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">into_remainder</span>();
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">chunk</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">chunk</span>.<span class="ident">copy_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">src</span>[<span class="ident">i</span>].<span class="ident">to_le_bytes</span>().<span class="ident">as_ref</span>()[..<span class="ident">chunk</span>.<span class="ident">len</span>()]);
+        }
+    }
 
-        (<span class="ident">chunk_size</span>, <span class="ident">chunk_size_u8</span>)
-    }};
+    (<span class="ident">num_chunks</span>, <span class="ident">byte_len</span>)
 }
 
 <span class="doccomment">/// Implement `fill_bytes` by reading chunks from the output buffer of a block</span>
@@ -301,7 +347,7 @@
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_via_u32_chunks</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u32</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
-    <span class="macro">fill_via_chunks!</span>(<span class="ident">src</span>, <span class="ident">dest</span>, <span class="ident">u32</span>)
+    <span class="ident">fill_via_chunks</span>(<span class="ident">src</span>, <span class="ident">dest</span>)
 }
 
 <span class="doccomment">/// Implement `fill_bytes` by reading chunks from the output buffer of a block</span>
@@ -315,7 +361,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// See `fill_via_u32_chunks` for an example.</span>
 <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">fill_via_u64_chunks</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span>[<span class="ident">u64</span>], <span class="ident">dest</span>: <span class="kw-2">&amp;mut</span> [<span class="ident">u8</span>]) -&gt; (<span class="ident">usize</span>, <span class="ident">usize</span>) {
-    <span class="macro">fill_via_chunks!</span>(<span class="ident">src</span>, <span class="ident">dest</span>, <span class="ident">u64</span>)
+    <span class="ident">fill_via_chunks</span>(<span class="ident">src</span>, <span class="ident">dest</span>)
 }
 
 <span class="doccomment">/// Implement `next_u32` via `fill_bytes`, little-endian order.</span>

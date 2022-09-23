@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.7.0/src/map2d/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../zerovec/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/zerovec-0.8.1/src/map2d/map.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>map.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../zerovec/index.html"><div class="logo-container"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../zerovec/index.html"><img class="rust-logo" src="../../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -826,18 +826,6 @@
 <span id="826">826</span>
 <span id="827">827</span>
 <span id="828">828</span>
-<span id="829">829</span>
-<span id="830">830</span>
-<span id="831">831</span>
-<span id="832">832</span>
-<span id="833">833</span>
-<span id="834">834</span>
-<span id="835">835</span>
-<span id="836">836</span>
-<span id="837">837</span>
-<span id="838">838</span>
-<span id="839">839</span>
-<span id="840">840</span>
 </pre><pre class="rust"><code><span class="comment">// This file is part of ICU4X. For terms of use, please see the file</span>
 <span class="comment">// called LICENSE at the top level of the ICU4X source tree</span>
 <span class="comment">// (online at: https://github.com/unicode-org/icu4x/blob/main/LICENSE ).</span>
@@ -851,7 +839,7 @@
 <span class="kw">use</span> <span class="ident">core::iter::FromIterator</span>;
 <span class="kw">use</span> <span class="ident">core::ops::Range</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ZeroMap2dBorrowed</span>;
+<span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map::ZeroMapKV</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::map</span>::{<span class="ident">MutableZeroVecLike</span>, <span class="ident">ZeroVecLike</span>};
 
@@ -874,15 +862,15 @@
 <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Example byte buffer representing the map { 1: {2: &quot;three&quot; } }</span>
-<span class="doccomment">/// let BINCODE_BYTES: &amp;[u8; 53] = &amp;[</span>
-<span class="doccomment">///     2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0,</span>
-<span class="doccomment">///     0, 0, 2, 0, 13, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 116, 104, 114, 101, 101</span>
+<span class="doccomment">/// let BINCODE_BYTES: &amp;[u8; 51] = &amp;[</span>
+<span class="doccomment">///     2, 0, 0, 0, 0, 0, 0, 0, 1, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0,</span>
+<span class="doccomment">///     2, 0, 11, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 116, 104, 114, 101, 101,</span>
 <span class="doccomment">/// ];</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// // Deserializing to ZeroMap requires no heap allocations.</span>
-<span class="doccomment">/// let zero_map: ZeroMap2d&lt;u16, u16, str&gt; = bincode::deserialize(BINCODE_BYTES)</span>
-<span class="doccomment">///     .expect(&quot;Should deserialize successfully&quot;);</span>
-<span class="doccomment">/// assert_eq!(zero_map.get(&amp;1, &amp;2), Ok(&quot;three&quot;));</span>
+<span class="doccomment">/// let zero_map: ZeroMap2d&lt;u16, u16, str&gt; =</span>
+<span class="doccomment">///     bincode::deserialize(BINCODE_BYTES).expect(&quot;Should deserialize successfully&quot;);</span>
+<span class="doccomment">/// assert_eq!(zero_map.get_2d(&amp;1, &amp;2), Some(&quot;three&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [`VarZeroVec`]: crate::VarZeroVec</span>
@@ -927,13 +915,6 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">values</span>: <span class="ident">V::Container</span>,
 }
 
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
-<span class="doccomment">/// Used in error types to communicate for which key the error occured.</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">KeyError</span> {
-    <span class="ident">K0</span>,
-    <span class="ident">K1</span>,
-}
-
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
@@ -969,10 +950,25 @@
     <span class="doccomment">/// ```</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>() -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">keys0</span>: <span class="ident">K0::Container::zvl_new</span>(),
+            <span class="ident">keys0</span>: <span class="ident">K0::Container::zvl_with_capacity</span>(<span class="number">0</span>),
             <span class="ident">joiner</span>: <span class="ident">ZeroVec::new</span>(),
-            <span class="ident">keys1</span>: <span class="ident">K1::Container::zvl_new</span>(),
-            <span class="ident">values</span>: <span class="ident">V::Container::zvl_new</span>(),
+            <span class="ident">keys1</span>: <span class="ident">K1::Container::zvl_with_capacity</span>(<span class="number">0</span>),
+            <span class="ident">values</span>: <span class="ident">V::Container::zvl_with_capacity</span>(<span class="number">0</span>),
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span> <span class="comment">// databake internal</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">unsafe</span> <span class="kw">fn</span> <span class="ident">from_parts_unchecked</span>(
+        <span class="ident">keys0</span>: <span class="ident">K0::Container</span>,
+        <span class="ident">joiner</span>: <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">u32</span><span class="op">&gt;</span>,
+        <span class="ident">keys1</span>: <span class="ident">K1::Container</span>,
+        <span class="ident">values</span>: <span class="ident">V::Container</span>,
+    ) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> {
+            <span class="ident">keys0</span>,
+            <span class="ident">joiner</span>,
+            <span class="ident">keys1</span>,
+            <span class="ident">values</span>,
         }
     }
 
@@ -1024,238 +1020,9 @@
         <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_reserve</span>(<span class="ident">additional</span>);
         <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_reserve</span>(<span class="ident">additional</span>);
     }
-}
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span>
-<span class="kw">where</span>
-    <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
-    <span class="ident">K1</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
-    <span class="ident">V</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
-    <span class="ident">K0</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">K1</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
-{
-    <span class="doccomment">/// Get the value associated with `key0` and `key1`, if it exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
-    <span class="doccomment">/// use zerovec::maps::KeyError;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
-    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
-    <span class="doccomment">/// map.insert(&amp;2, &quot;one&quot;, &quot;bar&quot;);</span>
-    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;baz&quot;);</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;1, &quot;one&quot;), Ok(&quot;foo&quot;));</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;1, &quot;two&quot;), Err(KeyError::K1));</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;2, &quot;one&quot;), Ok(&quot;bar&quot;));</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;2, &quot;two&quot;), Ok(&quot;baz&quot;));</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;3, &quot;three&quot;), Err(KeyError::K0));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">V::GetType</span>, <span class="ident">KeyError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0</span>(<span class="ident">key0</span>).<span class="ident">ok_or</span>(<span class="ident">KeyError::K0</span>)<span class="question-mark">?</span>;
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;&#39; because every key0 should have a key1</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
-        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
-            <span class="op">+</span> <span class="self">self</span>
-                .<span class="ident">keys1</span>
-                .<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>)
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">KeyError::K1</span>)<span class="question-mark">?</span>;
-        <span class="comment">// This unwrap is protected by the invariant keys1.len() == values.len(),</span>
-        <span class="comment">// the above debug_assert!, and the contract of zvl_binary_search_in_range.</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_get</span>(<span class="ident">index</span>).<span class="ident">unwrap</span>())
-    }
-
-    <span class="doccomment">/// Returns whether `key0` is contained in this map</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
-    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
-    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;bar&quot;);</span>
-    <span class="doccomment">/// assert_eq!(map.contains_key0(&amp;1), true);</span>
-    <span class="doccomment">/// assert_eq!(map.contains_key0(&amp;3), false);</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_key0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>).<span class="ident">is_ok</span>()
-    }
-
-    <span class="doccomment">/// Insert `value` with `key`, returning the existing value if it exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// See example in [`Self::get()`].</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V::OwnedType</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">key0_index</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_range_for_key0</span>(<span class="ident">key0</span>);
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;=&#39; because we may have inserted a new key0</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
-        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
-            <span class="op">+</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>).<span class="ident">unwrap</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">index</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_replace</span>(<span class="ident">index</span>, <span class="ident">value</span>)),
-                <span class="prelude-val">Err</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
-            };
-        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_insert</span>(<span class="ident">index</span>, <span class="ident">key1</span>);
-        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_insert</span>(<span class="ident">index</span>, <span class="ident">value</span>);
-        <span class="self">self</span>.<span class="ident">joiner_expand</span>(<span class="ident">key0_index</span>);
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="self">self</span>.<span class="ident">check_invariants</span>();
-        <span class="prelude-val">None</span>
-    }
-
-    <span class="doccomment">/// Remove the value at `key`, returning it if it exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
-    <span class="doccomment">/// use zerovec::maps::KeyError;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
-    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
-    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;bar&quot;);</span>
-    <span class="doccomment">/// assert_eq!(map.remove(&amp;1, &quot;one&quot;), Ok(&quot;foo&quot;.to_owned().into_boxed_str()));</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;1, &quot;one&quot;), Err(KeyError::K0));</span>
-    <span class="doccomment">/// assert_eq!(map.remove(&amp;1, &quot;one&quot;), Err(KeyError::K0));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::OwnedType</span>, <span class="ident">KeyError</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="ident">key0_index</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0</span>(<span class="ident">key0</span>).<span class="ident">ok_or</span>(<span class="ident">KeyError::K0</span>)<span class="question-mark">?</span>;
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;&#39; because every key0 should have a key1</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
-        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
-        <span class="kw">let</span> <span class="ident">is_singleton_range</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">range</span>.<span class="ident">end</span>;
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
-            <span class="op">+</span> <span class="self">self</span>
-                .<span class="ident">keys1</span>
-                .<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>)
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">KeyError::K1</span>)<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_remove</span>(<span class="ident">index</span>);
-        <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_remove</span>(<span class="ident">index</span>);
-        <span class="self">self</span>.<span class="ident">joiner_shrink</span>(<span class="ident">key0_index</span>);
-        <span class="kw">if</span> <span class="ident">is_singleton_range</span> {
-            <span class="self">self</span>.<span class="ident">remove_key0_index</span>(<span class="ident">key0_index</span>);
-        }
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="self">self</span>.<span class="ident">check_invariants</span>();
-        <span class="prelude-val">Ok</span>(<span class="ident">removed</span>)
-    }
-
-    <span class="doccomment">/// Appends `value` with `key` to the end of the underlying vector, returning</span>
-    <span class="doccomment">/// `key` and `value` _if it failed_. Useful for extending with an existing</span>
-    <span class="doccomment">/// sorted list.</span>
-    <span class="doccomment">/// ```rust</span>
-    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
-    <span class="doccomment">/// use zerovec::maps::KeyError;</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
-    <span class="doccomment">/// assert!(map.try_append(&amp;1, &quot;one&quot;, &quot;uno&quot;).is_none());</span>
-    <span class="doccomment">/// assert!(map.try_append(&amp;3, &quot;three&quot;, &quot;tres&quot;).is_none());</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let unsuccessful = map.try_append(&amp;3, &quot;three&quot;, &quot;tres-updated&quot;);</span>
-    <span class="doccomment">/// assert!(unsuccessful.is_some(), &quot;append duplicate of last key&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// let unsuccessful = map.try_append(&amp;2, &quot;two&quot;, &quot;dos&quot;);</span>
-    <span class="doccomment">/// assert!(unsuccessful.is_some(), &quot;append out of order&quot;);</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;1, &quot;one&quot;), Ok(&quot;uno&quot;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // contains the original value for the key: 3</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;3, &quot;three&quot;), Ok(&quot;tres&quot;));</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// // not appended since it wasn&#39;t in order</span>
-    <span class="doccomment">/// assert_eq!(map.get(&amp;2, &quot;two&quot;), Err(KeyError::K0));</span>
-    <span class="doccomment">/// ```</span>
-    <span class="attribute">#[<span class="ident">must_use</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_append</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K0</span>,
-        <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K1</span>,
-        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">V</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K0</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K1</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty</span>() {
-            <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_push</span>(<span class="ident">key0</span>);
-            <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="number">1u32</span>.<span class="ident">to_unaligned</span>());
-            <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_push</span>(<span class="ident">key1</span>);
-            <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_push</span>(<span class="ident">value</span>);
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
-        }
-
-        <span class="comment">// The unwraps are protected by the fact that we are not empty</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">last_key0</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_get</span>(<span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_len</span>() <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key0_cmp</span> <span class="op">=</span> <span class="ident">K0::Container::t_cmp_get</span>(<span class="ident">key0</span>, <span class="ident">last_key0</span>);
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">last_key1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_get</span>(<span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>() <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
-        <span class="kw">let</span> <span class="ident">key1_cmp</span> <span class="op">=</span> <span class="ident">K1::Container::t_cmp_get</span>(<span class="ident">key1</span>, <span class="ident">last_key1</span>);
-
-        <span class="comment">// Check for error case (out of order)</span>
-        <span class="kw">match</span> <span class="ident">key0_cmp</span> {
-            <span class="ident">Ordering::Less</span> =&gt; {
-                <span class="comment">// Error case</span>
-                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">key0</span>, <span class="ident">key1</span>, <span class="ident">value</span>));
-            }
-            <span class="ident">Ordering::Equal</span> =&gt; {
-                <span class="kw">match</span> <span class="ident">key1_cmp</span> {
-                    <span class="ident">Ordering::Less</span> <span class="op">|</span> <span class="ident">Ordering::Equal</span> =&gt; {
-                        <span class="comment">// Error case</span>
-                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">key0</span>, <span class="ident">key1</span>, <span class="ident">value</span>));
-                    }
-                    <span class="kw">_</span> =&gt; {}
-                }
-            }
-            <span class="kw">_</span> =&gt; {}
-        }
-
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">joiner_value</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>() <span class="op">+</span> <span class="number">1</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;Attempted to add more than 2^32 elements to a ZeroMap2d&quot;</span>);
-
-        <span class="comment">// All OK to append</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">if</span> <span class="ident">key0_cmp</span> <span class="op">==</span> <span class="ident">Ordering::Greater</span> {
-            <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_push</span>(<span class="ident">key0</span>);
-            <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>());
-        } <span class="kw">else</span> {
-            <span class="comment">// This unwrap is protected because we are not empty</span>
-            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">last_mut</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>();
-        }
-        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_push</span>(<span class="ident">key1</span>);
-        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_push</span>(<span class="ident">value</span>);
-
-        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
-        <span class="self">self</span>.<span class="ident">check_invariants</span>();
-
-        <span class="prelude-val">None</span>
-    }
-
-    <span class="doccomment">/// Produce an ordered iterator over keys0.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_keys0</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="op">&lt;</span><span class="ident">K0</span> <span class="kw">as</span> <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::GetType</span><span class="op">&gt;</span> {
-        <span class="comment">// The unwrap is protected because we are looping over the range of indices in the vec</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        (<span class="number">0</span>..<span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_len</span>()).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_get</span>(<span class="ident">idx</span>).<span class="ident">unwrap</span>())
-    }
-
-    <span class="doccomment">/// Produce an ordered iterator over keys1 for a particular key0, if key0 exists.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_keys1</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="op">&lt;</span><span class="ident">K1</span> <span class="kw">as</span> <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::GetType</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0</span>(<span class="ident">key0</span>)<span class="question-mark">?</span>;
-        <span class="comment">// The unwrap is protected because all ranges are valid according to invariants 1-4</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="prelude-val">Some</span>(<span class="ident">range</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_get</span>(<span class="ident">idx</span>).<span class="ident">unwrap</span>()))
-    }
-
-    <span class="doccomment">/// Produce an ordered iterator over keys1 for a particular key0_index, if key0_index exists.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This method is designed to interoperate with the enumerated key of `iter_keys0`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// # Panics</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Panics if `key0_index` is out of range.</span>
+    <span class="doccomment">/// Produce an ordered iterator over keys0, which can then be used to get an iterator</span>
+    <span class="doccomment">/// over keys1 for a particular key0.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Example</span>
     <span class="doccomment">///</span>
@@ -1271,81 +1038,26 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let mut total_value = 0;</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let mut values_it = map.iter_values();</span>
-    <span class="doccomment">/// for (key0_index, key0) in map.iter_keys0().enumerate() {</span>
-    <span class="doccomment">///     for key1 in map.iter_keys1_by_index(key0_index).unwrap() {</span>
+    <span class="doccomment">/// for cursor in map.iter0() {</span>
+    <span class="doccomment">///     for (key1, value) in cursor.iter1() {</span>
     <span class="doccomment">///         // This code runs for every (key0, key1) pair</span>
-    <span class="doccomment">///         total_value += key0.as_unsigned_int() as usize;</span>
+    <span class="doccomment">///         total_value += cursor.key0().as_unsigned_int() as usize;</span>
     <span class="doccomment">///         total_value += key1.as_unsigned_int() as usize;</span>
-    <span class="doccomment">///         total_value += values_it.next().unwrap().len();</span>
+    <span class="doccomment">///         total_value += value.len();</span>
     <span class="doccomment">///     }</span>
     <span class="doccomment">/// }</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// assert_eq!(total_value, 22);</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_keys1_by_index</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
-        <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>,
-        <span class="ident">key0_index</span>: <span class="ident">usize</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="op">&lt;</span><span class="ident">K1</span> <span class="kw">as</span> <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::GetType</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="macro">assert!</span>(<span class="ident">key0_index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_len</span>());
-        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0_index</span>(<span class="ident">key0_index</span>);
-        <span class="comment">// The unwrap is protected because all ranges are valid according to invariants 1-4</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="prelude-val">Some</span>(<span class="ident">range</span>.<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_get</span>(<span class="ident">idx</span>).<span class="ident">unwrap</span>()))
-    }
-
-    <span class="doccomment">/// Produce an iterator over values, ordered by the pair (key0,key1)</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter_values</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="op">&lt;</span><span class="ident">V</span> <span class="kw">as</span> <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="ident">::GetType</span><span class="op">&gt;</span> {
-        <span class="comment">// The unwrap is protected because we are looping over the range of indices in the vec</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        (<span class="number">0</span>..<span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_len</span>()).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_get</span>(<span class="ident">idx</span>).<span class="ident">unwrap</span>())
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">iter0</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="self">self</span>) -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">ZeroMap2dCursor</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;l</span> {
+        (<span class="number">0</span>..<span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_len</span>()).<span class="ident">map</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">idx</span><span class="op">|</span> <span class="ident">ZeroMap2dCursor::from_cow</span>(<span class="self">self</span>, <span class="ident">idx</span>))
     }
 
     <span class="comment">// INTERNAL ROUTINES FOLLOW //</span>
 
-    <span class="doccomment">/// Given a value that may exist in keys0, returns the corresponding range of keys1</span>
-    <span class="kw">fn</span> <span class="ident">get_range_for_key0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="ident">usize</span>, <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>)<span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">key0_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="prelude-val">Some</span>((<span class="ident">key0_index</span>, <span class="self">self</span>.<span class="ident">get_range_for_key0_index</span>(<span class="ident">key0_index</span>)))
-    }
-
     <span class="doccomment">/// Given an index into the joiner array, returns the corresponding range of keys1</span>
     <span class="kw">fn</span> <span class="ident">get_range_for_key0_index</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0_index</span>: <span class="ident">usize</span>) -&gt; <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-        <span class="macro">debug_assert!</span>(<span class="ident">key0_index</span> <span class="op">&lt;</span> <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">len</span>());
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">key0_index</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="number">0</span>
-        } <span class="kw">else</span> {
-            <span class="comment">// The unwrap is protected by the debug_assert above</span>
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-            <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">get</span>(<span class="ident">key0_index</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>()
-        };
-        <span class="comment">// The unwrap is protected by the debug_assert above</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-        <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">get</span>(<span class="ident">key0_index</span>).<span class="ident">unwrap</span>();
-        (<span class="ident">start</span> <span class="kw">as</span> <span class="ident">usize</span>)..(<span class="ident">limit</span> <span class="kw">as</span> <span class="ident">usize</span>)
-    }
-
-    <span class="doccomment">/// Same as `get_range_for_key0`, but creates key0 if it doesn&#39;t already exist</span>
-    <span class="kw">fn</span> <span class="ident">get_or_insert_range_for_key0</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
-        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">key0_index</span>) =&gt; (<span class="ident">key0_index</span>, <span class="self">self</span>.<span class="ident">get_range_for_key0_index</span>(<span class="ident">key0_index</span>)),
-            <span class="prelude-val">Err</span>(<span class="ident">key0_index</span>) =&gt; {
-                <span class="comment">// Add an entry to self.keys0 and self.joiner</span>
-                <span class="kw">let</span> <span class="ident">joiner_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">key0_index</span> <span class="op">==</span> <span class="number">0</span> {
-                    <span class="number">0</span>
-                } <span class="kw">else</span> {
-                    <span class="macro">debug_assert!</span>(<span class="ident">key0_index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">len</span>());
-                    <span class="comment">// The unwrap is protected by the debug_assert above and key0_index != 0</span>
-                    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
-                    <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">get</span>(<span class="ident">key0_index</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>()
-                };
-                <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_insert</span>(<span class="ident">key0_index</span>, <span class="ident">key0</span>);
-                <span class="self">self</span>.<span class="ident">joiner</span>
-                    .<span class="ident">to_mut</span>()
-                    .<span class="ident">insert</span>(<span class="ident">key0_index</span>, <span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>());
-                (<span class="ident">key0_index</span>, (<span class="ident">joiner_value</span> <span class="kw">as</span> <span class="ident">usize</span>)..(<span class="ident">joiner_value</span> <span class="kw">as</span> <span class="ident">usize</span>))
-            }
-        }
+        <span class="ident">ZeroMap2dCursor::from_cow</span>(<span class="self">self</span>, <span class="ident">key0_index</span>).<span class="ident">get_range</span>()
     }
 
     <span class="doccomment">/// Removes key0_index from the keys0 array and the joiner array</span>
@@ -1386,6 +1098,186 @@
                     .<span class="ident">to_unaligned</span>()
             });
     }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
+    <span class="ident">K1</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
+    <span class="ident">V</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">K0</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">K1</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+{
+    <span class="doccomment">/// Get the value associated with `key0` and `key1`, if it exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// For more fine-grained error handling, use [`ZeroMap2d::get0`].</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;one&quot;, &quot;bar&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;baz&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;1, &quot;one&quot;), Some(&quot;foo&quot;));</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;1, &quot;two&quot;), None);</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;2, &quot;one&quot;), Some(&quot;bar&quot;));</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;2, &quot;two&quot;), Some(&quot;baz&quot;));</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;3, &quot;three&quot;), None);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">V::GetType</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get0</span>(<span class="ident">key0</span>)<span class="question-mark">?</span>.<span class="ident">get1</span>(<span class="ident">key1</span>)
+    }
+
+    <span class="doccomment">/// Insert `value` with `key`, returning the existing value if it exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// See example in [`Self::get_2d()`].</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">insert</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>, <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">V</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V::OwnedType</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> (<span class="ident">key0_index</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_range_for_key0</span>(<span class="ident">key0</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;=&#39; because we may have inserted a new key0</span>
+        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
+        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
+            <span class="op">+</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>).<span class="ident">unwrap</span>() {
+                <span class="prelude-val">Ok</span>(<span class="ident">index</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_replace</span>(<span class="ident">index</span>, <span class="ident">value</span>)),
+                <span class="prelude-val">Err</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>,
+            };
+        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_insert</span>(<span class="ident">index</span>, <span class="ident">key1</span>);
+        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_insert</span>(<span class="ident">index</span>, <span class="ident">value</span>);
+        <span class="self">self</span>.<span class="ident">joiner_expand</span>(<span class="ident">key0_index</span>);
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">check_invariants</span>();
+        <span class="prelude-val">None</span>
+    }
+
+    <span class="doccomment">/// Remove the value at `key`, returning it if it exists.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;bar&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.remove(&amp;1, &quot;one&quot;), Some(&quot;foo&quot;.to_owned().into_boxed_str()));</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;1, &quot;one&quot;), None);</span>
+    <span class="doccomment">/// assert_eq!(map.remove(&amp;1, &quot;one&quot;), None);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">remove</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V::OwnedType</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">key0_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">range</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0_index</span>(<span class="ident">key0_index</span>);
+        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;&#39; because every key0 should have a key1</span>
+        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
+        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
+        <span class="kw">let</span> <span class="ident">is_singleton_range</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">range</span>.<span class="ident">end</span>;
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
+            <span class="op">+</span> <span class="self">self</span>
+                .<span class="ident">keys1</span>
+                .<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>)
+                .<span class="ident">unwrap</span>()
+                .<span class="ident">ok</span>()<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_remove</span>(<span class="ident">index</span>);
+        <span class="kw">let</span> <span class="ident">removed</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_remove</span>(<span class="ident">index</span>);
+        <span class="self">self</span>.<span class="ident">joiner_shrink</span>(<span class="ident">key0_index</span>);
+        <span class="kw">if</span> <span class="ident">is_singleton_range</span> {
+            <span class="self">self</span>.<span class="ident">remove_key0_index</span>(<span class="ident">key0_index</span>);
+        }
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">check_invariants</span>();
+        <span class="prelude-val">Some</span>(<span class="ident">removed</span>)
+    }
+
+    <span class="doccomment">/// Appends `value` with `key` to the end of the underlying vector, returning</span>
+    <span class="doccomment">/// `key` and `value` _if it failed_. Useful for extending with an existing</span>
+    <span class="doccomment">/// sorted list.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// assert!(map.try_append(&amp;1, &quot;one&quot;, &quot;uno&quot;).is_none());</span>
+    <span class="doccomment">/// assert!(map.try_append(&amp;3, &quot;three&quot;, &quot;tres&quot;).is_none());</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let unsuccessful = map.try_append(&amp;3, &quot;three&quot;, &quot;tres-updated&quot;);</span>
+    <span class="doccomment">/// assert!(unsuccessful.is_some(), &quot;append duplicate of last key&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let unsuccessful = map.try_append(&amp;2, &quot;two&quot;, &quot;dos&quot;);</span>
+    <span class="doccomment">/// assert!(unsuccessful.is_some(), &quot;append out of order&quot;);</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;1, &quot;one&quot;), Some(&quot;uno&quot;));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // contains the original value for the key: 3</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;3, &quot;three&quot;), Some(&quot;tres&quot;));</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// // not appended since it wasn&#39;t in order</span>
+    <span class="doccomment">/// assert_eq!(map.get_2d(&amp;2, &quot;two&quot;), None);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">must_use</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">try_append</span><span class="op">&lt;</span><span class="lifetime">&#39;b</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K0</span>,
+        <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K1</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">V</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K0</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">K1</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;b</span> <span class="ident">V</span>)<span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_empty</span>() {
+            <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_push</span>(<span class="ident">key0</span>);
+            <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="number">1u32</span>.<span class="ident">to_unaligned</span>());
+            <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_push</span>(<span class="ident">key1</span>);
+            <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_push</span>(<span class="ident">value</span>);
+            <span class="kw">return</span> <span class="prelude-val">None</span>;
+        }
+
+        <span class="comment">// The unwraps are protected by the fact that we are not empty</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
+        <span class="kw">let</span> <span class="ident">last_key0</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_get</span>(<span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_len</span>() <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">key0_cmp</span> <span class="op">=</span> <span class="ident">K0::Container::t_cmp_get</span>(<span class="ident">key0</span>, <span class="ident">last_key0</span>);
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
+        <span class="kw">let</span> <span class="ident">last_key1</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_get</span>(<span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>() <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>();
+        <span class="kw">let</span> <span class="ident">key1_cmp</span> <span class="op">=</span> <span class="ident">K1::Container::t_cmp_get</span>(<span class="ident">key1</span>, <span class="ident">last_key1</span>);
+
+        <span class="comment">// Check for error case (out of order)</span>
+        <span class="kw">match</span> <span class="ident">key0_cmp</span> {
+            <span class="ident">Ordering::Less</span> =&gt; {
+                <span class="comment">// Error case</span>
+                <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">key0</span>, <span class="ident">key1</span>, <span class="ident">value</span>));
+            }
+            <span class="ident">Ordering::Equal</span> =&gt; {
+                <span class="kw">match</span> <span class="ident">key1_cmp</span> {
+                    <span class="ident">Ordering::Less</span> <span class="op">|</span> <span class="ident">Ordering::Equal</span> =&gt; {
+                        <span class="comment">// Error case</span>
+                        <span class="kw">return</span> <span class="prelude-val">Some</span>((<span class="ident">key0</span>, <span class="ident">key1</span>, <span class="ident">value</span>));
+                    }
+                    <span class="kw">_</span> =&gt; {}
+                }
+            }
+            <span class="kw">_</span> =&gt; {}
+        }
+
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::expect_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
+        <span class="kw">let</span> <span class="ident">joiner_value</span> <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>() <span class="op">+</span> <span class="number">1</span>)
+            .<span class="ident">expect</span>(<span class="string">&quot;Attempted to add more than 2^32 elements to a ZeroMap2d&quot;</span>);
+
+        <span class="comment">// All OK to append</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
+        <span class="kw">if</span> <span class="ident">key0_cmp</span> <span class="op">==</span> <span class="ident">Ordering::Greater</span> {
+            <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_push</span>(<span class="ident">key0</span>);
+            <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">push</span>(<span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>());
+        } <span class="kw">else</span> {
+            <span class="comment">// This unwrap is protected because we are not empty</span>
+            <span class="kw-2">*</span><span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">to_mut</span>().<span class="ident">last_mut</span>().<span class="ident">unwrap</span>() <span class="op">=</span> <span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>();
+        }
+        <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_push</span>(<span class="ident">key1</span>);
+        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">zvl_push</span>(<span class="ident">value</span>);
+
+        <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
+        <span class="self">self</span>.<span class="ident">check_invariants</span>();
+
+        <span class="prelude-val">None</span>
+    }
+
+    <span class="comment">// INTERNAL ROUTINES FOLLOW //</span>
 
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">debug_assertions</span>)]</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// this is an assertion function</span>
@@ -1416,10 +1308,104 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span>
 <span class="kw">where</span>
-    <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Ord</span>,
-    <span class="ident">K1</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span> <span class="op">+</span> <span class="ident">Ord</span>,
-    <span class="ident">V</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">Container</span> <span class="op">=</span> <span class="ident">ZeroVec</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="question-mark">?</span><span class="ident">Sized</span>,
-    <span class="ident">V</span>: <span class="ident">AsULE</span> <span class="op">+</span> <span class="ident">Copy</span>,
+    <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
+    <span class="ident">K1</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">V</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">K0</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">K1</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">V</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+{
+    <span class="doccomment">/// Gets a cursor for `key0`. If `None`, then `key0` is not in the map. If `Some`,</span>
+    <span class="doccomment">/// then `key0` is in the map, and `key1` can be queried.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// map.insert(&amp;1u32, &quot;one&quot;, &quot;foo&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;one&quot;, &quot;bar&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;baz&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.get0(&amp;1).unwrap().get1(&quot;one&quot;).unwrap(), &quot;foo&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.get0(&amp;1).unwrap().get1(&quot;two&quot;), None);</span>
+    <span class="doccomment">/// assert_eq!(map.get0(&amp;2).unwrap().get1(&quot;one&quot;).unwrap(), &quot;bar&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.get0(&amp;2).unwrap().get1(&quot;two&quot;).unwrap(), &quot;baz&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.get0(&amp;3), None);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get0</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ZeroMap2dCursor</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">key0_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<span class="ident">ZeroMap2dCursor::from_cow</span>(<span class="self">self</span>, <span class="ident">key0_index</span>))
+    }
+
+    <span class="doccomment">/// Binary search the map for `key0`, returning a cursor.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::maps::ZeroMap2dBorrowed;</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;bar&quot;);</span>
+    <span class="doccomment">/// assert!(matches!(map.get0_by(|probe| probe.cmp(&amp;1)), Some(_)));</span>
+    <span class="doccomment">/// assert!(matches!(map.get0_by(|probe| probe.cmp(&amp;3)), None));</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get0_by</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span><span class="op">&gt;</span>(
+        <span class="kw-2">&amp;</span><span class="lifetime">&#39;l</span> <span class="self">self</span>,
+        <span class="ident">predicate</span>: <span class="kw">impl</span> <span class="ident">FnMut</span>(<span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; <span class="ident">Ordering</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ZeroMap2dCursor</span><span class="op">&lt;</span><span class="lifetime">&#39;l</span>, <span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">key0_index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search_by</span>(<span class="ident">predicate</span>).<span class="ident">ok</span>()<span class="question-mark">?</span>;
+        <span class="prelude-val">Some</span>(<span class="ident">ZeroMap2dCursor::from_cow</span>(<span class="self">self</span>, <span class="ident">key0_index</span>))
+    }
+
+    <span class="doccomment">/// Returns whether `key0` is contained in this map</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// use zerovec::ZeroMap2d;</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let mut map = ZeroMap2d::new();</span>
+    <span class="doccomment">/// map.insert(&amp;1, &quot;one&quot;, &quot;foo&quot;);</span>
+    <span class="doccomment">/// map.insert(&amp;2, &quot;two&quot;, &quot;bar&quot;);</span>
+    <span class="doccomment">/// assert_eq!(map.contains_key0(&amp;1), true);</span>
+    <span class="doccomment">/// assert_eq!(map.contains_key0(&amp;3), false);</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">contains_key0</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; <span class="ident">bool</span> {
+        <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>).<span class="ident">is_ok</span>()
+    }
+
+    <span class="comment">// INTERNAL ROUTINES FOLLOW //</span>
+
+    <span class="doccomment">/// Same as `get_range_for_key0`, but creates key0 if it doesn&#39;t already exist</span>
+    <span class="kw">fn</span> <span class="ident">get_or_insert_range_for_key0</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>) -&gt; (<span class="ident">usize</span>, <span class="ident">Range</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_binary_search</span>(<span class="ident">key0</span>) {
+            <span class="prelude-val">Ok</span>(<span class="ident">key0_index</span>) =&gt; (<span class="ident">key0_index</span>, <span class="self">self</span>.<span class="ident">get_range_for_key0_index</span>(<span class="ident">key0_index</span>)),
+            <span class="prelude-val">Err</span>(<span class="ident">key0_index</span>) =&gt; {
+                <span class="comment">// Add an entry to self.keys0 and self.joiner</span>
+                <span class="kw">let</span> <span class="ident">joiner_value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">key0_index</span> <span class="op">==</span> <span class="number">0</span> {
+                    <span class="number">0</span>
+                } <span class="kw">else</span> {
+                    <span class="macro">debug_assert!</span>(<span class="ident">key0_index</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">len</span>());
+                    <span class="comment">// The unwrap is protected by the debug_assert above and key0_index != 0</span>
+                    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span>
+                    <span class="self">self</span>.<span class="ident">joiner</span>.<span class="ident">get</span>(<span class="ident">key0_index</span> <span class="op">-</span> <span class="number">1</span>).<span class="ident">unwrap</span>()
+                };
+                <span class="self">self</span>.<span class="ident">keys0</span>.<span class="ident">zvl_insert</span>(<span class="ident">key0_index</span>, <span class="ident">key0</span>);
+                <span class="self">self</span>.<span class="ident">joiner</span>
+                    .<span class="ident">to_mut</span>()
+                    .<span class="ident">insert</span>(<span class="ident">key0_index</span>, <span class="ident">joiner_value</span>.<span class="ident">to_unaligned</span>());
+                (<span class="ident">key0_index</span>, (<span class="ident">joiner_value</span> <span class="kw">as</span> <span class="ident">usize</span>)..(<span class="ident">joiner_value</span> <span class="kw">as</span> <span class="ident">usize</span>))
+            }
+        }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span> <span class="ident">ZeroMap2d</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">K0</span>, <span class="ident">K1</span>, <span class="ident">V</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">K0</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
+    <span class="ident">K1</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Ord</span>,
+    <span class="ident">V</span>: <span class="ident">ZeroMapKV</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    <span class="ident">V</span>: <span class="ident">Copy</span>,
+    <span class="ident">K0</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
+    <span class="ident">K1</span>: <span class="question-mark">?</span><span class="ident">Sized</span>,
 {
     <span class="doccomment">/// For cases when `V` is fixed-size, obtain a direct copy of `V` instead of `V::ULE`</span>
     <span class="doccomment">///</span>
@@ -1427,26 +1413,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```</span>
     <span class="doccomment">/// # use zerovec::ZeroMap2d;</span>
-    <span class="doccomment">/// let mut map: ZeroMap2d::&lt;u16, u16, u16&gt; = ZeroMap2d::new();</span>
+    <span class="doccomment">/// let mut map: ZeroMap2d&lt;u16, u16, u16&gt; = ZeroMap2d::new();</span>
     <span class="doccomment">/// map.insert(&amp;1, &amp;2, &amp;3);</span>
     <span class="doccomment">/// map.insert(&amp;1, &amp;4, &amp;5);</span>
     <span class="doccomment">/// map.insert(&amp;6, &amp;7, &amp;8);</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// assert_eq!(map.get_copied(&amp;6, &amp;7), Some(8));</span>
+    <span class="doccomment">/// assert_eq!(map.get_copied_2d(&amp;6, &amp;7), Some(8));</span>
     <span class="doccomment">/// ```</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_copied</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> (<span class="kw">_</span>, <span class="ident">range</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_range_for_key0</span>(<span class="ident">key0</span>)<span class="question-mark">?</span>;
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">start</span> <span class="op">&lt;</span> <span class="ident">range</span>.<span class="ident">end</span>); <span class="comment">// &#39;&lt;&#39; because every key0 should have a key1</span>
-        <span class="macro">debug_assert!</span>(<span class="ident">range</span>.<span class="ident">end</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">keys1</span>.<span class="ident">zvl_len</span>());
-        <span class="comment">// The above debug_assert! protects the unwrap() below</span>
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unwrap_used</span>)]</span> <span class="comment">// TODO(#1668) Clippy exceptions need docs or fixing.</span>
-        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">range</span>.<span class="ident">start</span>
-            <span class="op">+</span> <span class="self">self</span>
-                .<span class="ident">keys1</span>
-                .<span class="ident">zvl_binary_search_in_range</span>(<span class="ident">key1</span>, <span class="ident">range</span>)
-                .<span class="ident">unwrap</span>()
-                .<span class="ident">ok</span>()<span class="question-mark">?</span>;
-        <span class="self">self</span>.<span class="ident">values</span>.<span class="ident">get</span>(<span class="ident">index</span>)
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_copied_2d</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">key0</span>: <span class="kw-2">&amp;</span><span class="ident">K0</span>, <span class="ident">key1</span>: <span class="kw-2">&amp;</span><span class="ident">K1</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">get0</span>(<span class="ident">key0</span>)<span class="question-mark">?</span>.<span class="ident">get1_copied</span>(<span class="ident">key1</span>)
     }
 }
 
@@ -1566,27 +1542,27 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">zm2d</span> <span class="op">=</span> <span class="ident">ZeroMap2d</span>::<span class="op">&lt;</span><span class="ident">u16</span>, <span class="ident">str</span>, <span class="ident">str</span><span class="op">&gt;</span><span class="ident">::new</span>();
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Borrowed([]), joiner: ZeroVec::Borrowed([]), keys1: [], values: [] }&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">0</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">try_append</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>, <span class="string">&quot;CCC&quot;</span>);
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">result</span>, <span class="prelude-val">None</span>));
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Owned([3]), joiner: ZeroVec::Owned([1]), keys1: [\&quot;ccc\&quot;], values: [\&quot;CCC\&quot;] }&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">0</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;CCC&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">99</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;CCC&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">99</span>), <span class="prelude-val">None</span>);
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">try_append</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>, <span class="string">&quot;EEE&quot;</span>);
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">result</span>, <span class="prelude-val">None</span>));
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Owned([3]), joiner: ZeroVec::Owned([2]), keys1: [\&quot;ccc\&quot;, \&quot;eee\&quot;], values: [\&quot;CCC\&quot;, \&quot;EEE\&quot;] }&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">0</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;CCC&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;EEE&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;five&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">99</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;CCC&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;EEE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;five&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">99</span>), <span class="prelude-val">None</span>);
 
         <span class="comment">// Out of order</span>
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">try_append</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ddd&quot;</span>, <span class="string">&quot;DD0&quot;</span>);
@@ -1605,29 +1581,29 @@
         <span class="macro">assert!</span>(<span class="macro">matches!</span>(<span class="ident">result</span>, <span class="prelude-val">None</span>));
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Owned([3, 5, 7, 9]), joiner: ZeroVec::Owned([2, 3, 6, 7]), keys1: [\&quot;ccc\&quot;, \&quot;eee\&quot;, \&quot;ddd\&quot;, \&quot;ddd\&quot;, \&quot;eee\&quot;, \&quot;www\&quot;, \&quot;yyy\&quot;], values: [\&quot;CCC\&quot;, \&quot;EEE\&quot;, \&quot;DD1\&quot;, \&quot;DD2\&quot;, \&quot;EEE\&quot;, \&quot;WWW\&quot;, \&quot;YYY\&quot;] }&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">0</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;CCC&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;EEE&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">4</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;DD1&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;DD2&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;EEE&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;WWW&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">8</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;YYY&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">10</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">99</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;CCC&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;EEE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">4</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">5</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;DD1&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">5</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">6</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;DD2&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;EEE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;WWW&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">8</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;www&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;YYY&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">10</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">99</span>), <span class="prelude-val">None</span>);
 
         <span class="comment">// Insert some elements</span>
         <span class="ident">zm2d</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;mmm&quot;</span>, <span class="string">&quot;MM0&quot;</span>);
@@ -1636,44 +1612,44 @@
         <span class="ident">zm2d</span>.<span class="ident">insert</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;nnn&quot;</span>, <span class="string">&quot;NNN&quot;</span>);
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Owned([3, 5, 6, 7, 9]), joiner: ZeroVec::Owned([3, 4, 7, 10, 11]), keys1: [\&quot;ccc\&quot;, \&quot;eee\&quot;, \&quot;mmm\&quot;, \&quot;ddd\&quot;, \&quot;ddd\&quot;, \&quot;mmm\&quot;, \&quot;nnn\&quot;, \&quot;ddd\&quot;, \&quot;eee\&quot;, \&quot;www\&quot;, \&quot;yyy\&quot;], values: [\&quot;CCC\&quot;, \&quot;EEE\&quot;, \&quot;MM0\&quot;, \&quot;DD1\&quot;, \&quot;DD3\&quot;, \&quot;MM1\&quot;, \&quot;NNN\&quot;, \&quot;DD2\&quot;, \&quot;EEE\&quot;, \&quot;WWW\&quot;, \&quot;YYY\&quot;] }&quot;</span>);
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">0</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;CCC&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;EEE&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;mmm&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;MM0&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">4</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;DD1&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;DD3&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;mmm&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;MM1&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;nnn&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;NNN&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;DD2&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;EEE&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;WWW&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">8</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Ok</span>(<span class="string">&quot;YYY&quot;</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K1</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">10</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
-        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="number">99</span>, <span class="string">&quot;&quot;</span>), <span class="prelude-val">Err</span>(<span class="ident">KeyError::K0</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">0</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;CCC&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;EEE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;mmm&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;MM0&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">3</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">4</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">5</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;DD1&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">5</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">6</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;DD3&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;mmm&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;MM1&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">6</span>, <span class="string">&quot;nnn&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;NNN&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">6</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;ddd&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;DD2&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;eee&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;EEE&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">7</span>, <span class="string">&quot;www&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;WWW&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">7</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">8</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;aaa&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;www&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get_2d</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;yyy&quot;</span>), <span class="prelude-val">Some</span>(<span class="string">&quot;YYY&quot;</span>));
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">9</span>).<span class="ident">unwrap</span>().<span class="ident">get1</span>(<span class="string">&quot;zzz&quot;</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">10</span>), <span class="prelude-val">None</span>);
+        <span class="macro">assert_eq!</span>(<span class="ident">zm2d</span>.<span class="ident">get0</span>(<span class="kw-2">&amp;</span><span class="number">99</span>), <span class="prelude-val">None</span>);
 
         <span class="comment">// Remove some elements</span>
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>); <span class="comment">// first element</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;CCC&quot;</span>).<span class="ident">into_boxed_str</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;CCC&quot;</span>).<span class="ident">into_boxed_str</span>()));
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">3</span>, <span class="string">&quot;mmm&quot;</span>); <span class="comment">// middle element</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;MM0&quot;</span>).<span class="ident">into_boxed_str</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;MM0&quot;</span>).<span class="ident">into_boxed_str</span>()));
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">5</span>, <span class="string">&quot;ddd&quot;</span>); <span class="comment">// singleton K0</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;DD1&quot;</span>).<span class="ident">into_boxed_str</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;DD1&quot;</span>).<span class="ident">into_boxed_str</span>()));
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">zm2d</span>.<span class="ident">remove</span>(<span class="kw-2">&amp;</span><span class="number">9</span>, <span class="string">&quot;yyy&quot;</span>); <span class="comment">// last element</span>
-        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Ok</span>(<span class="ident">String::from</span>(<span class="string">&quot;YYY&quot;</span>).<span class="ident">into_boxed_str</span>()));
+        <span class="macro">assert_eq!</span>(<span class="ident">result</span>, <span class="prelude-val">Some</span>(<span class="ident">String::from</span>(<span class="string">&quot;YYY&quot;</span>).<span class="ident">into_boxed_str</span>()));
 
         <span class="macro">assert_eq!</span>(<span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">zm2d</span>), <span class="string">&quot;ZeroMap2d { keys0: ZeroVec::Owned([3, 6, 7]), joiner: ZeroVec::Owned([1, 4, 7]), keys1: [\&quot;eee\&quot;, \&quot;ddd\&quot;, \&quot;mmm\&quot;, \&quot;nnn\&quot;, \&quot;ddd\&quot;, \&quot;eee\&quot;, \&quot;www\&quot;], values: [\&quot;EEE\&quot;, \&quot;DD3\&quot;, \&quot;MM1\&quot;, \&quot;NNN\&quot;, \&quot;DD2\&quot;, \&quot;EEE\&quot;, \&quot;WWW\&quot;] }&quot;</span>);
     }
