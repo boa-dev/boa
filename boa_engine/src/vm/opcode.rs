@@ -1183,6 +1183,13 @@ pub enum Opcode {
     /// Stack: promise **=>**
     Await,
 
+    /// Push the current new target to the stack.
+    ///
+    /// Operands:
+    ///
+    /// Stack: **=>** new_target
+    PushNewTarget,
+
     /// No-operation instruction, does nothing.
     ///
     /// Operands:
@@ -1364,6 +1371,7 @@ impl Opcode {
             Self::GeneratorNext => "GeneratorNext",
             Self::AsyncGeneratorNext => "AsyncGeneratorNext",
             Self::Await => "Await",
+            Self::PushNewTarget => "PushNewTarget",
             Self::GeneratorNextDelegate => "GeneratorNextDelegate",
             Self::Nop => "Nop",
         }
@@ -1509,6 +1517,7 @@ impl Opcode {
             Self::Yield => "INST - Yield",
             Self::GeneratorNext => "INST - GeneratorNext",
             Self::AsyncGeneratorNext => "INST - AsyncGeneratorNext",
+            Self::PushNewTarget => "INST - PushNewTarget",
             Self::Await => "INST - Await",
             Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Self::Nop => "INST - Nop",

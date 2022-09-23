@@ -73,7 +73,21 @@ where
                 ));
             }
             TokenKind::Keyword((Keyword::New, false)) => {
-                let _next = cursor.next(interner).expect("new keyword disappeared");
+                cursor.next(interner).expect("token disappeared");
+
+                if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
+                    let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    match token.kind() {
+                        TokenKind::Identifier(Sym::TARGET) => return Ok(Node::NewTarget),
+                        _ => {
+                            return Err(ParseError::general(
+                                "unexpected private identifier",
+                                token.span().start(),
+                            ));
+                        }
+                    }
+                }
+
                 let lhs = self.parse(cursor, interner)?;
                 let args = match cursor.peek(0, interner)? {
                     Some(next) if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) => {

@@ -2501,6 +2501,22 @@ impl Context {
                 self.vm.push(JsValue::undefined());
                 return Ok(ShouldExit::Await);
             }
+            Opcode::PushNewTarget => {
+                if let Some(env) = self
+                    .realm
+                    .environments
+                    .get_this_environment()
+                    .as_function_slots()
+                {
+                    if let Some(new_target) = env.borrow().new_target() {
+                        self.vm.push(new_target.clone());
+                    } else {
+                        self.vm.push(JsValue::undefined());
+                    }
+                } else {
+                    self.vm.push(JsValue::undefined());
+                }
+            }
         }
 
         Ok(ShouldExit::False)

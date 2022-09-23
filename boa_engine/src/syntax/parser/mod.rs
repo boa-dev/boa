@@ -146,7 +146,7 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        let (in_method, in_derived_constructor) = if let Some(function_env) = context
+        let (in_function, in_method, in_derived_constructor) = if let Some(function_env) = context
             .realm
             .environments
             .get_this_environment()
@@ -156,6 +156,7 @@ impl<R> Parser<R> {
             let has_super_binding = function_env_borrow.has_super_binding();
             let function_object = function_env_borrow.function_object().borrow();
             (
+                true,
                 has_super_binding,
                 function_object
                     .as_function()
@@ -163,13 +164,14 @@ impl<R> Parser<R> {
                     .is_derived_constructor(),
             )
         } else {
-            (false, false)
+            (false, false, false)
         };
 
         let statement_list = Script::new(direct).parse(&mut self.cursor, context)?;
 
         let mut contains_super_property = false;
         let mut contains_super_call = false;
+        let mut contains_new_target = false;
         if direct {
             for node in statement_list.items() {
                 if !contains_super_property && node.contains(ContainsSymbol::SuperProperty) {
@@ -179,9 +181,19 @@ impl<R> Parser<R> {
                 if !contains_super_call && node.contains(ContainsSymbol::SuperCall) {
                     contains_super_call = true;
                 }
+
+                if !contains_new_target && node.contains(ContainsSymbol::NewTarget) {
+                    contains_new_target = true;
+                }
             }
         }
 
+        if !in_function && contains_new_target {
+            return Err(ParseError::general(
+                "invalid new.target usage",
+                Position::new(1, 1),
+            ));
+        }
         if !in_method && contains_super_property {
             return Err(ParseError::general(
                 "invalid super usage",
@@ -365,15 +377,26 @@ where
         let body = self::statement::StatementList::new(false, false, false, &[])
             .parse(cursor, interner)?;
 
-        // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval code that is being processed by a direct eval.
-        // Additional early error rules for super within direct eval are defined in 19.2.1.1.
         if !self.direct_eval {
             for node in body.items() {
+                // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
+                // code that is being processed by a direct eval.
+                // Additional early error rules for super within direct eval are defined in 19.2.1.1.
                 if node.contains(ContainsSymbol::SuperCall)
                     || node.contains(ContainsSymbol::SuperProperty)
                 {
                     return Err(ParseError::general(
                         "invalid super usage",
+                        Position::new(1, 1),
+                    ));
+                }
+
+                // It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
+                // is eval code that is being processed by a direct eval.
+                // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
+                if node.contains(ContainsSymbol::NewTarget) {
+                    return Err(ParseError::general(
+                        "invalid new.target usage",
                         Position::new(1, 1),
                     ));
                 }
