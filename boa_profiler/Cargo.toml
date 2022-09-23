@@ -1,14 +1,14 @@
 [package]
 name = "boa_profiler"
-version = "0.16.0"
-edition = "2021"
-rust-version = "1.60"
-authors = ["boa-dev"]
-description = "Profiler used in Boa."
-repository = "https://github.com/boa-dev/boa"
+description = "Profiler for the Boa JavaScript engine."
 keywords = ["javascript", "js", "compiler", "profiler"]
 categories = ["development-tools::profiling"]
-license = "Unlicense/MIT"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [features]
 profiler = ["measureme", "once_cell"]

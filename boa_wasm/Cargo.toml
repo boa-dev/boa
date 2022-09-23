@@ -1,18 +1,18 @@
 [package]
 name = "boa_wasm"
-version = "0.16.0"
-edition = "2021"
-rust-version = "1.60"
-authors = ["boa-dev"]
-description = "WASM package for the Boa JavaScript engine."
-repository = "https://github.com/boa-dev/boa"
+description = "WASM compatibility layer for the Boa JavaScript engine."
 keywords = ["javascript", "compiler", "lexer", "parser", "js"]
 categories = ["parser-implementations", "wasm", "compilers"]
-license = "Unlicense/MIT"
 publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["console"], version = "0.16.0" }
+boa_engine = { workspace = true, features = ["console"] }
 wasm-bindgen = "0.2.83"
 getrandom = { version = "0.2.7", features = ["js"] }
 

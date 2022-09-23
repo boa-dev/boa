@@ -1,15 +1,17 @@
 [package]
 name = "boa_examples"
-version = "0.16.0"
-authors = ["boa-dev"]
-repository = "https://github.com/boa-dev/boa"
-license = "Unlicense/MIT"
-edition = "2021"
+description = "Usage examples of the Boa JavaScript engine."
 publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["console"], version = "0.16.0" }
-boa_gc = { path = "../boa_gc", version = "0.16.0" }
+boa_engine = { workspace = true, features = ["console"] }
+boa_gc.workspace = true
 gc = "0.4.1"

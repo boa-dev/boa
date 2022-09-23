@@ -1,14 +1,14 @@
 [package]
 name = "boa_unicode"
-version = "0.16.0"
-edition = "2021"
-rust-version = "1.60"
-authors = ["boa-dev"]
 description = "Unicode support for the Boa JavaScript engine."
-repository = "https://github.com/boa-dev/boa"
 keywords = ["javascript", "compiler", "lexer", "parser", "unicode"]
 categories = ["parsing"]
-license = "Unlicense/MIT"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
 unicode-general-category = "0.6.0"

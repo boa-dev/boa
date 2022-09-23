@@ -1,20 +1,20 @@
 [package]
 name = "boa_tester"
-version = "0.16.0"
-edition = "2021"
-rust-version = "1.60"
-authors = ["boa-dev"]
-description = "Test runner for the Boa JavaScript engine."
-repository = "https://github.com/boa-dev/boa"
+description = "ECMA-262 tests runner for the Boa JavaScript engine."
 keywords = ["javascript", "ECMASCript", "compiler", "test262", "tester"]
 categories = ["command-line-utilites"]
-license = "Unlicense/MIT"
 publish = false
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["intl"], version = "0.16.0" }
-boa_interner = { path = "../boa_interner", version = "0.16.0" }
-boa_gc = { path = "../boa_gc", version = "0.16.0" }
+boa_engine = { workspace = true, features = ["intl"] }
+boa_interner.workspace = true
+boa_gc.workspace = true
 clap = { version = "3.2.22", features = ["derive"] }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_yaml = "0.9.13"
