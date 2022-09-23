@@ -1,6 +1,6 @@
 [package]
 name = "boa_cli"
-version = "0.15.0"
+version = "0.16.0"
 edition = "2021"
 rust-version = "1.60"
 authors = ["boa-dev"]
@@ -12,8 +12,8 @@ license = "Unlicense/MIT"
 default-run = "boa"
 
 [dependencies]
-boa_engine = { path = "../boa_engine", features = ["deser", "console"], version = "0.15.0" }
-boa_interner = { path = "../boa_interner", version = "0.15.0" }
+boa_engine = { path = "../boa_engine", features = ["deser", "console"], version = "0.16.0" }
+boa_interner = { path = "../boa_interner", version = "0.16.0" }
 rustyline = "10.0.0"
 rustyline-derive = "0.7.0"
 clap = { version = "3.2.22", features = ["derive"] }
