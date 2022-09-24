@@ -34,12 +34,14 @@ impl<R> Tokenizer<R> for SingleLineComment {
         let _timer = Profiler::global().start_event("SingleLineComment", "Lexing");
 
         // Skip either to the end of the line or to the end of the input
-        while let Some(ch) = cursor.peek()? {
-            if ch == b'\n' || ch == b'\r' {
-                break;
-            }
-            // Consume char.
-            cursor.next_byte()?.expect("Comment character vanished");
+        while let Some(ch) = cursor.next_char()? {
+            let tried_ch = char::try_from(ch);
+            match tried_ch {
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
+                   break;
+                }
+                _ => {}
+            };
         }
         Ok(Token::new(
             TokenKind::Comment,
