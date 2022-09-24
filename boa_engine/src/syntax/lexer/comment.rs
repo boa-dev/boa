@@ -37,9 +37,7 @@ impl<R> Tokenizer<R> for SingleLineComment {
         while let Some(ch) = cursor.next_char()? {
             let tried_ch = char::try_from(ch);
             match tried_ch {
-                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => {
-                   break;
-                }
+                Ok(c) if c == '\r' || c == '\n' || c == '\u{2028}' || c == '\u{2029}' => break,
                 _ => {}
             };
         }
