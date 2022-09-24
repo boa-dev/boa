@@ -2,6 +2,65 @@
 
 ## What's Changed
 
+# [0.16.0 (2022-09-25)](https://github.com/boa-dev/boa/compare/v0.15...v0.16)
+
+### Feature Enhancements
+
+- Implement getter and setter of `Object.prototype.__proto__` by @CYBAI in [#2110](https://github.com/boa-dev/boa/pull/2110)
+- Execution stack & promises by @Razican in [#2107](https://github.com/boa-dev/boa/pull/2107)
+- Add the `[[Done]]` field to iterators by @Razican in [#2125](https://github.com/boa-dev/boa/pull/2125)
+- Fix for in/of loop initializer environment by @raskad in [#2135](https://github.com/boa-dev/boa/pull/2135)
+- Implement `Promise.all` by @raskad in [#2140](https://github.com/boa-dev/boa/pull/2140)
+- Implement `Promise.any` by @raskad in [#2145](https://github.com/boa-dev/boa/pull/2145)
+- Implement `Promise.allSettled` by @raskad in [#2146](https://github.com/boa-dev/boa/pull/2146)
+- Implement `super` expressions by @raskad in [#2116](https://github.com/boa-dev/boa/pull/2116)
+- Implement `async function` and `await` by @raskad in [#2158](https://github.com/boa-dev/boa/pull/2158)
+- Implementation of `JsMap` Wrapper by @nekevss in [#2115](https://github.com/boa-dev/boa/pull/2115)
+- Safe wrapper for `JsSet` by @anuvratsingh in [#2162](https://github.com/boa-dev/boa/pull/2162)
+- Implement `JsArrayBuffer` by @HalidOdat in [#2170](https://github.com/boa-dev/boa/pull/2170)
+- Implement arrow function parsing based on `CoverParenthesizedExpressionAndArrowParameterList` by @raskad in [#2171](https://github.com/boa-dev/boa/pull/2171)
+- Implement Generator Function Constructor by @raskad in [#2174](https://github.com/boa-dev/boa/pull/2174)
+- Parse class private async generator methods by @raskad in [#2220](https://github.com/boa-dev/boa/pull/2220)
+- Implement Async Generators by @raskad in [#2200](https://github.com/boa-dev/boa/pull/2200)
+- Add field accessors to destructing assignment by @raskad in [#2213](https://github.com/boa-dev/boa/pull/2213)
+- Added a bit more integer operation consistency to ByteDataBlock creation by @Razican in [#2272](https://github.com/boa-dev/boa/pull/2272)
+- Implement Async-from-Sync Iterator Objects by @raskad in [#2234](https://github.com/boa-dev/boa/pull/2234)
+- Add URI encoding and decoding functions by @Razican in [#2267](https://github.com/boa-dev/boa/pull/2267)
+- Implement `for await...of` loops by @raskad in [#2286](https://github.com/boa-dev/boa/pull/2286)
+
+### Bug Fixes
+
+- Fix `eval` attributes by @raskad in [#2130](https://github.com/boa-dev/boa/pull/2130)
+- Fix `this` in function calls by @raskad in [#2153](https://github.com/boa-dev/boa/pull/2153)
+- Fix remaining `Promise` bugs by @raskad in [#2156](https://github.com/boa-dev/boa/pull/2156)
+- Fix length/index in `32bit` architectures by @HalidOdat in [#2196](https://github.com/boa-dev/boa/pull/2196)
+- Fix `yield` expression to end on line terminator by @raskad in [#2232](https://github.com/boa-dev/boa/pull/2232)
+- Fix spread arguments in function calls by @raskad in [#2216](https://github.com/boa-dev/boa/pull/2216)
+- Fix `arguments` object iterator function by @raskad in [#2231](https://github.com/boa-dev/boa/pull/2231)
+- check history file exist if not create it by @udhaykumarbala in [#2245](https://github.com/boa-dev/boa/pull/2245)
+- Do not auto-insert semicolon in `VariableDeclarationList` by @tunz in [#2266](https://github.com/boa-dev/boa/pull/2266)
+- Fix property access of call expression by @tunz in [#2273](https://github.com/boa-dev/boa/pull/2273)
+- fix computed property methods can call super methods by @creampnx-x in [#2274](https://github.com/boa-dev/boa/pull/2274)
+- Fix regex literal `/[/]/` by @tunz in [#2277](https://github.com/boa-dev/boa/pull/2277)
+- Fixed assignment expression parsing by @Razican in [#2268](https://github.com/boa-dev/boa/pull/2268)
+- Fix labelled block statement by @creampnx-x in [#2285](https://github.com/boa-dev/boa/pull/2285)
+- Implement missing global object internal methods by @raskad in [#2287](https://github.com/boa-dev/boa/pull/2287)
+
+### Internal Improvements
+
+- Fix spec links for some object operation methods by @CYBAI in [#2111](https://github.com/boa-dev/boa/pull/2111)
+- Only run benchmarks on PRs when a label is set by @raskad in [#2114](https://github.com/boa-dev/boa/pull/2114)
+- Refactor `construct` and `PromiseCapability` to preserve `JsObject` invariants by @jedel1043 in [#2136](https://github.com/boa-dev/boa/pull/2136)
+- Remove `string-interner` dependency and implement custom string `Interner` by @jedel1043 in [#2147](https://github.com/boa-dev/boa/pull/2147)
+- Fix clippy 1.62.0 lints by @raskad in [#2154](https://github.com/boa-dev/boa/pull/2154)
+- Store call frames in `Vec` instead of singly-linked list by @HalidOdat in [#2164](https://github.com/boa-dev/boa/pull/2164)
+- Dense/Packed JavaScript arrays by @HalidOdat in [#2167](https://github.com/boa-dev/boa/pull/2167)
+- Fix Rust 1.63 clippy lints by @raskad in [#2230](https://github.com/boa-dev/boa/pull/2230)
+- Removed some `unsafe_empty_trace!()` calls to improve performance by @Razican in [#2233](https://github.com/boa-dev/boa/pull/2233)
+- Add integer type to fast path of `to_property_key` by @tunz in [#2261](https://github.com/boa-dev/boa/pull/2261)
+
+**Full Changelog**: https://github.com/boa-dev/boa/compare/v0.14...v0.15
+
 # [0.15.0 (2022-06-10)](https://github.com/boa-dev/boa/compare/v0.14...v0.15)
 
 ### Feature Enhancements
