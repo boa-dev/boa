@@ -12,14 +12,14 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, GeneratorExpr},
+        function::{function_contains_super, Generator},
         Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, TokenParser,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -53,13 +53,9 @@ impl<R> TokenParser<R> for GeneratorExpression
 where
     R: Read,
 {
-    type Output = GeneratorExpr;
+    type Output = Generator;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorExpression", "Parsing");
 
         cursor.expect(
@@ -138,6 +134,6 @@ where
             )));
         }
 
-        Ok(GeneratorExpr::new(name, params, body))
+        Ok(Generator::new(name, params, body))
     }
 }

@@ -10,27 +10,23 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                function_contains_super, has_direct_super,
-                object::{self, MethodDefinition},
-                AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
-                GeneratorExpr, Node, Object,
-            },
-            Const, Keyword, Punctuator,
-        },
-        lexer::{token::Numeric, Error as LexError, TokenKind},
-        parser::{
-            expression::{identifiers::IdentifierReference, AssignmentExpression},
-            function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        expression::literal::{self, Literal},
+        function::{function_contains_super, has_direct_super},
+        function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
+        property::{self, MethodDefinition},
+        Expression, Keyword, Punctuator,
+    },
+    lexer::{token::Numeric, Error as LexError, TokenKind},
+    parser::{
+        expression::{identifiers::IdentifierReference, AssignmentExpression},
+        function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
+        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -66,13 +62,9 @@ impl<R> TokenParser<R> for ObjectLiteral
 where
     R: Read,
 {
-    type Output = Object;
+    type Output = literal::ObjectLiteral;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectLiteral", "Parsing");
         let mut elements = Vec::new();
 
@@ -101,7 +93,7 @@ where
             }
         }
 
-        Ok(Object::from(elements))
+        Ok(literal::ObjectLiteral::from(elements))
     }
 }
 
@@ -135,13 +127,9 @@ impl<R> TokenParser<R> for PropertyDefinition
 where
     R: Read,
 {
-    type Output = object::PropertyDefinition;
+    type Output = property::PropertyDefinition;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyDefinition", "Parsing");
 
         match cursor
@@ -152,7 +140,10 @@ where
             TokenKind::Punctuator(Punctuator::CloseBlock | Punctuator::Comma) => {
                 let ident = IdentifierReference::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                return Ok(object::PropertyDefinition::property(ident.sym(), ident));
+                return Ok(property::PropertyDefinition::Property(
+                    ident.sym().into(),
+                    ident.into(),
+                ));
             }
             TokenKind::Punctuator(Punctuator::Assign) => {
                 return CoverInitializedName::new(self.allow_yield, self.allow_await)
@@ -165,7 +156,7 @@ where
         if cursor.next_if(Punctuator::Spread, interner)?.is_some() {
             let node = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            return Ok(object::PropertyDefinition::SpreadObject(node));
+            return Ok(property::PropertyDefinition::SpreadObject(node));
         }
 
         //Async [AsyncMethod, AsyncGeneratorMethod] object methods
@@ -202,7 +193,7 @@ where
                     }
 
                     let property_name =
-                        if let object::ClassElementName::PropertyName(property_name) =
+                        if let property::ClassElementName::PropertyName(property_name) =
                             class_element_name
                         {
                             property_name
@@ -213,7 +204,7 @@ where
                             ));
                         };
 
-                    return Ok(object::PropertyDefinition::method_definition(
+                    return Ok(property::PropertyDefinition::MethodDefinition(
                         method,
                         property_name,
                     ));
@@ -221,7 +212,7 @@ where
                 let (class_element_name, method) =
                     AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
-                let property_name = if let object::ClassElementName::PropertyName(property_name) =
+                let property_name = if let property::ClassElementName::PropertyName(property_name) =
                     class_element_name
                 {
                     property_name
@@ -237,7 +228,7 @@ where
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
-                return Ok(object::PropertyDefinition::method_definition(
+                return Ok(property::PropertyDefinition::MethodDefinition(
                     method,
                     property_name,
                 ));
@@ -265,13 +256,13 @@ where
             }
 
             match class_element_name {
-                object::ClassElementName::PropertyName(property_name) => {
-                    return Ok(object::PropertyDefinition::method_definition(
+                property::ClassElementName::PropertyName(property_name) => {
+                    return Ok(property::PropertyDefinition::MethodDefinition(
                         method,
                         property_name,
                     ))
                 }
-                object::ClassElementName::PrivateIdentifier(_) => {
+                property::ClassElementName::PrivateIdentifier(_) => {
                     return Err(ParseError::general(
                         "private identifier not allowed in object literal",
                         position,
@@ -287,7 +278,7 @@ where
         if cursor.next_if(Punctuator::Colon, interner)?.is_some() {
             let value = AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
-            return Ok(object::PropertyDefinition::property(property_name, value));
+            return Ok(property::PropertyDefinition::Property(property_name, value));
         }
 
         let ordinary_method = cursor
@@ -298,7 +289,7 @@ where
 
         match property_name {
             // MethodDefinition[?Yield, ?Await] -> get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }
-            object::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
+            property::PropertyName::Literal(str) if str == Sym::GET && !ordinary_method => {
                 let position = cursor
                     .peek(0, interner)?
                     .ok_or(ParseError::AbruptEnd)?
@@ -336,8 +327,8 @@ where
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
-                Ok(object::PropertyDefinition::method_definition(
-                    MethodDefinition::Get(FunctionExpr::new(
+                Ok(property::PropertyDefinition::MethodDefinition(
+                    MethodDefinition::Get(Function::new(
                         None,
                         FormalParameterList::default(),
                         body,
@@ -346,7 +337,7 @@ where
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
-            object::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
+            property::PropertyName::Literal(str) if str == Sym::SET && !ordinary_method => {
                 property_name = PropertyName::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
@@ -397,8 +388,8 @@ where
                     ));
                 }
 
-                Ok(object::PropertyDefinition::method_definition(
-                    MethodDefinition::Set(FunctionExpr::new(None, parameters, body)),
+                Ok(property::PropertyDefinition::MethodDefinition(
+                    MethodDefinition::Set(Function::new(None, parameters, body)),
                     property_name,
                 ))
             }
@@ -476,8 +467,8 @@ where
                     ));
                 }
 
-                Ok(object::PropertyDefinition::method_definition(
-                    MethodDefinition::Ordinary(FunctionExpr::new(None, params, body)),
+                Ok(property::PropertyDefinition::MethodDefinition(
+                    MethodDefinition::Ordinary(Function::new(None, params, body)),
                     property_name,
                 ))
             }
@@ -515,13 +506,9 @@ impl<R> TokenParser<R> for PropertyName
 where
     R: Read,
 {
-    type Output = object::PropertyName;
+    type Output = property::PropertyName;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PropertyName", "Parsing");
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -534,27 +521,20 @@ where
                 cursor.expect(Punctuator::CloseBracket, "expected token ']'", interner)?;
                 return Ok(node.into());
             }
-            TokenKind::Identifier(name) => object::PropertyName::Literal(*name),
-            TokenKind::StringLiteral(name) => Node::Const(Const::from(*name)).into(),
+            TokenKind::Identifier(name) | TokenKind::StringLiteral(name) => (*name).into(),
             TokenKind::NumericLiteral(num) => match num {
-                Numeric::Rational(num) => Node::Const(Const::from(*num)).into(),
-                Numeric::Integer(num) => Node::Const(Const::from(*num)).into(),
-                Numeric::BigInt(num) => Node::Const(Const::from(num.clone())).into(),
+                Numeric::Rational(num) => Expression::Literal(Literal::from(*num)).into(),
+                Numeric::Integer(num) => Expression::Literal(Literal::from(*num)).into(),
+                Numeric::BigInt(num) => Expression::Literal(Literal::from(num.clone())).into(),
             },
             TokenKind::Keyword((word, _)) => {
                 let (utf8, utf16) = word.as_str();
-                Node::Const(Const::from(interner.get_or_intern_static(utf8, utf16))).into()
+                interner.get_or_intern_static(utf8, utf16).into()
             }
-            TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),
+            TokenKind::NullLiteral => (Sym::NULL).into(),
             TokenKind::BooleanLiteral(bool) => match bool {
-                true => Node::Const(Const::from(
-                    interner.get_or_intern_static("true", utf16!("true")),
-                ))
-                .into(),
-                false => Node::Const(Const::from(
-                    interner.get_or_intern_static("false", utf16!("false")),
-                ))
-                .into(),
+                true => (interner.get_or_intern_static("true", utf16!("true"))).into(),
+                false => (interner.get_or_intern_static("false", utf16!("false"))).into(),
             },
             _ => return Err(ParseError::AbruptEnd),
         };
@@ -593,13 +573,9 @@ impl<R> TokenParser<R> for ClassElementName
 where
     R: Read,
 {
-    type Output = object::ClassElementName;
+    type Output = property::ClassElementName;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassElementName", "Parsing");
 
         match cursor
@@ -610,9 +586,9 @@ where
             TokenKind::PrivateIdentifier(ident) => {
                 let ident = *ident;
                 cursor.next(interner).expect("token disappeared");
-                Ok(object::ClassElementName::PrivateIdentifier(ident))
+                Ok(property::ClassElementName::PrivateIdentifier(ident))
             }
-            _ => Ok(object::ClassElementName::PropertyName(
+            _ => Ok(property::ClassElementName::PropertyName(
                 PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
             )),
         }
@@ -660,9 +636,9 @@ impl<R> TokenParser<R> for Initializer
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Initializer", "Parsing");
 
         cursor.expect(Punctuator::Assign, "initializer", interner)?;
@@ -701,13 +677,9 @@ impl<R> TokenParser<R> for GeneratorMethod
 where
     R: Read,
 {
-    type Output = (object::ClassElementName, MethodDefinition);
+    type Output = (property::ClassElementName, MethodDefinition);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("GeneratorMethod", "Parsing");
         cursor.expect(Punctuator::Mul, "generator method definition", interner)?;
 
@@ -756,7 +728,7 @@ where
 
         Ok((
             class_element_name,
-            MethodDefinition::Generator(GeneratorExpr::new(None, params, body)),
+            MethodDefinition::Generator(Generator::new(None, params, body)),
         ))
     }
 }
@@ -791,13 +763,9 @@ impl<R> TokenParser<R> for AsyncGeneratorMethod
 where
     R: Read,
 {
-    type Output = (object::ClassElementName, MethodDefinition);
+    type Output = (property::ClassElementName, MethodDefinition);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorMethod", "Parsing");
         cursor.expect(
             Punctuator::Mul,
@@ -874,7 +842,7 @@ where
 
         Ok((
             name,
-            MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(None, params, body)),
+            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body)),
         ))
     }
 }
@@ -909,13 +877,9 @@ impl<R> TokenParser<R> for AsyncMethod
 where
     R: Read,
 {
-    type Output = (object::ClassElementName, MethodDefinition);
+    type Output = (property::ClassElementName, MethodDefinition);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");
 
         let class_element_name =
@@ -963,7 +927,7 @@ where
 
         Ok((
             class_element_name,
-            MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
+            MethodDefinition::Async(AsyncFunction::new(None, params, body)),
         ))
     }
 }
@@ -998,13 +962,9 @@ impl<R> TokenParser<R> for CoverInitializedName
 where
     R: Read,
 {
-    type Output = object::PropertyDefinition;
+    type Output = property::PropertyDefinition;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("CoverInitializedName", "Parsing");
 
         let ident =
@@ -1015,7 +975,7 @@ where
         let expr = AssignmentExpression::new(ident.sym(), true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        Ok(object::PropertyDefinition::CoverInitializedName(
+        Ok(property::PropertyDefinition::CoverInitializedName(
             ident.sym(),
             expr,
         ))

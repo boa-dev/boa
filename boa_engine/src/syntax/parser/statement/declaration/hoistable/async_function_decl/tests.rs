@@ -1,11 +1,12 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::node::{AsyncFunctionDecl, FormalParameterList},
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        function::{AsyncFunction, FormalParameterList},
+        statement::StatementList,
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Async function declaration parsing.
 #[test]
@@ -13,10 +14,10 @@ fn async_function_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "async function hello() {}",
-        vec![AsyncFunctionDecl::new(
-            interner.get_or_intern_static("hello", utf16!("hello")),
+        vec![AsyncFunction::new(
+            Some(interner.get_or_intern_static("hello", utf16!("hello"))),
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )
         .into()],
         interner,
@@ -29,10 +30,10 @@ fn async_function_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "async function yield() {}",
-        vec![AsyncFunctionDecl::new(
-            interner.get_or_intern_static("yield", utf16!("yield")),
+        vec![AsyncFunction::new(
+            Some(interner.get_or_intern_static("yield", utf16!("yield"))),
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )
         .into()],
         interner,
@@ -41,10 +42,10 @@ fn async_function_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "async function await() {}",
-        vec![AsyncFunctionDecl::new(
-            interner.get_or_intern_static("await", utf16!("await")),
+        vec![AsyncFunction::new(
+            Some(interner.get_or_intern_static("await", utf16!("await"))),
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )
         .into()],
         interner,

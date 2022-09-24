@@ -8,7 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{node::ConditionalOp, Node, Punctuator},
+    ast::{expression::operator::conditional::Conditional, Expression, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::{AssignmentExpression, ShortCircuitExpression},
@@ -62,9 +62,9 @@ impl<R> TokenParser<R> for ConditionalExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
         let lhs = ShortCircuitExpression::new(
             self.name,
@@ -93,7 +93,7 @@ where
                     self.allow_await,
                 )
                 .parse(cursor, interner)?;
-                return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
+                return Ok(Conditional::new(lhs, then_clause, else_clause).into());
             }
         }
 

@@ -3,14 +3,12 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{
-            self,
-            declaration::class_decl::ClassElement as ClassElementNode,
-            function_contains_super, has_direct_super,
-            object::{ClassElementName, MethodDefinition, PropertyName::Literal},
-            Class, ContainsSymbol, FormalParameterList, FunctionExpr,
+        self,
+        function::{
+            self, function_contains_super, has_direct_super, Class, FormalParameterList, Function,
         },
-        Keyword, Punctuator,
+        property::{ClassElementName, MethodDefinition},
+        ContainsSymbol, Expression, Keyword, Punctuator, Statement,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -20,11 +18,10 @@ use crate::syntax::{
         },
         function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
         statement::StatementList,
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
-use node::Node;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -63,13 +60,9 @@ impl<R> TokenParser<R> for ClassDeclaration
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Statement;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Class, false), "class declaration", interner)?;
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
@@ -91,7 +84,7 @@ where
         };
         cursor.set_strict_mode(strict);
 
-        Ok(Node::ClassDecl(
+        Ok(Statement::Class(
             ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?,
         ))
     }
@@ -131,11 +124,7 @@ where
 {
     type Output = Class;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let super_ref = match token.kind() {
             TokenKind::Keyword((Keyword::Extends, true)) => {
@@ -144,9 +133,9 @@ where
                     token.span().start(),
                 ));
             }
-            TokenKind::Keyword((Keyword::Extends, false)) => Some(Box::new(
+            TokenKind::Keyword((Keyword::Extends, false)) => Some(
                 ClassHeritage::new(self.allow_yield, self.allow_await).parse(cursor, interner)?,
-            )),
+            ),
             _ => None,
         };
 
@@ -164,7 +153,7 @@ where
 
         if is_close_block {
             cursor.next(interner).expect("token disappeared");
-            Ok(Class::new(self.name, super_ref, None, vec![]))
+            Ok(Class::new(Some(self.name), super_ref, None, Box::default()))
         } else {
             let body_start = cursor
                 .peek(0, interner)?
@@ -187,7 +176,12 @@ where
                 }
             }
 
-            Ok(Class::new(self.name, super_ref, constructor, elements))
+            Ok(Class::new(
+                Some(self.name),
+                super_ref,
+                constructor,
+                elements.into(),
+            ))
         }
     }
 }
@@ -222,13 +216,9 @@ impl<R> TokenParser<R> for ClassHeritage
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
             TokenKind::Keyword((Keyword::Extends, false)),
             "class heritage",
@@ -277,13 +267,9 @@ impl<R> TokenParser<R> for ClassBody
 where
     R: Read,
 {
-    type Output = (Option<FunctionExpr>, Vec<ClassElementNode>);
+    type Output = (Option<Function>, Vec<function::ClassElement>);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.push_private_environment();
 
         let mut constructor = None;
@@ -313,7 +299,7 @@ where
                     }
                     (None, Some(element)) => {
                         match &element {
-                            ClassElementNode::PrivateMethodDefinition(name, method) => {
+                            function::ClassElement::PrivateMethodDefinition(name, method) => {
                                 // It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
                                 if has_direct_super(method.body(), method.parameters()) {
                                     return Err(ParseError::lex(LexError::Syntax(
@@ -371,7 +357,7 @@ where
                                     }
                                 }
                             }
-                            ClassElementNode::PrivateStaticMethodDefinition(name, method) => {
+                            function::ClassElement::PrivateStaticMethodDefinition(name, method) => {
                                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                                 if has_direct_super(method.body(), method.parameters()) {
                                     return Err(ParseError::lex(LexError::Syntax(
@@ -429,9 +415,9 @@ where
                                     }
                                 }
                             }
-                            ClassElementNode::PrivateFieldDefinition(name, init) => {
+                            function::ClassElement::PrivateFieldDefinition(name, init) => {
                                 if let Some(node) = init {
-                                    if node.contains(node::ContainsSymbol::SuperCall) {
+                                    if node.contains(ContainsSymbol::SuperCall) {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             "invalid super usage".into(),
                                             position,
@@ -448,9 +434,9 @@ where
                                     ));
                                 }
                             }
-                            ClassElementNode::PrivateStaticFieldDefinition(name, init) => {
+                            function::ClassElement::PrivateStaticFieldDefinition(name, init) => {
                                 if let Some(node) = init {
-                                    if node.contains(node::ContainsSymbol::SuperCall) {
+                                    if node.contains(ContainsSymbol::SuperCall) {
                                         return Err(ParseError::lex(LexError::Syntax(
                                             "invalid super usage".into(),
                                             position,
@@ -467,8 +453,8 @@ where
                                     ));
                                 }
                             }
-                            ClassElementNode::MethodDefinition(_, method)
-                            | ClassElementNode::StaticMethodDefinition(_, method) => {
+                            function::ClassElement::MethodDefinition(_, method)
+                            | function::ClassElement::StaticMethodDefinition(_, method) => {
                                 // ClassElement : MethodDefinition:
                                 //  It is a Syntax Error if PropName of MethodDefinition is not "constructor" and HasDirectSuper of MethodDefinition is true.
                                 // ClassElement : static MethodDefinition:
@@ -480,9 +466,9 @@ where
                                     )));
                                 }
                             }
-                            ClassElementNode::FieldDefinition(_, Some(node))
-                            | ClassElementNode::StaticFieldDefinition(_, Some(node)) => {
-                                if node.contains(node::ContainsSymbol::SuperCall) {
+                            function::ClassElement::FieldDefinition(_, Some(node))
+                            | function::ClassElement::StaticFieldDefinition(_, Some(node)) => {
+                                if node.contains(ContainsSymbol::SuperCall) {
                                     return Err(ParseError::lex(LexError::Syntax(
                                         "invalid super usage".into(),
                                         position,
@@ -548,13 +534,9 @@ impl<R> TokenParser<R> for ClassElement
 where
     R: Read,
 {
-    type Output = (Option<FunctionExpr>, Option<ClassElementNode>);
+    type Output = (Option<Function>, Option<function::ClassElement>);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let r#static = match token.kind() {
             TokenKind::Punctuator(Punctuator::Semicolon) => {
@@ -622,7 +604,7 @@ where
                 )?;
                 cursor.set_strict_mode(strict);
 
-                return Ok((Some(FunctionExpr::new(self.name, parameters, body)), None));
+                return Ok((Some(Function::new(Some(self.name), parameters, body)), None));
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) if r#static => {
                 cursor.next(interner).expect("token disappeared");
@@ -630,7 +612,7 @@ where
                     .next_if(TokenKind::Punctuator(Punctuator::CloseBlock), interner)?
                     .is_some()
                 {
-                    node::StatementList::from(vec![])
+                    ast::statement::StatementList::from(vec![])
                 } else {
                     let strict = cursor.strict_mode();
                     cursor.set_strict_mode(true);
@@ -664,7 +646,7 @@ where
                     }
 
                     let mut var_declared_names = FxHashSet::default();
-                    statement_list.var_declared_names_new(&mut var_declared_names);
+                    statement_list.var_declared_names(&mut var_declared_names);
                     for (lex_name, _) in &lexically_declared_names {
                         if var_declared_names.contains(lex_name) {
                             return Err(ParseError::general(
@@ -682,7 +664,7 @@ where
                     cursor.set_strict_mode(strict);
                     statement_list
                 };
-                ClassElementNode::StaticBlock(statement_list)
+                function::ClassElement::StaticBlock(statement_list)
             }
             TokenKind::Punctuator(Punctuator::Mul) => {
                 let token = cursor.peek(1, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -701,31 +683,29 @@ where
                 cursor.set_strict_mode(strict);
 
                 match class_element_name {
-                    node::object::ClassElementName::PropertyName(property_name) if r#static => {
+                    ClassElementName::PropertyName(property_name) if r#static => {
                         if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
                             return Err(ParseError::general(
                                 "class may not have static method definitions named 'prototype'",
                                 name_position,
                             ));
                         }
-                        ClassElementNode::StaticMethodDefinition(property_name, method)
+                        function::ClassElement::StaticMethodDefinition(property_name, method)
                     }
-                    node::object::ClassElementName::PropertyName(property_name) => {
-                        ClassElementNode::MethodDefinition(property_name, method)
+                    ClassElementName::PropertyName(property_name) => {
+                        function::ClassElement::MethodDefinition(property_name, method)
                     }
-                    node::object::ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) => {
+                    ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) => {
                         return Err(ParseError::general(
                             "class constructor may not be a private method",
                             name_position,
                         ))
                     }
-                    node::object::ClassElementName::PrivateIdentifier(private_ident)
-                        if r#static =>
-                    {
-                        ClassElementNode::PrivateStaticMethodDefinition(private_ident, method)
+                    ClassElementName::PrivateIdentifier(private_ident) if r#static => {
+                        function::ClassElement::PrivateStaticMethodDefinition(private_ident, method)
                     }
-                    node::object::ClassElementName::PrivateIdentifier(private_ident) => {
-                        ClassElementNode::PrivateMethodDefinition(private_ident, method)
+                    ClassElementName::PrivateIdentifier(private_ident) => {
+                        function::ClassElement::PrivateMethodDefinition(private_ident, method)
                     }
                 }
             }
@@ -767,19 +747,25 @@ where
                                         name_position,
                                     ));
                                 }
-                                ClassElementNode::StaticMethodDefinition(property_name, method)
+                                function::ClassElement::StaticMethodDefinition(
+                                    property_name,
+                                    method,
+                                )
                             }
                             ClassElementName::PropertyName(property_name) => {
-                                ClassElementNode::MethodDefinition(property_name, method)
+                                function::ClassElement::MethodDefinition(property_name, method)
                             }
                             ClassElementName::PrivateIdentifier(private_ident) if r#static => {
-                                ClassElementNode::PrivateStaticMethodDefinition(
+                                function::ClassElement::PrivateStaticMethodDefinition(
                                     private_ident,
                                     method,
                                 )
                             }
                             ClassElementName::PrivateIdentifier(private_ident) => {
-                                ClassElementNode::PrivateMethodDefinition(private_ident, method)
+                                function::ClassElement::PrivateMethodDefinition(
+                                    private_ident,
+                                    method,
+                                )
                             }
                         }
                     }
@@ -806,10 +792,13 @@ where
                                             name_position,
                                         ));
                                 }
-                                ClassElementNode::StaticMethodDefinition(property_name, method)
+                                function::ClassElement::StaticMethodDefinition(
+                                    property_name,
+                                    method,
+                                )
                             }
                             ClassElementName::PropertyName(property_name) => {
-                                ClassElementNode::MethodDefinition(property_name, method)
+                                function::ClassElement::MethodDefinition(property_name, method)
                             }
                             ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) if r#static => {
                                 return Err(ParseError::general(
@@ -818,10 +807,12 @@ where
                                 ))
                             }
                             ClassElementName::PrivateIdentifier(identifier) if r#static => {
-                                ClassElementNode::PrivateStaticMethodDefinition(identifier, method)
+                                function::ClassElement::PrivateStaticMethodDefinition(
+                                    identifier, method,
+                                )
                             }
                             ClassElementName::PrivateIdentifier(identifier) => {
-                                ClassElementNode::PrivateMethodDefinition(identifier, method)
+                                function::ClassElement::PrivateMethodDefinition(identifier, method)
                             }
                         }
                     }
@@ -866,11 +857,11 @@ where
                         )));
                         }
                         cursor.set_strict_mode(strict);
-                        let method = MethodDefinition::Get(FunctionExpr::new(None, params, body));
+                        let method = MethodDefinition::Get(Function::new(None, params, body));
                         if r#static {
-                            ClassElementNode::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(name, method)
                         }
                     }
                     TokenKind::Identifier(Sym::CONSTRUCTOR) => {
@@ -913,7 +904,7 @@ where
                             interner,
                         )?;
 
-                        let method = MethodDefinition::Get(FunctionExpr::new(
+                        let method = MethodDefinition::Get(Function::new(
                             None,
                             FormalParameterList::empty(),
                             body,
@@ -927,17 +918,23 @@ where
                                         ));
                                 }
                             }
-                            ClassElementNode::StaticMethodDefinition(name, method)
+                            function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::MethodDefinition(name, method)
+                            function::ClassElement::MethodDefinition(name, method)
                         }
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         if r#static {
-                            ClassElementNode::StaticFieldDefinition(Literal(Sym::GET), None)
+                            function::ClassElement::StaticFieldDefinition(
+                                ast::property::PropertyName::Literal(Sym::GET),
+                                None,
+                            )
                         } else {
-                            ClassElementNode::FieldDefinition(Literal(Sym::GET), None)
+                            function::ClassElement::FieldDefinition(
+                                ast::property::PropertyName::Literal(Sym::GET),
+                                None,
+                            )
                         }
                     }
                 }
@@ -981,11 +978,11 @@ where
                         )));
                         }
                         cursor.set_strict_mode(strict);
-                        let method = MethodDefinition::Set(FunctionExpr::new(None, params, body));
+                        let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
-                            ClassElementNode::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(name, method)
                         }
                     }
                     TokenKind::Identifier(Sym::CONSTRUCTOR) => {
@@ -1029,7 +1026,7 @@ where
                         )));
                         }
                         cursor.set_strict_mode(strict);
-                        let method = MethodDefinition::Set(FunctionExpr::new(None, params, body));
+                        let method = MethodDefinition::Set(Function::new(None, params, body));
                         if r#static {
                             if let Some(name) = name.prop_name() {
                                 if name == Sym::PROTOTYPE {
@@ -1039,17 +1036,23 @@ where
                                         ));
                                 }
                             }
-                            ClassElementNode::StaticMethodDefinition(name, method)
+                            function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::MethodDefinition(name, method)
+                            function::ClassElement::MethodDefinition(name, method)
                         }
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         if r#static {
-                            ClassElementNode::StaticFieldDefinition(Literal(Sym::SET), None)
+                            function::ClassElement::StaticFieldDefinition(
+                                ast::property::PropertyName::Literal(Sym::SET),
+                                None,
+                            )
                         } else {
-                            ClassElementNode::FieldDefinition(Literal(Sym::SET), None)
+                            function::ClassElement::FieldDefinition(
+                                ast::property::PropertyName::Literal(Sym::SET),
+                                None,
+                            )
                         }
                     }
                 }
@@ -1079,9 +1082,9 @@ where
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            ClassElementNode::PrivateStaticFieldDefinition(name, Some(rhs))
+                            function::ClassElement::PrivateStaticFieldDefinition(name, Some(rhs))
                         } else {
-                            ClassElementNode::PrivateFieldDefinition(name, Some(rhs))
+                            function::ClassElement::PrivateFieldDefinition(name, Some(rhs))
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1110,21 +1113,20 @@ where
                                 token.span().start(),
                         )));
                         }
-                        let method =
-                            MethodDefinition::Ordinary(FunctionExpr::new(None, params, body));
+                        let method = MethodDefinition::Ordinary(Function::new(None, params, body));
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            ClassElementNode::PrivateStaticMethodDefinition(name, method)
+                            function::ClassElement::PrivateStaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::PrivateMethodDefinition(name, method)
+                            function::ClassElement::PrivateMethodDefinition(name, method)
                         }
                     }
                     _ => {
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         if r#static {
-                            ClassElementNode::PrivateStaticFieldDefinition(name, None)
+                            function::ClassElement::PrivateStaticFieldDefinition(name, None)
                         } else {
-                            ClassElementNode::PrivateFieldDefinition(name, None)
+                            function::ClassElement::PrivateFieldDefinition(name, None)
                         }
                     }
                 }
@@ -1169,9 +1171,9 @@ where
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            ClassElementNode::StaticFieldDefinition(name, Some(rhs))
+                            function::ClassElement::StaticFieldDefinition(name, Some(rhs))
                         } else {
-                            ClassElementNode::FieldDefinition(name, Some(rhs))
+                            function::ClassElement::FieldDefinition(name, Some(rhs))
                         }
                     }
                     TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -1208,13 +1210,12 @@ where
                                 token.span().start(),
                         )));
                         }
-                        let method =
-                            MethodDefinition::Ordinary(FunctionExpr::new(None, params, body));
+                        let method = MethodDefinition::Ordinary(Function::new(None, params, body));
                         cursor.set_strict_mode(strict);
                         if r#static {
-                            ClassElementNode::StaticMethodDefinition(name, method)
+                            function::ClassElement::StaticMethodDefinition(name, method)
                         } else {
-                            ClassElementNode::MethodDefinition(name, method)
+                            function::ClassElement::MethodDefinition(name, method)
                         }
                     }
                     _ => {
@@ -1235,9 +1236,9 @@ where
                         }
                         cursor.expect_semicolon("expected semicolon", interner)?;
                         if r#static {
-                            ClassElementNode::StaticFieldDefinition(name, None)
+                            function::ClassElement::StaticFieldDefinition(name, None)
                         } else {
-                            ClassElementNode::FieldDefinition(name, None)
+                            function::ClassElement::FieldDefinition(name, None)
                         }
                     }
                 }
@@ -1253,10 +1254,10 @@ where
         match &element {
             // FieldDefinition : ClassElementName Initializer [opt]
             // It is a Syntax Error if Initializer is present and ContainsArguments of Initializer is true.
-            ClassElementNode::FieldDefinition(_, Some(node))
-            | ClassElementNode::StaticFieldDefinition(_, Some(node))
-            | ClassElementNode::PrivateFieldDefinition(_, Some(node))
-            | ClassElementNode::PrivateStaticFieldDefinition(_, Some(node)) => {
+            function::ClassElement::FieldDefinition(_, Some(node))
+            | function::ClassElement::StaticFieldDefinition(_, Some(node))
+            | function::ClassElement::PrivateFieldDefinition(_, Some(node))
+            | function::ClassElement::PrivateStaticFieldDefinition(_, Some(node)) => {
                 if node.contains_arguments() {
                     return Err(ParseError::general(
                         "'arguments' not allowed in class field definition",
@@ -1267,8 +1268,8 @@ where
             // ClassStaticBlockBody : ClassStaticBlockStatementList
             // It is a Syntax Error if ContainsArguments of ClassStaticBlockStatementList is true.
             // It is a Syntax Error if ClassStaticBlockStatementList Contains SuperCall is true.
-            ClassElementNode::StaticBlock(block) => {
-                for node in block.items() {
+            function::ClassElement::StaticBlock(block) => {
+                for node in block.statements() {
                     if node.contains_arguments() {
                         return Err(ParseError::general(
                             "'arguments' not allowed in class static block",

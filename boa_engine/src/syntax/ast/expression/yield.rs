@@ -1,0 +1,53 @@
+use boa_interner::{Interner, ToInternedString};
+
+use super::Expression;
+
+/// The `yield` keyword is used to pause and resume a generator function
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-YieldExpression
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/yield
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct Yield {
+    expr: Option<Box<Expression>>,
+    delegate: bool,
+}
+
+impl Yield {
+    pub fn expr(&self) -> Option<&Expression> {
+        self.expr.as_ref().map(Box::as_ref)
+    }
+
+    pub fn delegate(&self) -> bool {
+        self.delegate
+    }
+
+    /// Creates a `Yield` AST Expression.
+    pub fn new(expr: Option<Expression>, delegate: bool) -> Self {
+        Self {
+            expr: expr.map(Box::new),
+            delegate,
+        }
+    }
+}
+
+impl From<Yield> for Expression {
+    fn from(r#yield: Yield) -> Self {
+        Self::Yield(r#yield)
+    }
+}
+
+impl ToInternedString for Yield {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        let y = if self.delegate { "yield*" } else { "yield" };
+        if let Some(ex) = self.expr() {
+            format!("{y} {}", ex.to_interned_string(interner))
+        } else {
+            y.to_owned()
+        }
+    }
+}

@@ -11,12 +11,12 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::Continue, Keyword, Punctuator},
+    ast::{statement::Continue, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
-        AllowAwait, AllowYield, ParseError, TokenParser,
+        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -57,11 +57,7 @@ where
 {
     type Output = Continue;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect((Keyword::Continue, false), "continue statement", interner)?;
 

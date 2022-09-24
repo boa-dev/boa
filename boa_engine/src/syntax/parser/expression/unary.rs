@@ -9,9 +9,8 @@
 
 use crate::syntax::{
     ast::{
-        node::{self, Node},
-        op::UnaryOp,
-        Keyword, Punctuator,
+        expression::operator::{unary::op::UnaryOp, Unary},
+        Expression, Keyword, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -58,9 +57,9 @@ impl<R> TokenParser<R> for UnaryExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("UnaryExpression", "Parsing");
 
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -79,13 +78,13 @@ where
                 let val = self.parse(cursor, interner)?;
 
                 match val {
-                    Node::Identifier(_) if cursor.strict_mode() => {
+                    Expression::Identifier(_) if cursor.strict_mode() => {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Delete <variable> statements not allowed in strict mode".into(),
                             token_start,
                         )));
                     }
-                    Node::GetPrivateField(_) => {
+                    Expression::PrivatePropertyAccess(_) => {
                         return Err(ParseError::general(
                             "private fields can not be deleted",
                             position,
@@ -94,31 +93,31 @@ where
                     _ => {}
                 }
 
-                Ok(node::UnaryOp::new(UnaryOp::Delete, val).into())
+                Ok(Unary::new(UnaryOp::Delete, val).into())
             }
             TokenKind::Keyword((Keyword::Void, false)) => {
                 cursor.next(interner)?.expect("Void keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Void, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::Void, self.parse(cursor, interner)?).into())
             }
             TokenKind::Keyword((Keyword::TypeOf, false)) => {
                 cursor.next(interner)?.expect("TypeOf keyword vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::TypeOf, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::TypeOf, self.parse(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Add) => {
                 cursor.next(interner)?.expect("+ token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Plus, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::Plus, self.parse(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Sub) => {
                 cursor.next(interner)?.expect("- token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Minus, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::Minus, self.parse(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Neg) => {
                 cursor.next(interner)?.expect("~ token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Tilde, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::Tilde, self.parse(cursor, interner)?).into())
             }
             TokenKind::Punctuator(Punctuator::Not) => {
                 cursor.next(interner)?.expect("! token vanished"); // Consume the token.
-                Ok(node::UnaryOp::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
+                Ok(Unary::new(UnaryOp::Not, self.parse(cursor, interner)?).into())
             }
             TokenKind::Keyword((Keyword::Await, true)) if self.allow_await.0 => {
                 Err(ParseError::general(

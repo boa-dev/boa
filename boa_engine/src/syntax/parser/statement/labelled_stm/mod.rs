@@ -1,14 +1,12 @@
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator},
+    ast::{self, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::Cursor,
         error::ParseError,
         expression::LabelIdentifier,
-        statement::{
-            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, Statement,
-        },
-        AllowYield, TokenParser,
+        statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
+        AllowYield, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -49,13 +47,9 @@ impl<R> TokenParser<R> for LabelledStatement
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Statement;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Label", "Parsing");
 
         let name =
@@ -83,19 +77,20 @@ where
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?
         };
 
+        // TODO: create `ast::Statement::Labelled`
         set_label_for_node(&mut node, name);
         Ok(node)
     }
 }
 
-fn set_label_for_node(node: &mut Node, name: Sym) {
+fn set_label_for_node(node: &mut ast::Statement, name: Sym) {
     match node {
-        Node::ForLoop(ref mut for_loop) => for_loop.set_label(name),
-        Node::ForOfLoop(ref mut for_of_loop) => for_of_loop.set_label(name),
-        Node::ForInLoop(ref mut for_in_loop) => for_in_loop.set_label(name),
-        Node::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
-        Node::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
-        Node::Block(ref mut block) => block.set_label(name),
+        ast::Statement::ForLoop(ref mut for_loop) => for_loop.set_label(name),
+        ast::Statement::ForOfLoop(ref mut for_of_loop) => for_of_loop.set_label(name),
+        ast::Statement::ForInLoop(ref mut for_in_loop) => for_in_loop.set_label(name),
+        ast::Statement::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
+        ast::Statement::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
+        ast::Statement::Block(ref mut block) => block.set_label(name),
         _ => (),
     }
 }

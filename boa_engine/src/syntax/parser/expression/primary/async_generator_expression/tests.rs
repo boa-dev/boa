@@ -1,17 +1,16 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                AsyncGeneratorExpr, Declaration, DeclarationList, FormalParameterList, Return,
-                StatementList,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        function::{AsyncGenerator, FormalParameterList},
+        statement::{
+            declaration::{Declaration, DeclarationList},
+            Return,
         },
-        parser::tests::check_parser,
     },
+    parser::tests::check_parser,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
+use boa_macros::utf16;
 
 ///checks async generator expression parsing
 
@@ -25,13 +24,13 @@ fn check_async_generator_expr() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                add,
+            vec![Declaration::from_identifier(
+                add.into(),
                 Some(
-                    AsyncGeneratorExpr::new::<_, _, StatementList>(
+                    AsyncGenerator::new(
                         Some(add),
                         FormalParameterList::default(),
-                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                        vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                     )
                     .into(),
                 ),
@@ -56,24 +55,22 @@ fn check_nested_async_generator_expr() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                a,
+            vec![Declaration::from_identifier(
+                a.into(),
                 Some(
-                    AsyncGeneratorExpr::new::<_, _, StatementList>(
+                    AsyncGenerator::new(
                         Some(a),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
-                            vec![Declaration::new_with_identifier(
-                                b,
+                            vec![Declaration::from_identifier(
+                                b.into(),
                                 Some(
-                                    AsyncGeneratorExpr::new::<_, _, StatementList>(
+                                    AsyncGenerator::new(
                                         Some(b),
                                         FormalParameterList::default(),
-                                        vec![Return::new::<_, _, Option<Sym>>(
-                                            Const::from(1),
-                                            None,
-                                        )
-                                        .into()]
+                                        vec![
+                                            Return::new(Some(Literal::from(1).into()), None).into()
+                                        ]
                                         .into(),
                                     )
                                     .into(),

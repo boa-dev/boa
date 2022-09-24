@@ -9,9 +9,9 @@
 
 use super::unary::UnaryExpression;
 use crate::syntax::{
-    ast::{node::AwaitExpr, Keyword},
+    ast::{expression::Await, Keyword},
     lexer::TokenKind,
-    parser::{AllowYield, Cursor, ParseError, TokenParser},
+    parser::{AllowYield, Cursor, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use std::io::Read;
@@ -45,13 +45,9 @@ impl<R> TokenParser<R> for AwaitExpression
 where
     R: Read,
 {
-    type Output = AwaitExpr;
+    type Output = Await;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
             TokenKind::Keyword((Keyword::Await, false)),
             "Await expression parsing",

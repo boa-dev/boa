@@ -2,17 +2,18 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::If, Keyword, Node, Punctuator},
+    ast::{self, statement::If, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
-        expression::Expression,
-        statement::{declaration::hoistable::FunctionDeclaration, Statement},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+        expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
+        AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
+
+use super::Statement;
 
 /// If statement parsing.
 ///
@@ -53,11 +54,7 @@ where
 {
     type Output = If;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("IfStatement", "Parsing");
 
         cursor.expect((Keyword::If, false), "if statement", interner)?;
@@ -86,7 +83,7 @@ where
                     .parse(cursor, interner)?;
 
                 // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let Node::FunctionDecl(_) = node {
+                if let ast::Statement::Function(_) = node {
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
 
@@ -126,7 +123,7 @@ where
                             .parse(cursor, interner)?;
 
                             // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
-                            if let Node::FunctionDecl(_) = node {
+                            if let ast::Statement::Function(_) = node {
                                 return Err(ParseError::wrong_function_declaration_non_strict(
                                     position,
                                 ));
@@ -142,6 +139,6 @@ where
             None
         };
 
-        Ok(If::new::<_, _, Node, _>(condition, then_node, else_node))
+        Ok(If::new(condition, then_node, else_node))
     }
 }

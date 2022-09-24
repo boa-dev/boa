@@ -12,9 +12,9 @@ mod tests;
 
 use super::StatementList;
 use crate::syntax::{
-    ast::{node, Punctuator},
+    ast::{statement, Punctuator},
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -67,19 +67,15 @@ impl<R> TokenParser<R> for Block
 where
     R: Read,
 {
-    type Output = node::Block;
+    type Output = statement::Block;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Block", "Parsing");
         cursor.expect(Punctuator::OpenBlock, "block", interner)?;
         if let Some(tk) = cursor.peek(0, interner)? {
             if tk.kind() == &TokenKind::Punctuator(Punctuator::CloseBlock) {
                 cursor.next(interner)?.expect("} token vanished");
-                return Ok(node::Block::from(vec![]));
+                return Ok(statement::Block::from(vec![]));
             }
         }
         let position = cursor
@@ -94,7 +90,7 @@ where
             &BLOCK_BREAK_TOKENS,
         )
         .parse(cursor, interner)
-        .map(node::Block::from)?;
+        .map(statement::Block::from)?;
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
         let lexically_declared_names = statement_list.lexically_declared_names();
@@ -115,7 +111,7 @@ where
         }
 
         let mut var_declared_names = FxHashSet::default();
-        for node in statement_list.items() {
+        for node in statement_list.statements() {
             node.var_declared_names(&mut var_declared_names);
         }
         for (lex_name, _) in &lexically_declared_names {

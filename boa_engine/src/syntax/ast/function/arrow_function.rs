@@ -1,0 +1,105 @@
+use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::join_nodes;
+use crate::syntax::ast::statement::StatementList;
+use boa_interner::{Interner, Sym, ToInternedString};
+
+use super::FormalParameterList;
+
+/// An arrow function expression is a syntactically compact alternative to a regular function
+/// expression.
+///
+/// Arrow function expressions are ill suited as methods, and they cannot be used as
+/// constructors. Arrow functions cannot be used as constructors and will throw an error when
+/// used with new.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct ArrowFunction {
+    name: Option<Sym>,
+    parameters: FormalParameterList,
+    body: StatementList,
+}
+
+impl ArrowFunction {
+    /// Creates a new `ArrowFunctionDecl` AST Expression.
+    pub(in crate::syntax) fn new(
+        name: Option<Sym>,
+        params: FormalParameterList,
+        body: StatementList,
+    ) -> Self {
+        Self {
+            name,
+            parameters: params,
+            body,
+        }
+    }
+
+    /// Gets the name of the function declaration.
+    pub fn name(&self) -> Option<Sym> {
+        self.name
+    }
+
+    /// Sets the name of the function declaration.
+    pub fn set_name(&mut self, name: Option<Sym>) {
+        self.name = name;
+    }
+
+    /// Gets the list of parameters of the arrow function.
+    pub(crate) fn parameters(&self) -> &FormalParameterList {
+        &self.parameters
+    }
+
+    /// Gets the body of the arrow function.
+    pub(crate) fn body(&self) -> &StatementList {
+        &self.body
+    }
+
+    /// Implements the display formatting with indentation.
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = format!("({}", join_nodes(interner, &self.parameters.parameters));
+        if self.body().statements().is_empty() {
+            buf.push_str(") => {}");
+        } else {
+            buf.push_str(&format!(
+                ") => {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
+        }
+        buf
+    }
+}
+
+impl ToInternedString for ArrowFunction {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
+    }
+}
+
+impl From<ArrowFunction> for Expression {
+    fn from(decl: ArrowFunction) -> Self {
+        Self::ArrowFunction(decl)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn fmt() {
+        crate::syntax::ast::test_formatting(
+            r#"
+        let arrow_func = (a, b) => {
+            console.log("in multi statement arrow");
+            console.log(b);
+        };
+        let arrow_func_2 = (a, b) => {};
+        "#,
+        );
+    }
+}

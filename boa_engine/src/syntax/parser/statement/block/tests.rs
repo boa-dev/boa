@@ -1,25 +1,29 @@
 //! Block statement parsing tests.
 
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                Assign, Block, Call, Declaration, DeclarationList, FormalParameterList,
-                FunctionDecl, Identifier, Node, Return, UnaryOp,
-            },
-            op, Const,
+use crate::syntax::{
+    ast::{
+        expression::{
+            literal::Literal,
+            operator::{assign::op::AssignOp, unary::op::UnaryOp, Assign, Unary},
+            Call, Identifier,
         },
-        parser::tests::check_parser,
+        function::{FormalParameterList, Function},
+        statement::{
+            declaration::{Declaration, DeclarationList},
+            Block, Return,
+        },
+        Expression, Statement,
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Helper function to check a block.
 #[track_caller]
 fn check_block<B>(js: &str, block: B, interner: Interner)
 where
-    B: Into<Box<[Node]>>,
+    B: Into<Box<[Statement]>>,
 {
     check_parser(js, vec![Block::from(block.into()).into()], interner);
 }
@@ -40,14 +44,18 @@ fn non_empty() {
         }",
         vec![
             DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Some(Const::from(10).into()),
+                vec![Declaration::from_identifier(
+                    a.into(),
+                    Some(Literal::from(10).into()),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
+            Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            ))
+            .into(),
         ],
         interner,
     );
@@ -65,21 +73,25 @@ fn non_empty() {
             a++;
         }",
         vec![
-            FunctionDecl::new(
-                hello,
+            Function::new(
+                hello.into(),
                 FormalParameterList::default(),
-                vec![Return::new(Const::from(10), None).into()],
+                vec![Return::new(Some(Literal::from(10).into()), None).into()].into(),
             )
             .into(),
             DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Node::from(Call::new(Identifier::new(hello), vec![])),
+                vec![Declaration::from_identifier(
+                    a.into(),
+                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
+            Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            ))
+            .into(),
         ],
         interner,
     );
@@ -98,21 +110,25 @@ fn hoisting() {
             function hello() { return 10 }
         }",
         vec![
-            FunctionDecl::new(
-                hello,
+            Function::new(
+                Some(hello),
                 FormalParameterList::default(),
-                vec![Return::new(Const::from(10), None).into()],
+                vec![Return::new(Some(Literal::from(10).into()), None).into()].into(),
             )
             .into(),
             DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Node::from(Call::new(Identifier::new(hello), vec![])),
+                vec![Declaration::from_identifier(
+                    a.into(),
+                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
                 )]
                 .into(),
             )
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
+            Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            ))
+            .into(),
         ],
         interner,
     );
@@ -127,9 +143,18 @@ fn hoisting() {
             var a;
         }",
         vec![
-            Assign::new(Identifier::new(a), Const::from(10)).into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
-            DeclarationList::Var(vec![Declaration::new_with_identifier(a, None)].into()).into(),
+            Expression::from(Assign::new(
+                AssignOp::Assign,
+                Identifier::new(a).into(),
+                Literal::from(10).into(),
+            ))
+            .into(),
+            Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            ))
+            .into(),
+            DeclarationList::Var(vec![Declaration::from_identifier(a.into(), None)].into()).into(),
         ],
         interner,
     );

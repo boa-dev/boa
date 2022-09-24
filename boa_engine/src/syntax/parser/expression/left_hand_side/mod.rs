@@ -16,7 +16,7 @@ mod member;
 mod template;
 
 use crate::syntax::{
-    ast::{node::SuperCall, Keyword, Node, Punctuator},
+    ast::{expression::SuperCall, Expression, Keyword, Punctuator},
     lexer::{InputElement, TokenKind},
     parser::{
         expression::left_hand_side::{
@@ -64,10 +64,10 @@ impl<R> TokenParser<R> for LeftHandSideExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
-        let _timer = Profiler::global().start_event("LeftHandSIdeExpression", "Parsing");
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 

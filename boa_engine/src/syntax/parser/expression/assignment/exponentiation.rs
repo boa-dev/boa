@@ -10,9 +10,8 @@
 use super::ParseError;
 use crate::syntax::{
     ast::{
-        node::{BinOp, Node},
-        op::NumOp,
-        Keyword, Punctuator,
+        expression::operator::{binary::op::ArithmeticOp, Binary},
+        Expression, Keyword, Punctuator,
     },
     lexer::TokenKind,
     parser::{
@@ -63,9 +62,9 @@ impl<R> TokenParser<R> for ExponentiationExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
 
         let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -89,7 +88,12 @@ where
         if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
                 cursor.next(interner)?.expect("** token vanished"); // Consume the token.
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor, interner)?).into());
+                return Ok(Binary::new(
+                    ArithmeticOp::Exp.into(),
+                    lhs,
+                    self.parse(cursor, interner)?,
+                )
+                .into());
             }
         }
         Ok(lhs)

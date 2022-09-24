@@ -7,23 +7,25 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#Declarations
 //! [spec]:https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 
-pub(in crate::syntax::parser) mod hoistable;
+mod hoistable;
 mod lexical;
 #[cfg(test)]
 mod tests;
 
-use self::{hoistable::HoistableDeclaration, lexical::LexicalDeclaration};
+pub(in crate::syntax::parser) use hoistable::class_decl::ClassTail;
+pub(in crate::syntax) use hoistable::class_decl::PrivateElement;
+pub(in crate::syntax::parser) use hoistable::FunctionDeclaration;
+use hoistable::HoistableDeclaration;
+pub(in crate::syntax::parser) use lexical::LexicalDeclaration;
+
 use crate::syntax::{
-    ast::{Keyword, Node},
+    ast::{Keyword, Statement},
     lexer::TokenKind,
-    parser::{AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
-
-pub(in crate::syntax::parser) use hoistable::class_decl::ClassTail;
-pub(in crate::syntax) use hoistable::class_decl::PrivateElement;
 
 /// Parses a declaration.
 ///
@@ -35,11 +37,10 @@ pub(in crate::syntax) use hoistable::class_decl::PrivateElement;
 pub(super) struct Declaration {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    const_init_required: bool,
 }
 
 impl Declaration {
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, const_init_required: bool) -> Self
+    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -47,7 +48,6 @@ impl Declaration {
         Self {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            const_init_required,
         }
     }
 }
@@ -56,13 +56,9 @@ impl<R> TokenParser<R> for Declaration
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Statement;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Declaration", "Parsing");
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -71,13 +67,11 @@ where
                 HoistableDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
             }
-            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => LexicalDeclaration::new(
-                true,
-                self.allow_yield,
-                self.allow_await,
-                self.const_init_required,
-            )
-            .parse(cursor, interner),
+            TokenKind::Keyword((Keyword::Const | Keyword::Let, _)) => {
+                LexicalDeclaration::new(true, self.allow_yield, self.allow_await, false)
+                    .parse(cursor, interner)
+                    .map(Into::into)
+            }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
     }

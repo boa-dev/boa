@@ -1,0 +1,97 @@
+//! If statement
+
+use crate::syntax::ast::{expression::Expression, statement::Statement};
+use boa_interner::{Interner, ToInternedString};
+
+/// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
+/// the condition is [`falsy`][falsy], another statement can be executed.
+///
+/// Multiple `if...else` statements can be nested to create an else if clause.
+///
+/// Note that there is no elseif (in one word) keyword in JavaScript.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///  - [MDN documentation][mdn]
+///
+/// [spec]: https://tc39.es/ecma262/#prod-IfStatement
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else
+/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/truthy
+/// [falsy]: https://developer.mozilla.org/en-US/docs/Glossary/falsy
+/// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct If {
+    condition: Expression,
+    body: Box<Statement>,
+    else_node: Option<Box<Statement>>,
+}
+
+impl If {
+    pub fn cond(&self) -> &Expression {
+        &self.condition
+    }
+
+    pub fn body(&self) -> &Statement {
+        &self.body
+    }
+
+    pub fn else_node(&self) -> Option<&Statement> {
+        self.else_node.as_ref().map(Box::as_ref)
+    }
+
+    /// Creates an `If` AST node.
+    pub fn new(condition: Expression, body: Statement, else_node: Option<Statement>) -> Self {
+        Self {
+            condition,
+            body: body.into(),
+            else_node: else_node.map(Box::new),
+        }
+    }
+
+    pub(crate) fn to_indented_string(&self, interner: &Interner, indent: usize) -> String {
+        let mut buf = format!("if ({}) ", self.cond().to_interned_string(interner));
+        match self.else_node() {
+            Some(else_e) => {
+                buf.push_str(&format!(
+                    "{} else {}",
+                    self.body().to_indented_string(interner, indent),
+                    else_e.to_indented_string(interner, indent)
+                ));
+            }
+            None => {
+                buf.push_str(&self.body().to_indented_string(interner, indent));
+            }
+        }
+        buf
+    }
+}
+
+impl ToInternedString for If {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
+    }
+}
+
+impl From<If> for Statement {
+    fn from(if_stm: If) -> Self {
+        Self::If(if_stm)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn fmt() {
+        crate::syntax::ast::test_formatting(
+            r#"
+        let a = true ? 5 : 6;
+        if (false) {
+            a = 10;
+        } else {
+            a = 20;
+        }
+        "#,
+        );
+    }
+}

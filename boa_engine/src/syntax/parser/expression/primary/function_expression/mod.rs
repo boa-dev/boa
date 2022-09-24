@@ -12,14 +12,14 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, FunctionExpr},
+        function::{function_contains_super, Function},
         Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, TokenParser,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -53,13 +53,9 @@ impl<R> TokenParser<R> for FunctionExpression
 where
     R: Read,
 {
-    type Output = FunctionExpr;
+    type Output = Function;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionExpression", "Parsing");
 
         let name = match cursor
@@ -136,6 +132,6 @@ where
             )));
         }
 
-        Ok(FunctionExpr::new(name, params, body))
+        Ok(Function::new(name, params, body))
     }
 }

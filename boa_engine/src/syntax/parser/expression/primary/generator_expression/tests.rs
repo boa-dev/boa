@@ -1,17 +1,14 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                Declaration, DeclarationList, FormalParameterList, GeneratorExpr, StatementList,
-                Yield,
-            },
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        expression::{literal::Literal, Yield},
+        function::{FormalParameterList, Generator},
+        statement::declaration::{Declaration, DeclarationList},
+        Expression,
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn check_generator_function_expression() {
@@ -23,13 +20,17 @@ fn check_generator_function_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                gen,
+            vec![Declaration::from_identifier(
+                gen.into(),
                 Some(
-                    GeneratorExpr::new::<_, _, StatementList>(
+                    Generator::new(
                         Some(gen),
                         FormalParameterList::default(),
-                        vec![Yield::new(Some(Const::from(1)), false).into()].into(),
+                        vec![
+                            Expression::from(Yield::new(Some(Literal::from(1).into()), false))
+                                .into(),
+                        ]
+                        .into(),
                     )
                     .into(),
                 ),
@@ -51,13 +52,17 @@ fn check_generator_function_delegate_yield_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                gen,
+            vec![Declaration::from_identifier(
+                gen.into(),
                 Some(
-                    GeneratorExpr::new::<_, _, StatementList>(
+                    Generator::new(
                         Some(gen),
                         FormalParameterList::default(),
-                        vec![Yield::new(Some(Const::from(1)), true).into()].into(),
+                        vec![
+                            Expression::from(Yield::new(Some(Literal::from(1).into()), true))
+                                .into(),
+                        ]
+                        .into(),
                     )
                     .into(),
                 ),

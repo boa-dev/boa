@@ -18,7 +18,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
     },
     property::PropertyDescriptor,
-    syntax::ast::node::FormalParameterList,
+    syntax::ast::function::FormalParameterList,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,

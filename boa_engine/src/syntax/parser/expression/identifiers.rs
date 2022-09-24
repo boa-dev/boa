@@ -7,9 +7,9 @@
 //!
 
 use crate::syntax::{
-    ast::{node::Identifier, Keyword},
+    ast::{expression::Identifier, Keyword},
     lexer::{Error as LexError, TokenKind},
-    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, TokenParser},
+    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -59,11 +59,7 @@ where
 {
     type Output = Identifier;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("IdentifierReference", "Parsing");
 
         let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -155,11 +151,7 @@ where
     type Output = Sym;
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingIdentifier", "Parsing");
 
         let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;

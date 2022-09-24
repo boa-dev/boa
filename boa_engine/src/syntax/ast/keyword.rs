@@ -9,13 +9,10 @@
 
 use crate::{
     string::utf16,
-    syntax::ast::op::{BinOp, CompOp},
+    syntax::ast::expression::operator::binary::op::{BinaryOp, RelationalOp},
 };
 use boa_interner::{Interner, Sym};
 use std::{convert::TryInto, error, fmt, str::FromStr};
-
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
 
 /// Keywords are tokens that have special meaning in JavaScript.
 ///
@@ -27,7 +24,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Keyword {
     /// The `await` keyword.
@@ -486,10 +483,10 @@ pub enum Keyword {
 
 impl Keyword {
     /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
-    pub fn as_binop(self) -> Option<BinOp> {
+    pub fn as_binary_op(self) -> Option<BinaryOp> {
         match self {
-            Self::In => Some(BinOp::Comp(CompOp::In)),
-            Self::InstanceOf => Some(BinOp::Comp(CompOp::InstanceOf)),
+            Self::In => Some(BinaryOp::Relational(RelationalOp::In)),
+            Self::InstanceOf => Some(BinaryOp::Relational(RelationalOp::InstanceOf)),
             _ => None,
         }
     }
@@ -548,10 +545,10 @@ impl Keyword {
     }
 }
 
-impl TryInto<BinOp> for Keyword {
+impl TryInto<BinaryOp> for Keyword {
     type Error = String;
-    fn try_into(self) -> Result<BinOp, Self::Error> {
-        self.as_binop()
+    fn try_into(self) -> Result<BinaryOp, Self::Error> {
+        self.as_binary_op()
             .ok_or_else(|| format!("No binary operation for {self}"))
     }
 }

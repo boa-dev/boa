@@ -1,10 +1,10 @@
 use crate::syntax::{
-    ast::{node::Return, Keyword, Node, Punctuator},
+    ast::{statement::Return, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::Expression,
-        AllowAwait, AllowYield, ParseError, TokenParser,
+        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -45,11 +45,7 @@ where
 {
     type Output = Return;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ReturnStatement", "Parsing");
         cursor.expect((Keyword::Return, false), "return statement", interner)?;
 
@@ -61,7 +57,7 @@ where
                 _ => {}
             }
 
-            return Ok(Return::new::<Node, Option<_>, Option<_>>(None, None));
+            return Ok(Return::new(None, None));
         }
 
         let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -69,6 +65,6 @@ where
 
         cursor.expect_semicolon("return statement", interner)?;
 
-        Ok(Return::new(expr, None))
+        Ok(Return::new(Some(expr), None))
     }
 }

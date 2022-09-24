@@ -1,9 +1,9 @@
 use crate::syntax::{
-    ast::{Keyword, Node},
+    ast::{function::Class, Keyword},
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
-        ParseError, TokenParser,
+        ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -43,13 +43,9 @@ impl<R> TokenParser<R> for ClassExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Class;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ClassExpression", "Parsing");
         let strict = cursor.strict_mode();
         cursor.set_strict_mode(true);
@@ -74,8 +70,6 @@ where
         };
         cursor.set_strict_mode(strict);
 
-        Ok(Node::ClassExpr(
-            ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?,
-        ))
+        ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)
     }
 }

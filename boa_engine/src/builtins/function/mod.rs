@@ -13,7 +13,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    bytecompiler::{FunctionCompiler, FunctionKind},
+    bytecompiler::FunctionCompiler,
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
     js_string,
@@ -25,10 +25,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::{
-        ast::node::{FormalParameterList, StatementList},
-        Parser,
-    },
+    syntax::{ast::function::FormalParameterList, ast::statement::StatementList, Parser},
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -605,7 +602,6 @@ impl BuiltInFunctionObject {
                 .name(Sym::ANONYMOUS)
                 .generator(generator)
                 .r#async(r#async)
-                .kind(FunctionKind::Expression)
                 .compile(&parameters, &body, context)?;
 
             let environments = context.realm.environments.pop_to_global();
@@ -623,7 +619,6 @@ impl BuiltInFunctionObject {
             let code = FunctionCompiler::new()
                 .name(Sym::ANONYMOUS)
                 .generator(true)
-                .kind(FunctionKind::Expression)
                 .compile(
                     &FormalParameterList::empty(),
                     &StatementList::default(),
@@ -637,14 +632,11 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else {
-            let code = FunctionCompiler::new()
-                .name(Sym::ANONYMOUS)
-                .kind(FunctionKind::Expression)
-                .compile(
-                    &FormalParameterList::empty(),
-                    &StatementList::default(),
-                    context,
-                )?;
+            let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
+                &FormalParameterList::empty(),
+                &StatementList::default(),
+                context,
+            )?;
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =

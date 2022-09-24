@@ -1,14 +1,12 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{Declaration, DeclarationList, Node},
-            Const,
-        },
-        parser::tests::{check_invalid, check_parser},
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        statement::declaration::{Declaration, DeclarationList},
     },
+    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks `var` declaration parsing.
 #[test]
@@ -17,9 +15,9 @@ fn var_declaration() {
     check_parser(
         "var a = 5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Some(Const::from(5).into()),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -35,9 +33,11 @@ fn var_declaration_keywords() {
     check_parser(
         "var yield = 5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield", utf16!("yield")),
-                Some(Const::from(5).into()),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -49,9 +49,11 @@ fn var_declaration_keywords() {
     check_parser(
         "var await = 5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await", utf16!("await")),
-                Some(Const::from(5).into()),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -67,9 +69,9 @@ fn var_declaration_no_spaces() {
     check_parser(
         "var a=5;",
         vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Some(Const::from(5).into()),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -85,8 +87,8 @@ fn empty_var_declaration() {
     check_parser(
         "var a;",
         vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
                 None,
             )]
             .into(),
@@ -104,17 +106,17 @@ fn multiple_var_declaration() {
         "var a = 5, b, c = 6;",
         vec![DeclarationList::Var(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::from(5).into()),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
                     None,
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")),
-                    Some(Const::from(6).into()),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
             .into(),
@@ -131,9 +133,9 @@ fn let_declaration() {
     check_parser(
         "let a = 5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -149,9 +151,11 @@ fn let_declaration_keywords() {
     check_parser(
         "let yield = 5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield", utf16!("yield")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -163,9 +167,11 @@ fn let_declaration_keywords() {
     check_parser(
         "let await = 5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await", utf16!("await")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -181,9 +187,9 @@ fn let_declaration_no_spaces() {
     check_parser(
         "let a=5;",
         vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -199,8 +205,8 @@ fn empty_let_declaration() {
     check_parser(
         "let a;",
         vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
                 None,
             )]
             .into(),
@@ -218,17 +224,17 @@ fn multiple_let_declaration() {
         "let a = 5, b, c = 6;",
         vec![DeclarationList::Let(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Node::from(Const::from(5)),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
                     None,
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")),
-                    Node::from(Const::from(6)),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
             .into(),
@@ -245,9 +251,9 @@ fn const_declaration() {
     check_parser(
         "const a = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -263,9 +269,11 @@ fn const_declaration_keywords() {
     check_parser(
         "const yield = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield", utf16!("yield")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -277,9 +285,11 @@ fn const_declaration_keywords() {
     check_parser(
         "const await = 5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await", utf16!("await")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -295,9 +305,9 @@ fn const_declaration_no_spaces() {
     check_parser(
         "const a=5;",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a", utf16!("a")),
-                Node::from(Const::from(5)),
+            vec![Declaration::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
             .into(),
         )
@@ -320,13 +330,13 @@ fn multiple_const_declaration() {
         "const a = 5, c = 6;",
         vec![DeclarationList::Const(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Node::from(Const::from(5)),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c", utf16!("c")),
-                    Node::from(Const::from(6)),
+                Declaration::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
             .into(),

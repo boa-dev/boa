@@ -1,17 +1,16 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                Declaration, DeclarationList, FormalParameterList, FunctionExpr, Return,
-                StatementList,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        function::{FormalParameterList, Function},
+        statement::{
+            declaration::{Declaration, DeclarationList},
+            Return,
         },
-        parser::tests::check_parser,
     },
+    parser::tests::check_parser,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks async expression parsing.
 #[test]
@@ -24,13 +23,13 @@ fn check_function_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                add,
+            vec![Declaration::from_identifier(
+                add.into(),
                 Some(
-                    FunctionExpr::new::<_, _, StatementList>(
+                    Function::new(
                         Some(add),
                         FormalParameterList::default(),
-                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                        vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                     )
                     .into(),
                 ),
@@ -55,24 +54,22 @@ fn check_nested_function_expression() {
         };
         ",
         vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                a,
+            vec![Declaration::from_identifier(
+                a.into(),
                 Some(
-                    FunctionExpr::new::<_, _, StatementList>(
+                    Function::new(
                         Some(a),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
-                            vec![Declaration::new_with_identifier(
-                                b,
+                            vec![Declaration::from_identifier(
+                                b.into(),
                                 Some(
-                                    FunctionExpr::new::<_, _, StatementList>(
+                                    Function::new(
                                         Some(b),
                                         FormalParameterList::default(),
-                                        vec![Return::new::<_, _, Option<Sym>>(
-                                            Const::from(1),
-                                            None,
-                                        )
-                                        .into()]
+                                        vec![
+                                            Return::new(Some(Literal::from(1).into()), None).into()
+                                        ]
                                         .into(),
                                     )
                                     .into(),
@@ -98,13 +95,13 @@ fn check_function_non_reserved_keyword() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
             vec![DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    $interner.get_or_intern_static("add", utf16!("add")),
+                vec![Declaration::from_identifier(
+                    $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
-                        FunctionExpr::new::<_, _, StatementList>(
+                        Function::new(
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword))),
                             FormalParameterList::default(),
-                            vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                            vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                         )
                         .into(),
                     ),

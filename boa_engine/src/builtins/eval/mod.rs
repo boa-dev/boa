@@ -102,7 +102,7 @@ impl Eval {
 
             // Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
             let mut vars = FxHashSet::default();
-            body.var_declared_names_new(&mut vars);
+            body.var_declared_names(&mut vars);
             if let Some(name) = context
                 .realm
                 .environments

@@ -14,10 +14,6 @@ mod tests;
 use crate::{
     string::utf16,
     syntax::{
-        ast::{
-            node::{ContainsSymbol, FormalParameterList, StatementList},
-            Position,
-        },
         lexer::TokenKind,
         parser::{
             cursor::Cursor,
@@ -33,6 +29,10 @@ use std::io::Read;
 pub use self::error::{ParseError, ParseResult};
 pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
 
+use super::ast::{
+    function::FormalParameterList, statement::StatementList, ContainsSymbol, Position,
+};
+
 /// Trait implemented by parsers.
 ///
 /// This makes it possible to abstract over the underlying implementation of a parser.
@@ -46,11 +46,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError>;
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -174,7 +170,7 @@ impl<R> Parser<R> {
         let mut contains_super_call = false;
         let mut contains_new_target = false;
         if direct {
-            for node in statement_list.items() {
+            for node in statement_list.statements() {
                 if !contains_super_property && node.contains(ContainsSymbol::SuperProperty) {
                     contains_super_property = true;
                 }
@@ -287,7 +283,7 @@ impl Script {
                 // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
                 // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
                 let mut var_declared_names = FxHashSet::default();
-                statement_list.var_declared_names_new(&mut var_declared_names);
+                statement_list.var_declared_names(&mut var_declared_names);
                 let lexically_declared_names = statement_list.lexically_declared_names();
                 let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
                 for (name, is_function_declaration) in &lexically_declared_names {
@@ -374,16 +370,12 @@ where
 {
     type Output = StatementList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let body = self::statement::StatementList::new(false, false, false, &[])
             .parse(cursor, interner)?;
 
         if !self.direct_eval {
-            for node in body.items() {
+            for node in body.statements() {
                 // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
                 // code that is being processed by a direct eval.
                 // Additional early error rules for super within direct eval are defined in 19.2.1.1.

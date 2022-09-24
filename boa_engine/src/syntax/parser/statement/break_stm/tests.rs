@@ -1,20 +1,18 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{Block, Break, Node, WhileLoop},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        statement::{Block, Break, WhileLoop},
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn inline() {
     check_parser(
         "while (true) break;",
-        vec![WhileLoop::new(Const::from(true), Node::Break(Break::new(None))).into()],
+        vec![WhileLoop::new(Literal::from(true).into(), Break::new(None).into()).into()],
         Interner::default(),
     );
 }
@@ -24,7 +22,7 @@ fn new_line() {
     check_parser(
         "while (true)
             break;",
-        vec![WhileLoop::new(Const::from(true), Break::new(None)).into()],
+        vec![WhileLoop::new(Literal::from(true).into(), Break::new(None).into()).into()],
         Interner::default(),
     );
 }
@@ -34,8 +32,8 @@ fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {break}",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(None).into()]).into(),
         )
         .into()],
         Interner::default(),
@@ -50,11 +48,12 @@ fn new_line_semicolon_insertion() {
             break test
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(Some(
                 interner.get_or_intern_static("test", utf16!("test")),
-            )
-            .into()]),
+            ))
+            .into()])
+            .into(),
         )
         .into()],
         interner,
@@ -66,8 +65,8 @@ fn inline_block() {
     check_parser(
         "while (true) {break;}",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(None).into()]).into(),
         )
         .into()],
         Interner::default(),
@@ -82,11 +81,12 @@ fn new_line_block() {
             break test;
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(Some(
                 interner.get_or_intern_static("test", utf16!("test")),
-            )
-            .into()]),
+            ))
+            .into()])
+            .into(),
         )
         .into()],
         interner,
@@ -101,11 +101,12 @@ fn reserved_label() {
             break await;
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(Some(
                 interner.get_or_intern_static("await", utf16!("await")),
-            )
-            .into()]),
+            ))
+            .into()])
+            .into(),
         )
         .into()],
         interner,
@@ -117,11 +118,12 @@ fn reserved_label() {
             break yield;
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(Some(
                 interner.get_or_intern_static("yield", utf16!("yield")),
-            )
-            .into()]),
+            ))
+            .into()])
+            .into(),
         )
         .into()],
         interner,
@@ -135,8 +137,8 @@ fn new_line_block_empty() {
             break;
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(None).into()]).into(),
         )
         .into()],
         Interner::default(),
@@ -150,8 +152,8 @@ fn new_line_block_empty_semicolon_insertion() {
             break
         }",
         vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
+            Literal::from(true).into(),
+            Block::from(vec![Break::new(None).into()]).into(),
         )
         .into()],
         Interner::default(),

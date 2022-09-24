@@ -12,14 +12,13 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, AsyncGeneratorExpr},
-        Keyword, Position, Punctuator,
+        function::function_contains_super, function::AsyncGenerator, Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, TokenParser,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -52,13 +51,9 @@ where
     R: Read,
 {
     //The below needs to be implemented in ast::node
-    type Output = AsyncGeneratorExpr;
+    type Output = AsyncGenerator;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
         cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
@@ -175,6 +170,6 @@ where
         }
 
         //implement the below AsyncGeneratorExpr in ast::node
-        Ok(AsyncGeneratorExpr::new(name, params, body))
+        Ok(AsyncGenerator::new(name, params, body))
     }
 }

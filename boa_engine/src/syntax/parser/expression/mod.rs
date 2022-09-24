@@ -20,9 +20,12 @@ pub(in crate::syntax::parser) mod await_expr;
 mod tests;
 
 use crate::syntax::{
-    ast::op::LogOp,
     ast::{
-        node::{BinOp, Node},
+        self,
+        expression::operator::{
+            binary::op::{BinaryOp, LogicalOp},
+            Binary,
+        },
         Keyword, Punctuator,
     },
     lexer::{InputElement, TokenKind},
@@ -83,9 +86,9 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
     where
         R: Read
     {
-        type Output = Node;
+        type Output = ast::Expression;
 
-        fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult {
+        fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
             let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
             if $goal.is_some() {
@@ -98,16 +101,16 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                 match *tok.kind() {
                     TokenKind::Punctuator(op) if $( op == $op )||* => {
                         let _next = cursor.next(interner).expect("token disappeared");
-                        lhs = BinOp::new(
-                            op.as_binop().expect("Could not get binary operation."),
+                        lhs = Binary::new(
+                            op.as_binary_op().expect("Could not get binary operation."),
                             lhs,
                             $lower::new($( self.$low_param ),*).parse(cursor, interner)?
                         ).into();
                     }
                     TokenKind::Keyword((op, false)) if $( op == $op )||* => {
                         let _next = cursor.next(interner).expect("token disappeared");
-                        lhs = BinOp::new(
-                            op.as_binop().expect("Could not get binary operation."),
+                        lhs = Binary::new(
+                            op.as_binary_op().expect("Could not get binary operation."),
                             lhs,
                             $lower::new($( self.$low_param ),*).parse(cursor, interner)?
                         ).into();
@@ -159,9 +162,13 @@ impl<R> TokenParser<R> for Expression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(
+        mut self,
+        cursor: &mut Cursor<R>,
+        interner: &mut Interner,
+    ) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Expression", "Parsing");
 
         let mut lhs =
@@ -191,9 +198,9 @@ where
 
                     let _next = cursor.next(interner).expect("token disappeared");
 
-                    lhs = BinOp::new(
+                    lhs = Binary::new(
                         Punctuator::Comma
-                            .as_binop()
+                            .as_binary_op()
                             .expect("Could not get binary operation."),
                         lhs,
                         AssignmentExpression::new(
@@ -283,9 +290,9 @@ impl<R> TokenParser<R> for ShortCircuitExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ShortCircuitExpression", "Parsing");
 
         let mut current_node =
@@ -313,7 +320,8 @@ where
                     )
                     .parse(cursor, interner)?;
 
-                    current_node = BinOp::new(LogOp::And, current_node, rhs).into();
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::And), current_node, rhs).into();
                 }
                 TokenKind::Punctuator(Punctuator::BoolOr) => {
                     if previous == PreviousExpr::Coalesce {
@@ -333,7 +341,8 @@ where
                         PreviousExpr::Logical,
                     )
                     .parse(cursor, interner)?;
-                    current_node = BinOp::new(LogOp::Or, current_node, rhs).into();
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::Or), current_node, rhs).into();
                 }
                 TokenKind::Punctuator(Punctuator::Coalesce) => {
                     if previous == PreviousExpr::Logical {
@@ -353,7 +362,9 @@ where
                         self.allow_await,
                     )
                     .parse(cursor, interner)?;
-                    current_node = BinOp::new(LogOp::Coalesce, current_node, rhs).into();
+                    current_node =
+                        Binary::new(BinaryOp::Logical(LogicalOp::Coalesce), current_node, rhs)
+                            .into();
                 }
                 _ => break,
             }
@@ -573,9 +584,9 @@ impl<R> TokenParser<R> for RelationalExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Relation Expression", "Parsing");
 
         let mut lhs = ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
@@ -589,8 +600,8 @@ where
                         || op == Punctuator::GreaterThanOrEq =>
                 {
                     let _next = cursor.next(interner).expect("token disappeared");
-                    lhs = BinOp::new(
-                        op.as_binop().expect("Could not get binary operation."),
+                    lhs = Binary::new(
+                        op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,
@@ -608,8 +619,8 @@ where
                         || (op == Keyword::In && self.allow_in == AllowIn(true)) =>
                 {
                     let _next = cursor.next(interner).expect("token disappeared");
-                    lhs = BinOp::new(
-                        op.as_binop().expect("Could not get binary operation."),
+                    lhs = Binary::new(
+                        op.as_binary_op().expect("Could not get binary operation."),
                         lhs,
                         ShiftExpression::new(self.name, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?,

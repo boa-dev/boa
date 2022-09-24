@@ -8,9 +8,12 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{
-            field::{get_private_field::GetPrivateField, GetConstField, GetField},
-            Call, GetSuperField, New, Node,
+        self,
+        expression::{
+            access::{
+                PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SuperPropertyAccess,
+            },
+            Call, New,
         },
         Keyword, Punctuator,
     },
@@ -59,9 +62,9 @@ impl<R> TokenParser<R> for MemberExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -78,7 +81,9 @@ where
                 if cursor.next_if(Punctuator::Dot, interner)?.is_some() {
                     let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                     match token.kind() {
-                        TokenKind::Identifier(Sym::TARGET) => return Ok(Node::NewTarget),
+                        TokenKind::Identifier(Sym::TARGET) => {
+                            return Ok(ast::Expression::NewTarget)
+                        }
                         _ => {
                             return Err(ParseError::general(
                                 "unexpected private identifier",
@@ -98,7 +103,7 @@ where
                 };
                 let call_node = Call::new(lhs, args);
 
-                Node::from(New::from(call_node))
+                ast::Expression::from(New::from(call_node))
             }
             TokenKind::Keyword((Keyword::Super, _)) => {
                 cursor.next(interner).expect("token disappeared");
@@ -107,11 +112,19 @@ where
                     TokenKind::Punctuator(Punctuator::Dot) => {
                         let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                         let field = match token.kind() {
-                            TokenKind::Identifier(name) => GetSuperField::from(*name),
-                            TokenKind::Keyword((kw, _)) => GetSuperField::from(kw.to_sym(interner)),
-                            TokenKind::BooleanLiteral(true) => GetSuperField::from(Sym::TRUE),
-                            TokenKind::BooleanLiteral(false) => GetSuperField::from(Sym::FALSE),
-                            TokenKind::NullLiteral => GetSuperField::from(Sym::NULL),
+                            TokenKind::Identifier(name) => {
+                                SuperPropertyAccess::new(PropertyAccessField::from(*name))
+                            }
+                            TokenKind::Keyword((kw, _)) => {
+                                SuperPropertyAccess::new(kw.to_sym(interner).into())
+                            }
+                            TokenKind::BooleanLiteral(true) => {
+                                SuperPropertyAccess::new(Sym::TRUE.into())
+                            }
+                            TokenKind::BooleanLiteral(false) => {
+                                SuperPropertyAccess::new(Sym::FALSE.into())
+                            }
+                            TokenKind::NullLiteral => SuperPropertyAccess::new(Sym::NULL.into()),
                             TokenKind::PrivateIdentifier(_) => {
                                 return Err(ParseError::general(
                                     "unexpected private identifier",
@@ -123,7 +136,7 @@ where
                                     token.to_string(interner),
                                     token.span(),
                                     "expected super property",
-                                ))
+                                ));
                             }
                         };
                         field.into()
@@ -132,7 +145,7 @@ where
                         let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
-                        GetSuperField::from(expr).into()
+                        ast::Expression::from(SuperPropertyAccess::new(expr.into()))
                     }
                     _ => {
                         return Err(ParseError::unexpected(
@@ -157,22 +170,22 @@ where
                     let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
                     match token.kind() {
-                        TokenKind::Identifier(name) => lhs = GetConstField::new(lhs, *name).into(),
+                        TokenKind::Identifier(name) => lhs = PropertyAccess::new(lhs, *name).into(),
                         TokenKind::Keyword((kw, _)) => {
-                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
+                            lhs = PropertyAccess::new(lhs, kw.to_sym(interner)).into();
                         }
                         TokenKind::BooleanLiteral(true) => {
-                            lhs = GetConstField::new(lhs, Sym::TRUE).into();
+                            lhs = PropertyAccess::new(lhs, Sym::TRUE).into();
                         }
                         TokenKind::BooleanLiteral(false) => {
-                            lhs = GetConstField::new(lhs, Sym::FALSE).into();
+                            lhs = PropertyAccess::new(lhs, Sym::FALSE).into();
                         }
                         TokenKind::NullLiteral => {
-                            lhs = GetConstField::new(lhs, Sym::NULL).into();
+                            lhs = PropertyAccess::new(lhs, Sym::NULL).into();
                         }
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;
-                            lhs = GetPrivateField::new(lhs, *name).into();
+                            lhs = PrivatePropertyAccess::new(lhs, *name).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -191,7 +204,7 @@ where
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
-                    lhs = GetField::new(lhs, idx).into();
+                    lhs = PropertyAccess::new(lhs, idx).into();
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(
@@ -200,7 +213,8 @@ where
                         tok.span().start(),
                         lhs,
                     )
-                    .parse(cursor, interner)?;
+                    .parse(cursor, interner)?
+                    .into();
                 }
                 _ => break,
             }

@@ -1,7 +1,10 @@
 use crate::{
     builtins::function::ThisMode,
-    bytecompiler::{ByteCompiler, FunctionKind},
-    syntax::ast::node::{Declaration, FormalParameterList, StatementList},
+    bytecompiler::ByteCompiler,
+    syntax::ast::{
+        function::FormalParameterList,
+        statement::{declaration::Binding, StatementList},
+    },
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsResult,
 };
@@ -11,12 +14,13 @@ use rustc_hash::FxHashMap;
 
 /// `FunctionCompiler` is used to compile AST functions to bytecode.
 #[derive(Debug, Clone, Copy)]
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct FunctionCompiler {
     name: Sym,
     generator: bool,
     r#async: bool,
     strict: bool,
-    kind: FunctionKind,
+    arrow: bool,
 }
 
 impl FunctionCompiler {
@@ -28,7 +32,7 @@ impl FunctionCompiler {
             generator: false,
             r#async: false,
             strict: false,
-            kind: FunctionKind::Declaration,
+            arrow: false,
         }
     }
 
@@ -45,6 +49,12 @@ impl FunctionCompiler {
         self
     }
 
+    /// Indicate if the function is an arrow function.
+    #[inline]
+    pub(crate) fn arrow(mut self, arrow: bool) -> Self {
+        self.arrow = arrow;
+        self
+    }
     /// Indicate if the function is a generator function.
     #[inline]
     pub(crate) fn generator(mut self, generator: bool) -> Self {
@@ -66,13 +76,6 @@ impl FunctionCompiler {
         self
     }
 
-    /// Indicate if the function is a declaration, expression or arrow function.
-    #[inline]
-    pub(crate) fn kind(mut self, kind: FunctionKind) -> Self {
-        self.kind = kind;
-        self
-    }
-
     /// Compile a function statement list and it's parameters into bytecode.
     pub(crate) fn compile(
         mut self,
@@ -85,7 +88,7 @@ impl FunctionCompiler {
         let length = parameters.length();
         let mut code = CodeBlock::new(self.name, length, self.strict);
 
-        if self.kind == FunctionKind::Arrow {
+        if self.arrow {
             code.this_mode = ThisMode::Lexical;
         }
 
@@ -106,7 +109,7 @@ impl FunctionCompiler {
         // - If the parameter list does not contain `arguments` (10.2.11.17)
         // Note: This following just means, that we add an extra environment for the arguments.
         // - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)
-        if !(self.kind == FunctionKind::Arrow) && !parameters.has_arguments() {
+        if !(self.arrow) && !parameters.has_arguments() {
             compiler
                 .context
                 .create_mutable_binding(Sym::ARGUMENTS, false);
@@ -122,17 +125,18 @@ impl FunctionCompiler {
                 compiler.emit_opcode(Opcode::RestParameterInit);
             }
 
-            match parameter.declaration() {
-                Declaration::Identifier { ident, .. } => {
+            if let Some(init) = parameter.declaration().init() {
+                let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                compiler.compile_expr(init, true)?;
+                compiler.patch_jump(skip);
+            }
+
+            match parameter.declaration().binding() {
+                Binding::Identifier(ident) => {
                     compiler.context.create_mutable_binding(ident.sym(), false);
-                    if let Some(init) = parameter.declaration().init() {
-                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                        compiler.compile_expr(init, true)?;
-                        compiler.patch_jump(skip);
-                    }
                     compiler.emit_binding(BindingOpcode::InitArg, ident.sym());
                 }
-                Declaration::Pattern(pattern) => {
+                Binding::Pattern(pattern) => {
                     for ident in pattern.idents() {
                         compiler.context.create_mutable_binding(ident, false);
                     }
@@ -161,8 +165,8 @@ impl FunctionCompiler {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_declarations(body.items())?;
-        compiler.compile_statement_list(body.items(), false)?;
+        compiler.create_decls(body.statements())?;
+        compiler.compile_statement_list(body.statements(), false)?;
 
         if let Some(env_label) = env_label {
             let (num_bindings, compile_environment) =

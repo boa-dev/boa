@@ -3,14 +3,13 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, AsyncFunctionExpr},
-        Keyword, Position, Punctuator,
+        function::function_contains_super, function::AsyncFunction, Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        AllowYield, Cursor, ParseError, TokenParser,
+        AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -49,13 +48,9 @@ impl<R> TokenParser<R> for AsyncFunctionExpression
 where
     R: Read,
 {
-    type Output = AsyncFunctionExpr;
+    type Output = AsyncFunction;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
         cursor.expect(
@@ -142,6 +137,6 @@ where
             )));
         }
 
-        Ok(AsyncFunctionExpr::new(name, params, body))
+        Ok(AsyncFunction::new(name, params, body))
     }
 }

@@ -7,9 +7,9 @@ mod tests;
 use self::{catch::Catch, finally::Finally};
 use super::block::Block;
 use crate::syntax::{
-    ast::{node::Try, Keyword},
+    ast::{statement::Try, Keyword},
     lexer::TokenKind,
-    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser},
+    parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -52,11 +52,7 @@ where
 {
     type Output = Try;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("TryStatement", "Parsing");
         // TRY
         cursor.expect((Keyword::Try, false), "try statement", interner)?;

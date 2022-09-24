@@ -373,7 +373,7 @@ pub enum Opcode {
     ///
     /// Operands: exit: `u32`
     ///
-    /// Stack: lhs, rhs **=>** (lhs && rhs)
+    /// Stack: lhs, rhs **=>** (lhs ?? rhs)
     Coalesce,
 
     /// Unary `typeof` operator.

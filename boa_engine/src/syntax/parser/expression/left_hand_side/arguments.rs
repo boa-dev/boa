@@ -8,10 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::syntax::{
-    ast::{node::Spread, Node, Punctuator},
+    ast::{expression::Spread, Expression, Punctuator},
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -50,13 +51,9 @@ impl<R> TokenParser<R> for Arguments
 where
     R: Read,
 {
-    type Output = Box<[Node]>;
+    type Output = Box<[Expression]>;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Arguments", "Parsing");
 
         cursor.expect(Punctuator::OpenParen, "arguments", interner)?;
