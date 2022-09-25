@@ -13,8 +13,8 @@ Currently, it has support for some of the language.
 
 [![Build Status][build_badge]][build_link]
 [![codecov](https://codecov.io/gh/boa-dev/boa/branch/main/graph/badge.svg)](https://codecov.io/gh/boa-dev/boa)
-[![Crates.io](https://img.shields.io/crates/v/Boa.svg)](https://crates.io/crates/Boa)
-[![Docs.rs](https://docs.rs/Boa/badge.svg)](https://docs.rs/Boa/)
+[![Crates.io](https://img.shields.io/crates/v/boa_engine.svg)](https://crates.io/crates/boa_engine)
+[![Docs.rs](https://docs.rs/boa_engine/badge.svg)](https://docs.rs/boa_engine)
 [![Discord](https://img.shields.io/discord/595323158140158003?logo=discord)](https://discord.gg/tUFFk9Y)
 
 [build_badge]: https://github.com/boa-dev/boa/actions/workflows/rust.yml/badge.svg?event=push&branch=main
