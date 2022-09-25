@@ -1301,6 +1301,11 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::Pop);
                 }
             }
+            Node::NewTarget => {
+                if use_expr {
+                    self.emit_opcode(Opcode::PushNewTarget);
+                }
+            }
             _ => unreachable!(),
         }
         Ok(())

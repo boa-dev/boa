@@ -250,6 +250,9 @@ pub enum Node {
     /// A call of the super constructor. [More information](./super_call/struct.SuperCall.html).
     SuperCall(SuperCall),
 
+    /// The `new.target` pseudo-property expression.
+    NewTarget,
+
     /// A FormalParameterList.
     ///
     /// This is only used in the parser itself.
@@ -364,6 +367,7 @@ impl Node {
             Self::ClassDecl(ref decl) => decl.to_indented_string(interner, indentation),
             Self::ClassExpr(ref expr) => expr.to_indented_string(interner, indentation),
             Self::SuperCall(ref super_call) => super_call.to_interned_string(interner),
+            Self::NewTarget => "new.target".to_owned(),
             Self::FormalParameterList(_) => unreachable!(),
         }
     }
@@ -1248,6 +1252,7 @@ impl Node {
                 }
             }
             Node::Yield(_) if symbol == ContainsSymbol::YieldExpression => return true,
+            Node::NewTarget if symbol == ContainsSymbol::NewTarget => return true,
             _ => {}
         }
         false
@@ -1261,6 +1266,7 @@ pub(crate) enum ContainsSymbol {
     SuperCall,
     YieldExpression,
     AwaitExpression,
+    NewTarget,
 }
 
 impl ToInternedString for Node {
