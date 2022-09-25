@@ -12,6 +12,7 @@ feature:FinalizationRegistry
 feature:Atomics
 feature:dynamic_import
 feature:decorators
+feature:array-grouping
 
 // Non-implemented Intl features
 feature:intl-normative-optional
