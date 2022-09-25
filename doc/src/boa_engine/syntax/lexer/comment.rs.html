@@ -137,6 +137,7 @@
 <span id="135">135</span>
 <span id="136">136</span>
 <span id="137">137</span>
+<span id="138">138</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for comments used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
@@ -173,12 +174,13 @@
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;SingleLineComment&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="comment">// Skip either to the end of the line or to the end of the input</span>
-        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-            <span class="kw">if</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">b&#39;\n&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">ch</span> <span class="op">==</span> <span class="string">b&#39;\r&#39;</span> {
-                <span class="kw">break</span>;
-            }
-            <span class="comment">// Consume char.</span>
-            <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;Comment character vanished&quot;</span>);
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_char</span>()<span class="question-mark">?</span> {
+            <span class="kw">let</span> <span class="ident">tried_ch</span> <span class="op">=</span> <span class="ident">char::try_from</span>(<span class="ident">ch</span>);
+            <span class="kw">match</span> <span class="ident">tried_ch</span> {
+                <span class="prelude-val">Ok</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\r&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\n&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span><span class="op">|</span> <span class="ident">c</span> <span class="op">==</span> <span class="string">&#39;\u{2029}&#39;</span> =&gt; <span class="kw">break</span>,
+                <span class="kw">_</span> =&gt; {}
+            };
+            <span class="ident">cursor</span>.<span class="ident">next_char</span>().<span class="ident">expect</span>(<span class="string">&quot;Comment character vanished&quot;</span>);
         }
         <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
             <span class="ident">TokenKind::Comment</span>,
