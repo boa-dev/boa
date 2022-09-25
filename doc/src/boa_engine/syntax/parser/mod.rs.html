@@ -385,6 +385,29 @@
 <span id="383">383</span>
 <span id="384">384</span>
 <span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -533,7 +556,7 @@
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
-        <span class="kw">let</span> (<span class="ident">in_method</span>, <span class="ident">in_derived_constructor</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_env</span>) <span class="op">=</span> <span class="ident">context</span>
+        <span class="kw">let</span> (<span class="ident">in_function</span>, <span class="ident">in_method</span>, <span class="ident">in_derived_constructor</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_env</span>) <span class="op">=</span> <span class="ident">context</span>
             .<span class="ident">realm</span>
             .<span class="ident">environments</span>
             .<span class="ident">get_this_environment</span>()
@@ -543,6 +566,7 @@
             <span class="kw">let</span> <span class="ident">has_super_binding</span> <span class="op">=</span> <span class="ident">function_env_borrow</span>.<span class="ident">has_super_binding</span>();
             <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">function_env_borrow</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
             (
+                <span class="bool-val">true</span>,
                 <span class="ident">has_super_binding</span>,
                 <span class="ident">function_object</span>
                     .<span class="ident">as_function</span>()
@@ -550,13 +574,14 @@
                     .<span class="ident">is_derived_constructor</span>(),
             )
         } <span class="kw">else</span> {
-            (<span class="bool-val">false</span>, <span class="bool-val">false</span>)
+            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
         };
 
         <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">Script::new</span>(<span class="ident">direct</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_super_property</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_super_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_new_target</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">if</span> <span class="ident">direct</span> {
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">statement_list</span>.<span class="ident">items</span>() {
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_super_property</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>) {
@@ -566,9 +591,19 @@
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_super_call</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
                     <span class="ident">contains_super_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 }
+
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_new_target</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
+                    <span class="ident">contains_new_target</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                }
             }
         }
 
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">in_function</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_new_target</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="string">&quot;invalid new.target usage&quot;</span>,
+                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
         <span class="kw">if</span> <span class="op">!</span><span class="ident">in_method</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_super_property</span> {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                 <span class="string">&quot;invalid super usage&quot;</span>,
@@ -752,15 +787,26 @@
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::statement::StatementList::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>[])
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval code that is being processed by a direct eval.</span>
-        <span class="comment">// Additional early error rules for super within direct eval are defined in 19.2.1.1.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">direct_eval</span> {
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">items</span>() {
+                <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval</span>
+                <span class="comment">// code that is being processed by a direct eval.</span>
+                <span class="comment">// Additional early error rules for super within direct eval are defined in 19.2.1.1.</span>
                 <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>)
                     <span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
                 {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                         <span class="string">&quot;invalid super usage&quot;</span>,
+                        <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+                    ));
+                }
+
+                <span class="comment">// It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget</span>
+                <span class="comment">// is eval code that is being processed by a direct eval.</span>
+                <span class="comment">// Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.</span>
+                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;invalid new.target usage&quot;</span>,
                         <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
                     ));
                 }

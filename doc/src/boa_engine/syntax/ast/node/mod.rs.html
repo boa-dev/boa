@@ -1370,6 +1370,12 @@
 <span id="1368">1368</span>
 <span id="1369">1369</span>
 <span id="1370">1370</span>
+<span id="1371">1371</span>
+<span id="1372">1372</span>
+<span id="1373">1373</span>
+<span id="1374">1374</span>
+<span id="1375">1375</span>
+<span id="1376">1376</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Node` structure, which composes the AST.</span>
 
 <span class="kw">mod</span> <span class="ident">parameters</span>;
@@ -1622,6 +1628,9 @@
     <span class="doccomment">/// A call of the super constructor. [More information](./super_call/struct.SuperCall.html).</span>
     <span class="ident">SuperCall</span>(<span class="ident">SuperCall</span>),
 
+    <span class="doccomment">/// The `new.target` pseudo-property expression.</span>
+    <span class="ident">NewTarget</span>,
+
     <span class="doccomment">/// A FormalParameterList.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This is only used in the parser itself.</span>
@@ -1736,6 +1745,7 @@
             <span class="ident"><span class="self">Self</span>::ClassDecl</span>(<span class="kw-2">ref</span> <span class="ident">decl</span>) =&gt; <span class="ident">decl</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::ClassExpr</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident"><span class="self">Self</span>::SuperCall</span>(<span class="kw-2">ref</span> <span class="ident">super_call</span>) =&gt; <span class="ident">super_call</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::NewTarget</span> =&gt; <span class="string">&quot;new.target&quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident"><span class="self">Self</span>::FormalParameterList</span>(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
         }
     }
@@ -2620,6 +2630,7 @@
                 }
             }
             <span class="ident">Node::Yield</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::YieldExpression</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
+            <span class="ident">Node::NewTarget</span> <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::NewTarget</span> =&gt; <span class="kw">return</span> <span class="bool-val">true</span>,
             <span class="kw">_</span> =&gt; {}
         }
         <span class="bool-val">false</span>
@@ -2633,6 +2644,7 @@
     <span class="ident">SuperCall</span>,
     <span class="ident">YieldExpression</span>,
     <span class="ident">AwaitExpression</span>,
+    <span class="ident">NewTarget</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Node</span> {

@@ -3228,6 +3228,11 @@
 <span id="3226">3226</span>
 <span id="3227">3227</span>
 <span id="3228">3228</span>
+<span id="3229">3229</span>
+<span id="3230">3230</span>
+<span id="3231">3231</span>
+<span id="3232">3232</span>
+<span id="3233">3233</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -4529,6 +4534,11 @@
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
+                }
+            }
+            <span class="ident">Node::NewTarget</span> =&gt; {
+                <span class="kw">if</span> <span class="ident">use_expr</span> {
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushNewTarget</span>);
                 }
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),

@@ -1581,6 +1581,15 @@
 <span id="1579">1579</span>
 <span id="1580">1580</span>
 <span id="1581">1581</span>
+<span id="1582">1582</span>
+<span id="1583">1583</span>
+<span id="1584">1584</span>
+<span id="1585">1585</span>
+<span id="1586">1586</span>
+<span id="1587">1587</span>
+<span id="1588">1588</span>
+<span id="1589">1589</span>
+<span id="1590">1590</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
 <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
@@ -2766,6 +2775,13 @@
     <span class="doccomment">/// Stack: promise **=&gt;**</span>
     <span class="ident">Await</span>,
 
+    <span class="doccomment">/// Push the current new target to the stack.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;** new_target</span>
+    <span class="ident">PushNewTarget</span>,
+
     <span class="doccomment">/// No-operation instruction, does nothing.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
@@ -2947,6 +2963,7 @@
             <span class="ident"><span class="self">Self</span>::GeneratorNext</span> =&gt; <span class="string">&quot;GeneratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::AsyncGeneratorNext</span> =&gt; <span class="string">&quot;AsyncGeneratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Await</span> =&gt; <span class="string">&quot;Await&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushNewTarget</span> =&gt; <span class="string">&quot;PushNewTarget&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNextDelegate</span> =&gt; <span class="string">&quot;GeneratorNextDelegate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Nop</span> =&gt; <span class="string">&quot;Nop&quot;</span>,
         }
@@ -3092,6 +3109,7 @@
             <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; <span class="string">&quot;INST - Yield&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNext</span> =&gt; <span class="string">&quot;INST - GeneratorNext&quot;</span>,
             <span class="ident"><span class="self">Self</span>::AsyncGeneratorNext</span> =&gt; <span class="string">&quot;INST - AsyncGeneratorNext&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::PushNewTarget</span> =&gt; <span class="string">&quot;INST - PushNewTarget&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Await</span> =&gt; <span class="string">&quot;INST - Await&quot;</span>,
             <span class="ident"><span class="self">Self</span>::GeneratorNextDelegate</span> =&gt; <span class="string">&quot;INST - GeneratorNextDelegate&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Nop</span> =&gt; <span class="string">&quot;INST - Nop&quot;</span>,

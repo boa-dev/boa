@@ -2807,6 +2807,22 @@
 <span id="2805">2805</span>
 <span id="2806">2806</span>
 <span id="2807">2807</span>
+<span id="2808">2808</span>
+<span id="2809">2809</span>
+<span id="2810">2810</span>
+<span id="2811">2811</span>
+<span id="2812">2812</span>
+<span id="2813">2813</span>
+<span id="2814">2814</span>
+<span id="2815">2815</span>
+<span id="2816">2816</span>
+<span id="2817">2817</span>
+<span id="2818">2818</span>
+<span id="2819">2819</span>
+<span id="2820">2820</span>
+<span id="2821">2821</span>
+<span id="2822">2822</span>
+<span id="2823">2823</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -5309,6 +5325,22 @@
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::undefined</span>());
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::Await</span>);
+            }
+            <span class="ident">Opcode::PushNewTarget</span> =&gt; {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env</span>) <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">realm</span>
+                    .<span class="ident">environments</span>
+                    .<span class="ident">get_this_environment</span>()
+                    .<span class="ident">as_function_slots</span>()
+                {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_target</span>) <span class="op">=</span> <span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">new_target</span>() {
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">new_target</span>.<span class="ident">clone</span>());
+                    } <span class="kw">else</span> {
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::undefined</span>());
+                    }
+                } <span class="kw">else</span> {
+                    <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::undefined</span>());
+                }
             }
         }
 

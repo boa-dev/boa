@@ -197,6 +197,20 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Member expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -272,7 +286,21 @@
                 ));
             }
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::New</span>, <span class="bool-val">false</span>)) =&gt; {
-                <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;new keyword disappeared&quot;</span>);
+                <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
+
+                <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Dot</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
+                    <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
+                    <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::TARGET</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Node::NewTarget</span>),
+                        <span class="kw">_</span> =&gt; {
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                <span class="string">&quot;unexpected private identifier&quot;</span>,
+                                <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                            ));
+                        }
+                    }
+                }
+
                 <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
                     <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="kw">if</span> <span class="ident">next</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenParen</span>) =&gt; {
