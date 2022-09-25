@@ -3999,7 +3999,7 @@
                 <span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">constructor</span>,
                 ..
             } =&gt; {
-                <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
+                <span class="kw-2">*</span><span class="ident">constructor</span> <span class="op">=</span> <span class="ident">yes</span>.<span class="ident">then_some</span>(<span class="ident">ConstructorKind::Base</span>);
             }
             <span class="ident">Function::Ordinary</span> { .. }
             <span class="op">|</span> <span class="ident">Function::Generator</span> { .. }
@@ -4410,7 +4410,7 @@
     <span class="doccomment">/// Default is `true`</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">constructor</span>: <span class="ident">bool</span>) -&gt; <span class="kw-2">&amp;mut</span> <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">then</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">ConstructorKind::Base</span>);
+        <span class="self">self</span>.<span class="ident">constructor</span> <span class="op">=</span> <span class="ident">constructor</span>.<span class="ident">then_some</span>(<span class="ident">ConstructorKind::Base</span>);
         <span class="self">self</span>
     }
 
