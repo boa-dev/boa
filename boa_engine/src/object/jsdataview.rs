@@ -2,7 +2,10 @@
 use crate::{
     builtins::DataView,
     context::intrinsics::StandardConstructors,
-    object::{internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType, ObjectData},
+    object::{
+        internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
+        ObjectData,
+    },
     Context, JsResult, JsValue,
 };
 
@@ -10,18 +13,18 @@ use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
 /// `JsDataView` Provides a wrapper for Boa's implementation of the Javascript `DataView` object
-/// 
+///
 /// # Examples
 /// ```
 /// # use boa_engine::{
 /// #     object::{JsArrayBuffer, JsMap},
 /// #     Context, JsValue
 /// # };
-/// 
+///
 /// // Create a new context and ArrayBuffer
 /// let context = &mut Context::default();
 /// let array_buffer = JsArrayBuffer::new()
-/// 
+///
 /// // Create a new Dataview from pre-existing ArrayBuffer
 /// let data_view = JsDataView::from_js_array_buffer(&array_buffer, None, None, context)?;
 /// ```
@@ -42,7 +45,9 @@ impl JsDataView {
 
         let (byte_offset, view_byte_length) = {
             let borrowed_buffer = array_buffer.borrow();
-            let buffer = borrowed_buffer.as_array_buffer().ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
+            let buffer = borrowed_buffer
+                .as_array_buffer()
+                .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
 
             let provided_offset = offset.unwrap_or(0_u64);
 
@@ -54,7 +59,8 @@ impl JsDataView {
             let array_buffer_length = buffer.array_buffer_byte_length();
 
             if provided_offset > array_buffer_length {
-                return context.throw_range_error("Provided offset is outside the bounds of the buffer");
+                return context
+                    .throw_range_error("Provided offset is outside the bounds of the buffer");
             }
 
             let view_byte_length = if let Some(..) = byte_length {
@@ -63,7 +69,7 @@ impl JsDataView {
 
                 // Check that the provided length and offset does not exceed the bounds of the ArrayBuffer
                 if provided_offset + provided_length > array_buffer_length {
-                    return context.throw_range_error("Invalid data view length")
+                    return context.throw_range_error("Invalid data view length");
                 }
 
                 provided_length
@@ -74,9 +80,15 @@ impl JsDataView {
             (provided_offset, view_byte_length)
         };
 
-        let constructor = context.intrinsics().constructors().data_view().constructor().into();
+        let constructor = context
+            .intrinsics()
+            .constructors()
+            .data_view()
+            .constructor()
+            .into();
 
-        let prototype = get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
+        let prototype =
+            get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
 
         let obj = context.construct_object();
         obj.set_prototype(prototype.into());
@@ -123,7 +135,7 @@ impl JsDataView {
             .expect("byte_offset value must be a number") as u64
     }
 
-    /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`] 
+    /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
     #[inline]
     pub fn get_big_int64(
         &self,
@@ -135,7 +147,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as i64)
     }
 
@@ -151,7 +165,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as u64)
     }
 
@@ -167,7 +183,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as f32)
     }
 
@@ -183,7 +201,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value)
     }
 
@@ -199,7 +219,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as i8)
     }
 
@@ -215,7 +237,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as i16)
     }
 
@@ -231,7 +255,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as i32)
     }
 
@@ -247,7 +273,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as u8)
     }
 
@@ -263,7 +291,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as u16)
     }
 
@@ -279,7 +309,9 @@ impl JsDataView {
             &self.inner.clone().into(),
             &[byte_offset.into(), is_little_edian.into()],
             context,
-        )?.as_number().expect("value must be a number");
+        )?
+        .as_number()
+        .expect("value must be a number");
         Ok(retrieved_value as u32)
     }
 
