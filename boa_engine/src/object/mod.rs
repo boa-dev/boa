@@ -1735,7 +1735,7 @@ impl<'context> FunctionBuilder<'context> {
                 ref mut constructor,
                 ..
             } => {
-                *constructor = yes.then(|| ConstructorKind::Base);
+                *constructor = yes.then_some(ConstructorKind::Base);
             }
             Function::Ordinary { .. }
             | Function::Generator { .. }
@@ -2146,7 +2146,7 @@ impl<'context> ConstructorBuilder<'context> {
     /// Default is `true`
     #[inline]
     pub fn constructor(&mut self, constructor: bool) -> &mut Self {
-        self.constructor = constructor.then(|| ConstructorKind::Base);
+        self.constructor = constructor.then_some(ConstructorKind::Base);
         self
     }
 
