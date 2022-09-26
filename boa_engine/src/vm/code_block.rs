@@ -538,17 +538,17 @@ pub(crate) fn create_function_object(
         .configurable(false)
         .build();
 
+    constructor
+        .define_property_or_throw("length", length_property, context)
+        .expect("failed to define the length property of the function");
+    constructor
+        .define_property_or_throw("name", name_property, context)
+        .expect("failed to define the name property of the function");
     if !r#async {
         constructor
             .define_property_or_throw("prototype", prototype_property, context)
             .expect("failed to define the prototype property of the function");
     }
-    constructor
-        .define_property_or_throw("name", name_property, context)
-        .expect("failed to define the name property of the function");
-    constructor
-        .define_property_or_throw("length", length_property, context)
-        .expect("failed to define the length property of the function");
 
     constructor
 }
