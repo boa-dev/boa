@@ -1,0 +1,21 @@
+# boa_ffi -- Foreign Function Interface for Boa
+
+## Prioritized Work Items
+
+- [ ] "Hello, World" -- call any function
+- [ ] `exec` -- execute arbitrary JavaScript sent as `const char*` and returning `const char*`
+- [ ] Automate cbindgen from build
+- [ ] Integration tests to make sure it works end-to-end
+
+## Open Questions
+
+- [ ] C++ as well as C bindings?
+- [ ] Where to put `cbindgen` output?
+
+## Interesting Things
+
+https://doc.rust-lang.org/nomicon/ffi.html
+
+https://michael-f-bryan.github.io/rust-ffi-guide/cbindgen.html
+
+cbindgen . --lang c --output target/boa.h
