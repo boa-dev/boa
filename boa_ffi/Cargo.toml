@@ -12,3 +12,6 @@ rust-version.workspace = true
 
 [dependencies]
 boa_engine = { workspace = true, features = ["deser", "console"] }
+
+[lib]
+crate-type = ["cdylib"]
