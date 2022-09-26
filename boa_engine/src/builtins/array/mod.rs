@@ -346,11 +346,16 @@ impl Array {
         let c = original_array.get("constructor", context)?;
 
         // 4. If IsConstructor(C) is true, then
-        //     a. Let thisRealm be the current Realm Record.
-        //     b. Let realmC be ? GetFunctionRealm(C).
-        //     c. If thisRealm and realmC are not the same Realm Record, then
-        //         i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
-        // TODO: Step 4 is ignored, as there are no different realms for now
+        if let Some(c) = c.as_constructor() {
+            // a. Let thisRealm be the current Realm Record.
+            // b. Let realmC be ? GetFunctionRealm(C).
+            // c. If thisRealm and realmC are not the same Realm Record, then
+            if *c == context.intrinsics().constructors().array().constructor {
+                // i. If SameValue(C, realmC.[[Intrinsics]].[[%Array%]]) is true, set C to undefined.
+                // Note: fast path to step 6.
+                return Self::array_create(length, None, context);
+            }
+        }
 
         // 5. If Type(C) is Object, then
         let c = if let Some(c) = c.as_object() {
@@ -1224,7 +1229,7 @@ impl Array {
                 let k_value = o.get(k, context)?;
                 // ii. Let mappedValue be ? Call(callbackfn, thisArg, « kValue, 𝔽(k), O »).
                 let mapped_value =
-                    callback.call(this_arg, &[k_value, k.into(), this.into()], context)?;
+                    callback.call(this_arg, &[k_value, k.into(), o.clone().into()], context)?;
                 // iii. Perform ? CreateDataPropertyOrThrow(A, Pk, mappedValue).
                 a.create_data_property_or_throw(k, mapped_value, context)?;
             }
