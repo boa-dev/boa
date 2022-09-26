@@ -1,5 +1,10 @@
 use boa_engine::Context;
 
+#[no_mangle]
+pub extern "C" fn hello_from_rust() {
+    println!("Hello from Rust!");
+}
+
 pub fn boa_exec(src: &str) -> String {
     let src_bytes: &[u8] = src.as_ref();
 
