@@ -6,7 +6,7 @@ This is meant to address boa-dev/boa#332
 
 - [x] Make C-compatible library
 - [x] Generate C-compatible header via `cbindgen`
-- [ ] "Hello, World" -- call any function
+- [x] "Hello, World" -- call any function
 - [ ] `exec` -- execute arbitrary JavaScript sent as `const char*` and returning `const char*`
 - [ ] Automate cbindgen from build
 - [ ] Integration tests to make sure it works end-to-end
@@ -15,6 +15,7 @@ This is meant to address boa-dev/boa#332
 
 - [ ] C++ as well as C bindings?
 - [ ] Where to put `cbindgen` output?
+- [ ] What `boa_engine` features do we need? I have `boa_engine = { workspace = true, features = ["deser", "console"] }`
 
 ## Interesting Things
 
