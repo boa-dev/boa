@@ -2060,17 +2060,17 @@
         .<span class="ident">configurable</span>(<span class="bool-val">false</span>)
         .<span class="ident">build</span>();
 
+    <span class="ident">constructor</span>
+        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length_property</span>, <span class="ident">context</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
+    <span class="ident">constructor</span>
+        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name_property</span>, <span class="ident">context</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
     <span class="kw">if</span> <span class="op">!</span><span class="ident">r#async</span> {
         <span class="ident">constructor</span>
             .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">prototype_property</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
     }
-    <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name_property</span>, <span class="ident">context</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
-    <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length_property</span>, <span class="ident">context</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
 
     <span class="ident">constructor</span>
 }
