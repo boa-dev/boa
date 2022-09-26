@@ -119,6 +119,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "boa_ffi"
+version = "0.16.0"
+
+[[package]]
 name = "boa_gc"
 version = "0.16.0"
 dependencies = [
