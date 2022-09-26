@@ -1,5 +1,7 @@
 # boa_ffi -- Foreign Function Interface for Boa
 
+This is meant to address boa-dev/boa#332
+
 ## Prioritized Work Items
 
 - [x] Make C-compatible library
