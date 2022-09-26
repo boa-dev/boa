@@ -352,9 +352,9 @@ impl JsValue {
     ) -> JsResult<Self> {
         // 1. Assert: input is an ECMAScript language value. (always a value not need to check)
         // 2. If Type(input) is Object, then
-        if self.is_object() {
+        if let Some(input) = self.as_object() {
             // a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).
-            let exotic_to_prim = self.get_method(WellKnownSymbols::to_primitive(), context)?;
+            let exotic_to_prim = input.get_method(WellKnownSymbols::to_primitive(), context)?;
 
             // b. If exoticToPrim is not undefined, then
             if let Some(exotic_to_prim) = exotic_to_prim {
@@ -388,13 +388,11 @@ impl JsValue {
             };
 
             // d. Return ? OrdinaryToPrimitive(input, preferredType).
-            self.as_object()
-                .expect("self was not an object")
-                .ordinary_to_primitive(context, preferred_type)
-        } else {
-            // 3. Return input.
-            Ok(self.clone())
+            return input.ordinary_to_primitive(context, preferred_type);
         }
+
+        // 3. Return input.
+        Ok(self.clone())
     }
 
     /// `7.1.13 ToBigInt ( argument )`
@@ -565,11 +563,16 @@ impl JsValue {
     ///
     /// See: <https://tc39.es/ecma262/#sec-tonumeric>
     pub fn to_numeric(&self, context: &mut Context) -> JsResult<Numeric> {
+        // 1. Let primValue be ? ToPrimitive(value, number).
         let primitive = self.to_primitive(context, PreferredType::Number)?;
+
+        // 2. If primValue is a BigInt, return primValue.
         if let Some(bigint) = primitive.as_bigint() {
             return Ok(bigint.clone().into());
         }
-        Ok(self.to_number(context)?.into())
+
+        // 3. Return ? ToNumber(primValue).
+        Ok(primitive.to_number(context)?.into())
     }
 
     /// Converts a value to an integral 32 bit unsigned integer.
