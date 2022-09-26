@@ -23,4 +23,10 @@ https://doc.rust-lang.org/nomicon/ffi.html
 
 https://michael-f-bryan.github.io/rust-ffi-guide/cbindgen.html
 
+https://stackoverflow.com/questions/24145823/how-do-i-convert-a-c-string-into-a-rust-string-and-back-via-ffi
+
+https://doc.rust-lang.org/std/ffi/
+
+http://jakegoulding.com/rust-ffi-omnibus/string_return/
+
 cbindgen . --lang c --output target/boa.h
