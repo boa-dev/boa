@@ -1094,6 +1094,9 @@
 <span id="1092">1092</span>
 <span id="1093">1093</span>
 <span id="1094">1094</span>
+<span id="1095">1095</span>
+<span id="1096">1096</span>
+<span id="1097">1097</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1448,9 +1451,9 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: input is an ECMAScript language value. (always a value not need to check)</span>
         <span class="comment">// 2. If Type(input) is Object, then</span>
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_object</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">input</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_object</span>() {
             <span class="comment">// a. Let exoticToPrim be ? GetMethod(input, @@toPrimitive).</span>
-            <span class="kw">let</span> <span class="ident">exotic_to_prim</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">exotic_to_prim</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get_method</span>(<span class="ident">WellKnownSymbols::to_primitive</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// b. If exoticToPrim is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">exotic_to_prim</span>) <span class="op">=</span> <span class="ident">exotic_to_prim</span> {
@@ -1484,13 +1487,11 @@
             };
 
             <span class="comment">// d. Return ? OrdinaryToPrimitive(input, preferredType).</span>
-            <span class="self">self</span>.<span class="ident">as_object</span>()
-                .<span class="ident">expect</span>(<span class="string">&quot;self was not an object&quot;</span>)
-                .<span class="ident">ordinary_to_primitive</span>(<span class="ident">context</span>, <span class="ident">preferred_type</span>)
-        } <span class="kw">else</span> {
-            <span class="comment">// 3. Return input.</span>
-            <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
+            <span class="kw">return</span> <span class="ident">input</span>.<span class="ident">ordinary_to_primitive</span>(<span class="ident">context</span>, <span class="ident">preferred_type</span>);
         }
+
+        <span class="comment">// 3. Return input.</span>
+        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">clone</span>())
     }
 
     <span class="doccomment">/// `7.1.13 ToBigInt ( argument )`</span>
@@ -1661,11 +1662,16 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-tonumeric&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_numeric</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Numeric</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let primValue be ? ToPrimitive(value, number).</span>
         <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 2. If primValue is a BigInt, return primValue.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">bigint</span>) <span class="op">=</span> <span class="ident">primitive</span>.<span class="ident">as_bigint</span>() {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">clone</span>().<span class="ident">into</span>());
         }
-        <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+
+        <span class="comment">// 3. Return ? ToNumber(primValue).</span>
+        <span class="prelude-val">Ok</span>(<span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Converts a value to an integral 32 bit unsigned integer.</span>
