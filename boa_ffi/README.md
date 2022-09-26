@@ -2,6 +2,8 @@
 
 ## Prioritized Work Items
 
+- [x] Make C-compatible library
+- [x] Generate C-compatible header via `cbindgen`
 - [ ] "Hello, World" -- call any function
 - [ ] `exec` -- execute arbitrary JavaScript sent as `const char*` and returning `const char*`
 - [ ] Automate cbindgen from build
