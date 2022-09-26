@@ -1,29 +1,12 @@
 use boa_engine::Context;
+use core::ffi::{c_char, CStr};
 
 #[no_mangle]
-pub extern "C" fn hello_from_rust() {
-    println!("Hello from Rust!");
-}
+pub extern "C" fn boa_exec(src_bytes: *const c_char){
+    let c_str: &CStr = unsafe { CStr::from_ptr(src_bytes) };
 
-pub fn boa_exec(src: &str) -> String {
-    let src_bytes: &[u8] = src.as_ref();
-
-    match Context::default().eval(src_bytes) {
+    let _return_value = match Context::default().eval(c_str.to_bytes()) {
         Ok(value) => value.display().to_string(),
         Err(error) => error.display().to_string(),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let scenario = r#"
-        function abc() {}
-        "#;
-
-        assert_eq!(&boa_exec(scenario), "undefined");
-    }
+    }; // .as_bytes().as_mut_ptr();
 }

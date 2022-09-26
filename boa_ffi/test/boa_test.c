@@ -2,6 +2,6 @@
 
 int main(void)
 {
-    hello_from_rust();
+    boa_exec("console.log('hello from C from Rust from JavaScript!');");
     return 0;
 }
