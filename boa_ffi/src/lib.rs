@@ -1,5 +1,12 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use boa_engine::Context;
+
+pub fn boa_exec(src: &str) -> String {
+    let src_bytes: &[u8] = src.as_ref();
+
+    match Context::default().eval(src_bytes) {
+        Ok(value) => value.display().to_string(),
+        Err(error) => error.display().to_string(),
+    }
 }
 
 #[cfg(test)]
@@ -8,7 +15,10 @@ mod tests {
 
     #[test]
     fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        let scenario = r#"
+        function abc() {}
+        "#;
+
+        assert_eq!(&boa_exec(scenario), "undefined");
     }
 }
