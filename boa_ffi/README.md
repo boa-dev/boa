@@ -7,7 +7,7 @@ This is meant to address boa-dev/boa#332
 - [x] Make C-compatible library
 - [x] Generate C-compatible header via `cbindgen`
 - [x] "Hello, World" -- call any function
-- [ ] `exec` -- execute arbitrary JavaScript sent as `const char*` and returning `const char*`
+- [x] `exec` -- execute arbitrary JavaScript sent as `const char*` and returning `const char*`
 - [ ] Automate cbindgen from build
 - [ ] Integration tests to make sure it works end-to-end
 
@@ -28,5 +28,7 @@ https://stackoverflow.com/questions/24145823/how-do-i-convert-a-c-string-into-a-
 https://doc.rust-lang.org/std/ffi/
 
 http://jakegoulding.com/rust-ffi-omnibus/string_return/
+
+https://snacky.blog/en/string-ffi-rust.html
 
 cbindgen . --lang c --output target/boa.h
