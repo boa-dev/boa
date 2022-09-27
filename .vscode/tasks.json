@@ -26,7 +26,12 @@
       "type": "process",
       "label": "Cargo Run (Profiler)",
       "command": "cargo",
-      "args": ["run", "--features", "Boa/profiler", "../tests/js/test.js"],
+      "args": [
+        "run",
+        "--features",
+        "boa_engine/profiler",
+        "../tests/js/test.js"
+      ],
       "group": "build",
       "options": {
         "env": {
