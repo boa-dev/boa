@@ -168,6 +168,7 @@ impl<R> Parser<R> {
         };
 
         let statement_list = Script::new(direct).parse(&mut self.cursor, context)?;
+        Script::check_duplicate_declarations(&statement_list, context)?;
 
         let mut contains_super_property = false;
         let mut contains_super_call = false;
@@ -279,69 +280,75 @@ impl Script {
                     ScriptBody::new(self.direct_eval).parse(cursor, context.interner_mut())?;
                 statement_list.set_strict(strict);
 
-                // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
-                // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
-                let mut var_declared_names = FxHashSet::default();
-                statement_list.var_declared_names_new(&mut var_declared_names);
-                let lexically_declared_names = statement_list.lexically_declared_names();
-                let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
-                for (name, is_function_declaration) in &lexically_declared_names {
-                    if let Some(existing_is_function_declaration) =
-                        lexically_declared_names_map.get(name)
-                    {
-                        if !(*is_function_declaration && *existing_is_function_declaration) {
-                            return Err(ParseError::general(
-                                "lexical name declared multiple times",
-                                Position::new(1, 1),
-                            ));
-                        }
-                    }
-                    lexically_declared_names_map.insert(*name, *is_function_declaration);
-
-                    if !is_function_declaration && var_declared_names.contains(name) {
-                        return Err(ParseError::general(
-                            "lexical name declared in var names",
-                            Position::new(1, 1),
-                        ));
-                    }
-                    if context.has_binding(*name) {
-                        return Err(ParseError::general(
-                            "lexical name declared multiple times",
-                            Position::new(1, 1),
-                        ));
-                    }
-                    if !is_function_declaration {
-                        let name_str = context.interner().resolve_expect(*name);
-                        let desc = context
-                            .realm
-                            .global_property_map
-                            .string_property_map()
-                            .get(name_str);
-                        let non_configurable_binding_exists = match desc {
-                            Some(desc) => !matches!(desc.configurable(), Some(true)),
-                            None => false,
-                        };
-                        if non_configurable_binding_exists {
-                            return Err(ParseError::general(
-                                "lexical name declared in var names",
-                                Position::new(1, 1),
-                            ));
-                        }
-                    }
-                }
-                for name in var_declared_names {
-                    if context.has_binding(name) {
-                        return Err(ParseError::general(
-                            "lexical name declared in var names",
-                            Position::new(1, 1),
-                        ));
-                    }
-                }
-
                 Ok(statement_list)
             }
             None => Ok(StatementList::from(Vec::new())),
         }
+    }
+
+    /// Parse the top level checking for duplcate variable entries and reutrn a Syntax Error
+    pub fn check_duplicate_declarations(
+        statement_list: &StatementList,
+        context: &mut Context,
+    ) -> Result<(), ParseError> {
+        // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
+        // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
+        let mut var_declared_names = FxHashSet::default();
+        statement_list.var_declared_names_new(&mut var_declared_names);
+        let lexically_declared_names = statement_list.lexically_declared_names();
+        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        for (name, is_function_declaration) in &lexically_declared_names {
+            if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
+                if !(*is_function_declaration && *existing_is_function_declaration) {
+                    return Err(ParseError::general(
+                        "lexical name declared multiple times",
+                        Position::new(1, 1),
+                    ));
+                }
+            }
+            lexically_declared_names_map.insert(*name, *is_function_declaration);
+
+            if !is_function_declaration && var_declared_names.contains(name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var names",
+                    Position::new(1, 1),
+                ));
+            }
+            if context.has_binding(*name) {
+                return Err(ParseError::general(
+                    "lexical name declared multiple times",
+                    Position::new(1, 1),
+                ));
+            }
+            if !is_function_declaration {
+                let name_str = context.interner().resolve_expect(*name);
+                let desc = context
+                    .realm
+                    .global_property_map
+                    .string_property_map()
+                    .get(name_str);
+                let non_configurable_binding_exists = match desc {
+                    Some(desc) => !matches!(desc.configurable(), Some(true)),
+                    None => false,
+                };
+                if non_configurable_binding_exists {
+                    return Err(ParseError::general(
+                        "lexical name declared in var names",
+                        Position::new(1, 1),
+                    ));
+                }
+            }
+        }
+        for name in var_declared_names {
+            if context.has_binding(name) {
+                return Err(ParseError::general(
+                    "lexical name declared in var names",
+                    Position::new(1, 1),
+                ));
+            }
+        }
+
+        Ok(())
     }
 }
 

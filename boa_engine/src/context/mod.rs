@@ -19,7 +19,11 @@ use crate::{
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{ast::node::StatementList, parser::ParseError, Parser},
+    syntax::{
+        ast::node::StatementList,
+        parser::{ParseError, Script},
+        Parser,
+    },
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsValue,
 };
@@ -95,6 +99,9 @@ pub struct Context {
     /// Intrinsic objects
     intrinsics: Intrinsics,
 
+    // Flag to know if intrinsics have been created
+    intrinsics_created: bool,
+
     /// ICU related utilities
     #[cfg(feature = "intl")]
     icu: icu::Icu,
@@ -145,8 +152,11 @@ impl Context {
     #[inline]
     fn create_intrinsics(&mut self) {
         let _timer = Profiler::global().start_event("create_intrinsics", "interpreter");
-        // Create intrinsics, add global objects here
-        builtins::init(self);
+        if !self.intrinsics_created {
+            // Create intrinsics, add global objects here
+            builtins::init(self);
+            self.intrinsics_created = true;
+        }
     }
 
     /// Constructs an object with the `%Object.prototype%` prototype.
@@ -663,8 +673,18 @@ impl Context {
 
         let statement_list = match parsing_result {
             Ok(statement_list) => statement_list,
-            Err(e) => return self.throw_syntax_error(e),
+            Err(e) => return Err(JsValue::from(format!("Uncaught \"SyntaxError\": {}", e))),
         };
+
+        if let Err(e) = Script::check_duplicate_declarations(&statement_list, self) {
+            return Err(JsValue::from(format!("Uncaught \"SyntaxError\": {}", e)));
+        }
+
+        // Add new builtIns to Context Realm
+        // At a later date this can be removed from here and called explicitly,
+        // but for now we almost always want these default builtins
+        self.intrinsics.objects = IntrinsicObjects::init(self);
+        self.create_intrinsics();
 
         let code_block = self.compile(&statement_list)?;
         let result = self.execute(code_block);
@@ -827,12 +847,13 @@ impl ContextBuilder {
     /// all missing parameters to their default values.
     pub fn build(self) -> Context {
         let intrinsics = Intrinsics::default();
-        let mut context = Context {
+        let context = Context {
             realm: Realm::create(intrinsics.constructors().object().prototype().into()),
             interner: self.interner.unwrap_or_default(),
             #[cfg(feature = "console")]
             console: Console::default(),
             intrinsics,
+            intrinsics_created: false,
             vm: Vm {
                 frames: Vec::with_capacity(16),
                 stack: Vec::with_capacity(1024),
@@ -848,11 +869,6 @@ impl ContextBuilder {
             promise_job_queue: VecDeque::new(),
         };
 
-        // Add new builtIns to Context Realm
-        // At a later date this can be removed from here and called explicitly,
-        // but for now we almost always want these default builtins
-        context.intrinsics.objects = IntrinsicObjects::init(&mut context);
-        context.create_intrinsics();
         context
     }
 }
