@@ -19,7 +19,7 @@ when the feature flag is not enabled, you have an empty dummy implementation tha
 
 You can run boa using the "profiler" feature flag to enable profiling. Seeing as you'll most likely be using boa_cli you can pass this through, like so:
 
-`cargo run --release --features Boa/profiler ../tests/js/test.js`
+`cargo run --release --features boa_engine/profiler ../tests/js/test.js`
 
 Once finished you should see some trace files left in the directory (boa_cli in this case).  
 In the same directory as the `.events, string_data, string_index` files run `crox my_trace` or whatever the name of the files are. This will generate a chrome_profiler.json file, you can load this into Chrome Dev tools.
