@@ -215,8 +215,19 @@ where
                         property_name,
                     ));
                 }
-                let (property_name, method) =
+                let (class_element_name, method) =
                     AsyncMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+
+                let property_name = if let object::ClassElementName::PropertyName(property_name) =
+                    class_element_name
+                {
+                    property_name
+                } else {
+                    return Err(ParseError::general(
+                        "private identifiers not allowed in object literal",
+                        position,
+                    ));
+                };
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
                 if has_direct_super(method.body(), method.parameters()) {
@@ -888,7 +899,7 @@ impl<R> TokenParser<R> for AsyncMethod
 where
     R: Read,
 {
-    type Output = (object::PropertyName, MethodDefinition);
+    type Output = (object::ClassElementName, MethodDefinition);
 
     fn parse(
         self,
@@ -897,8 +908,8 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("AsyncMethod", "Parsing");
 
-        let property_name =
-            PropertyName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let class_element_name =
+            ClassElementName::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
         let params = UniqueFormalParameters::new(false, true).parse(cursor, interner)?;
 
@@ -941,7 +952,7 @@ where
         }
 
         Ok((
-            property_name,
+            class_element_name,
             MethodDefinition::Async(AsyncFunctionExpr::new(None, params, body)),
         ))
     }

@@ -793,22 +793,36 @@ where
                         let name_position = token.span().start();
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
-                        let (property_name, method) =
+                        let (class_element_name, method) =
                             AsyncMethod::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
                         cursor.set_strict_mode(strict);
-                        if r#static {
-                            if let Some(name) = property_name.prop_name() {
-                                if name == Sym::PROTOTYPE {
+
+                        match class_element_name {
+                            ClassElementName::PropertyName(property_name) if r#static => {
+                                if let Some(Sym::PROTOTYPE) = property_name.prop_name() {
                                     return Err(ParseError::general(
                                             "class may not have static method definitions named 'prototype'",
                                             name_position,
                                         ));
                                 }
+                                ClassElementNode::StaticMethodDefinition(property_name, method)
                             }
-                            ClassElementNode::StaticMethodDefinition(property_name, method)
-                        } else {
-                            ClassElementNode::MethodDefinition(property_name, method)
+                            ClassElementName::PropertyName(property_name) => {
+                                ClassElementNode::MethodDefinition(property_name, method)
+                            }
+                            ClassElementName::PrivateIdentifier(Sym::CONSTRUCTOR) if r#static => {
+                                return Err(ParseError::general(
+                                    "class constructor may not be a private method",
+                                    name_position,
+                                ))
+                            }
+                            ClassElementName::PrivateIdentifier(identifier) if r#static => {
+                                ClassElementNode::PrivateStaticMethodDefinition(identifier, method)
+                            }
+                            ClassElementName::PrivateIdentifier(identifier) => {
+                                ClassElementNode::PrivateMethodDefinition(identifier, method)
+                            }
                         }
                     }
                 }
