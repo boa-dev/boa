@@ -734,7 +734,8 @@ impl<'b> ByteCompiler<'b> {
                 let index = self.get_or_insert_name(access.field());
                 self.emit(Opcode::AssignPrivateField, &[index]);
             }
-            Access::SuperProperty { field: _field } => todo!("access_set `super`"),
+            // TODO: access_set `super`
+            Access::SuperProperty { field: _field } => {}
             Access::This => todo!("access_set `this`"),
         }
         Ok(())

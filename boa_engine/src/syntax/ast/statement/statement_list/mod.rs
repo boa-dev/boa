@@ -1,6 +1,6 @@
 //! Statement list node.
 
-use crate::syntax::ast::statement::Statement;
+use crate::syntax::ast::{statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use rustc_hash::FxHashSet;
@@ -178,6 +178,28 @@ impl StatementList {
         }
 
         names
+    }
+
+    /// Returns `true` if the node contains the given token.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.statements.iter().any(|stmt| stmt.contains(symbol))
+    }
+
+    /// Returns true if the node contains a identifier reference named 'arguments'.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.statements.iter().any(Statement::contains_arguments)
     }
 }
 

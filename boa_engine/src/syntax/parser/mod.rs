@@ -135,6 +135,11 @@ impl<R> Parser<R> {
         Script::new(false).parse(&mut self.cursor, context)
     }
 
+    /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
+    ///
+    /// Parses the source text input of an `eval` call.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performeval
     pub(crate) fn parse_eval(
         &mut self,
         direct: bool,
@@ -143,67 +148,84 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        let (in_function, in_method, in_derived_constructor) = if let Some(function_env) = context
+        #[derive(Debug, Default)]
+        #[allow(clippy::struct_excessive_bools)]
+        struct Flags {
+            in_function: bool,
+            in_method: bool,
+            in_derived_constructor: bool,
+            in_class_field_initializer: bool,
+        }
+        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+        //     a. Let script be ParseText(StringToCodePoints(x), Script).
+        //     b. If script is a List of errors, throw a SyntaxError exception.
+        //     c. If script Contains ScriptBody is false, return undefined.
+        //     d. Let body be the ScriptBody of script.
+        let body = Script::new(direct).parse(&mut self.cursor, context)?;
+
+        // 6. Let inFunction be false.
+        // 7. Let inMethod be false.
+        // 8. Let inDerivedConstructor be false.
+        // 9. Let inClassFieldInitializer be false.
+        // a. Let thisEnvRec be GetThisEnvironment().
+        let flags = match context
             .realm
             .environments
             .get_this_environment()
             .as_function_slots()
         {
-            let function_env_borrow = function_env.borrow();
-            let has_super_binding = function_env_borrow.has_super_binding();
-            let function_object = function_env_borrow.function_object().borrow();
-            (
-                true,
-                has_super_binding,
-                function_object
-                    .as_function()
-                    .expect("must be function object")
-                    .is_derived_constructor(),
-            )
-        } else {
-            (false, false, false)
-        };
-
-        let statement_list = Script::new(direct).parse(&mut self.cursor, context)?;
-
-        let mut contains_super_property = false;
-        let mut contains_super_call = false;
-        let mut contains_new_target = false;
-        if direct {
-            for node in statement_list.statements() {
-                if !contains_super_property && node.contains(ContainsSymbol::SuperProperty) {
-                    contains_super_property = true;
-                }
-
-                if !contains_super_call && node.contains(ContainsSymbol::SuperCall) {
-                    contains_super_call = true;
-                }
-
-                if !contains_new_target && node.contains(ContainsSymbol::NewTarget) {
-                    contains_new_target = true;
+            // 10. If direct is true, then
+            //     b. If thisEnvRec is a Function Environment Record, then
+            Some(function_env) if direct => {
+                let function_env = function_env.borrow();
+                // i. Let F be thisEnvRec.[[FunctionObject]].
+                let function_object = function_env.function_object().borrow();
+                Flags {
+                    // ii. Set inFunction to true.
+                    in_function: true,
+                    // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                    in_method: function_env.has_super_binding(),
+                    // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                    in_derived_constructor: function_object
+                        .as_function()
+                        .expect("must be function object")
+                        .is_derived_constructor(),
+                    // TODO:
+                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                    in_class_field_initializer: false,
                 }
             }
+            _ => Flags::default(),
+        };
+
+        if !flags.in_function && body.contains(ContainsSymbol::NewTarget) {
+            return Err(ParseError::general(
+                "invalid `new.target` expression inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if !flags.in_method && body.contains(ContainsSymbol::SuperProperty) {
+            return Err(ParseError::general(
+                "invalid `super` reference inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if !flags.in_derived_constructor && body.contains(ContainsSymbol::SuperCall) {
+            return Err(ParseError::general(
+                "invalid `super` call inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if !flags.in_class_field_initializer && body.contains_arguments() {
+            return Err(ParseError::general(
+                "invalid `arguments` reference inside eval",
+                Position::new(1, 1),
+            ));
         }
 
-        if !in_function && contains_new_target {
-            return Err(ParseError::general(
-                "invalid new.target usage",
-                Position::new(1, 1),
-            ));
-        }
-        if !in_method && contains_super_property {
-            return Err(ParseError::general(
-                "invalid super usage",
-                Position::new(1, 1),
-            ));
-        }
-        if !in_derived_constructor && contains_super_call {
-            return Err(ParseError::general(
-                "invalid super usage",
-                Position::new(1, 1),
-            ));
-        }
-        Ok(statement_list)
+        Ok(body)
     }
 
     /// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.
