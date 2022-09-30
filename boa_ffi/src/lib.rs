@@ -1,8 +1,10 @@
+#![deny(unsafe_op_in_unsafe_fn)]
+
 use boa_engine::Context;
 use std::ffi::{c_char, CStr, CString};
 
 #[no_mangle]
-pub extern "C" fn boa_exec(src_bytes: *const c_char) -> *mut c_char {
+pub unsafe extern "C" fn boa_exec(src_bytes: *const c_char) -> *mut c_char {
     let c_str: &CStr = unsafe { CStr::from_ptr(src_bytes) };
 
     let return_value = match Context::default().eval(c_str.to_bytes()) {
@@ -15,7 +17,7 @@ pub extern "C" fn boa_exec(src_bytes: *const c_char) -> *mut c_char {
 }
 
 #[no_mangle]
-pub extern "C" fn boa_free_string(src_bytes: *mut c_char) {
+pub unsafe extern "C" fn boa_free_string(src_bytes: *mut c_char) {
     unsafe {
         if src_bytes.is_null() {
             return;
