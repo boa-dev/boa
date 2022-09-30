@@ -66,9 +66,7 @@ impl Eval {
         context: &mut Context,
     ) -> Result<JsValue, JsValue> {
         // 1. Assert: If direct is false, then strictCaller is also false.
-        if !direct {
-            debug_assert!(!strict);
-        }
+        debug_assert!(direct || !strict);
 
         // 2. If Type(x) is not String, return x.
         let x = if let Some(x) = x.as_string() {
@@ -109,7 +107,7 @@ impl Eval {
                 .has_lex_binding_until_function_environment(&vars)
             {
                 let name = context.interner().resolve_expect(name);
-                let msg = format!("variable declaration {name} in eval function already exists as lexically declaration");
+                let msg = format!("variable declaration `{name}` in eval function already exists as lexically declaration");
                 return context.throw_syntax_error(msg);
             }
 

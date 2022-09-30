@@ -2351,11 +2351,11 @@ impl<'b> ByteCompiler<'b> {
                         //  SingleNameBinding : BindingIdentifier Initializer[opt]
                         SingleName {
                             ident,
-                            name: property_name,
+                            name,
                             default_init,
                         } => {
                             self.emit_opcode(Opcode::Dup);
-                            match property_name {
+                            match name {
                                 PropertyName::Literal(name) => {
                                     let index = self.get_or_insert_name(*name);
                                     self.emit(Opcode::GetPropertyByName, &[index]);
@@ -2379,7 +2379,7 @@ impl<'b> ByteCompiler<'b> {
                             }
                             self.emit_binding(def, *ident);
 
-                            if rest_exits && property_name.computed().is_some() {
+                            if rest_exits && name.computed().is_some() {
                                 self.emit_opcode(Opcode::Swap);
                                 additional_excluded_keys_count += 1;
                             }

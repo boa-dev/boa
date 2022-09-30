@@ -181,6 +181,11 @@ impl Statement {
 
     pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Sym>) {
         match self {
+            Statement::DeclarationList(DeclarationList::Var(list)) => {
+                for decl in &**list {
+                    vars.extend(decl.idents());
+                }
+            }
             Statement::Block(block) => {
                 for node in block.statements() {
                     node.var_declared_names(vars);
