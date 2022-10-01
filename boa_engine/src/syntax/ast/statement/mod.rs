@@ -36,7 +36,6 @@ use super::{
     ContainsSymbol,
 };
 
-// TODO: This should be split into Expression and Statement.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
