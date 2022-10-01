@@ -450,7 +450,7 @@ where
                         let property_name = PropertyName::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         if let Some(name) = property_name.prop_name() {
-                            property_names.push(name);
+                            property_names.push(name.into());
                         }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
@@ -574,14 +574,14 @@ where
                                 .parse(cursor, interner)?;
                                 patterns.push(PatternObjectElement::SingleName {
                                     ident: name,
-                                    name: name.into(),
+                                    name: name.sym().into(),
                                     default_init: Some(init),
                                 });
                             }
                             _ => {
                                 patterns.push(PatternObjectElement::SingleName {
                                     ident: name,
-                                    name: name.into(),
+                                    name: name.sym().into(),
                                     default_init: None,
                                 });
                             }

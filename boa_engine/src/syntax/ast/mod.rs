@@ -28,6 +28,10 @@ pub(crate) enum ContainsSymbol {
     YieldExpression,
     AwaitExpression,
     NewTarget,
+    ClassBody,
+    ClassHeritage,
+    This,
+    MethodDefinition,
 }
 
 /// Utility to join multiple Nodes into a single string.

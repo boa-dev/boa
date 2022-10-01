@@ -1,5 +1,7 @@
 use boa_interner::{Interner, ToInternedString};
 
+use crate::syntax::ast::ContainsSymbol;
+
 use super::Expression;
 
 /// The `spread` operator allows an iterable such as an array expression or string to be
@@ -33,6 +35,16 @@ impl Spread {
     /// Creates a `Spread` AST Expression.
     pub fn new(val: Expression) -> Self {
         Self { val: Box::new(val) }
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.val.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.val.contains(symbol)
     }
 }
 

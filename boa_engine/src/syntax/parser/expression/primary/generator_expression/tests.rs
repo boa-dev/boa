@@ -24,7 +24,7 @@ fn check_generator_function_expression() {
                 gen.into(),
                 Some(
                     Generator::new(
-                        Some(gen),
+                        Some(gen.into()),
                         FormalParameterList::default(),
                         vec![
                             Expression::from(Yield::new(Some(Literal::from(1).into()), false))
@@ -56,7 +56,7 @@ fn check_generator_function_delegate_yield_expression() {
                 gen.into(),
                 Some(
                     Generator::new(
-                        Some(gen),
+                        Some(gen.into()),
                         FormalParameterList::default(),
                         vec![
                             Expression::from(Yield::new(Some(Literal::from(1).into()), true))

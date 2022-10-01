@@ -12,7 +12,10 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        expression::literal::{self, Literal},
+        expression::{
+            literal::{self, Literal},
+            Identifier,
+        },
         function::{function_contains_super, has_direct_super},
         function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
         property::{self, MethodDefinition},
@@ -205,8 +208,8 @@ where
                         };
 
                     return Ok(property::PropertyDefinition::MethodDefinition(
-                        method,
                         property_name,
+                        method,
                     ));
                 }
                 let (class_element_name, method) =
@@ -229,8 +232,8 @@ where
                 }
 
                 return Ok(property::PropertyDefinition::MethodDefinition(
-                    method,
                     property_name,
+                    method,
                 ));
             }
             _ => {}
@@ -258,8 +261,8 @@ where
             match class_element_name {
                 property::ClassElementName::PropertyName(property_name) => {
                     return Ok(property::PropertyDefinition::MethodDefinition(
-                        method,
                         property_name,
+                        method,
                     ))
                 }
                 property::ClassElementName::PrivateIdentifier(_) => {
@@ -328,12 +331,12 @@ where
                 }
 
                 Ok(property::PropertyDefinition::MethodDefinition(
+                    property_name,
                     MethodDefinition::Get(Function::new(
                         None,
                         FormalParameterList::default(),
                         body,
                     )),
-                    property_name,
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
@@ -389,8 +392,8 @@ where
                 }
 
                 Ok(property::PropertyDefinition::MethodDefinition(
-                    MethodDefinition::Set(Function::new(None, parameters, body)),
                     property_name,
+                    MethodDefinition::Set(Function::new(None, parameters, body)),
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }
@@ -468,8 +471,8 @@ where
                 }
 
                 Ok(property::PropertyDefinition::MethodDefinition(
-                    MethodDefinition::Ordinary(Function::new(None, params, body)),
                     property_name,
+                    MethodDefinition::Ordinary(Function::new(None, params, body)),
                 ))
             }
         }
@@ -603,7 +606,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-Initializer
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct Initializer {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -618,7 +621,7 @@ impl Initializer {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -972,12 +975,11 @@ where
 
         cursor.expect(Punctuator::Assign, "CoverInitializedName", interner)?;
 
-        let expr = AssignmentExpression::new(ident.sym(), true, self.allow_yield, self.allow_await)
+        let expr = AssignmentExpression::new(ident, true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
         Ok(property::PropertyDefinition::CoverInitializedName(
-            ident.sym(),
-            expr,
+            ident, expr,
         ))
     }
 }

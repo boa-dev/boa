@@ -11,7 +11,7 @@ use crate::{
                 binary::op::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
                 unary::op::UnaryOp,
             },
-            Call, New,
+            Call, Identifier, New,
         },
         function::{
             ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
@@ -57,7 +57,7 @@ enum FunctionKind {
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct FunctionSpec<'a> {
     kind: FunctionKind,
-    name: Option<Sym>,
+    name: Option<Identifier>,
     parameters: &'a FormalParameterList,
     body: &'a StatementList,
 }
@@ -176,7 +176,7 @@ enum JumpControlInfoKind {
 
 #[derive(Debug, Clone, Copy)]
 enum Access<'a> {
-    Variable { name: Sym },
+    Variable { name: Identifier },
     Property { access: &'a PropertyAccess },
     PrivateProperty { access: &'a PrivatePropertyAccess },
     SuperProperty { field: &'a PropertyAccessField },
@@ -187,7 +187,7 @@ enum Access<'a> {
 pub struct ByteCompiler<'b> {
     code_block: CodeBlock,
     literals_map: FxHashMap<Literal, u32>,
-    names_map: FxHashMap<Sym, u32>,
+    names_map: FxHashMap<Identifier, u32>,
     bindings_map: FxHashMap<BindingLocator, u32>,
     jump_info: Vec<JumpControlInfo>,
     in_async_generator: bool,
@@ -245,7 +245,7 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn get_or_insert_name(&mut self, name: Sym) -> u32 {
+    fn get_or_insert_name(&mut self, name: Identifier) -> u32 {
         if let Some(index) = self.names_map.get(&name) {
             return *index;
         }
@@ -269,7 +269,7 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn emit_binding(&mut self, opcode: BindingOpcode, name: Sym) {
+    fn emit_binding(&mut self, opcode: BindingOpcode, name: Identifier) {
         match opcode {
             BindingOpcode::Var => {
                 let binding = self.context.initialize_mutable_binding(name, true);
@@ -640,7 +640,7 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     fn compile_access(expr: &Expression) -> Option<Access<'_>> {
         match expr {
-            Expression::Identifier(name) => Some(Access::Variable { name: name.sym() }),
+            Expression::Identifier(name) => Some(Access::Variable { name: *name }),
             Expression::PropertyAccess(access) => Some(Access::Property { access }),
             Expression::This => Some(Access::This),
             _ => None,
@@ -657,7 +657,7 @@ impl<'b> ByteCompiler<'b> {
             }
             Access::Property { access } => match access.field() {
                 PropertyAccessField::Const(name) => {
-                    let index = self.get_or_insert_name(*name);
+                    let index = self.get_or_insert_name((*name).into());
                     self.compile_expr(access.target(), true)?;
                     self.emit(Opcode::GetPropertyByName, &[index]);
                 }
@@ -668,13 +668,13 @@ impl<'b> ByteCompiler<'b> {
                 }
             },
             Access::PrivateProperty { access } => {
-                let index = self.get_or_insert_name(access.field());
+                let index = self.get_or_insert_name(access.field().into());
                 self.compile_expr(access.target(), true)?;
                 self.emit(Opcode::GetPrivateField, &[index]);
             }
             Access::SuperProperty { field } => match field {
                 PropertyAccessField::Const(field) => {
-                    let index = self.get_or_insert_name(*field);
+                    let index = self.get_or_insert_name((*field).into());
                     self.emit_opcode(Opcode::Super);
                     self.emit(Opcode::GetPropertyByName, &[index]);
                 }
@@ -719,7 +719,7 @@ impl<'b> ByteCompiler<'b> {
             Access::Property { access } => match access.field() {
                 PropertyAccessField::Const(name) => {
                     self.compile_expr(access.target(), true)?;
-                    let index = self.get_or_insert_name(*name);
+                    let index = self.get_or_insert_name((*name).into());
                     self.emit(Opcode::SetPropertyByName, &[index]);
                 }
                 PropertyAccessField::Expr(expr) => {
@@ -731,7 +731,7 @@ impl<'b> ByteCompiler<'b> {
             Access::PrivateProperty { access } => {
                 self.compile_expr(access.target(), true)?;
                 self.emit_opcode(Opcode::Swap);
-                let index = self.get_or_insert_name(access.field());
+                let index = self.get_or_insert_name(access.field().into());
                 self.emit(Opcode::AssignPrivateField, &[index]);
             }
             // TODO: access_set `super`
@@ -856,7 +856,7 @@ impl<'b> ByteCompiler<'b> {
                         Expression::PropertyAccess(ref access) => {
                             match access.field() {
                                 PropertyAccessField::Const(name) => {
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.compile_expr(access.target(), true)?;
                                     self.emit(Opcode::DeletePropertyByName, &[index]);
                                 }
@@ -885,7 +885,7 @@ impl<'b> ByteCompiler<'b> {
                     UnaryOp::TypeOf => {
                         match &unary.target() {
                             Expression::Identifier(identifier) => {
-                                let binding = self.context.get_binding_value(identifier.sym());
+                                let binding = self.context.get_binding_value(*identifier);
                                 let index = self.get_or_insert_binding(binding);
                                 self.emit(Opcode::GetNameOrUndefined, &[index]);
                             }
@@ -995,7 +995,7 @@ impl<'b> ByteCompiler<'b> {
             }
             Expression::Assign(assign) if assign.op() == AssignOp::Assign => match assign.lhs() {
                 AssignTarget::Identifier(name) => self.access_set(
-                    Access::Variable { name: name.sym() },
+                    Access::Variable { name: *name },
                     Some(assign.rhs()),
                     use_expr,
                 )?,
@@ -1026,7 +1026,7 @@ impl<'b> ByteCompiler<'b> {
             },
             Expression::Assign(assign) => {
                 let access = match assign.lhs() {
-                    AssignTarget::Identifier(name) => Access::Variable { name: name.sym() },
+                    AssignTarget::Identifier(name) => Access::Variable { name: *name },
                     AssignTarget::Property(access) => Access::Property { access },
                     AssignTarget::PrivateProperty(access) => Access::PrivateProperty { access },
                     AssignTarget::SuperProperty(access) => Access::SuperProperty {
@@ -1091,7 +1091,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.compile_expr(expr, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -1101,12 +1101,12 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::DefineOwnPropertyByValue);
                             }
                         },
-                        PropertyDefinition::MethodDefinition(kind, name) => match kind {
+                        PropertyDefinition::MethodDefinition(name, kind) => match kind {
                             MethodDefinition::Get(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1120,7 +1120,7 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::SetPropertySetterByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1134,7 +1134,7 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1148,7 +1148,7 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1162,7 +1162,7 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1176,7 +1176,7 @@ impl<'b> ByteCompiler<'b> {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
                                     self.emit_opcode(Opcode::Swap);
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(name_node) => {
@@ -1206,7 +1206,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Expression::Identifier(name) => {
-                self.access_get(Access::Variable { name: name.sym() }, use_expr)?;
+                self.access_get(Access::Variable { name: *name }, use_expr)?;
             }
             Expression::PropertyAccess(access) => {
                 self.access_get(Access::Property { access }, use_expr)?;
@@ -1351,7 +1351,7 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::Dup, &[]);
                         match access.field() {
                             PropertyAccessField::Const(field) => {
-                                let index = self.get_or_insert_name(*field);
+                                let index = self.get_or_insert_name((*field).into());
                                 self.emit(Opcode::GetPropertyByName, &[index]);
                             }
                             PropertyAccessField::Expr(field) => {
@@ -1390,7 +1390,7 @@ impl<'b> ByteCompiler<'b> {
                 }
 
                 self.emit_opcode(Opcode::Swap);
-                let index = self.get_or_insert_name(Sym::RAW);
+                let index = self.get_or_insert_name(Sym::RAW.into());
                 self.emit(Opcode::SetPropertyByName, &[index]);
 
                 for expr in template.exprs() {
@@ -1456,7 +1456,7 @@ impl<'b> ByteCompiler<'b> {
                                 .init()
                                 .expect("const declaration must have initializer");
                             self.compile_expr(init, true)?;
-                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
+                            self.emit_binding(BindingOpcode::InitConst, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             if let Some(init) = decl.init() {
@@ -1475,12 +1475,12 @@ impl<'b> ByteCompiler<'b> {
         for decl in list.as_ref() {
             match decl.binding() {
                 Binding::Identifier(ident) => {
-                    let ident = ident.sym();
+                    let ident = ident;
                     if let Some(expr) = decl.init() {
                         self.compile_expr(expr, true)?;
-                        self.emit_binding(init_op, ident);
+                        self.emit_binding(init_op, *ident);
                     } else {
-                        self.emit_binding(empty_op, ident);
+                        self.emit_binding(empty_op, *ident);
                     }
                 }
                 Binding::Pattern(pattern) => {
@@ -1616,15 +1616,15 @@ impl<'b> ByteCompiler<'b> {
 
                 match for_in_loop.init() {
                     IterableLoopInitializer::Identifier(ident) => {
-                        self.context.create_mutable_binding(ident.sym(), true);
-                        let binding = self.context.set_mutable_binding(ident.sym());
+                        self.context.create_mutable_binding(*ident, true);
+                        let binding = self.context.set_mutable_binding(*ident);
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::DefInitVar, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(ident.sym(), true);
-                            self.emit_binding(BindingOpcode::InitVar, ident.sym());
+                            self.context.create_mutable_binding(*ident, true);
+                            self.emit_binding(BindingOpcode::InitVar, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -1635,8 +1635,8 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(ident.sym(), false);
-                            self.emit_binding(BindingOpcode::InitLet, ident.sym());
+                            self.context.create_mutable_binding(*ident, false);
+                            self.emit_binding(BindingOpcode::InitLet, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -1647,8 +1647,8 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_immutable_binding(ident.sym());
-                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
+                            self.context.create_immutable_binding(*ident);
+                            self.emit_binding(BindingOpcode::InitConst, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -1726,15 +1726,15 @@ impl<'b> ByteCompiler<'b> {
 
                 match for_of_loop.init() {
                     IterableLoopInitializer::Identifier(ref ident) => {
-                        self.context.create_mutable_binding(ident.sym(), true);
-                        let binding = self.context.set_mutable_binding(ident.sym());
+                        self.context.create_mutable_binding(*ident, true);
+                        let binding = self.context.set_mutable_binding(*ident);
                         let index = self.get_or_insert_binding(binding);
                         self.emit(Opcode::DefInitVar, &[index]);
                     }
                     IterableLoopInitializer::Var(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(ident.sym(), true);
-                            self.emit_binding(BindingOpcode::InitVar, ident.sym());
+                            self.context.create_mutable_binding(*ident, true);
+                            self.emit_binding(BindingOpcode::InitVar, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -1745,8 +1745,8 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Let(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(ident.sym(), false);
-                            self.emit_binding(BindingOpcode::InitLet, ident.sym());
+                            self.context.create_mutable_binding(*ident, false);
+                            self.emit_binding(BindingOpcode::InitLet, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -1757,8 +1757,8 @@ impl<'b> ByteCompiler<'b> {
                     },
                     IterableLoopInitializer::Const(declaration) => match declaration {
                         Binding::Identifier(ident) => {
-                            self.context.create_immutable_binding(ident.sym());
-                            self.emit_binding(BindingOpcode::InitConst, ident.sym());
+                            self.context.create_immutable_binding(*ident);
+                            self.emit_binding(BindingOpcode::InitConst, *ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -2080,8 +2080,8 @@ impl<'b> ByteCompiler<'b> {
                     if let Some(binding) = catch.parameter() {
                         match binding {
                             Binding::Identifier(ident) => {
-                                self.context.create_mutable_binding(ident.sym(), false);
-                                self.emit_binding(BindingOpcode::InitLet, ident.sym());
+                                self.context.create_mutable_binding(*ident, false);
+                                self.emit_binding(BindingOpcode::InitLet, *ident);
                             }
                             Binding::Pattern(pattern) => {
                                 for ident in pattern.idents() {
@@ -2176,7 +2176,7 @@ impl<'b> ByteCompiler<'b> {
         } = function;
 
         let code = FunctionCompiler::new()
-            .name(name)
+            .name(name.map(Identifier::sym))
             .generator(generator)
             .r#async(r#async)
             .strict(self.code_block.strict)
@@ -2223,9 +2223,7 @@ impl<'b> ByteCompiler<'b> {
 
         let (call, kind) = match callable {
             Callable::Call(call) => match call.expr() {
-                Expression::Identifier(ident) if ident.sym() == Sym::EVAL => {
-                    (call, CallKind::CallEval)
-                }
+                Expression::Identifier(ident) if *ident == Sym::EVAL => (call, CallKind::CallEval),
                 _ => (call, CallKind::Call),
             },
             Callable::New(new) => (new.call(), CallKind::New),
@@ -2239,7 +2237,7 @@ impl<'b> ByteCompiler<'b> {
                 }
                 match access.field() {
                     PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name(*field);
+                        let index = self.get_or_insert_name((*field).into());
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(field) => {
@@ -2256,7 +2254,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::Super);
                 match access.field() {
                     PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name(*field);
+                        let index = self.get_or_insert_name((*field).into());
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
@@ -2271,7 +2269,7 @@ impl<'b> ByteCompiler<'b> {
                 if kind == CallKind::Call {
                     self.emit(Opcode::Dup, &[]);
                 }
-                let index = self.get_or_insert_name(access.field());
+                let index = self.get_or_insert_name(access.field().into());
                 self.emit(Opcode::GetPrivateField, &[index]);
             }
             expr => {
@@ -2358,7 +2356,7 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
@@ -2394,7 +2392,7 @@ impl<'b> ByteCompiler<'b> {
 
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(false),
+                                    self.interner().resolve_expect(key.sym()).into_common(false),
                                 ));
                             }
 
@@ -2412,7 +2410,7 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::PushEmptyObject);
                             for key in excluded_keys {
                                 self.emit_push_literal(Literal::String(
-                                    self.interner().resolve_expect(*key).into_common(false),
+                                    self.interner().resolve_expect(key.sym()).into_common(false),
                                 ));
                             }
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32, 0]);
@@ -2426,7 +2424,7 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
@@ -2462,7 +2460,7 @@ impl<'b> ByteCompiler<'b> {
                             self.emit_opcode(Opcode::Dup);
                             match name {
                                 PropertyName::Literal(name) => {
-                                    let index = self.get_or_insert_name(*name);
+                                    let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::GetPropertyByName, &[index]);
                                 }
                                 PropertyName::Computed(node) => {
@@ -2577,11 +2575,11 @@ impl<'b> ByteCompiler<'b> {
                 for decl in &**list {
                     match decl.binding() {
                         Binding::Identifier(ident) => {
-                            let ident = ident.sym();
-                            if ident == Sym::ARGUMENTS {
+                            let ident = ident;
+                            if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_mutable_binding(ident, true);
+                            self.context.create_mutable_binding(*ident, true);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -2598,11 +2596,11 @@ impl<'b> ByteCompiler<'b> {
                 for decl in &**list {
                     match decl.binding() {
                         Binding::Identifier(ident) => {
-                            let ident = ident.sym();
-                            if ident == Sym::ARGUMENTS {
+                            let ident = ident;
+                            if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_mutable_binding(ident, false);
+                            self.context.create_mutable_binding(*ident, false);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -2619,11 +2617,11 @@ impl<'b> ByteCompiler<'b> {
                 for decl in &**list {
                     match decl.binding() {
                         Binding::Identifier(ident) => {
-                            let ident = ident.sym();
-                            if ident == Sym::ARGUMENTS {
+                            let ident = ident;
+                            if *ident == Sym::ARGUMENTS {
                                 has_identifier_argument = true;
                             }
-                            self.context.create_immutable_binding(ident);
+                            self.context.create_immutable_binding(*ident);
                         }
                         Binding::Pattern(pattern) => {
                             for ident in pattern.idents() {
@@ -2701,7 +2699,11 @@ impl<'b> ByteCompiler<'b> {
     /// A class declaration binds the resulting class object to it's identifier.
     /// A class expression leaves the resulting class object on the stack for following operations.
     fn class(&mut self, class: &Class, expression: bool) -> JsResult<()> {
-        let code = CodeBlock::new(class.name().unwrap_or(Sym::EMPTY_STRING), 0, true);
+        let code = CodeBlock::new(
+            class.name().map_or(Sym::EMPTY_STRING, Identifier::sym),
+            0,
+            true,
+        );
         let mut compiler = ByteCompiler {
             code_block: code,
             literals_map: FxHashMap::default(),
@@ -2718,11 +2720,11 @@ impl<'b> ByteCompiler<'b> {
             compiler.code_block.params = expr.parameters().clone();
             compiler
                 .context
-                .create_mutable_binding(Sym::ARGUMENTS, false);
+                .create_mutable_binding(Sym::ARGUMENTS.into(), false);
             compiler.code_block.arguments_binding = Some(
                 compiler
                     .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS, false),
+                    .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
             );
             for parameter in expr.parameters().parameters.iter() {
                 if parameter.is_rest_param() {
@@ -2731,14 +2733,14 @@ impl<'b> ByteCompiler<'b> {
 
                 match parameter.declaration().binding() {
                     Binding::Identifier(ident) => {
-                        compiler.context.create_mutable_binding(ident.sym(), false);
+                        compiler.context.create_mutable_binding(*ident, false);
                         if let Some(init) = parameter.declaration().init() {
                             let skip =
                                 compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                             compiler.compile_expr(init, true)?;
                             compiler.patch_jump(skip);
                         }
-                        compiler.emit_binding(BindingOpcode::InitArg, ident.sym());
+                        compiler.emit_binding(BindingOpcode::InitArg, *ident);
                     }
                     Binding::Pattern(pattern) => {
                         for ident in pattern.idents() {
@@ -2822,7 +2824,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassGetterByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2836,7 +2838,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassSetterByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2850,7 +2852,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2864,7 +2866,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2878,7 +2880,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2892,7 +2894,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -2909,32 +2911,32 @@ impl<'b> ByteCompiler<'b> {
                     match method_definition {
                         MethodDefinition::Get(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateGetter, &[index]);
                         }
                         MethodDefinition::Set(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateSetter, &[index]);
                         }
                         MethodDefinition::Ordinary(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
                         MethodDefinition::Async(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
                         MethodDefinition::Generator(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
                         MethodDefinition::AsyncGenerator(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::SetPrivateMethod, &[index]);
                         }
                     }
@@ -2984,7 +2986,7 @@ impl<'b> ByteCompiler<'b> {
                 }
                 ClassElement::PrivateFieldDefinition(name, field) => {
                     self.emit_opcode(Opcode::Dup);
-                    let name_index = self.get_or_insert_name(*name);
+                    let name_index = self.get_or_insert_name((*name).into());
                     let field_code = CodeBlock::new(Sym::EMPTY_STRING, 0, true);
                     let mut field_compiler = ByteCompiler {
                         code_block: field_code,
@@ -3026,7 +3028,7 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit_opcode(Opcode::PushUndefined);
                             }
                             self.emit_opcode(Opcode::Swap);
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
                         PropertyName::Computed(name_node) => {
@@ -3048,7 +3050,7 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         self.emit_opcode(Opcode::PushUndefined);
                     }
-                    let index = self.get_or_insert_name(*name);
+                    let index = self.get_or_insert_name((*name).into());
                     self.emit(Opcode::SetPrivateField, &[index]);
                 }
                 ClassElement::StaticBlock(statement_list) => {
@@ -3078,32 +3080,32 @@ impl<'b> ByteCompiler<'b> {
                     match method_definition {
                         MethodDefinition::Get(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateGetter, &[index]);
                         }
                         MethodDefinition::Set(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateSetter, &[index]);
                         }
                         MethodDefinition::Ordinary(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
                         MethodDefinition::Async(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
                         MethodDefinition::Generator(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
                         MethodDefinition::AsyncGenerator(expr) => {
                             self.function(expr.into(), NodeKind::Expression, true)?;
-                            let index = self.get_or_insert_name(*name);
+                            let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::PushClassPrivateMethod, &[index]);
                         }
                     }
@@ -3123,7 +3125,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassGetterByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -3137,7 +3139,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassSetterByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -3151,7 +3153,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -3165,7 +3167,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -3179,7 +3181,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {
@@ -3193,7 +3195,7 @@ impl<'b> ByteCompiler<'b> {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
                                 self.emit_opcode(Opcode::Swap);
-                                let index = self.get_or_insert_name(*name);
+                                let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
                             PropertyName::Computed(name_node) => {

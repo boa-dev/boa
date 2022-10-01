@@ -74,7 +74,7 @@ fn non_empty() {
         }",
         vec![
             Function::new(
-                hello.into(),
+                Some(hello.into()),
                 FormalParameterList::default(),
                 vec![Return::new(Some(Literal::from(10).into()), None).into()].into(),
             )
@@ -111,7 +111,7 @@ fn hoisting() {
         }",
         vec![
             Function::new(
-                Some(hello),
+                Some(hello.into()),
                 FormalParameterList::default(),
                 vec![Return::new(Some(Literal::from(10).into()), None).into()].into(),
             )

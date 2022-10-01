@@ -1,4 +1,5 @@
 use crate::syntax::ast::{
+    expression::Identifier,
     statement::{
         declaration::{Declaration, DeclarationList},
         Statement,
@@ -94,6 +95,25 @@ impl ForLoop {
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
     }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        let inner = &self.inner;
+        matches!(inner.init, Some(ref init) if init.contains_arguments())
+            || matches!(inner.condition, Some(ref expr) if expr.contains_arguments())
+            || matches!(inner.final_expr, Some(ref expr) if expr.contains_arguments())
+            || inner.body.contains_arguments()
+            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        let inner = &self.inner;
+        matches!(inner.init, Some(ref init) if init.contains(symbol))
+            || matches!(inner.condition, Some(ref expr) if expr.contains(symbol))
+            || matches!(inner.final_expr, Some(ref expr) if expr.contains(symbol))
+            || inner.body.contains(symbol)
+    }
 }
 
 impl ToInternedString for ForLoop {
@@ -169,7 +189,7 @@ impl ForLoopInitializer {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    pub(crate) fn bound_names(&self) -> Vec<Sym> {
+    pub(crate) fn bound_names(&self) -> Vec<Identifier> {
         match self {
             Self::DeclarationList(DeclarationList::Let(list) | DeclarationList::Const(list)) => {
                 list.iter().flat_map(Declaration::idents).collect()
@@ -178,17 +198,18 @@ impl ForLoopInitializer {
         }
     }
 
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::DeclarationList(list) => list.contains(symbol),
-            Self::Expression(expr) => expr.contains(symbol),
-        }
-    }
-
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
             Self::DeclarationList(list) => list.contains_arguments(),
             Self::Expression(expr) => expr.contains_arguments(),
+        }
+    }
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            Self::DeclarationList(list) => list.contains(symbol),
+            Self::Expression(expr) => expr.contains(symbol),
         }
     }
 }

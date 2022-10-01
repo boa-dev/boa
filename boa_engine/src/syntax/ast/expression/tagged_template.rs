@@ -1,5 +1,7 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 
+use crate::syntax::ast::ContainsSymbol;
+
 use super::Expression;
 
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
@@ -42,6 +44,15 @@ impl TaggedTemplate {
 
     pub(crate) fn exprs(&self) -> &[Expression] {
         &self.exprs
+    }
+
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.tag.contains_arguments() || self.exprs.iter().any(Expression::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.tag.contains(symbol) || self.exprs.iter().any(|expr| expr.contains(symbol))
     }
 }
 

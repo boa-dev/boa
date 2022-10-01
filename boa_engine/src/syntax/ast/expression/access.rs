@@ -1,4 +1,4 @@
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
@@ -6,6 +6,22 @@ use boa_interner::{Interner, Sym, ToInternedString};
 pub enum PropertyAccessField {
     Const(Sym),
     Expr(Box<Expression>),
+}
+
+impl PropertyAccessField {
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            PropertyAccessField::Const(_) => false,
+            PropertyAccessField::Expr(expr) => expr.contains_arguments(),
+        }
+    }
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            PropertyAccessField::Const(_) => false,
+            PropertyAccessField::Expr(expr) => expr.contains(symbol),
+        }
+    }
 }
 
 impl From<Sym> for PropertyAccessField {
@@ -68,6 +84,16 @@ impl PropertyAccess {
             field: field.into(),
         }
     }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.target.contains_arguments() || self.field.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.target.contains(symbol) || self.field.contains(symbol)
+    }
 }
 
 impl ToInternedString for PropertyAccess {
@@ -124,6 +150,15 @@ impl PrivatePropertyAccess {
     pub fn field(&self) -> Sym {
         self.field
     }
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.target.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.target.contains(symbol)
+    }
 }
 
 impl ToInternedString for PrivatePropertyAccess {
@@ -164,6 +199,16 @@ impl SuperPropertyAccess {
     /// Gets the name of the field to retrieve.
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.field.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.field.contains(symbol)
     }
 }
 

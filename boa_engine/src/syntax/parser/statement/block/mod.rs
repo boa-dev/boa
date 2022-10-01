@@ -12,11 +12,11 @@ mod tests;
 
 use super::StatementList;
 use crate::syntax::{
-    ast::{statement, Punctuator},
+    ast::{expression::Identifier, statement, Punctuator},
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
@@ -94,7 +94,7 @@ where
         cursor.expect(Punctuator::CloseBlock, "block", interner)?;
 
         let lexically_declared_names = statement_list.lexically_declared_names();
-        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        let mut lexically_declared_names_map: FxHashMap<Identifier, bool> = FxHashMap::default();
         for (name, is_function_declaration) in &lexically_declared_names {
             if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
                 if !(!cursor.strict_mode()

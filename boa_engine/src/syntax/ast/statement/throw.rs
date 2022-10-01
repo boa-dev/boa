@@ -1,4 +1,4 @@
-use crate::syntax::ast::{statement::Statement, Expression};
+use crate::syntax::ast::{statement::Statement, ContainsSymbol, Expression};
 use boa_interner::{Interner, ToInternedString};
 
 /// The `throw` statement throws a user-defined exception.
@@ -29,6 +29,16 @@ impl Throw {
     /// Creates a `Throw` AST node.
     pub fn new(expression: Expression) -> Self {
         Self { expression }
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.expression.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.expression.contains(symbol)
     }
 }
 

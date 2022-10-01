@@ -52,8 +52,9 @@ where
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Label", "Parsing");
 
-        let name =
-            LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let name = LabelIdentifier::new(self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?
+            .sym();
 
         cursor.expect(Punctuator::Colon, "Labelled Statement", interner)?;
 

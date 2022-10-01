@@ -40,26 +40,28 @@ impl IterableLoopInitializer {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
-    pub(crate) fn bound_names(&self) -> Vec<Sym> {
+    pub(crate) fn bound_names(&self) -> Vec<Identifier> {
         match self {
             Self::Let(binding) | Self::Const(binding) => binding.idents(),
             _ => Vec::new(),
         }
     }
 
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            Self::Identifier(ident) => *ident == Sym::ARGUMENTS,
+            Self::Var(bind) | Self::Let(bind) | Self::Const(bind) => bind.contains_arguments(),
+        }
+    }
+
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             Self::Var(declaration) | Self::Let(declaration) | Self::Const(declaration) => {
                 declaration.contains(symbol)
             }
             Self::Identifier(_) => false,
-        }
-    }
-
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Identifier(ident) => ident.sym() == Sym::ARGUMENTS,
-            Self::Var(bind) | Self::Let(bind) | Self::Const(bind) => bind.contains_arguments(),
         }
     }
 }

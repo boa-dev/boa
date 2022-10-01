@@ -29,7 +29,7 @@ fn check_async_ordinary_method() {
          }
         ",
         [Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A"))),
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),
@@ -55,7 +55,7 @@ fn check_async_field_initialization() {
          }
         ",
         [Class::new(
-            Some(interner.get_or_intern_static("A", utf16!("A"))),
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),
@@ -80,7 +80,7 @@ fn check_async_field() {
          }
         ",
         [Class::new(
-            interner.get_or_intern_static("A", utf16!("A")).into(),
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),

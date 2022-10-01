@@ -1,4 +1,4 @@
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 
 /// The `conditional` (ternary) operation is the only JavaScript operation that takes three
@@ -43,6 +43,20 @@ impl Conditional {
             if_true: Box::new(if_true),
             if_false: Box::new(if_false),
         }
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.condition.contains_arguments()
+            || self.if_true.contains_arguments()
+            || self.if_false.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.condition.contains(symbol)
+            || self.if_true.contains(symbol)
+            || self.if_false.contains(symbol)
     }
 }
 

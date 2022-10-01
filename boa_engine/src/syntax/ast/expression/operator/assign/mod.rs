@@ -12,6 +12,7 @@ use crate::syntax::{
             Pattern, PatternArray, PatternArrayElement, PatternObject, PatternObjectElement,
         },
         property::{PropertyDefinition, PropertyName},
+        ContainsSymbol,
     },
     parser::RESERVED_IDENTIFIERS_STRICT,
 };
@@ -60,6 +61,28 @@ impl Assign {
     /// Gets the right hand side of the assignment operation.
     pub fn rhs(&self) -> &Expression {
         &self.rhs
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        (match &*self.lhs {
+            AssignTarget::Identifier(ident) => *ident == Sym::ARGUMENTS,
+            AssignTarget::Property(access) => access.contains_arguments(),
+            AssignTarget::PrivateProperty(access) => access.contains_arguments(),
+            AssignTarget::SuperProperty(access) => access.contains_arguments(),
+            AssignTarget::Pattern(pattern) => pattern.contains_arguments(),
+        } || self.rhs.contains_arguments())
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        (match &*self.lhs {
+            AssignTarget::Identifier(_) => false,
+            AssignTarget::Property(access) => access.contains(symbol),
+            AssignTarget::PrivateProperty(access) => access.contains(symbol),
+            AssignTarget::SuperProperty(access) => access.contains(symbol),
+            AssignTarget::Pattern(pattern) => pattern.contains(symbol),
+        } || self.rhs.contains(symbol))
     }
 }
 
@@ -151,25 +174,25 @@ pub(crate) fn object_decl_to_declaration_pattern(
     let mut excluded_keys = Vec::new();
     for (i, property) in object.properties().iter().enumerate() {
         match property {
-            PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
+            PropertyDefinition::IdentifierReference(ident)
+                if strict && ident.sym() == Sym::EVAL =>
+            {
                 return None
             }
             PropertyDefinition::IdentifierReference(ident) => {
-                if strict && RESERVED_IDENTIFIERS_STRICT.contains(ident) {
+                if strict && RESERVED_IDENTIFIERS_STRICT.contains(&ident.sym()) {
                     return None;
                 }
 
                 excluded_keys.push(*ident);
                 bindings.push(PatternObjectElement::SingleName {
                     ident: *ident,
-                    name: PropertyName::Literal(*ident),
+                    name: PropertyName::Literal(ident.sym()),
                     default_init: None,
                 });
             }
             PropertyDefinition::Property(name, expr) => match (name, expr) {
-                (PropertyName::Literal(name), Expression::Identifier(ident))
-                    if *name == ident.sym() =>
-                {
+                (PropertyName::Literal(name), Expression::Identifier(ident)) if *name == *ident => {
                     if strict && *name == Sym::EVAL {
                         return None;
                     }
@@ -177,16 +200,16 @@ pub(crate) fn object_decl_to_declaration_pattern(
                         return None;
                     }
 
-                    excluded_keys.push(*name);
+                    excluded_keys.push(*ident);
                     bindings.push(PatternObjectElement::SingleName {
-                        ident: *name,
+                        ident: *ident,
                         name: PropertyName::Literal(*name),
                         default_init: None,
                     });
                 }
                 (PropertyName::Literal(name), Expression::Identifier(ident)) => {
                     bindings.push(PatternObjectElement::SingleName {
-                        ident: ident.sym(),
+                        ident: *ident,
                         name: PropertyName::Literal(*name),
                         default_init: None,
                     });
@@ -210,22 +233,22 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 (_, Expression::Assign(assign)) => match assign.lhs() {
                     AssignTarget::Identifier(ident) => {
                         if let Some(name) = name.literal() {
-                            if name == ident.sym() {
+                            if name == *ident {
                                 if strict && name == Sym::EVAL {
                                     return None;
                                 }
                                 if strict && RESERVED_IDENTIFIERS_STRICT.contains(&name) {
                                     return None;
                                 }
-                                excluded_keys.push(name);
+                                excluded_keys.push(*ident);
                                 bindings.push(PatternObjectElement::SingleName {
-                                    ident: name,
+                                    ident: *ident,
                                     name: PropertyName::Literal(name),
                                     default_init: Some(assign.rhs().clone()),
                                 });
                             } else {
                                 bindings.push(PatternObjectElement::SingleName {
-                                    ident: ident.sym(),
+                                    ident: *ident,
                                     name: PropertyName::Literal(name),
                                     default_init: Some(assign.rhs().clone()),
                                 });
@@ -261,7 +284,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 }
                 (PropertyName::Computed(name), Expression::Identifier(ident)) => {
                     bindings.push(PatternObjectElement::SingleName {
-                        ident: ident.sym(),
+                        ident: *ident,
                         name: PropertyName::Computed(name.clone()),
                         default_init: None,
                     });
@@ -272,7 +295,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 match spread {
                     Expression::Identifier(ident) => {
                         bindings.push(PatternObjectElement::RestProperty {
-                            ident: ident.sym(),
+                            ident: *ident,
                             excluded_keys: excluded_keys.clone(),
                         });
                     }
@@ -290,13 +313,13 @@ pub(crate) fn object_decl_to_declaration_pattern(
             }
             PropertyDefinition::MethodDefinition(_, _) => return None,
             PropertyDefinition::CoverInitializedName(ident, expr) => {
-                if strict && (*ident == Sym::EVAL || *ident == Sym::ARGUMENTS) {
+                if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) {
                     return None;
                 }
 
                 bindings.push(PatternObjectElement::SingleName {
                     ident: *ident,
-                    name: PropertyName::Literal(*ident),
+                    name: PropertyName::Literal(ident.sym()),
                     default_init: Some(expr.clone()),
                 });
             }
@@ -327,19 +350,19 @@ pub(crate) fn array_decl_to_declaration_pattern(
         };
         match expr {
             Expression::Identifier(ident) => {
-                if strict && ident.sym() == Sym::ARGUMENTS {
+                if strict && *ident == Sym::ARGUMENTS {
                     return None;
                 }
 
                 bindings.push(PatternArrayElement::SingleName {
-                    ident: ident.sym(),
+                    ident: *ident,
                     default_init: None,
                 });
             }
             Expression::Spread(spread) => {
                 match spread.val() {
                     Expression::Identifier(ident) => {
-                        bindings.push(PatternArrayElement::SingleNameRest { ident: ident.sym() });
+                        bindings.push(PatternArrayElement::SingleNameRest { ident: *ident });
                     }
                     Expression::PropertyAccess(access) => {
                         bindings.push(PatternArrayElement::PropertyAccessRest {
@@ -363,7 +386,7 @@ pub(crate) fn array_decl_to_declaration_pattern(
             Expression::Assign(assign) => match assign.lhs() {
                 AssignTarget::Identifier(ident) => {
                     bindings.push(PatternArrayElement::SingleName {
-                        ident: ident.sym(),
+                        ident: *ident,
                         default_init: Some(assign.rhs().clone()),
                     });
                 }

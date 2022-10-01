@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        expression::Expression,
+        expression::{Expression, Identifier},
         pattern::Pattern,
         statement::declaration::{Binding, Declaration},
         ContainsSymbol, Position,
@@ -85,7 +85,7 @@ impl FormalParameterList {
     /// Helper to check if any parameter names are declared in the given list.
     pub(crate) fn name_in_lexically_declared_names(
         &self,
-        names: &[Sym],
+        names: &[Identifier],
         position: Position,
     ) -> Result<(), ParseError> {
         for parameter in self.parameters.iter() {
@@ -125,6 +125,18 @@ impl FormalParameterList {
             }
         }
         false
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.parameters
+            .iter()
+            .any(FormalParameter::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.parameters.iter().any(|param| param.contains(symbol))
     }
 }
 
@@ -183,7 +195,7 @@ impl From<FormalParameter> for FormalParameterList {
         if parameter.init().is_some() {
             flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
         }
-        if parameter.names().contains(&Sym::ARGUMENTS) {
+        if parameter.names().contains(&Sym::ARGUMENTS.into()) {
             flags |= FormalParameterListFlags::HAS_ARGUMENTS;
         }
         if parameter.is_rest_param() || parameter.init().is_some() || !parameter.is_identifier() {
@@ -256,9 +268,9 @@ impl FormalParameter {
     }
 
     /// Gets the name of the formal parameter.
-    pub fn names(&self) -> Vec<Sym> {
+    pub fn names(&self) -> Vec<Identifier> {
         match self.declaration.binding() {
-            Binding::Identifier(ident) => vec![ident.sym()],
+            Binding::Identifier(ident) => vec![*ident],
             Binding::Pattern(pattern) => match pattern {
                 Pattern::Object(object_pattern) => object_pattern.idents(),
 
@@ -284,6 +296,15 @@ impl FormalParameter {
 
     pub fn is_identifier(&self) -> bool {
         matches!(&self.declaration.binding(), Binding::Identifier(_))
+    }
+
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.declaration.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.declaration.contains(symbol)
     }
 }
 

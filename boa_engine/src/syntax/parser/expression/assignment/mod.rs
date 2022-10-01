@@ -15,7 +15,10 @@ mod r#yield;
 use crate::syntax::{
     ast::{
         self,
-        expression::operator::assign::{op::AssignOp, Assign, AssignTarget},
+        expression::{
+            operator::assign::{op::AssignOp, Assign, AssignTarget},
+            Identifier,
+        },
         Expression, Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, TokenKind},
@@ -28,7 +31,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -54,7 +57,7 @@ pub(super) use exponentiation::ExponentiationExpression;
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct AssignmentExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -69,7 +72,7 @@ impl AssignmentExpression {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -210,7 +213,7 @@ where
                         AssignTarget::from_expression(&lhs, cursor.strict_mode(), true)
                     {
                         if let AssignTarget::Identifier(ident) = target {
-                            self.name = Some(ident.sym());
+                            self.name = Some(ident);
                         }
                         let expr = self.parse(cursor, interner)?;
                         lhs = Assign::new(AssignOp::Assign, target, expr).into();

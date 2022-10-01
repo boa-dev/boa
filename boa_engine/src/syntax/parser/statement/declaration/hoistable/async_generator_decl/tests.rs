@@ -14,7 +14,7 @@ fn async_generator_function_declaration() {
     check_parser(
         "async function* gen() {}",
         vec![AsyncGenerator::new(
-            Some(interner.get_or_intern_static("gen", utf16!("gen"))),
+            Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
             FormalParameterList::default(),
             StatementList::default(),
         )

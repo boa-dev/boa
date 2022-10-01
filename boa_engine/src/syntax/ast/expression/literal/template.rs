@@ -4,7 +4,10 @@ use std::borrow::Cow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use crate::{string::ToStringEscaped, syntax::ast::expression::Expression};
+use crate::{
+    string::ToStringEscaped,
+    syntax::ast::{expression::Expression, ContainsSymbol},
+};
 
 /// Template literals are string literals allowing embedded expressions.
 ///
@@ -40,6 +43,22 @@ impl TemplateLiteral {
 
     pub(crate) fn elements(&self) -> &[TemplateElement] {
         &self.elements
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.elements.iter().any(|e| match e {
+            TemplateElement::String(_) => false,
+            TemplateElement::Expr(expr) => expr.contains_arguments(),
+        })
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.elements.iter().any(|e| match e {
+            TemplateElement::String(_) => false,
+            TemplateElement::Expr(expr) => expr.contains(symbol),
+        })
     }
 }
 

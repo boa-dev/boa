@@ -30,7 +30,7 @@ fn check_basic() {
     check_parser(
         "function foo(a) { return a; }",
         vec![Function::new(
-            Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
                     Declaration::from_identifier(
@@ -61,7 +61,7 @@ fn check_duplicates_strict_off() {
     check_parser(
         "function foo(a, a) { return a; }",
         vec![Function::new(
-            interner.get_or_intern_static("foo", utf16!("foo")).into(),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
@@ -112,7 +112,7 @@ fn check_basic_semicolon_insertion() {
     check_parser(
         "function foo(a) { return a }",
         vec![Function::new(
-            interner.get_or_intern_static("foo", utf16!("foo")).into(),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
                     Declaration::from_identifier(
@@ -143,7 +143,7 @@ fn check_empty_return() {
     check_parser(
         "function foo(a) { return; }",
         vec![Function::new(
-            interner.get_or_intern_static("foo", utf16!("foo")).into(),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
                     Declaration::from_identifier(
@@ -169,7 +169,7 @@ fn check_empty_return_semicolon_insertion() {
     check_parser(
         "function foo(a) { return }",
         vec![Function::new(
-            interner.get_or_intern_static("foo", utf16!("foo")).into(),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
                     Declaration::from_identifier(
@@ -195,7 +195,7 @@ fn check_rest_operator() {
     check_parser(
         "function foo(a, ...b) {}",
         vec![Function::new(
-            interner.get_or_intern_static("foo", utf16!("foo")).into(),
+            Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
@@ -468,7 +468,7 @@ fn check_arrow_assignment() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
                                 Declaration::from_identifier(
@@ -510,7 +510,7 @@ fn check_arrow_assignment_nobrackets() {
                 interner.get_or_intern_static("foo", utf16!("foo")).into(),
                 Some(
                     ArrowFunction::new(
-                        interner.get_or_intern_static("foo", utf16!("foo")).into(),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
                                 Declaration::from_identifier(
@@ -552,7 +552,7 @@ fn check_arrow_assignment_noparenthesis() {
                 interner.get_or_intern_static("foo", utf16!("foo")).into(),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
                                 Declaration::from_identifier(
@@ -594,7 +594,7 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
                                 Declaration::from_identifier(
@@ -636,7 +636,7 @@ fn check_arrow_assignment_2arg() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
@@ -687,7 +687,7 @@ fn check_arrow_assignment_2arg_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
@@ -738,7 +738,7 @@ fn check_arrow_assignment_3arg() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
@@ -796,7 +796,7 @@ fn check_arrow_assignment_3arg_nobrackets() {
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
-                        Some(interner.get_or_intern_static("foo", utf16!("foo"))),
+                        Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(

@@ -2,14 +2,14 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{statement, statement::Switch, Keyword, Punctuator},
+    ast::{expression::Identifier, statement, statement::Switch, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
         Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
@@ -197,7 +197,7 @@ where
             default_clause.var_declared_names(&mut var_declared_names);
         }
 
-        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        let mut lexically_declared_names_map: FxHashMap<Identifier, bool> = FxHashMap::default();
         for (name, is_function_declaration) in &lexically_declared_names {
             if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
                 if !(!cursor.strict_mode()

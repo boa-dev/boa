@@ -33,15 +33,12 @@ impl Case {
         &self.body
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments()
-            || self
-                .body
-                .statements()
-                .iter()
-                .any(Statement::contains_arguments)
+        self.condition.contains_arguments() || self.body.contains_arguments()
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.condition.contains(symbol)
             || self
@@ -123,6 +120,18 @@ impl Switch {
         buf.push_str(&format!("{indent}}}"));
 
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.val.contains_arguments()
+            || self.cases.iter().any(Case::contains_arguments)
+            || matches!(self.default, Some(ref stmts) if stmts.contains_arguments())
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.val.contains(symbol) || self.cases.iter().any(|case| case.contains(symbol))
     }
 }
 

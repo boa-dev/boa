@@ -71,8 +71,9 @@ where
 
             None
         } else {
-            let label =
-                LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?
+                .sym();
             cursor.expect_semicolon("break statement", interner)?;
 
             Some(label)

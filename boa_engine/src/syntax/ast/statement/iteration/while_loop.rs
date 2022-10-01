@@ -1,4 +1,4 @@
-use crate::syntax::ast::{expression::Expression, statement::Statement};
+use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 /// The `while` statement creates a loop that executes a specified statement as long as the
 /// test condition evaluates to `true`.
@@ -59,6 +59,17 @@ impl WhileLoop {
         ));
 
         buf
+    }
+
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.condition.contains_arguments()
+            || self.body.contains_arguments()
+            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.condition.contains(symbol) || self.body.contains(symbol)
     }
 }
 

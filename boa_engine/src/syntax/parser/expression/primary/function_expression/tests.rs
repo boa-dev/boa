@@ -27,7 +27,7 @@ fn check_function_expression() {
                 add.into(),
                 Some(
                     Function::new(
-                        Some(add),
+                        Some(add.into()),
                         FormalParameterList::default(),
                         vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                     )
@@ -58,14 +58,14 @@ fn check_nested_function_expression() {
                 a.into(),
                 Some(
                     Function::new(
-                        Some(a),
+                        Some(a.into()),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::from_identifier(
                                 b.into(),
                                 Some(
                                     Function::new(
-                                        Some(b),
+                                        Some(b.into()),
                                         FormalParameterList::default(),
                                         vec![
                                             Return::new(Some(Literal::from(1).into()), None).into()
@@ -99,7 +99,7 @@ fn check_function_non_reserved_keyword() {
                     $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
                         Function::new(
-                            Some($interner.get_or_intern_static($keyword, utf16!($keyword))),
+                            Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
                             vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                         )

@@ -2,7 +2,7 @@ pub mod op;
 
 use boa_interner::{Interner, ToInternedString};
 
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 
 /// Binary operations require two operands, one before the operator and one after the operator.
 ///
@@ -41,6 +41,16 @@ impl Binary {
     /// Gets the right hand side of the binary operation.
     pub fn rhs(&self) -> &Expression {
         &self.rhs
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.lhs.contains_arguments() || self.rhs.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.lhs.contains(symbol) || self.rhs.contains(symbol)
     }
 }
 

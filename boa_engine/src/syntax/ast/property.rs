@@ -1,12 +1,10 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use crate::string::ToStringEscaped;
-
 use super::{
-    expression::literal::Literal,
+    expression::{literal::Literal, Identifier},
     function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
     statement::StatementList,
-    Expression,
+    ContainsSymbol, Expression,
 };
 
 /// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.
@@ -33,7 +31,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-IdentifierReference
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Property_definitions
-    IdentifierReference(Sym),
+    IdentifierReference(Identifier),
 
     /// Binds a property name to a JavaScript value.
     ///
@@ -53,7 +51,7 @@ pub enum PropertyDefinition {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-MethodDefinition
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Method_definitions
-    MethodDefinition(MethodDefinition, PropertyName),
+    MethodDefinition(PropertyName, MethodDefinition),
 
     /// The Rest/Spread Properties for ECMAScript proposal (stage 4) adds spread properties to object literals.
     /// It copies own enumerable properties from a provided object onto a new object.
@@ -74,7 +72,44 @@ pub enum PropertyDefinition {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-CoverInitializedName
-    CoverInitializedName(Sym, Expression),
+    CoverInitializedName(Identifier, Expression),
+}
+
+impl PropertyDefinition {
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            PropertyDefinition::IdentifierReference(ident) => *ident == Sym::ARGUMENTS,
+            PropertyDefinition::Property(name, expr) => {
+                name.contains_arguments() || expr.contains_arguments()
+            }
+            // Skipping definition since functions are excluded from the search
+            PropertyDefinition::MethodDefinition(name, _) => name.contains_arguments(),
+            PropertyDefinition::SpreadObject(expr) => expr.contains_arguments(),
+            PropertyDefinition::CoverInitializedName(ident, expr) => {
+                *ident == Sym::ARGUMENTS || expr.contains_arguments()
+            }
+        }
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            PropertyDefinition::IdentifierReference(_) => false,
+            PropertyDefinition::Property(name, expr) => {
+                name.contains(symbol) || expr.contains(symbol)
+            }
+            // Skipping definition since functions are excluded from the search
+            PropertyDefinition::MethodDefinition(_, _)
+                if symbol == ContainsSymbol::MethodDefinition =>
+            {
+                true
+            }
+            PropertyDefinition::MethodDefinition(name, _) => name.contains(symbol),
+            PropertyDefinition::SpreadObject(expr) => expr.contains(symbol),
+            PropertyDefinition::CoverInitializedName(_ident, expr) => expr.contains(symbol),
+        }
+    }
 }
 
 /// Method definition.
@@ -242,16 +277,28 @@ impl PropertyName {
             PropertyName::Computed(_) => None,
         }
     }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            PropertyName::Literal(_) => false,
+            PropertyName::Computed(expr) => expr.contains_arguments(),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            PropertyName::Literal(_) => false,
+            PropertyName::Computed(expr) => expr.contains(symbol),
+        }
+    }
 }
 
 impl ToInternedString for PropertyName {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            PropertyName::Literal(key) => interner.resolve_expect(*key).join(
-                String::from,
-                ToStringEscaped::to_string_escaped,
-                true,
-            ),
+            PropertyName::Literal(key) => interner.resolve_expect(*key).to_string(),
             PropertyName::Computed(key) => key.to_interned_string(interner),
         }
     }

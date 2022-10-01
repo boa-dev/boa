@@ -1,6 +1,7 @@
 use crate::syntax::ast::{
     expression::Expression,
     statement::{iteration::IterableLoopInitializer, Statement},
+    ContainsSymbol,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -74,6 +75,19 @@ impl ForOfLoop {
         ));
 
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.init.contains_arguments()
+            || self.iterable.contains_arguments()
+            || self.body.contains_arguments()
+            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.init.contains(symbol) || self.iterable.contains(symbol) || self.body.contains(symbol)
     }
 }
 

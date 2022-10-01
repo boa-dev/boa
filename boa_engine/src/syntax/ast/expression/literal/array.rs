@@ -1,6 +1,6 @@
 //! Array declaration Expression.
 
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
@@ -42,6 +42,19 @@ impl ArrayLiteral {
     /// This is a syntax error in some cases.
     pub(crate) fn has_trailing_comma_spread(&self) -> bool {
         self.has_trailing_comma_spread
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.arr
+            .iter()
+            .flatten()
+            .any(Expression::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.arr.iter().flatten().any(|expr| expr.contains(symbol))
     }
 }
 

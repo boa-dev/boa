@@ -1,9 +1,10 @@
 //! Async Function Expression.
 
+use crate::syntax::ast::expression::Identifier;
 use crate::syntax::ast::join_nodes;
 use crate::syntax::ast::statement::StatementList;
 use crate::syntax::ast::{expression::Expression, Statement};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;
 
@@ -19,7 +20,7 @@ use super::FormalParameterList;
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunction {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
 }
@@ -27,7 +28,7 @@ pub struct AsyncFunction {
 impl AsyncFunction {
     /// Creates a new function expression
     pub(in crate::syntax) fn new(
-        name: Option<Sym>,
+        name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
     ) -> Self {
@@ -39,7 +40,7 @@ impl AsyncFunction {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> Option<Sym> {
+    pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
@@ -57,7 +58,7 @@ impl AsyncFunction {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function".to_owned();
         if let Some(name) = self.name {
-            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
+            buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
         }
         buf.push_str(&format!(
             "({}",

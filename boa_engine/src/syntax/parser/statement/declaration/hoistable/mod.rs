@@ -22,6 +22,7 @@ use self::{
 use crate::syntax::{
     ast::statement::StatementList,
     ast::{
+        expression::Identifier,
         function::{function_contains_super, FormalParameterList},
         Keyword, Position, Punctuator, Statement,
     },
@@ -140,7 +141,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> Result<(Sym, FormalParameterList, StatementList), ParseError> {
+) -> Result<(Identifier, FormalParameterList, StatementList), ParseError> {
     let next_token = cursor.peek(0, interner)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
@@ -152,7 +153,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
                         c.error_context(),
                     ));
                 }
-                Sym::DEFAULT
+                Sym::DEFAULT.into()
             }
             _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
                 .parse(cursor, interner)?,
@@ -163,7 +164,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
     // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
         return Err(ParseError::lex(LexError::Syntax(
             "Unexpected eval or arguments in strict mode".into(),
             match cursor.peek(0, interner)? {

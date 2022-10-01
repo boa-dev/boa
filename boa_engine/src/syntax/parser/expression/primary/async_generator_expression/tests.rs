@@ -28,7 +28,7 @@ fn check_async_generator_expr() {
                 add.into(),
                 Some(
                     AsyncGenerator::new(
-                        Some(add),
+                        Some(add.into()),
                         FormalParameterList::default(),
                         vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                     )
@@ -59,14 +59,14 @@ fn check_nested_async_generator_expr() {
                 a.into(),
                 Some(
                     AsyncGenerator::new(
-                        Some(a),
+                        Some(a.into()),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::from_identifier(
                                 b.into(),
                                 Some(
                                     AsyncGenerator::new(
-                                        Some(b),
+                                        Some(b.into()),
                                         FormalParameterList::default(),
                                         vec![
                                             Return::new(Some(Literal::from(1).into()), None).into()

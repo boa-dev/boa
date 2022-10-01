@@ -1,6 +1,6 @@
 //! If statement
 
-use crate::syntax::ast::{expression::Expression, statement::Statement};
+use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
@@ -64,6 +64,20 @@ impl If {
             }
         }
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.condition.contains_arguments()
+            || self.body.contains_arguments()
+            || matches!(self.else_node, Some(ref stmt) if stmt.contains_arguments())
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.condition.contains(symbol)
+            || self.body.contains(symbol)
+            || matches!(self.else_node, Some(ref stmt) if stmt.contains(symbol))
     }
 }
 

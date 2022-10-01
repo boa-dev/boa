@@ -4,6 +4,7 @@ mod tests;
 use crate::syntax::{
     ast::{
         self,
+        expression::Identifier,
         function::{
             self, function_contains_super, has_direct_super, Class, FormalParameterList, Function,
         },
@@ -73,7 +74,7 @@ where
                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?
             }
-            _ if self.is_default.0 => Sym::DEFAULT,
+            _ if self.is_default.0 => Sym::DEFAULT.into(),
             _ => {
                 return Err(ParseError::unexpected(
                     token.to_string(interner),
@@ -98,14 +99,18 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ClassTail
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ClassTail {
-    name: Sym,
+    name: Identifier,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassTail {
     /// Creates a new `ClassTail` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(name: Sym, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(
+        name: Identifier,
+        allow_yield: Y,
+        allow_await: A,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -243,14 +248,18 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ClassBody
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ClassBody {
-    name: Sym,
+    name: Identifier,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassBody {
     /// Creates a new `ClassBody` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(name: Sym, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(
+        name: Identifier,
+        allow_yield: Y,
+        allow_await: A,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -510,14 +519,18 @@ pub(in crate::syntax) enum PrivateElement {
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ClassElement {
-    name: Sym,
+    name: Identifier,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
 
 impl ClassElement {
     /// Creates a new `ClassElement` parser.
-    pub(in crate::syntax::parser) fn new<Y, A>(name: Sym, allow_yield: Y, allow_await: A) -> Self
+    pub(in crate::syntax::parser) fn new<Y, A>(
+        name: Identifier,
+        allow_yield: Y,
+        allow_await: A,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -626,7 +639,7 @@ where
                             .parse(cursor, interner)?;
 
                     let lexically_declared_names = statement_list.lexically_declared_names();
-                    let mut lexically_declared_names_map: FxHashMap<Sym, bool> =
+                    let mut lexically_declared_names_map: FxHashMap<Identifier, bool> =
                         FxHashMap::default();
                     for (name, is_function_declaration) in &lexically_declared_names {
                         if let Some(existing_is_function_declaration) =
@@ -1073,7 +1086,7 @@ where
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let rhs = AssignmentExpression::new(
-                            name,
+                            Some(name.into()),
                             true,
                             self.allow_yield,
                             self.allow_await,
@@ -1162,7 +1175,7 @@ where
                         let strict = cursor.strict_mode();
                         cursor.set_strict_mode(true);
                         let rhs = AssignmentExpression::new(
-                            name.literal(),
+                            name.literal().map(Into::into),
                             true,
                             self.allow_yield,
                             self.allow_await,

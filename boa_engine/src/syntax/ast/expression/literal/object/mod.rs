@@ -4,6 +4,7 @@
 mod tests;
 
 use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::ContainsSymbol;
 
 use crate::syntax::ast::property::MethodDefinition;
 use crate::syntax::ast::property::PropertyDefinition;
@@ -48,7 +49,7 @@ impl ObjectLiteral {
         for property in self.properties().iter() {
             buf.push_str(&match property {
                 PropertyDefinition::IdentifierReference(ident) => {
-                    format!("{indentation}{},\n", interner.resolve_expect(*ident))
+                    format!("{indentation}{},\n", interner.resolve_expect(ident.sym()))
                 }
                 PropertyDefinition::Property(key, value) => {
                     format!(
@@ -60,7 +61,7 @@ impl ObjectLiteral {
                 PropertyDefinition::SpreadObject(key) => {
                     format!("{indentation}...{},\n", key.to_interned_string(interner))
                 }
-                PropertyDefinition::MethodDefinition(method, key) => {
+                PropertyDefinition::MethodDefinition(key, method) => {
                     format!(
                         "{indentation}{}{}({}) {},\n",
                         match &method {
@@ -106,7 +107,7 @@ impl ObjectLiteral {
                 PropertyDefinition::CoverInitializedName(ident, expr) => {
                     format!(
                         "{indentation}{} = {},\n",
-                        interner.resolve_expect(*ident),
+                        interner.resolve_expect(ident.sym()),
                         expr.to_no_indent_string(interner, indent_n + 1)
                     )
                 }
@@ -115,6 +116,18 @@ impl ObjectLiteral {
         buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
 
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.properties
+            .iter()
+            .any(PropertyDefinition::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.properties.iter().any(|prop| prop.contains(symbol))
     }
 }
 

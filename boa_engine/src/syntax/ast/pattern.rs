@@ -1,7 +1,10 @@
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
 use super::{
-    expression::access::{PropertyAccess, PropertyAccessField},
+    expression::{
+        access::{PropertyAccess, PropertyAccessField},
+        Identifier,
+    },
     property::PropertyName,
     ContainsSymbol, Expression,
 };
@@ -58,7 +61,7 @@ impl Pattern {
     ///
     /// A single pattern may have 0 to n identifiers.
     #[inline]
-    pub fn idents(&self) -> Vec<Sym> {
+    pub fn idents(&self) -> Vec<Identifier> {
         match &self {
             Pattern::Object(pattern) => pattern.idents(),
             Pattern::Array(pattern) => pattern.idents(),
@@ -74,7 +77,7 @@ impl Pattern {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            Pattern::Object(pattern) => pattern.contains_arguments(),
+            Pattern::Object(object) => object.contains_arguments(),
             Pattern::Array(array) => array.contains_arguments(),
         }
     }
@@ -85,6 +88,7 @@ impl Pattern {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             Pattern::Object(object) => object.contains(symbol),
@@ -168,13 +172,14 @@ impl PatternObject {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.0.iter().any(|e| e.contains(symbol))
     }
 
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         self.0
             .iter()
             .flat_map(PatternObjectElement::idents)
@@ -256,7 +261,7 @@ impl PatternArray {
 
     /// Gets the list of identifiers declared by the array binding pattern.
     #[inline]
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         self.0
             .iter()
             .flat_map(PatternArrayElement::idents)
@@ -289,7 +294,7 @@ pub enum PatternObjectElement {
     /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
         name: PropertyName,
-        ident: Sym,
+        ident: Identifier,
         default_init: Option<Expression>,
     },
 
@@ -302,7 +307,10 @@ pub enum PatternObjectElement {
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestProperty][spec1]
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
-    RestProperty { ident: Sym, excluded_keys: Vec<Sym> },
+    RestProperty {
+        ident: Identifier,
+        excluded_keys: Vec<Identifier>,
+    },
 
     /// AssignmentGetField represents an AssignmentProperty with an expression field member expression AssignmentElement.
     ///
@@ -330,7 +338,7 @@ pub enum PatternObjectElement {
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentRestProperty
     AssignmentRestPropertyAccess {
         access: PropertyAccess,
-        excluded_keys: Vec<Sym>,
+        excluded_keys: Vec<Identifier>,
     },
 
     /// Pattern represents a property with a `Pattern` as the element.
@@ -444,7 +452,7 @@ impl PatternObjectElement {
 
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         match self {
             Self::SingleName { ident, .. } | Self::RestProperty { ident, .. } => {
                 vec![*ident]
@@ -453,7 +461,7 @@ impl PatternObjectElement {
                 name: PropertyName::Literal(lit),
                 ..
             } => {
-                vec![*lit]
+                vec![(*lit).into()]
             }
             Self::Pattern { pattern, .. } => pattern.idents(),
             _ => Vec::new(),
@@ -467,25 +475,25 @@ impl ToInternedString for PatternObjectElement {
             Self::Empty => String::new(),
             Self::SingleName {
                 ident,
-                name: property_name,
+                name,
                 default_init,
             } => {
-                let mut buf = match property_name {
-                    PropertyName::Literal(name) if *name == *ident => {
-                        format!(" {}", interner.resolve_expect(*ident))
+                let mut buf = match name {
+                    PropertyName::Literal(name) if name == ident => {
+                        format!(" {}", interner.resolve_expect(ident.sym()))
                     }
                     PropertyName::Literal(name) => {
                         format!(
                             " {} : {}",
                             interner.resolve_expect(*name),
-                            interner.resolve_expect(*ident)
+                            interner.resolve_expect(ident.sym())
                         )
                     }
                     PropertyName::Computed(node) => {
                         format!(
                             " [{}] : {}",
                             node.to_interned_string(interner),
-                            interner.resolve_expect(*ident)
+                            interner.resolve_expect(ident.sym())
                         )
                     }
                 };
@@ -495,10 +503,10 @@ impl ToInternedString for PatternObjectElement {
                 buf
             }
             Self::RestProperty {
-                ident: property_name,
+                ident,
                 excluded_keys: _,
             } => {
-                format!(" ... {}", interner.resolve_expect(*property_name))
+                format!(" ... {}", interner.resolve_expect(ident.sym()))
             }
             Self::AssignmentRestPropertyAccess { access, .. } => {
                 format!(" ... {}", access.to_interned_string(interner))
@@ -597,7 +605,7 @@ pub enum PatternArrayElement {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
     SingleName {
-        ident: Sym,
+        ident: Identifier,
         default_init: Option<Expression>,
     },
 
@@ -631,7 +639,7 @@ pub enum PatternArrayElement {
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
-    SingleNameRest { ident: Sym },
+    SingleNameRest { ident: Identifier },
 
     /// PropertyAccess represents a rest (spread operator) with a property accessor.
     ///
@@ -757,7 +765,7 @@ impl PatternArrayElement {
 
     /// Gets the list of identifiers in the array pattern element.
     #[inline]
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         match self {
             Self::SingleName { ident, .. } => {
                 vec![*ident]
@@ -778,7 +786,7 @@ impl ToInternedString for PatternArrayElement {
                 ident,
                 default_init,
             } => {
-                let mut buf = format!(" {}", interner.resolve_expect(*ident));
+                let mut buf = format!(" {}", interner.resolve_expect(ident.sym()));
                 if let Some(ref init) = default_init {
                     buf.push_str(&format!(" = {}", init.to_interned_string(interner)));
                 }
@@ -798,7 +806,7 @@ impl ToInternedString for PatternArrayElement {
                 buf
             }
             Self::SingleNameRest { ident } => {
-                format!(" ... {}", interner.resolve_expect(*ident))
+                format!(" ... {}", interner.resolve_expect(ident.sym()))
             }
             Self::PropertyAccessRest { access } => {
                 format!(" ... {}", access.to_interned_string(interner))

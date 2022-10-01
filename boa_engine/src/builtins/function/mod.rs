@@ -591,7 +591,7 @@ impl BuiltInFunctionObject {
                         {
                             return context.throw_syntax_error(format!(
                                 "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(param_name)
+                                context.interner().resolve_expect(param_name.sym())
                             ));
                         }
                     }

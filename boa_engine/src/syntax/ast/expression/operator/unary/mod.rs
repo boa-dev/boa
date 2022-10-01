@@ -2,7 +2,7 @@ pub mod op;
 
 use boa_interner::{Interner, ToInternedString};
 
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 
 /// A unary operation is an operation with only one operand.
 ///
@@ -36,6 +36,16 @@ impl Unary {
     /// Gets the target of this unary operator.
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.target.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.target.contains(symbol)
     }
 }
 

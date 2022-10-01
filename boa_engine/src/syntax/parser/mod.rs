@@ -22,7 +22,7 @@ use crate::{
     },
     Context, JsString,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
@@ -30,7 +30,8 @@ pub use self::error::{ParseError, ParseResult};
 pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
 
 use super::ast::{
-    function::FormalParameterList, statement::StatementList, ContainsSymbol, Position,
+    expression::Identifier, function::FormalParameterList, statement::StatementList,
+    ContainsSymbol, Position,
 };
 
 /// Trait implemented by parsers.
@@ -307,7 +308,8 @@ impl Script {
                 let mut var_declared_names = FxHashSet::default();
                 statement_list.var_declared_names(&mut var_declared_names);
                 let lexically_declared_names = statement_list.lexically_declared_names();
-                let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+                let mut lexically_declared_names_map: FxHashMap<Identifier, bool> =
+                    FxHashMap::default();
                 for (name, is_function_declaration) in &lexically_declared_names {
                     if let Some(existing_is_function_declaration) =
                         lexically_declared_names_map.get(name)
@@ -334,7 +336,7 @@ impl Script {
                         ));
                     }
                     if !is_function_declaration {
-                        let name_str = context.interner().resolve_expect(*name);
+                        let name_str = context.interner().resolve_expect(name.sym());
                         let desc = context
                             .realm
                             .global_property_map

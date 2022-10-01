@@ -106,7 +106,7 @@ impl Eval {
                 .environments
                 .has_lex_binding_until_function_environment(&vars)
             {
-                let name = context.interner().resolve_expect(name);
+                let name = context.interner().resolve_expect(name.sym());
                 let msg = format!("variable declaration `{name}` in eval function already exists as lexically declaration");
                 return context.throw_syntax_error(msg);
             }

@@ -98,13 +98,13 @@ where
         let lexically_declared_names = catch_block.lexically_declared_names();
         match &catch_param {
             Some(Binding::Identifier(ident)) => {
-                if lexically_declared_names.contains(&(ident.sym(), false)) {
+                if lexically_declared_names.contains(&(*ident, false)) {
                     return Err(ParseError::general(
                         "catch parameter identifier declared in catch body",
                         position,
                     ));
                 }
-                if lexically_declared_names.contains(&(ident.sym(), true)) {
+                if lexically_declared_names.contains(&(*ident, true)) {
                     return Err(ParseError::general(
                         "catch parameter identifier declared in catch body",
                         position,
@@ -197,7 +197,7 @@ where
             TokenKind::Identifier(_) => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Binding::Identifier(ident.into()))
+                Ok(Binding::Identifier(ident))
             }
             _ => Err(ParseError::unexpected(
                 token.to_string(interner),

@@ -1,5 +1,7 @@
 //! Await expression Expression.
 
+use crate::syntax::ast::ContainsSymbol;
+
 use super::Expression;
 use boa_interner::{Interner, ToInternedString};
 
@@ -22,6 +24,16 @@ impl Await {
     /// Return the expression that should be awaited.
     pub(crate) fn expr(&self) -> &Expression {
         &self.expr
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.expr.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.expr.contains(symbol)
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::syntax::ast::{expression::Expression, statement::Statement};
+use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 /// The `do...while` statement creates a loop that executes a specified statement until the
@@ -61,6 +61,18 @@ impl DoWhileLoop {
         ));
 
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.body.contains_arguments()
+            || self.condition.contains_arguments()
+            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.body.contains(symbol) || self.condition.contains(symbol)
     }
 }
 

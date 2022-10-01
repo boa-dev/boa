@@ -1,4 +1,4 @@
-use crate::syntax::ast::expression::Call;
+use crate::syntax::ast::{expression::Call, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 
 use super::Expression;
@@ -38,6 +38,16 @@ impl New {
     /// Returns the inner call
     pub(crate) fn call(&self) -> &Call {
         &self.call
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.call.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.call.contains(symbol)
     }
 }
 

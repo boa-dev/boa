@@ -112,11 +112,11 @@ impl FunctionCompiler {
         if !(self.arrow) && !parameters.has_arguments() {
             compiler
                 .context
-                .create_mutable_binding(Sym::ARGUMENTS, false);
+                .create_mutable_binding(Sym::ARGUMENTS.into(), false);
             compiler.code_block.arguments_binding = Some(
                 compiler
                     .context
-                    .initialize_mutable_binding(Sym::ARGUMENTS, false),
+                    .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
             );
         }
 
@@ -125,20 +125,26 @@ impl FunctionCompiler {
                 compiler.emit_opcode(Opcode::RestParameterInit);
             }
 
-            if let Some(init) = parameter.declaration().init() {
-                let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
-                compiler.compile_expr(init, true)?;
-                compiler.patch_jump(skip);
-            }
-
             match parameter.declaration().binding() {
                 Binding::Identifier(ident) => {
-                    compiler.context.create_mutable_binding(ident.sym(), false);
-                    compiler.emit_binding(BindingOpcode::InitArg, ident.sym());
+                    compiler.context.create_mutable_binding(*ident, false);
+                    // TODO: throw custom error if ident is in init
+                    if let Some(init) = parameter.declaration().init() {
+                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                        compiler.compile_expr(init, true)?;
+                        compiler.patch_jump(skip);
+                    }
+                    compiler.emit_binding(BindingOpcode::InitArg, *ident);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in pattern.idents() {
                         compiler.context.create_mutable_binding(ident, false);
+                    }
+                    // TODO: throw custom error if ident is in init
+                    if let Some(init) = parameter.declaration().init() {
+                        let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
+                        compiler.compile_expr(init, true)?;
+                        compiler.patch_jump(skip);
                     }
                     compiler.compile_declaration_pattern(pattern, BindingOpcode::InitArg)?;
                 }

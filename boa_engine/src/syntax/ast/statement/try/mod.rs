@@ -61,20 +61,16 @@ impl Try {
         self.finally.as_ref().map(Finally::block)
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.block
-            .statements()
-            .iter()
-            .any(Statement::contains_arguments)
+        self.block.contains_arguments()
             || matches!(self.catch, Some(ref catch) if catch.contains_arguments())
             || matches!(self.finally, Some(ref finally) if finally.contains_arguments())
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.block
-            .statements()
-            .iter()
-            .any(|stmt| stmt.contains(symbol))
+        self.block.contains(symbol)
             || matches!(self.catch, Some(ref catch) if catch.contains(symbol))
             || matches!(self.finally, Some(ref finally) if finally.contains(symbol))
     }
@@ -134,6 +130,7 @@ impl Catch {
         &self.block
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.block
             .statements()
@@ -141,6 +138,7 @@ impl Catch {
             .any(Statement::contains_arguments)
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.block
             .statements()
@@ -182,6 +180,7 @@ impl Finally {
         &self.block
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.block
             .statements()
@@ -189,6 +188,7 @@ impl Finally {
             .any(Statement::contains_arguments)
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.block
             .statements()

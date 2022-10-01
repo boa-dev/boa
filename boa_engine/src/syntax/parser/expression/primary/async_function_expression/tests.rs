@@ -27,7 +27,7 @@ fn check_async_expression() {
                 add.into(),
                 Some(
                     AsyncFunction::new(
-                        Some(add),
+                        Some(add.into()),
                         FormalParameterList::default(),
                         vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
                     )
@@ -58,14 +58,14 @@ fn check_nested_async_expression() {
                 a.into(),
                 Some(
                     AsyncFunction::new(
-                        Some(a),
+                        Some(a.into()),
                         FormalParameterList::default(),
                         vec![DeclarationList::Const(
                             vec![Declaration::from_identifier(
                                 b.into(),
                                 Some(
                                     AsyncFunction::new(
-                                        Some(b),
+                                        Some(b.into()),
                                         FormalParameterList::default(),
                                         vec![
                                             Return::new(Some(Literal::from(1).into()), None).into()

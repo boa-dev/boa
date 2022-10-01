@@ -1,7 +1,7 @@
 //! Statement list node.
 
-use crate::syntax::ast::{statement::Statement, ContainsSymbol};
-use boa_interner::{Interner, Sym, ToInternedString};
+use crate::syntax::ast::{expression::Identifier, statement::Statement, ContainsSymbol};
+use boa_interner::{Interner, ToInternedString};
 
 use rustc_hash::FxHashSet;
 
@@ -69,7 +69,7 @@ impl StatementList {
         buf
     }
 
-    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Sym>) {
+    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
         for stmt in &*self.statements {
             stmt.var_declared_names(vars);
         }
@@ -85,7 +85,7 @@ impl StatementList {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-lexicallydeclarednames
-    pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
+    pub(crate) fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         let mut names = Vec::new();
 
         for node in self.statements() {
@@ -121,7 +121,7 @@ impl StatementList {
                         for decl in declarations.iter() {
                             match decl.binding() {
                                 Binding::Identifier(ident) => {
-                                    names.push((ident.sym(), false));
+                                    names.push((*ident, false));
                                 }
                                 Binding::Pattern(pattern) => {
                                     names.extend(
@@ -149,7 +149,7 @@ impl StatementList {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-toplevellexicallydeclarednames
-    pub(crate) fn lexically_declared_names_top_level(&self) -> Vec<Sym> {
+    pub(crate) fn lexically_declared_names_top_level(&self) -> Vec<Identifier> {
         let mut names = Vec::new();
 
         for node in self.statements() {
@@ -165,7 +165,7 @@ impl StatementList {
                     for decl in &**declarations {
                         match decl.binding() {
                             Binding::Identifier(ident) => {
-                                names.push(ident.sym());
+                                names.push(*ident);
                             }
                             Binding::Pattern(pattern) => {
                                 names.extend(pattern.idents());
@@ -180,17 +180,6 @@ impl StatementList {
         names
     }
 
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.statements.iter().any(|stmt| stmt.contains(symbol))
-    }
-
     /// Returns true if the node contains a identifier reference named 'arguments'.
     ///
     /// More information:
@@ -200,6 +189,17 @@ impl StatementList {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.statements.iter().any(Statement::contains_arguments)
+    }
+
+    /// Returns `true` if the node contains the given token.
+    ///
+    /// More information:
+    ///  - [ECMAScript specification][spec]
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.statements.iter().any(|stmt| stmt.contains(symbol))
     }
 }
 

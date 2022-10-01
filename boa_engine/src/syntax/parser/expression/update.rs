@@ -8,7 +8,10 @@
 use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::{
     ast::{
-        expression::operator::{unary::op::UnaryOp, Unary},
+        expression::{
+            operator::{unary::op::UnaryOp, Unary},
+            Identifier,
+        },
         Expression, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
@@ -29,7 +32,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct UpdateExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -38,7 +41,7 @@ impl UpdateExpression {
     /// Creates a new `UpdateExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {

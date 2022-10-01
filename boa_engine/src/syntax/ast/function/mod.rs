@@ -16,9 +16,9 @@ pub(crate) use parameters::FormalParameterListFlags;
 
 use crate::syntax::ast::statement::StatementList;
 use crate::syntax::ast::{block_to_string, join_nodes};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
-use super::expression::Expression;
+use super::expression::{Expression, Identifier};
 use super::{ContainsSymbol, Statement};
 
 /// The `function` expression defines a function with the specified parameters.
@@ -40,7 +40,7 @@ use super::{ContainsSymbol, Statement};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
 }
@@ -48,7 +48,7 @@ pub struct Function {
 impl Function {
     /// Creates a new function expression
     pub(in crate::syntax) fn new(
-        name: Option<Sym>,
+        name: Option<Identifier>,
         parameters: FormalParameterList,
         body: StatementList,
     ) -> Self {
@@ -60,7 +60,7 @@ impl Function {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> Option<Sym> {
+    pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
@@ -78,7 +78,7 @@ impl Function {
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function".to_owned();
         if let Some(name) = self.name {
-            buf.push_str(&format!(" {}", interner.resolve_expect(name)));
+            buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
         }
         buf.push_str(&format!(
             "({}) {}",

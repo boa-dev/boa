@@ -118,7 +118,7 @@ where
             if next_param.init().is_some() {
                 flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
             }
-            if next_param.names().contains(&Sym::ARGUMENTS) {
+            if next_param.names().contains(&Sym::ARGUMENTS.into()) {
                 flags |= FormalParameterListFlags::HAS_ARGUMENTS;
             }
 
@@ -335,7 +335,7 @@ where
                         })
                         .transpose()?;
 
-                    Declaration::from_identifier(params.into(), init)
+                    Declaration::from_identifier(params, init)
                 }
             };
             Ok(Self::Output::new(declaration, true))
@@ -442,7 +442,7 @@ where
                         None
                     };
 
-                    Declaration::from_identifier(ident.into(), init)
+                    Declaration::from_identifier(ident, init)
                 }
             };
             Ok(Self::Output::new(declaration, false))

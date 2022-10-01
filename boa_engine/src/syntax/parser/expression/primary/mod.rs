@@ -71,7 +71,7 @@ pub(in crate::syntax::parser) use object_initializer::Initializer;
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PrimaryExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -80,7 +80,7 @@ impl PrimaryExpression {
     /// Creates a new `PrimaryExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -288,7 +288,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
 #[derive(Debug, Clone, Copy)]
 pub(super) struct CoverParenthesizedExpressionAndArrowParameterList {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -297,7 +297,7 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
     /// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -321,7 +321,7 @@ where
             Expression(ast::Expression),
             SpreadObject(Vec<PatternObjectElement>),
             SpreadArray(Vec<PatternArrayElement>),
-            SpreadBinding(Sym),
+            SpreadBinding(Identifier),
         }
 
         let _timer = Profiler::global().start_event(
@@ -455,7 +455,7 @@ where
                     parameters.push(parameter);
                 }
                 InnerExpression::SpreadBinding(ident) => {
-                    let declaration = Declaration::from_identifier(ident.into(), None);
+                    let declaration = Declaration::from_identifier(ident, None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
@@ -492,13 +492,13 @@ fn expression_to_formal_parameters(
     span: Span,
 ) -> Result<(), ParseError> {
     match node {
-        ast::Expression::Identifier(identifier) if strict && identifier.sym() == Sym::EVAL => {
+        ast::Expression::Identifier(identifier) if strict && *identifier == Sym::EVAL => {
             return Err(ParseError::general(
                 "parameter name 'eval' not allowed in strict mode",
                 span.start(),
             ));
         }
-        ast::Expression::Identifier(identifier) if strict && identifier.sym() == Sym::ARGUMENTS => {
+        ast::Expression::Identifier(identifier) if strict && *identifier == Sym::ARGUMENTS => {
             return Err(ParseError::general(
                 "parameter name 'arguments' not allowed in strict mode",
                 span.start(),

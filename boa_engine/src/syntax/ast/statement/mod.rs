@@ -22,17 +22,17 @@ pub use self::{
     throw::Throw,
 };
 use self::{
-    declaration::{Binding, Declaration, DeclarationList},
+    declaration::{Binding, DeclarationList},
     iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
 };
 
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 use rustc_hash::FxHashSet;
 use std::cmp::Ordering;
 
 use super::{
-    expression::Expression,
-    function::{AsyncFunction, AsyncGenerator, Class, ClassElement, Function, Generator},
+    expression::{Expression, Identifier},
+    function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
     ContainsSymbol,
 };
 
@@ -179,7 +179,7 @@ impl Statement {
         }
     }
 
-    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Sym>) {
+    pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
         match self {
             Statement::DeclarationList(DeclarationList::Var(list)) => {
                 for decl in &**list {
@@ -211,7 +211,7 @@ impl Statement {
                     for declaration in declarations.iter() {
                         match declaration.binding() {
                             Binding::Identifier(ident) => {
-                                vars.insert(ident.sym());
+                                vars.insert(*ident);
                             }
                             Binding::Pattern(pattern) => {
                                 for ident in pattern.idents() {
@@ -273,60 +273,27 @@ impl Statement {
     // TODO: replace with a visitor
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
+            Self::Function(_)
+            | Self::Generator(_)
+            | Self::AsyncGenerator(_)
+            | Self::AsyncFunction(_)
+            | Self::Empty => false,
+            Statement::Block(block) => block.contains_arguments(),
+            Statement::DeclarationList(decl) => decl.contains_arguments(),
             Statement::Expression(expr) => expr.contains_arguments(),
-
-            Statement::Block(block) => block.statements().iter().any(Statement::contains_arguments),
-            Statement::DoWhileLoop(do_while_loop) => {
-                do_while_loop.body().contains_arguments()
-                    || do_while_loop.cond().contains_arguments()
-            }
-            Statement::ForLoop(for_loop) => {
-                matches!(for_loop.init(), Some(expr) if expr.contains_arguments())
-                    || matches!(for_loop.condition(), Some(expr) if expr.contains_arguments())
-                    || matches!(for_loop.final_expr(), Some(expr) if expr.contains_arguments())
-                    || for_loop.body().contains_arguments()
-            }
-            Statement::ForInLoop(for_in_loop) => {
-                for_in_loop.init().contains_arguments()
-                    || for_in_loop.expr().contains_arguments()
-                    || for_in_loop.body().contains_arguments()
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                for_of_loop.init().contains_arguments()
-                    || for_of_loop.iterable().contains_arguments()
-                    || for_of_loop.body().contains_arguments()
-            }
-            Statement::If(r#if) => {
-                r#if.cond().contains_arguments()
-                    || r#if.body().contains_arguments()
-                    || matches!(r#if.else_node(), Some(node) if node.contains_arguments())
-            }
-
-            Statement::DeclarationList(decl_list) => decl_list
-                .as_ref()
-                .iter()
-                .any(Declaration::contains_arguments),
-            Statement::Return(r#return) => {
-                matches!(r#return.expr(), Some(expr) if expr.contains_arguments())
-            }
-            Statement::Switch(switch) => {
-                switch.val().contains_arguments()
-                    || switch.cases().iter().any(Case::contains_arguments)
-            }
-            Statement::Throw(throw) => throw.expr().contains_arguments(),
+            Statement::If(r#if) => r#if.contains_arguments(),
+            Statement::DoWhileLoop(dowhile) => dowhile.contains_arguments(),
+            Statement::WhileLoop(whileloop) => whileloop.contains_arguments(),
+            Statement::ForLoop(forloop) => forloop.contains_arguments(),
+            Statement::ForInLoop(forin) => forin.contains_arguments(),
+            Statement::ForOfLoop(forof) => forof.contains_arguments(),
+            Statement::Switch(switch) => switch.contains_arguments(),
+            Statement::Continue(r#continue) => r#continue.contains_arguments(),
+            Statement::Break(r#break) => r#break.contains_arguments(),
+            Statement::Return(r#return) => r#return.contains_arguments(),
+            Statement::Throw(throw) => throw.contains_arguments(),
             Statement::Try(r#try) => r#try.contains_arguments(),
-            Statement::WhileLoop(while_loop) => {
-                while_loop.condition().contains_arguments()
-                    || while_loop.body().contains_arguments()
-            }
-            Statement::Class(class) => {
-                matches!(class.super_ref(), Some(expr) if expr.contains_arguments())
-                    || class
-                        .elements()
-                        .iter()
-                        .any(ClassElement::contains_arguments)
-            }
-            _ => false,
+            Statement::Class(class) => class.contains_arguments(),
         }
     }
 
@@ -339,54 +306,27 @@ impl Statement {
     // TODO: replace with a visitor
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
+            Self::Function(_)
+            | Self::Generator(_)
+            | Self::AsyncGenerator(_)
+            | Self::AsyncFunction(_)
+            | Self::Empty
+            | Self::Continue(_)
+            | Self::Break(_) => false,
+            Statement::Block(block) => block.contains(symbol),
+            Statement::DeclarationList(decl) => decl.contains(symbol),
             Statement::Expression(expr) => expr.contains(symbol),
-
-            Statement::Block(block) => block.statements().iter().any(|stmt| stmt.contains(symbol)),
-            Statement::DoWhileLoop(do_while_loop) => {
-                do_while_loop.body().contains(symbol) || do_while_loop.cond().contains(symbol)
-            }
-            Statement::ForLoop(for_loop) => {
-                matches!(for_loop.init(), Some(expr) if expr.contains(symbol))
-                    || matches!(for_loop.condition(), Some(expr) if expr.contains(symbol))
-                    || matches!(for_loop.final_expr(), Some(expr) if expr.contains(symbol))
-                    || for_loop.body().contains(symbol)
-            }
-            Statement::ForInLoop(for_in_loop) => {
-                for_in_loop.init().contains(symbol)
-                    || for_in_loop.expr().contains(symbol)
-                    || for_in_loop.body().contains(symbol)
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                for_of_loop.init().contains(symbol)
-                    || for_of_loop.iterable().contains(symbol)
-                    || for_of_loop.body().contains(symbol)
-            }
-            Statement::If(r#if) => {
-                r#if.cond().contains(symbol)
-                    || r#if.body().contains(symbol)
-                    || matches!(r#if.else_node(), Some(expr) if expr.contains(symbol))
-            }
-
-            Statement::DeclarationList(decl_list) => {
-                decl_list.as_ref().iter().any(|decl| decl.contains(symbol))
-            }
-            Statement::Return(r#return) => {
-                matches!(r#return.expr(), Some(expr) if expr.contains(symbol))
-            }
-            Statement::Switch(switch) => {
-                switch.val().contains(symbol)
-                    || switch.cases().iter().any(|case| case.contains(symbol))
-            }
-            Statement::Throw(throw) => throw.expr().contains(symbol),
+            Statement::If(r#if) => r#if.contains(symbol),
+            Statement::DoWhileLoop(dowhile) => dowhile.contains(symbol),
+            Statement::WhileLoop(whileloop) => whileloop.contains(symbol),
+            Statement::ForLoop(forloop) => forloop.contains(symbol),
+            Statement::ForInLoop(forin) => forin.contains(symbol),
+            Statement::ForOfLoop(forof) => forof.contains(symbol),
+            Statement::Switch(switch) => switch.contains(symbol),
+            Statement::Return(r#return) => r#return.contains(symbol),
+            Statement::Throw(throw) => throw.contains(symbol),
             Statement::Try(r#try) => r#try.contains(symbol),
-            Statement::WhileLoop(while_loop) => {
-                while_loop.condition().contains(symbol) || while_loop.body().contains(symbol)
-            }
-            Statement::Class(class) => {
-                matches!(class.super_ref(), Some(expr) if expr.contains(symbol))
-                    || class.elements().iter().any(|elem| elem.contains(symbol))
-            }
-            _ => false,
+            Statement::Class(class) => class.contains(symbol),
         }
     }
 }

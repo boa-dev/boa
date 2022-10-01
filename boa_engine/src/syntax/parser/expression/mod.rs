@@ -22,9 +22,12 @@ mod tests;
 use crate::syntax::{
     ast::{
         self,
-        expression::operator::{
-            binary::op::{BinaryOp, LogicalOp},
-            Binary,
+        expression::{
+            operator::{
+                binary::op::{BinaryOp, LogicalOp},
+                Binary,
+            },
+            Identifier,
         },
         Keyword, Punctuator,
     },
@@ -34,7 +37,7 @@ use crate::syntax::{
         ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -134,7 +137,7 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
 /// [spec]: https://tc39.es/ecma262/#prod-Expression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct Expression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -144,7 +147,7 @@ impl Expression {
     /// Creates a new `Expression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -231,7 +234,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression
 #[derive(Debug, Clone, Copy)]
 struct ShortCircuitExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -249,7 +252,7 @@ impl ShortCircuitExpression {
     /// Creates a new `ShortCircuitExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -271,7 +274,7 @@ impl ShortCircuitExpression {
         previous: PreviousExpr,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -383,7 +386,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseORExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -393,7 +396,7 @@ impl BitwiseORExpression {
     /// Creates a new `BitwiseORExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -425,7 +428,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseXORExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -435,7 +438,7 @@ impl BitwiseXORExpression {
     /// Creates a new `BitwiseXORExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -467,7 +470,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression
 #[derive(Debug, Clone, Copy)]
 struct BitwiseANDExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -477,7 +480,7 @@ impl BitwiseANDExpression {
     /// Creates a new `BitwiseANDExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -509,7 +512,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-equality-operators
 #[derive(Debug, Clone, Copy)]
 struct EqualityExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -519,7 +522,7 @@ impl EqualityExpression {
     /// Creates a new `EqualityExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -556,7 +559,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-relational-operators
 #[derive(Debug, Clone, Copy)]
 struct RelationalExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -566,7 +569,7 @@ impl RelationalExpression {
     /// Creates a new `RelationalExpression` parser.
     pub(super) fn new<N, I, Y, A>(name: N, allow_in: I, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -645,7 +648,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators
 #[derive(Debug, Clone, Copy)]
 struct ShiftExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -654,7 +657,7 @@ impl ShiftExpression {
     /// Creates a new `ShiftExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -690,7 +693,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-additive-operators
 #[derive(Debug, Clone, Copy)]
 struct AdditiveExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -699,7 +702,7 @@ impl AdditiveExpression {
     /// Creates a new `AdditiveExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -731,7 +734,7 @@ expression!(
 /// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators
 #[derive(Debug, Clone, Copy)]
 struct MultiplicativeExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -740,7 +743,7 @@ impl MultiplicativeExpression {
     /// Creates a new `MultiplicativeExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {

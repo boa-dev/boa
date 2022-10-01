@@ -1,5 +1,7 @@
 //! Block AST node.
 
+use crate::syntax::ast::{expression::Identifier, ContainsSymbol};
+
 use super::{Statement, StatementList};
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -33,7 +35,7 @@ impl Block {
     }
 
     /// Get the lexically declared names of the block.
-    pub(crate) fn lexically_declared_names(&self) -> Vec<(Sym, bool)> {
+    pub(crate) fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         self.statements.lexically_declared_names()
     }
 
@@ -53,6 +55,16 @@ impl Block {
 
     pub fn set_label(&mut self, label: Sym) {
         self.label = Some(label);
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.statements.contains_arguments()
+            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+    }
+
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.statements.contains(symbol)
     }
 }
 

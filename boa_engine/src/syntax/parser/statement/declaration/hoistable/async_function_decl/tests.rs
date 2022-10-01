@@ -15,7 +15,11 @@ fn async_function_declaration() {
     check_parser(
         "async function hello() {}",
         vec![AsyncFunction::new(
-            Some(interner.get_or_intern_static("hello", utf16!("hello"))),
+            Some(
+                interner
+                    .get_or_intern_static("hello", utf16!("hello"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
         )
@@ -31,7 +35,11 @@ fn async_function_declaration_keywords() {
     check_parser(
         "async function yield() {}",
         vec![AsyncFunction::new(
-            Some(interner.get_or_intern_static("yield", utf16!("yield"))),
+            Some(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
         )
@@ -43,7 +51,11 @@ fn async_function_declaration_keywords() {
     check_parser(
         "async function await() {}",
         vec![AsyncFunction::new(
-            Some(interner.get_or_intern_static("await", utf16!("await"))),
+            Some(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
         )

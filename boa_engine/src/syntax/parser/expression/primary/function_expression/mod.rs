@@ -12,6 +12,7 @@ mod tests;
 
 use crate::syntax::{
     ast::{
+        expression::Identifier,
         function::{function_contains_super, Function},
         Keyword, Position, Punctuator,
     },
@@ -36,14 +37,14 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-FunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct FunctionExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
 }
 
 impl FunctionExpression {
     /// Creates a new `FunctionExpression` parser.
     pub(in crate::syntax::parser) fn new<N>(name: N) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
     {
         Self { name: name.into() }
     }
@@ -73,8 +74,8 @@ where
 
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-        if let Some(name) = &name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(name) {
+        if let Some(name) = name {
+            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
                     match cursor.peek(0, interner)? {

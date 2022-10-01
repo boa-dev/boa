@@ -1,7 +1,8 @@
-use crate::syntax::ast::expression::Expression;
+use crate::syntax::ast::expression::Identifier;
 use crate::syntax::ast::join_nodes;
 use crate::syntax::ast::statement::StatementList;
-use boa_interner::{Interner, Sym, ToInternedString};
+use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;
 
@@ -21,7 +22,7 @@ use super::FormalParameterList;
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrowFunction {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     parameters: FormalParameterList,
     body: StatementList,
 }
@@ -29,7 +30,7 @@ pub struct ArrowFunction {
 impl ArrowFunction {
     /// Creates a new `ArrowFunctionDecl` AST Expression.
     pub(in crate::syntax) fn new(
-        name: Option<Sym>,
+        name: Option<Identifier>,
         params: FormalParameterList,
         body: StatementList,
     ) -> Self {
@@ -41,12 +42,12 @@ impl ArrowFunction {
     }
 
     /// Gets the name of the function declaration.
-    pub fn name(&self) -> Option<Sym> {
+    pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Sets the name of the function declaration.
-    pub fn set_name(&mut self, name: Option<Sym>) {
+    pub fn set_name(&mut self, name: Option<Identifier>) {
         self.name = name;
     }
 
@@ -73,6 +74,26 @@ impl ArrowFunction {
             ));
         }
         buf
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.parameters.contains_arguments() || self.body.contains_arguments()
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        if ![
+            ContainsSymbol::NewTarget,
+            ContainsSymbol::SuperProperty,
+            ContainsSymbol::SuperCall,
+            ContainsSymbol::This,
+        ]
+        .contains(&symbol)
+        {
+            return false;
+        }
+        self.parameters.contains(symbol) || self.body.contains(symbol)
     }
 }
 

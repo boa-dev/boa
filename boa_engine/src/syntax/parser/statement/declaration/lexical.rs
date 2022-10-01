@@ -281,7 +281,7 @@ where
 
                 let declaration = Pattern::Object(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET) {
+                if declaration.idents().contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -314,7 +314,7 @@ where
 
                 let declaration = Pattern::Array(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET) {
+                if declaration.idents().contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
@@ -351,7 +351,7 @@ where
                 } else {
                     None
                 };
-                Ok(Declaration::from_identifier(ident.into(), init))
+                Ok(Declaration::from_identifier(ident, init))
             }
         }
     }

@@ -11,6 +11,7 @@ use super::AssignmentExpression;
 use crate::syntax::{
     ast::{
         self,
+        expression::Identifier,
         function::{FormalParameter, FormalParameterList, FormalParameterListFlags},
         statement::{declaration::Declaration, Return, StatementList},
         Expression, Punctuator,
@@ -37,7 +38,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ArrowFunction {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -52,7 +53,7 @@ impl ArrowFunction {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -101,7 +102,7 @@ where
                 (
                     FormalParameterList::new(
                         Box::new([FormalParameter::new(
-                            Declaration::from_identifier(param.into(), None),
+                            Declaration::from_identifier(param, None),
                             false,
                         )]),
                         flags,

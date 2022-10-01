@@ -1,5 +1,7 @@
 use boa_interner::{Interner, ToInternedString};
 
+use crate::syntax::ast::ContainsSymbol;
+
 use super::Expression;
 
 /// The `yield` keyword is used to pause and resume a generator function
@@ -32,6 +34,16 @@ impl Yield {
             expr: expr.map(Box::new),
             delegate,
         }
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        matches!(self.expr, Some(ref expr) if expr.contains_arguments())
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        matches!(self.expr, Some(ref expr) if expr.contains(symbol))
     }
 }
 

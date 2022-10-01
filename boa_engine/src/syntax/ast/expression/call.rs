@@ -1,4 +1,4 @@
-use crate::syntax::ast::join_nodes;
+use crate::syntax::ast::{join_nodes, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 
 use super::Expression;
@@ -41,6 +41,16 @@ impl Call {
     /// Retrieves the arguments passed to the function.
     pub fn args(&self) -> &[Expression] {
         &self.args
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.target.contains_arguments() || self.args.iter().any(Expression::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.target.contains(symbol) || self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 
@@ -86,6 +96,16 @@ impl SuperCall {
     /// Retrieves the arguments of the super call.
     pub(crate) fn args(&self) -> &[Expression] {
         &self.args
+    }
+
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.args.iter().any(Expression::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 

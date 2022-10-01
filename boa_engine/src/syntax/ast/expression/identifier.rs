@@ -26,9 +26,22 @@ use super::Expression;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "deser", serde(transparent))]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[repr(transparent)]
 pub struct Identifier {
     ident: Sym,
+}
+
+impl PartialEq<Sym> for Identifier {
+    fn eq(&self, other: &Sym) -> bool {
+        self.ident == *other
+    }
+}
+
+impl PartialEq<Identifier> for Sym {
+    fn eq(&self, other: &Identifier) -> bool {
+        *self == other.ident
+    }
 }
 
 impl Identifier {

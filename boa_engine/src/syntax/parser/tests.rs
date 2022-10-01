@@ -99,7 +99,9 @@ fn assign_operator_precedence() {
 #[test]
 fn hoisting() {
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
+    let hello = interner
+        .get_or_intern_static("hello", utf16!("hello"))
+        .into();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         r"
@@ -117,7 +119,7 @@ fn hoisting() {
             DeclarationList::Var(
                 vec![Declaration::from_identifier(
                     a.into(),
-                    Some(Call::new(Identifier::new(hello).into(), Box::default()).into()),
+                    Some(Call::new(hello.into(), Box::default()).into()),
                 )]
                 .into(),
             )

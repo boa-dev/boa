@@ -230,7 +230,7 @@ where
                 } else {
                     None
                 };
-                Ok(Declaration::from_identifier(ident.into(), init))
+                Ok(Declaration::from_identifier(ident, init))
             }
         }
     }

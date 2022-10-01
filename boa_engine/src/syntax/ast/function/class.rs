@@ -1,10 +1,16 @@
 use std::borrow::Cow;
 
-use crate::string::ToStringEscaped;
-use crate::syntax::ast::expression::Expression;
-use crate::syntax::ast::property::{MethodDefinition, PropertyName};
-use crate::syntax::ast::statement::StatementList;
-use crate::syntax::ast::{block_to_string, join_nodes, ContainsSymbol, Statement};
+use crate::{
+    string::ToStringEscaped,
+    syntax::ast::{
+        block_to_string,
+        expression::{Expression, Identifier},
+        join_nodes,
+        property::{MethodDefinition, PropertyName},
+        statement::StatementList,
+        ContainsSymbol, Statement,
+    },
+};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use super::Function;
@@ -22,7 +28,7 @@ use super::Function;
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Class {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     super_ref: Option<Expression>,
     constructor: Option<Function>,
     elements: Box<[ClassElement]>,
@@ -31,7 +37,7 @@ pub struct Class {
 impl Class {
     /// Creates a new class declaration.
     pub(in crate::syntax) fn new(
-        name: Option<Sym>,
+        name: Option<Identifier>,
         super_ref: Option<Expression>,
         constructor: Option<Function>,
         elements: Box<[ClassElement]>,
@@ -45,7 +51,7 @@ impl Class {
     }
 
     /// Returns the name of the class.
-    pub(crate) fn name(&self) -> Option<Sym> {
+    pub(crate) fn name(&self) -> Option<Identifier> {
         self.name
     }
 
@@ -64,10 +70,29 @@ impl Class {
         &self.elements
     }
 
+    pub(crate) fn contains_arguments(&self) -> bool {
+        matches!(self.name, Some(ref ident) if *ident == Sym::ARGUMENTS)
+            || matches!(self.super_ref, Some(ref expr) if expr.contains_arguments())
+            || self.elements.iter().any(ClassElement::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        if symbol == ContainsSymbol::ClassBody && !self.elements.is_empty() {
+            return true;
+        }
+        if symbol == ContainsSymbol::ClassHeritage {
+            return self.super_ref.is_some();
+        }
+
+        matches!(self.super_ref, Some(ref expr) if expr.contains(symbol))
+            || self.elements.iter().any(|elem| elem.contains(symbol))
+    }
+
     /// Implements the display formatting with indentation.
     pub(crate) fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let class_name = self.name.map_or(Cow::Borrowed(""), |s| {
-            interner.resolve_expect(s).join(
+            interner.resolve_expect(s.sym()).join(
                 Cow::Borrowed,
                 |utf16| Cow::Owned(utf16.to_string_escaped()),
                 true,
@@ -371,30 +396,19 @@ pub enum ClassElement {
 }
 
 impl ClassElement {
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            Self::MethodDefinition(_, method) | Self::StaticMethodDefinition(_, method) => {
-                match method {
-                    MethodDefinition::Get(function)
-                    | MethodDefinition::Set(function)
-                    | MethodDefinition::Ordinary(function) => {
-                        matches!(function.name(), Some(Sym::ARGUMENTS))
-                    }
-                    MethodDefinition::Generator(generator) => {
-                        matches!(generator.name(), Some(Sym::ARGUMENTS))
-                    }
-                    MethodDefinition::AsyncGenerator(async_generator) => {
-                        matches!(async_generator.name(), Some(Sym::ARGUMENTS))
-                    }
-                    MethodDefinition::Async(function) => {
-                        matches!(function.name(), Some(Sym::ARGUMENTS))
-                    }
-                }
+            // Skipping function since they must not have names
+            Self::MethodDefinition(name, _) | Self::StaticMethodDefinition(name, _) => {
+                name.contains_arguments()
             }
-            Self::FieldDefinition(_, Some(node))
-            | Self::StaticFieldDefinition(_, Some(node))
-            | Self::PrivateFieldDefinition(_, Some(node))
-            | Self::PrivateStaticFieldDefinition(_, Some(node)) => node.contains_arguments(),
+            Self::FieldDefinition(name, Some(init))
+            | Self::StaticFieldDefinition(name, Some(init)) => {
+                name.contains_arguments() || init.contains_arguments()
+            }
+            Self::PrivateFieldDefinition(_, Some(init))
+            | Self::PrivateStaticFieldDefinition(_, Some(init)) => init.contains_arguments(),
             Self::StaticBlock(statement_list) => statement_list
                 .statements()
                 .iter()
@@ -403,14 +417,20 @@ impl ClassElement {
         }
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
-            Self::MethodDefinition(name, _)
-            | Self::StaticMethodDefinition(name, _)
-            | Self::FieldDefinition(name, _)
-            | Self::StaticFieldDefinition(name, _) => {
-                matches!(name.computed(), Some(expr) if expr.contains(symbol))
+            // Skipping function since they must not have names
+            Self::MethodDefinition(name, _) | Self::StaticMethodDefinition(name, _) => {
+                name.contains(symbol)
             }
+            Self::FieldDefinition(name, Some(init))
+            | Self::StaticFieldDefinition(name, Some(init)) => {
+                name.contains(symbol) || init.contains(symbol)
+            }
+            Self::PrivateFieldDefinition(_, Some(init))
+            | Self::PrivateStaticFieldDefinition(_, Some(init)) => init.contains(symbol),
+            Self::StaticBlock(_statement_list) => false,
             _ => false,
         }
     }

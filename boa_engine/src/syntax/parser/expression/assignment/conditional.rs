@@ -8,14 +8,17 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{expression::operator::conditional::Conditional, Expression, Punctuator},
+    ast::{
+        expression::{operator::conditional::Conditional, Identifier},
+        Expression, Punctuator,
+    },
     lexer::TokenKind,
     parser::{
         expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -29,7 +32,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::expression) struct ConditionalExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -44,7 +47,7 @@ impl ConditionalExpression {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,

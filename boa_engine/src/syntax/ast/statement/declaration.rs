@@ -6,7 +6,7 @@ use crate::syntax::ast::{
     statement::Statement,
     ContainsSymbol,
 };
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -72,12 +72,13 @@ pub enum DeclarationList {
 }
 
 impl DeclarationList {
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.as_ref().iter().any(|decl| decl.contains(symbol))
-    }
-
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.as_ref().iter().any(Declaration::contains_arguments)
+    }
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.as_ref().iter().any(|decl| decl.contains(symbol))
     }
 }
 
@@ -180,6 +181,7 @@ impl Declaration {
         self.init.as_ref()
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         if let Some(ref node) = self.init {
             if node.contains_arguments() {
@@ -195,6 +197,7 @@ impl Declaration {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         if let Some(ref node) = self.init {
             if node.contains(symbol) {
@@ -205,7 +208,7 @@ impl Declaration {
     }
 
     /// Gets the list of declared identifiers.
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         self.binding.idents()
     }
 }
@@ -251,9 +254,9 @@ impl Binding {
     }
 
     /// Gets the list of declared identifiers.
-    pub(crate) fn idents(&self) -> Vec<Sym> {
+    pub(crate) fn idents(&self) -> Vec<Identifier> {
         match self {
-            Binding::Identifier(id) => vec![id.sym()],
+            Binding::Identifier(id) => vec![*id],
             Binding::Pattern(ref pat) => pat.idents(),
         }
     }

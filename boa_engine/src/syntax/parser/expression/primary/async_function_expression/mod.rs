@@ -3,7 +3,8 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        function::function_contains_super, function::AsyncFunction, Keyword, Position, Punctuator,
+        expression::Identifier, function::function_contains_super, function::AsyncFunction,
+        Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -26,7 +27,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
 }
 
@@ -34,7 +35,7 @@ impl AsyncFunctionExpression {
     /// Creates a new `AsyncFunctionExpression` parser.
     pub(super) fn new<N, Y>(name: N, allow_yield: Y) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
     {
         Self {
@@ -71,7 +72,7 @@ where
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
         if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
                     match cursor.peek(0, interner)? {

@@ -13,7 +13,7 @@ use crate::syntax::{
             access::{
                 PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SuperPropertyAccess,
             },
-            Call, New,
+            Call, Identifier, New,
         },
         Keyword, Punctuator,
     },
@@ -37,7 +37,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct MemberExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -46,7 +46,7 @@ impl MemberExpression {
     /// Creates a new `MemberExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {

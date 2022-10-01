@@ -15,7 +15,11 @@ fn function_declaration() {
     check_parser(
         "function hello() {}",
         vec![Function::new(
-            Some(interner.get_or_intern_static("hello", utf16!("hello"))),
+            Some(
+                interner
+                    .get_or_intern_static("hello", utf16!("hello"))
+                    .into(),
+            ),
             FormalParameterList::default(),
             StatementList::default(),
         )
@@ -30,7 +34,11 @@ fn function_declaration_keywords() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
             vec![Function::new(
-                Some($interner.get_or_intern_static($keyword, utf16!($keyword))),
+                Some(
+                    $interner
+                        .get_or_intern_static($keyword, utf16!($keyword))
+                        .into(),
+                ),
                 FormalParameterList::default(),
                 StatementList::default(),
             )

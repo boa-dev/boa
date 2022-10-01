@@ -1,17 +1,14 @@
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use self::{
-    access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SuperPropertyAccess},
-    literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral},
-    operator::{assign::AssignTarget, conditional::Conditional, Assign, Binary, Unary},
+    access::{PrivatePropertyAccess, PropertyAccess, SuperPropertyAccess},
+    literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
+    operator::{conditional::Conditional, Assign, Binary, Unary},
 };
 
 use super::{
     function::FormalParameterList,
-    function::{
-        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, Function, Generator,
-    },
-    property::{MethodDefinition, PropertyDefinition},
+    function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, Function, Generator},
     ContainsSymbol, Statement,
 };
 
@@ -194,212 +191,39 @@ impl Expression {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
     // TODO: replace with a visitor
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            Expression::Identifier(ident) if ident.sym() == Sym::ARGUMENTS => return true,
-            Expression::ArrayLiteral(array) => {
-                for expr in array.as_ref() {
-                    if matches!(expr, Some(expr) if expr.contains_arguments()) {
-                        return true;
-                    }
-                }
-            }
-            Expression::ObjectLiteral(object) => {
-                for property in object.properties() {
-                    match property {
-                        PropertyDefinition::IdentifierReference(ident) => {
-                            if *ident == Sym::ARGUMENTS {
-                                return true;
-                            }
-                        }
-                        PropertyDefinition::Property(_, node)
-                        | PropertyDefinition::SpreadObject(node) => {
-                            if node.contains_arguments() {
-                                return true;
-                            }
-                        }
-                        PropertyDefinition::MethodDefinition(method, _) => match method {
-                            MethodDefinition::Get(function)
-                            | MethodDefinition::Set(function)
-                            | MethodDefinition::Ordinary(function) => {
-                                if let Some(Sym::ARGUMENTS) = function.name() {
-                                    return true;
-                                }
-                            }
-                            MethodDefinition::Generator(generator) => {
-                                if let Some(Sym::ARGUMENTS) = generator.name() {
-                                    return true;
-                                }
-                            }
-                            MethodDefinition::AsyncGenerator(async_generator) => {
-                                if let Some(Sym::ARGUMENTS) = async_generator.name() {
-                                    return true;
-                                }
-                            }
-                            MethodDefinition::Async(function) => {
-                                if let Some(Sym::ARGUMENTS) = function.name() {
-                                    return true;
-                                }
-                            }
-                        },
-                        PropertyDefinition::CoverInitializedName(_, _) => {}
-                    }
-                }
-            }
-            Expression::Spread(spread) => {
-                if spread.val().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::Assign(assign) => {
-                if assign.rhs().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::Await(r#await) => {
-                if r#await.expr().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::Binary(bin_op) => {
-                if bin_op.lhs().contains_arguments() || bin_op.rhs().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::Call(call) => {
-                if call.expr().contains_arguments() {
-                    return true;
-                }
-                for node in call.args() {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-            }
-            Expression::Conditional(conditional) => {
-                if conditional.cond().contains_arguments() {
-                    return true;
-                }
-                if conditional.if_true().contains_arguments() {
-                    return true;
-                }
-                if conditional.if_false().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::PropertyAccess(access) => {
-                if access.target().contains_arguments() {
-                    return true;
-                }
-                if let PropertyAccessField::Expr(expr) = access.field() {
-                    if expr.contains_arguments() {
-                        return true;
-                    }
-                }
-            }
-            Expression::PrivatePropertyAccess(access) => {
-                if access.target().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::New(new) => {
-                if new.expr().contains_arguments() {
-                    return true;
-                }
-                for node in new.args() {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-            }
-            Expression::TaggedTemplate(tagged_template) => {
-                if tagged_template.tag().contains_arguments() {
-                    return true;
-                }
-                for node in tagged_template.exprs() {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-            }
-            Expression::TemplateLiteral(template_lit) => {
-                for element in template_lit.elements() {
-                    if let TemplateElement::Expr(node) = element {
-                        if node.contains_arguments() {
-                            return false;
-                        }
-                    }
-                }
-            }
-            Expression::Unary(unary_op) => {
-                if unary_op.target().contains_arguments() {
-                    return true;
-                }
-            }
-            Expression::Yield(r#yield) => {
-                if let Some(node) = r#yield.expr() {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-            }
-            Expression::Class(class) => {
-                if let Some(node) = class.super_ref() {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                    for element in class.elements() {
-                        match element {
-                            ClassElement::MethodDefinition(_, method)
-                            | ClassElement::StaticMethodDefinition(_, method) => match method {
-                                MethodDefinition::Get(function)
-                                | MethodDefinition::Set(function)
-                                | MethodDefinition::Ordinary(function) => {
-                                    if let Some(Sym::ARGUMENTS) = function.name() {
-                                        return true;
-                                    }
-                                }
-                                MethodDefinition::Generator(generator) => {
-                                    if let Some(Sym::ARGUMENTS) = generator.name() {
-                                        return true;
-                                    }
-                                }
-                                MethodDefinition::AsyncGenerator(async_generator) => {
-                                    if let Some(Sym::ARGUMENTS) = async_generator.name() {
-                                        return true;
-                                    }
-                                }
-                                MethodDefinition::Async(function) => {
-                                    if let Some(Sym::ARGUMENTS) = function.name() {
-                                        return true;
-                                    }
-                                }
-                            },
-                            ClassElement::FieldDefinition(_, node)
-                            | ClassElement::StaticFieldDefinition(_, node)
-                            | ClassElement::PrivateFieldDefinition(_, node)
-                            | ClassElement::PrivateStaticFieldDefinition(_, node) => {
-                                if let Some(node) = node {
-                                    if node.contains_arguments() {
-                                        return true;
-                                    }
-                                }
-                            }
-                            ClassElement::StaticBlock(statement_list) => {
-                                for node in statement_list.statements() {
-                                    if node.contains_arguments() {
-                                        return true;
-                                    }
-                                }
-                            }
-                            _ => {}
-                        }
-                    }
-                }
-            }
-            _ => {}
+            Expression::Identifier(ident) => *ident == Sym::ARGUMENTS,
+            Expression::Function(_)
+            | Expression::Generator(_)
+            | Expression::AsyncFunction(_)
+            | Expression::AsyncGenerator(_)
+            | Expression::Literal(_)
+            | Expression::This
+            | Expression::NewTarget => false,
+            Expression::ArrayLiteral(array) => array.contains_arguments(),
+            Expression::ObjectLiteral(object) => object.contains_arguments(),
+            Expression::Spread(spread) => spread.contains_arguments(),
+            Expression::ArrowFunction(arrow) => arrow.contains_arguments(),
+            Expression::Class(class) => class.contains_arguments(),
+            Expression::TemplateLiteral(template) => template.contains_arguments(),
+            Expression::PropertyAccess(access) => access.contains_arguments(),
+            Expression::SuperPropertyAccess(access) => access.contains_arguments(),
+            Expression::PrivatePropertyAccess(access) => access.contains_arguments(),
+            Expression::New(new) => new.contains_arguments(),
+            Expression::Call(call) => call.contains_arguments(),
+            Expression::SuperCall(call) => call.contains_arguments(),
+            Expression::TaggedTemplate(tag) => tag.contains_arguments(),
+            Expression::Assign(assign) => assign.contains_arguments(),
+            Expression::Unary(unary) => unary.contains_arguments(),
+            Expression::Binary(binary) => binary.contains_arguments(),
+            Expression::Conditional(cond) => cond.contains_arguments(),
+            Expression::Await(r#await) => r#await.contains_arguments(),
+            Expression::Yield(r#yield) => r#yield.contains_arguments(),
+            // TODO: remove variant
+            Expression::FormalParameterList(_) => unreachable!(),
         }
-        false
     }
 
     /// Returns `true` if the node contains the given token.
@@ -411,162 +235,41 @@ impl Expression {
     // TODO: replace with a visitor
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
-            Expression::ArrayLiteral(array) => {
-                for expr in array.as_ref().iter().flatten() {
-                    if expr.contains(symbol) {
-                        return true;
-                    }
-                }
+            Expression::This => symbol == ContainsSymbol::This,
+            Expression::Identifier(_)
+            | Expression::Literal(_)
+            | Expression::Function(_)
+            | Expression::Generator(_)
+            | Expression::AsyncFunction(_)
+            | Expression::AsyncGenerator(_) => false,
+            Expression::ArrayLiteral(array) => array.contains(symbol),
+            Expression::ObjectLiteral(obj) => obj.contains(symbol),
+            Expression::Spread(spread) => spread.contains(symbol),
+            Expression::ArrowFunction(arrow) => arrow.contains(symbol),
+            Expression::Class(class) => class.contains(symbol),
+            Expression::TemplateLiteral(temp) => temp.contains(symbol),
+            Expression::PropertyAccess(access) => access.contains(symbol),
+            Expression::SuperPropertyAccess(_access) if symbol == ContainsSymbol::SuperProperty => {
+                true
             }
-            Expression::Assign(assign) => {
-                match assign.lhs() {
-                    AssignTarget::Property(field) => {
-                        if field.target().contains(symbol) {
-                            return true;
-                        }
-                        match field.field() {
-                            PropertyAccessField::Expr(expr) if expr.contains(symbol) => {
-                                return true
-                            }
-                            _ => {}
-                        }
-                    }
-                    AssignTarget::PrivateProperty(access) => {
-                        if access.target().contains(symbol) {
-                            return true;
-                        }
-                    }
-                    AssignTarget::SuperProperty(_) => {
-                        if symbol == ContainsSymbol::SuperProperty {
-                            return true;
-                        }
-                    }
-                    AssignTarget::Pattern(pattern) => {
-                        if pattern.contains(symbol) {
-                            return true;
-                        }
-                    }
-                    AssignTarget::Identifier(_) => {}
-                }
-                if assign.rhs().contains(symbol) {
-                    return true;
-                }
-            }
-            Expression::Await(_) if symbol == ContainsSymbol::AwaitExpression => return true,
-            Expression::Await(expr) => {
-                if expr.expr().contains(symbol) {
-                    return true;
-                }
-            }
-            Expression::Binary(bin_op) => {
-                if bin_op.lhs().contains(symbol) || bin_op.rhs().contains(symbol) {
-                    return true;
-                }
-            }
-            Expression::Call(call) => {
-                if call.expr().contains(symbol) {
-                    return true;
-                }
-                for node in call.args() {
-                    if node.contains(symbol) {
-                        return true;
-                    }
-                }
-            }
-            Expression::New(new) => {
-                if new.call().expr().contains(symbol) {
-                    return true;
-                }
-                for node in new.call().args() {
-                    if node.contains(symbol) {
-                        return true;
-                    }
-                }
-            }
-            Expression::Spread(spread) => {
-                if spread.val().contains(symbol) {
-                    return true;
-                }
-            }
-            Expression::TaggedTemplate(template) => {
-                if template.tag().contains(symbol) {
-                    return true;
-                }
-                for node in template.exprs() {
-                    if node.contains(symbol) {
-                        return true;
-                    }
-                }
-            }
-            Expression::TemplateLiteral(template) => {
-                for element in template.elements() {
-                    if let TemplateElement::Expr(node) = element {
-                        if node.contains(symbol) {
-                            return true;
-                        }
-                    }
-                }
-            }
-            Expression::SuperCall(_) if symbol == ContainsSymbol::SuperCall => return true,
-            Expression::SuperPropertyAccess(_) if symbol == ContainsSymbol::SuperProperty => {
-                return true
-            }
-            Expression::ObjectLiteral(object) => {
-                for property in object.properties() {
-                    match property {
-                        PropertyDefinition::Property(name, init) => {
-                            if let Some(node) = name.computed() {
-                                if node.contains(symbol) {
-                                    return true;
-                                }
-                            }
-                            if init.contains(symbol) {
-                                return true;
-                            }
-                        }
-                        PropertyDefinition::SpreadObject(spread) => {
-                            if spread.contains(symbol) {
-                                return true;
-                            }
-                        }
-                        PropertyDefinition::MethodDefinition(_, name) => {
-                            if let Some(node) = name.computed() {
-                                if node.contains(symbol) {
-                                    return true;
-                                }
-                            }
-                        }
-                        PropertyDefinition::IdentifierReference(_)
-                        | PropertyDefinition::CoverInitializedName(_, _) => {}
-                    }
-                }
-            }
-            Expression::Class(class) => {
-                if let Some(node) = class.super_ref() {
-                    if node.contains(symbol) {
-                        return true;
-                    }
-                }
-                for element in class.elements() {
-                    match element {
-                        ClassElement::MethodDefinition(name, _)
-                        | ClassElement::StaticMethodDefinition(name, _)
-                        | ClassElement::FieldDefinition(name, _)
-                        | ClassElement::StaticFieldDefinition(name, _) => {
-                            if let Some(node) = name.computed() {
-                                if node.contains(symbol) {
-                                    return true;
-                                }
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-            Expression::Yield(_) if symbol == ContainsSymbol::YieldExpression => return true,
-            _ => {}
+            Expression::SuperPropertyAccess(access) => access.contains(symbol),
+            Expression::PrivatePropertyAccess(access) => access.contains(symbol),
+            Expression::New(new) => new.contains(symbol),
+            Expression::Call(call) => call.contains(symbol),
+            Expression::SuperCall(_) if symbol == ContainsSymbol::SuperCall => true,
+            Expression::SuperCall(expr) => expr.contains(symbol),
+            Expression::TaggedTemplate(temp) => temp.contains(symbol),
+            Expression::NewTarget => symbol == ContainsSymbol::NewTarget,
+            Expression::Assign(assign) => assign.contains(symbol),
+            Expression::Unary(unary) => unary.contains(symbol),
+            Expression::Binary(binary) => binary.contains(symbol),
+            Expression::Conditional(cond) => cond.contains(symbol),
+            Expression::Await(_) if symbol == ContainsSymbol::AwaitExpression => true,
+            Expression::Await(r#await) => r#await.contains(symbol),
+            Expression::Yield(_) if symbol == ContainsSymbol::YieldExpression => true,
+            Expression::Yield(r#yield) => r#yield.contains(symbol),
+            Expression::FormalParameterList(_) => unreachable!(),
         }
-        false
     }
 }
 
