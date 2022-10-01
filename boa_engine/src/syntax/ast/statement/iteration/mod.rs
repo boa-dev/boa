@@ -8,7 +8,7 @@ pub mod for_loop;
 pub mod for_of_loop;
 pub mod while_loop;
 
-use crate::syntax::ast::expression::Identifier;
+use crate::syntax::ast::{expression::Identifier, pattern::Pattern};
 
 pub use self::{
     do_while_loop::DoWhileLoop, for_in_loop::ForInLoop, for_loop::ForLoop, for_of_loop::ForOfLoop,
@@ -29,6 +29,7 @@ pub enum IterableLoopInitializer {
     Var(Binding),
     Let(Binding),
     Const(Binding),
+    Pattern(Pattern),
 }
 
 impl IterableLoopInitializer {
@@ -52,6 +53,7 @@ impl IterableLoopInitializer {
         match self {
             Self::Identifier(ident) => *ident == Sym::ARGUMENTS,
             Self::Var(bind) | Self::Let(bind) | Self::Const(bind) => bind.contains_arguments(),
+            Self::Pattern(pattern) => pattern.contains_arguments(),
         }
     }
 
@@ -61,6 +63,7 @@ impl IterableLoopInitializer {
             Self::Var(declaration) | Self::Let(declaration) | Self::Const(declaration) => {
                 declaration.contains(symbol)
             }
+            Self::Pattern(pattern) => pattern.contains(symbol),
             Self::Identifier(_) => false,
         }
     }
@@ -70,6 +73,7 @@ impl ToInternedString for IterableLoopInitializer {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let (binding, pre) = match self {
             Self::Identifier(ident) => return ident.to_interned_string(interner),
+            Self::Pattern(pattern) => return pattern.to_interned_string(interner),
             Self::Var(binding) => (binding, "var"),
             Self::Let(binding) => (binding, "let"),
             Self::Const(binding) => (binding, "const"),

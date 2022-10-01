@@ -219,7 +219,7 @@ impl<R> Parser<R> {
                 Position::new(1, 1),
             ));
         }
-        if !flags.in_class_field_initializer && body.contains_arguments() {
+        if flags.in_class_field_initializer && body.contains_arguments() {
             return Err(ParseError::general(
                 "invalid `arguments` reference inside eval",
                 Position::new(1, 1),

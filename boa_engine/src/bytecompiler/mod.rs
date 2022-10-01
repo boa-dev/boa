@@ -1657,6 +1657,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::Pattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true);
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_in_loop.body(), false)?;
@@ -1767,6 +1773,12 @@ impl<'b> ByteCompiler<'b> {
                             self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
                         }
                     },
+                    IterableLoopInitializer::Pattern(pattern) => {
+                        for ident in pattern.idents() {
+                            self.context.create_mutable_binding(ident, true);
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                    }
                 }
 
                 self.compile_stmt(for_of_loop.body(), false)?;

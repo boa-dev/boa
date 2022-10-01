@@ -10,6 +10,9 @@
 use crate::syntax::{
     ast::{
         self,
+        expression::operator::assign::{
+            array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
+        },
         statement::{
             declaration::DeclarationList,
             iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
@@ -345,8 +348,27 @@ fn initializer_to_iterable_loop_initializer(
                     position,
                 )))
             }
-
             ast::Expression::Identifier(ident) => Ok(IterableLoopInitializer::Identifier(ident)),
+            ast::Expression::ArrayLiteral(array) => {
+                array_decl_to_declaration_pattern(&array, strict)
+                    .ok_or(ParseError::General {
+                        message: "
+            invalid array destructuring pattern in iterable loop initializer
+            ",
+                        position,
+                    })
+                    .map(|arr| IterableLoopInitializer::Pattern(arr.into()))
+            }
+            ast::Expression::ObjectLiteral(object) => {
+                object_decl_to_declaration_pattern(&object, strict)
+                    .ok_or(ParseError::General {
+                        message: "
+            invalid object destructuring pattern in iterable loop initializer
+            ",
+                        position,
+                    })
+                    .map(|obj| IterableLoopInitializer::Pattern(obj.into()))
+            }
             // TODO: implement member initializers
             ast::Expression::PropertyAccess(_)
             | ast::Expression::SuperPropertyAccess(_)
