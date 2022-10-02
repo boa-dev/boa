@@ -1274,6 +1274,20 @@
 <span id="1272">1272</span>
 <span id="1273">1273</span>
 <span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
+<span id="1287">1287</span>
+<span id="1288">1288</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -2069,22 +2083,36 @@
                         <span class="kw">let</span> <span class="ident">name_position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
                         <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
                         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
-                        <span class="kw">let</span> (<span class="ident">property_name</span>, <span class="ident">method</span>) <span class="op">=</span>
+                        <span class="kw">let</span> (<span class="ident">class_element_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                             <span class="ident">AsyncMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="ident">strict</span>);
-                        <span class="kw">if</span> <span class="ident">r#static</span> {
-                            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">property_name</span>.<span class="ident">prop_name</span>() {
-                                <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::PROTOTYPE</span> {
+
+                        <span class="kw">match</span> <span class="ident">class_element_name</span> {
+                            <span class="ident">ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="kw">if</span> <span class="ident">r#static</span> =&gt; {
+                                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">Sym::PROTOTYPE</span>) <span class="op">=</span> <span class="ident">property_name</span>.<span class="ident">prop_name</span>() {
                                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                             <span class="string">&quot;class may not have static method definitions named &#39;prototype&#39;&quot;</span>,
                                             <span class="ident">name_position</span>,
                                         ));
                                 }
+                                <span class="ident">ClassElementNode::StaticMethodDefinition</span>(<span class="ident">property_name</span>, <span class="ident">method</span>)
                             }
-                            <span class="ident">ClassElementNode::StaticMethodDefinition</span>(<span class="ident">property_name</span>, <span class="ident">method</span>)
-                        } <span class="kw">else</span> {
-                            <span class="ident">ClassElementNode::MethodDefinition</span>(<span class="ident">property_name</span>, <span class="ident">method</span>)
+                            <span class="ident">ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) =&gt; {
+                                <span class="ident">ClassElementNode::MethodDefinition</span>(<span class="ident">property_name</span>, <span class="ident">method</span>)
+                            }
+                            <span class="ident">ClassElementName::PrivateIdentifier</span>(<span class="ident">Sym::CONSTRUCTOR</span>) <span class="kw">if</span> <span class="ident">r#static</span> =&gt; {
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                                    <span class="string">&quot;class constructor may not be a private method&quot;</span>,
+                                    <span class="ident">name_position</span>,
+                                ))
+                            }
+                            <span class="ident">ClassElementName::PrivateIdentifier</span>(<span class="ident">identifier</span>) <span class="kw">if</span> <span class="ident">r#static</span> =&gt; {
+                                <span class="ident">ClassElementNode::PrivateStaticMethodDefinition</span>(<span class="ident">identifier</span>, <span class="ident">method</span>)
+                            }
+                            <span class="ident">ClassElementName::PrivateIdentifier</span>(<span class="ident">identifier</span>) =&gt; {
+                                <span class="ident">ClassElementNode::PrivateMethodDefinition</span>(<span class="ident">identifier</span>, <span class="ident">method</span>)
+                            }
                         }
                     }
                 }
