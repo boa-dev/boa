@@ -48,10 +48,16 @@ pub struct JsError {
     inner: Repr,
 }
 
-// hiding the enum makes it a bit more difficult
-// to treat `JsError` as a proper enum, which should
-// make it a bit harder to try to match against a native error
-// without calling `try_native` first.
+/// Internal representation of a [`JsError`].
+///
+/// `JsError` is represented by an opaque enum because it restricts
+/// matching against `JsError` without calling `try_native` first.
+/// This allows us to provide a safe API for `Error` objects that extracts
+/// their info as a native `Rust` type ([`JsNativeError`]).
+///
+/// This should never be used outside of this module. If that's not the case,
+/// you should add methods to either `JsError` or `JsNativeError` to
+/// represent that special use case.
 #[derive(Debug, Clone, Trace, Finalize)]
 enum Repr {
     Native(JsNativeError),
@@ -189,15 +195,22 @@ impl JsError {
                     .as_error()
                     .ok_or_else(|| TryNativeError::NotAnErrorObject(val.clone()))?;
 
-                let message_err = |e| TryNativeError::InaccessibleProperty {
-                    property: "message",
-                    source: e,
+                let try_get_property = |key, context: &mut Context| {
+                    obj.has_property(key, context)
+                        .map_err(|e| TryNativeError::InaccessibleProperty {
+                            property: key,
+                            source: e,
+                        })?
+                        .then(|| obj.get(key, context))
+                        .transpose()
+                        .map_err(|e| TryNativeError::InaccessibleProperty {
+                            property: key,
+                            source: e,
+                        })
                 };
 
-                let message = if obj.has_property("message", context).map_err(message_err)? {
-                    obj.get("message", context)
-                        .map_err(message_err)?
-                        .as_string()
+                let message = if let Some(msg) = try_get_property("message", context)? {
+                    msg.as_string()
                         .map(JsString::to_std_string)
                         .transpose()
                         .map_err(|_| TryNativeError::InvalidMessageEncoding)?
@@ -207,17 +220,7 @@ impl JsError {
                     Box::default()
                 };
 
-                let cause_err = |e| TryNativeError::InaccessibleProperty {
-                    property: "cause",
-                    source: e,
-                };
-
-                let cause = obj
-                    .has_property("cause", context)
-                    .map_err(cause_err)?
-                    .then(|| obj.get("cause", context))
-                    .transpose()
-                    .map_err(cause_err)?;
+                let cause = try_get_property("cause", context)?;
 
                 let kind = match error {
                     ErrorKind::Error => JsNativeErrorKind::Error,

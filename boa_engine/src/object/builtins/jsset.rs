@@ -75,9 +75,9 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
+        // TODO: Make `delete` return a native `bool`
         match Set::delete(&self.inner.clone().into(), &[value.into()], context)? {
             JsValue::Boolean(bool) => Ok(bool),
-            // TODO: find a better solution to this, without impacting perf
             _ => unreachable!("`delete` must always return a bool"),
         }
     }
@@ -91,9 +91,9 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
+        // TODO: Make `has` return a native `bool`
         match Set::has(&self.inner.clone().into(), &[value.into()], context)? {
             JsValue::Boolean(bool) => Ok(bool),
-            // TODO: find a better solution to this, without impacting perf
             _ => unreachable!("`has` must always return a bool"),
         }
     }

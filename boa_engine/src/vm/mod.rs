@@ -1577,13 +1577,7 @@ impl Context {
                 let env = self.realm.environments.get_this_environment();
                 match env {
                     EnvironmentSlots::Function(env) => {
-                        let env_b = env.borrow();
-                        if let Some(this) = env_b.get_this_binding() {
-                            self.vm.push(this);
-                        } else {
-                            drop(env_b);
-                            return Err(JsNativeError::reference().with_message("Must call super constructor in derived class before accessing 'this' or returning from derived constructor").into());
-                        }
+                        self.vm.push(env.borrow().get_this_binding()?);
                     }
                     EnvironmentSlots::Global => {
                         let this = self.realm.global_object();
@@ -1592,32 +1586,21 @@ impl Context {
                 }
             }
             Opcode::Super => {
-                let env = self
-                    .realm
-                    .environments
-                    .get_this_environment()
-                    .as_function_slots()
-                    .expect("super access must be in a function environment");
-
-                let home = if env.borrow().get_this_binding().is_some() {
+                let home = {
+                    let env = self
+                        .realm
+                        .environments
+                        .get_this_environment()
+                        .as_function_slots()
+                        .expect("super access must be in a function environment");
                     let env = env.borrow();
+                    let this = env.get_this_binding()?;
                     let function_object = env.function_object().borrow();
                     let function = function_object
                         .as_function()
                         .expect("must be function object");
-                    let mut home_object = function.get_home_object().cloned();
 
-                    if home_object.is_none() {
-                        home_object = env
-                            .get_this_binding()
-                            .expect("can not get `this` object")
-                            .as_object()
-                            .cloned();
-                    }
-
-                    home_object
-                } else {
-                    return Err(JsNativeError::range().with_message("Must call super constructor in derived class before accessing 'this' or returning from derived constructor").into());
+                    function.get_home_object().or(this.as_object()).cloned()
                 };
 
                 if let Some(home) = home {

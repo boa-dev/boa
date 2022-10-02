@@ -455,7 +455,7 @@ impl ObjectData {
     }
 
     /// Create the `Error` object data
-    pub fn error(error: ErrorKind) -> Self {
+    pub(crate) fn error(error: ErrorKind) -> Self {
         Self {
             kind: ObjectKind::Error(error),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
@@ -1075,6 +1075,7 @@ impl Object {
         )
     }
 
+    #[inline]
     pub fn as_error(&self) -> Option<ErrorKind> {
         match self.data {
             ObjectData {

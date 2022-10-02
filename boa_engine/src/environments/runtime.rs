@@ -1,6 +1,6 @@
 use crate::{
     environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject,
-    syntax::ast::expression::Identifier, Context, JsResult, JsValue,
+    syntax::ast::expression::Identifier, Context, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 
@@ -156,17 +156,17 @@ impl FunctionSlots {
     ///  - [ECMAScript specification][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding
-    pub(crate) fn get_this_binding(&self) -> Option<&JsValue> {
+    pub(crate) fn get_this_binding(&self) -> Result<&JsValue, JsNativeError> {
         // 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.
         debug_assert!(self.this_binding_status != ThisBindingStatus::Lexical);
 
         // 2. If envRec.[[ThisBindingStatus]] is uninitialized, throw a ReferenceError exception.
         if self.this_binding_status == ThisBindingStatus::Uninitialized {
-            return None;
+            Err(JsNativeError::reference().with_message("Must call super constructor in derived class before accessing 'this' or returning from derived constructor"))
+        } else {
+            // 3. Return envRec.[[ThisValue]].
+            Ok(&self.this)
         }
-
-        // 3. Return envRec.[[ThisValue]].
-        Some(&self.this)
     }
 }
 
@@ -796,14 +796,15 @@ impl BindingLocator {
 
     /// Helper method to throws an error if the binding access is illegal.
     #[inline]
-    pub(crate) fn throw_mutate_immutable(&self, context: &mut Context) -> JsResult<()> {
+    pub(crate) fn throw_mutate_immutable(
+        &self,
+        context: &mut Context,
+    ) -> Result<(), JsNativeError> {
         if self.mutate_immutable {
-            Err(JsNativeError::typ()
-                .with_message(format!(
-                    "cannot mutate an immutable binding '{}'",
-                    context.interner().resolve_expect(self.name.sym())
-                ))
-                .into())
+            Err(JsNativeError::typ().with_message(format!(
+                "cannot mutate an immutable binding '{}'",
+                context.interner().resolve_expect(self.name.sym())
+            )))
         } else {
             Ok(())
         }

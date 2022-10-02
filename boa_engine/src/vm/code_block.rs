@@ -1454,15 +1454,12 @@ impl JsObject {
                         .expect("must be function environment")
                         .as_function_slots()
                         .expect("must be function environment");
-                    if let Some(this_binding) = function_env.borrow().get_this_binding() {
-                        Ok(this_binding
-                            .as_object()
-                            .expect("this binding must be object")
-                            .clone())
-                    } else {
-                        //Err(JsNativeError::typ().with_message("Function constructor must not return non-object").into())
-                        Err(JsNativeError::reference().with_message("Must call super constructor in derived class before accessing 'this' or returning from derived constructor").into())
-                    }
+                    Ok(function_env
+                        .borrow()
+                        .get_this_binding()?
+                        .as_object()
+                        .expect("this binding must be object")
+                        .clone())
                 }
             }
             Function::Generator { .. }

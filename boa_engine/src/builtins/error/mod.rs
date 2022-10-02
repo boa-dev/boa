@@ -46,6 +46,18 @@ pub(crate) use self::uri::UriError;
 
 use super::JsArgs;
 
+/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
+///
+/// This is used internally to convert between [`JsObject`] and
+/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
+/// objects. However, the recommended way to create them is to construct a
+/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// which will assign its prototype, properties and kind automatically.
+///
+/// For a description of every error kind and its usage, see
+/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub enum ErrorKind {
     Aggregate,
