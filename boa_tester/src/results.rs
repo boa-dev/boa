@@ -264,7 +264,13 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             format!(
                 "{}{}{}{}",
                 if diff == 0 { "" } else { "**" },
-                if diff.is_positive() { "+" } else { "-" },
+                if diff.is_positive() {
+                    "+"
+                } else if diff.is_negative() {
+                    "-"
+                } else {
+                    ""
+                },
                 pretty_int(diff),
                 if diff == 0 { "" } else { "**" }
             )
