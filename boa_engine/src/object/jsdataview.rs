@@ -41,9 +41,7 @@ impl JsDataView {
         byte_length: Option<u64>,
         context: &mut Context,
     ) -> JsResult<Self> {
-        let viewed_array_buffer = array_buffer.inner.clone();
-
-        let (byte_offset, view_byte_length) = {
+        let (byte_offset, byte_length) = {
             let borrowed_buffer = array_buffer.borrow();
             let buffer = borrowed_buffer
                 .as_array_buffer()
@@ -90,14 +88,14 @@ impl JsDataView {
         let prototype =
             get_prototype_from_constructor(&constructor, StandardConstructors::data_view, context)?;
 
-        let obj = context.construct_object();
-        obj.set_prototype(prototype.into());
-
-        obj.borrow_mut().data = ObjectData::data_view(DataView {
-            viewed_array_buffer,
-            byte_length: view_byte_length,
-            byte_offset,
-        });
+        let obj = JsObject::from_proto_and_data(
+            prototype,
+            ObjectData::data_view(DataView {
+                viewed_array_buffer: (**array_buffer).clone(),
+                byte_length,
+                byte_offset,
+            }),
+        );
 
         Ok(Self { inner: obj })
     }
@@ -119,20 +117,16 @@ impl JsDataView {
 
     /// Returns the `byte_length` property of [`JsDataView`] as a u64 integer
     #[inline]
-    pub fn byte_length(&self, context: &mut Context) -> u64 {
+    pub fn byte_length(&self, context: &mut Context) -> JsResult<u64> {
         DataView::get_byte_length(&self.inner.clone().into(), &[], context)
-            .expect("get_byte_length should not throw")
-            .as_number()
-            .expect("value should be a number") as u64
+            .map(|v| v.as_number().expect("value should be a number") as u64)
     }
 
     /// Returns the `byte_offset` field property of [`JsDataView`] as a u64 integer
     #[inline]
-    pub fn byte_offset(&self, context: &mut Context) -> u64 {
+    pub fn byte_offset(&self, context: &mut Context) -> JsResult<u64> {
         DataView::get_byte_offset(&self.inner.clone().into(), &[], context)
-            .expect("get_byte_offset should not throw")
-            .as_number()
-            .expect("byte_offset value must be a number") as u64
+            .map(|v| v.as_number().expect("byte_offset value must be a number") as u64)
     }
 
     /// Returns a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -140,17 +134,15 @@ impl JsDataView {
     pub fn get_big_int64(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<i64> {
-        let retrieved_value = DataView::get_big_int64(
+        DataView::get_big_int64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as i64)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as i64)
     }
 
     /// Returns an unsigned 64-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -158,17 +150,15 @@ impl JsDataView {
     pub fn get_big_uint64(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<u64> {
-        let retrieved_value = DataView::get_big_uint64(
+        DataView::get_big_uint64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as u64)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as u64)
     }
 
     /// Returns a signed 32-bit float integer at the specified offset from the start of the [`JsDataView`]
@@ -176,17 +166,15 @@ impl JsDataView {
     pub fn get_float32(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<f32> {
-        let retrieved_value = DataView::get_float32(
+        DataView::get_float32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as f32)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as f32)
     }
 
     /// Returns a signed 64-bit float integer at the specified offset from the start of the [`JsDataView`]
@@ -194,17 +182,15 @@ impl JsDataView {
     pub fn get_float64(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<f64> {
-        let retrieved_value = DataView::get_float64(
+        DataView::get_float64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value)
+        )
+        .map(|v| v.as_number().expect("value must be a number"))
     }
 
     /// Returns a signed 8-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -212,17 +198,15 @@ impl JsDataView {
     pub fn get_int8(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<i8> {
-        let retrieved_value = DataView::get_int8(
+        DataView::get_int8(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as i8)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as i8)
     }
 
     /// Returns a signed 16-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -230,17 +214,15 @@ impl JsDataView {
     pub fn get_int16(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<i16> {
-        let retrieved_value = DataView::get_int16(
+        DataView::get_int16(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as i16)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as i16)
     }
 
     /// Returns a signed 32-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -248,17 +230,15 @@ impl JsDataView {
     pub fn get_int32(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<i32> {
-        let retrieved_value = DataView::get_int32(
+        DataView::get_int32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as i32)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as i32)
     }
 
     /// Returns an unsigned 8-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -266,17 +246,15 @@ impl JsDataView {
     pub fn get_uint8(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<u8> {
-        let retrieved_value = DataView::get_uint8(
+        DataView::get_uint8(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as u8)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as u8)
     }
 
     /// Returns an unsigned 16-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -284,35 +262,31 @@ impl JsDataView {
     pub fn get_unit16(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<u16> {
-        let retrieved_value = DataView::get_uint16(
+        DataView::get_uint16(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as u16)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as u16)
     }
 
     /// Returns an unsigned 32-bit integer at the specified offset from the start of the [`JsDataView`]
     #[inline]
-    pub fn get_unit32(
+    pub fn get_uint32(
         &self,
         byte_offset: usize,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<u32> {
-        let retrieved_value = DataView::get_uint32(
+        DataView::get_uint32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), is_little_edian.into()],
+            &[byte_offset.into(), is_little_endian.into()],
             context,
-        )?
-        .as_number()
-        .expect("value must be a number");
-        Ok(retrieved_value as u32)
+        )
+        .map(|v| v.as_number().expect("value must be a number") as u32)
     }
 
     /// Sets a signed 64-bit integer at the specified offset from the start of the [`JsDataView`]
@@ -321,12 +295,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: i64,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_big_int64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -337,12 +311,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: u64,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_big_uint64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -353,12 +327,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: f32,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_float32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -369,12 +343,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: f64,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_float64(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -385,12 +359,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: i8,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int8(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -401,12 +375,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: i16,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int16(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -417,12 +391,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: i32,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_int32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -433,12 +407,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: u8,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint8(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -449,12 +423,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: u16,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint16(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }
@@ -465,12 +439,12 @@ impl JsDataView {
         &self,
         byte_offset: usize,
         value: u32,
-        is_little_edian: bool,
+        is_little_endian: bool,
         context: &mut Context,
     ) -> JsResult<JsValue> {
         DataView::set_uint32(
             &self.inner.clone().into(),
-            &[byte_offset.into(), value.into(), is_little_edian.into()],
+            &[byte_offset.into(), value.into(), is_little_endian.into()],
             context,
         )
     }

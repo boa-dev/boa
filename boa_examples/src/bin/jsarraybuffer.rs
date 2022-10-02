@@ -41,7 +41,7 @@ fn main() -> JsResult<()> {
     // We can create a Dataview from a JsArrayBuffer
     let dataview = JsDataView::from_js_array_buffer(&array_buffer, None, Some(100_u64), context)?;
 
-    let dataview_length = dataview.byte_length(context);
+    let dataview_length = dataview.byte_length(context)?;
 
     assert_eq!(dataview_length, 100);
 

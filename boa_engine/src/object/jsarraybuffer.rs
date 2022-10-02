@@ -12,7 +12,7 @@ use std::ops::Deref;
 /// JavaScript `ArrayBuffer` rust object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsArrayBuffer {
-    pub(crate) inner: JsObject,
+    inner: JsObject,
 }
 
 impl JsArrayBuffer {
