@@ -1048,9 +1048,9 @@
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DataView</span> {
-    <span class="ident">viewed_array_buffer</span>: <span class="ident">JsObject</span>,
-    <span class="ident">byte_length</span>: <span class="ident">u64</span>,
-    <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">viewed_array_buffer</span>: <span class="ident">JsObject</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">byte_length</span>: <span class="ident">u64</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">byte_offset</span>: <span class="ident">u64</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">BuiltIn</span> <span class="kw">for</span> <span class="ident">DataView</span> {
