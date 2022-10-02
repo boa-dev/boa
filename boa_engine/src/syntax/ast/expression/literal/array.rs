@@ -59,6 +59,7 @@ impl ArrayLiteral {
 }
 
 impl AsRef<[Option<Expression>]> for ArrayLiteral {
+    #[inline]
     fn as_ref(&self) -> &[Option<Expression>] {
         &self.arr
     }
@@ -68,6 +69,7 @@ impl<T> From<T> for ArrayLiteral
 where
     T: Into<Box<[Option<Expression>]>>,
 {
+    #[inline]
     fn from(decl: T) -> Self {
         Self {
             arr: decl.into(),
@@ -77,6 +79,7 @@ where
 }
 
 impl ToInternedString for ArrayLiteral {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = String::from("[");
         let mut first = true;
@@ -96,6 +99,7 @@ impl ToInternedString for ArrayLiteral {
 }
 
 impl From<ArrayLiteral> for Expression {
+    #[inline]
     fn from(arr: ArrayLiteral) -> Self {
         Self::ArrayLiteral(arr)
     }

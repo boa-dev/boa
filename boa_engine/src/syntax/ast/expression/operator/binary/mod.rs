@@ -29,16 +29,19 @@ impl Binary {
     }
 
     /// Gets the binary operation of the Expression.
+    #[inline]
     pub fn op(&self) -> op::BinaryOp {
         self.op
     }
 
     /// Gets the left hand side of the binary operation.
+    #[inline]
     pub fn lhs(&self) -> &Expression {
         &self.lhs
     }
 
     /// Gets the right hand side of the binary operation.
+    #[inline]
     pub fn rhs(&self) -> &Expression {
         &self.rhs
     }
@@ -55,6 +58,7 @@ impl Binary {
 }
 
 impl ToInternedString for Binary {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{} {} {}",
@@ -66,6 +70,7 @@ impl ToInternedString for Binary {
 }
 
 impl From<Binary> for Expression {
+    #[inline]
     fn from(op: Binary) -> Self {
         Self::Binary(op)
     }

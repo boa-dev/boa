@@ -39,6 +39,7 @@ pub struct ObjectLiteral {
 }
 
 impl ObjectLiteral {
+    #[inline]
     pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
@@ -133,6 +134,7 @@ impl ObjectLiteral {
 }
 
 impl ToInternedString for ObjectLiteral {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }
@@ -142,6 +144,7 @@ impl<T> From<T> for ObjectLiteral
 where
     T: Into<Box<[PropertyDefinition]>>,
 {
+    #[inline]
     fn from(props: T) -> Self {
         Self {
             properties: props.into(),
@@ -150,6 +153,7 @@ where
 }
 
 impl From<ObjectLiteral> for Expression {
+    #[inline]
     fn from(obj: ObjectLiteral) -> Self {
         Self::ObjectLiteral(obj)
     }

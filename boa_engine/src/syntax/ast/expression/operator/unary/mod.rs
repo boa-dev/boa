@@ -29,11 +29,13 @@ impl Unary {
     }
 
     /// Gets the unary operation of the Expression.
+    #[inline]
     pub fn op(&self) -> op::UnaryOp {
         self.op
     }
 
     /// Gets the target of this unary operator.
+    #[inline]
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
     }
@@ -50,6 +52,7 @@ impl Unary {
 }
 
 impl ToInternedString for Unary {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let space = match self.op {
             op::UnaryOp::TypeOf | op::UnaryOp::Delete | op::UnaryOp::Void => " ",
@@ -64,6 +67,7 @@ impl ToInternedString for Unary {
 }
 
 impl From<Unary> for Expression {
+    #[inline]
     fn from(op: Unary) -> Self {
         Self::Unary(op)
     }

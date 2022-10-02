@@ -208,6 +208,7 @@ impl UnaryOp {
 }
 
 impl std::fmt::Display for UnaryOp {
+    #[inline]
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.as_str())
     }

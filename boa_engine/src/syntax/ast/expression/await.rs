@@ -42,18 +42,21 @@ impl<T> From<T> for Await
 where
     T: Into<Box<Expression>>,
 {
+    #[inline]
     fn from(e: T) -> Self {
         Self { expr: e.into() }
     }
 }
 
 impl ToInternedString for Await {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("await {}", self.expr.to_indented_string(interner, 0))
     }
 }
 
 impl From<Await> for Expression {
+    #[inline]
     fn from(awaitexpr: Await) -> Self {
         Self::Await(awaitexpr)
     }

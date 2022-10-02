@@ -31,24 +31,28 @@ pub enum BinaryOp {
 }
 
 impl From<ArithmeticOp> for BinaryOp {
+    #[inline]
     fn from(op: ArithmeticOp) -> Self {
         Self::Arithmetic(op)
     }
 }
 
 impl From<BitwiseOp> for BinaryOp {
+    #[inline]
     fn from(op: BitwiseOp) -> Self {
         Self::Bitwise(op)
     }
 }
 
 impl From<RelationalOp> for BinaryOp {
+    #[inline]
     fn from(op: RelationalOp) -> Self {
         Self::Relational(op)
     }
 }
 
 impl From<LogicalOp> for BinaryOp {
+    #[inline]
     fn from(op: LogicalOp) -> Self {
         Self::Logical(op)
     }
@@ -68,6 +72,7 @@ impl BinaryOp {
 }
 
 impl Display for BinaryOp {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.as_str())
     }
@@ -177,6 +182,7 @@ impl ArithmeticOp {
 }
 
 impl Display for ArithmeticOp {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.as_str())
     }
@@ -291,6 +297,7 @@ impl BitwiseOp {
 }
 
 impl Display for BitwiseOp {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.as_str())
     }
@@ -487,6 +494,7 @@ impl RelationalOp {
 }
 
 impl Display for RelationalOp {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.as_str())
     }
@@ -558,6 +566,7 @@ impl LogicalOp {
 }
 
 impl Display for LogicalOp {
+    #[inline]
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         write!(f, "{}", self.as_str())
     }

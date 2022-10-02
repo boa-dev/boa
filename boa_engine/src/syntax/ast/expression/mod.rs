@@ -143,6 +143,7 @@ pub enum Expression {
 
 impl Expression {
     /// Creates a string of the value of the expression with the given indentation.
+    #[inline]
     pub fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.to_no_indent_string(interner, indentation)
     }
@@ -274,12 +275,14 @@ impl Expression {
 }
 
 impl From<Expression> for Statement {
+    #[inline]
     fn from(expr: Expression) -> Self {
         Statement::Expression(expr)
     }
 }
 
 impl ToInternedString for Expression {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         self.to_indented_string(interner, 0)
     }

@@ -28,11 +28,13 @@ pub struct Spread {
 }
 
 impl Spread {
+    #[inline]
     pub fn val(&self) -> &Expression {
         &self.val
     }
 
     /// Creates a `Spread` AST Expression.
+    #[inline]
     pub fn new(val: Expression) -> Self {
         Self { val: Box::new(val) }
     }
@@ -49,12 +51,14 @@ impl Spread {
 }
 
 impl ToInternedString for Spread {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("...{}", self.val().to_interned_string(interner))
     }
 }
 
 impl From<Spread> for Expression {
+    #[inline]
     fn from(spread: Spread) -> Self {
         Self::Spread(spread)
     }

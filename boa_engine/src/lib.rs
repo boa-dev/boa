@@ -35,7 +35,6 @@
     clippy::needless_pass_by_value,
     clippy::match_wildcard_for_single_variants,
     clippy::map_unwrap_or,
-    clippy::missing_inline_in_public_items,
     unused_qualifications,
     unused_import_braces,
     unused_lifetimes,
@@ -53,6 +52,7 @@
     nonstandard_style,
 )]
 #![allow(
+    clippy::missing_inline_in_public_items,
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,

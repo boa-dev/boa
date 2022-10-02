@@ -26,11 +26,13 @@ pub struct New {
 
 impl New {
     /// Gets the name of the function call.
+    #[inline]
     pub fn expr(&self) -> &Expression {
         self.call.expr()
     }
 
     /// Retrieves the arguments passed to the function.
+    #[inline]
     pub fn args(&self) -> &[Expression] {
         self.call.args()
     }
@@ -52,18 +54,21 @@ impl New {
 }
 
 impl From<Call> for New {
+    #[inline]
     fn from(call: Call) -> Self {
         Self { call }
     }
 }
 
 impl ToInternedString for New {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("new {}", self.call.to_interned_string(interner))
     }
 }
 
 impl From<New> for Expression {
+    #[inline]
     fn from(new: New) -> Self {
         Self::New(new)
     }

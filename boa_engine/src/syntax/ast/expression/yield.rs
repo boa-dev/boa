@@ -20,15 +20,18 @@ pub struct Yield {
 }
 
 impl Yield {
+    #[inline]
     pub fn expr(&self) -> Option<&Expression> {
         self.expr.as_ref().map(Box::as_ref)
     }
 
+    #[inline]
     pub fn delegate(&self) -> bool {
         self.delegate
     }
 
     /// Creates a `Yield` AST Expression.
+    #[inline]
     pub fn new(expr: Option<Expression>, delegate: bool) -> Self {
         Self {
             expr: expr.map(Box::new),
@@ -48,12 +51,14 @@ impl Yield {
 }
 
 impl From<Yield> for Expression {
+    #[inline]
     fn from(r#yield: Yield) -> Self {
         Self::Yield(r#yield)
     }
 }
 
 impl ToInternedString for Yield {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let y = if self.delegate { "yield*" } else { "yield" };
         if let Some(ex) = self.expr() {

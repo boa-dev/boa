@@ -120,48 +120,56 @@ pub enum Literal {
 }
 
 impl From<Sym> for Literal {
+    #[inline]
     fn from(string: Sym) -> Self {
         Self::String(string)
     }
 }
 
 impl From<f64> for Literal {
+    #[inline]
     fn from(num: f64) -> Self {
         Self::Num(num)
     }
 }
 
 impl From<i32> for Literal {
+    #[inline]
     fn from(i: i32) -> Self {
         Self::Int(i)
     }
 }
 
 impl From<BigInt> for Literal {
+    #[inline]
     fn from(i: BigInt) -> Self {
         Self::BigInt(Box::new(i))
     }
 }
 
 impl From<Box<BigInt>> for Literal {
+    #[inline]
     fn from(i: Box<BigInt>) -> Self {
         Self::BigInt(i)
     }
 }
 
 impl From<bool> for Literal {
+    #[inline]
     fn from(b: bool) -> Self {
         Self::Bool(b)
     }
 }
 
 impl From<Literal> for Expression {
+    #[inline]
     fn from(lit: Literal) -> Self {
         Expression::Literal(lit)
     }
 }
 
 impl ToInternedString for Literal {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match *self {
             Self::String(st) => {

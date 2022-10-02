@@ -33,12 +33,14 @@ pub struct Identifier {
 }
 
 impl PartialEq<Sym> for Identifier {
+    #[inline]
     fn eq(&self, other: &Sym) -> bool {
         self.ident == *other
     }
 }
 
 impl PartialEq<Identifier> for Sym {
+    #[inline]
     fn eq(&self, other: &Identifier) -> bool {
         *self == other.ident
     }
@@ -46,11 +48,13 @@ impl PartialEq<Identifier> for Sym {
 
 impl Identifier {
     /// Creates a new identifier AST Expression.
+    #[inline]
     pub fn new(ident: Sym) -> Self {
         Self { ident }
     }
 
     /// Retrieves the identifier's string symbol in the interner.
+    #[inline]
     pub fn sym(self) -> Sym {
         self.ident
     }
@@ -75,6 +79,7 @@ impl Identifier {
 }
 
 impl ToInternedString for Identifier {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         interner.resolve_expect(self.ident).join(
             String::from,
@@ -85,12 +90,14 @@ impl ToInternedString for Identifier {
 }
 
 impl From<Sym> for Identifier {
+    #[inline]
     fn from(sym: Sym) -> Self {
         Self { ident: sym }
     }
 }
 
 impl From<Identifier> for Expression {
+    #[inline]
     fn from(local: Identifier) -> Self {
         Self::Identifier(local)
     }

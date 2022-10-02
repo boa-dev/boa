@@ -49,16 +49,19 @@ impl Assign {
     }
 
     /// Gets the operator of the assignment operation.
+    #[inline]
     pub fn op(&self) -> op::AssignOp {
         self.op
     }
 
     /// Gets the left hand side of the assignment operation.
+    #[inline]
     pub fn lhs(&self) -> &AssignTarget {
         &self.lhs
     }
 
     /// Gets the right hand side of the assignment operation.
+    #[inline]
     pub fn rhs(&self) -> &Expression {
         &self.rhs
     }
@@ -87,6 +90,7 @@ impl Assign {
 }
 
 impl ToInternedString for Assign {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{} {} {}",
@@ -98,6 +102,7 @@ impl ToInternedString for Assign {
 }
 
 impl From<Assign> for Expression {
+    #[inline]
     fn from(op: Assign) -> Self {
         Self::Assign(op)
     }
@@ -148,6 +153,7 @@ impl AssignTarget {
 }
 
 impl ToInternedString for AssignTarget {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             AssignTarget::Identifier(id) => id.to_interned_string(interner),
@@ -160,6 +166,7 @@ impl ToInternedString for AssignTarget {
 }
 
 impl From<Identifier> for AssignTarget {
+    #[inline]
     fn from(target: Identifier) -> Self {
         Self::Identifier(target)
     }

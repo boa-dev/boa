@@ -58,6 +58,7 @@ impl Call {
 }
 
 impl ToInternedString for Call {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{}({})",
@@ -68,6 +69,7 @@ impl ToInternedString for Call {
 }
 
 impl From<Call> for Expression {
+    #[inline]
     fn from(call: Call) -> Self {
         Self::Call(call)
     }
@@ -113,12 +115,14 @@ impl SuperCall {
 }
 
 impl ToInternedString for SuperCall {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("super({})", join_nodes(interner, &self.args))
     }
 }
 
 impl From<SuperCall> for Expression {
+    #[inline]
     fn from(call: SuperCall) -> Self {
         Self::SuperCall(call)
     }

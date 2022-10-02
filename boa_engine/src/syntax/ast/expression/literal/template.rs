@@ -24,6 +24,7 @@ pub struct TemplateLiteral {
 }
 
 impl From<TemplateLiteral> for Expression {
+    #[inline]
     fn from(tem: TemplateLiteral) -> Self {
         Self::TemplateLiteral(tem)
     }
@@ -37,6 +38,7 @@ pub enum TemplateElement {
 }
 
 impl TemplateLiteral {
+    #[inline]
     pub fn new(elements: Box<[TemplateElement]>) -> Self {
         Self { elements }
     }
@@ -63,6 +65,7 @@ impl TemplateLiteral {
 }
 
 impl ToInternedString for TemplateLiteral {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "`".to_owned();
 

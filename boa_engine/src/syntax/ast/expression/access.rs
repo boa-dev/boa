@@ -25,12 +25,14 @@ impl PropertyAccessField {
 }
 
 impl From<Sym> for PropertyAccessField {
+    #[inline]
     fn from(id: Sym) -> Self {
         Self::Const(id)
     }
 }
 
 impl From<Expression> for PropertyAccessField {
+    #[inline]
     fn from(expr: Expression) -> Self {
         Self::Expr(Box::new(expr))
     }
@@ -66,15 +68,18 @@ pub struct PropertyAccess {
 }
 
 impl PropertyAccess {
+    #[inline]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
+    #[inline]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
     }
 
     /// Creates a `PropertyAccess` AST Expression.
+    #[inline]
     pub fn new<F>(target: Expression, field: F) -> Self
     where
         F: Into<PropertyAccessField>,
@@ -97,6 +102,7 @@ impl PropertyAccess {
 }
 
 impl ToInternedString for PropertyAccess {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let target = self.target.to_interned_string(interner);
         match self.field {
@@ -109,6 +115,7 @@ impl ToInternedString for PropertyAccess {
 }
 
 impl From<PropertyAccess> for Expression {
+    #[inline]
     fn from(access: PropertyAccess) -> Self {
         Self::PropertyAccess(access)
     }
@@ -166,6 +173,7 @@ impl PrivatePropertyAccess {
 }
 
 impl ToInternedString for PrivatePropertyAccess {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{}.#{}",
@@ -176,6 +184,7 @@ impl ToInternedString for PrivatePropertyAccess {
 }
 
 impl From<PrivatePropertyAccess> for Expression {
+    #[inline]
     fn from(access: PrivatePropertyAccess) -> Self {
         Self::PrivatePropertyAccess(access)
     }
@@ -201,6 +210,7 @@ impl SuperPropertyAccess {
     }
 
     /// Gets the name of the field to retrieve.
+    #[inline]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
     }
@@ -217,6 +227,7 @@ impl SuperPropertyAccess {
 }
 
 impl ToInternedString for SuperPropertyAccess {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         match &self.field {
             PropertyAccessField::Const(field) => {
@@ -230,6 +241,7 @@ impl ToInternedString for SuperPropertyAccess {
 }
 
 impl From<SuperPropertyAccess> for Expression {
+    #[inline]
     fn from(access: SuperPropertyAccess) -> Self {
         Self::SuperPropertyAccess(access)
     }

@@ -16,6 +16,7 @@ pub struct TaggedTemplate {
 impl TaggedTemplate {
     /// Creates a new tagged template with a tag, the list of raw strings, the cooked strings and
     /// the expressions.
+    #[inline]
     pub fn new(
         tag: Expression,
         raws: Box<[Sym]>,
@@ -30,22 +31,27 @@ impl TaggedTemplate {
         }
     }
 
+    #[inline]
     pub(crate) fn tag(&self) -> &Expression {
         &self.tag
     }
 
+    #[inline]
     pub(crate) fn raws(&self) -> &[Sym] {
         &self.raws
     }
 
+    #[inline]
     pub(crate) fn cookeds(&self) -> &[Option<Sym>] {
         &self.cookeds
     }
 
+    #[inline]
     pub(crate) fn exprs(&self) -> &[Expression] {
         &self.exprs
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.tag.contains_arguments() || self.exprs.iter().any(Expression::contains_arguments)
     }
@@ -57,6 +63,7 @@ impl TaggedTemplate {
 }
 
 impl ToInternedString for TaggedTemplate {
+    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = format!("{}`", self.tag.to_interned_string(interner));
         for (&raw, expr) in self.raws.iter().zip(self.exprs.iter()) {
@@ -73,6 +80,7 @@ impl ToInternedString for TaggedTemplate {
 }
 
 impl From<TaggedTemplate> for Expression {
+    #[inline]
     fn from(template: TaggedTemplate) -> Self {
         Self::TaggedTemplate(template)
     }
