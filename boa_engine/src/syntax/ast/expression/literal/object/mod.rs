@@ -3,12 +3,13 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::ast::expression::Expression;
-use crate::syntax::ast::ContainsSymbol;
-
-use crate::syntax::ast::property::MethodDefinition;
-use crate::syntax::ast::property::PropertyDefinition;
-use crate::syntax::ast::{block_to_string, join_nodes};
+use crate::syntax::ast::{
+    block_to_string,
+    expression::Expression,
+    join_nodes,
+    property::{MethodDefinition, PropertyDefinition},
+    ContainsSymbol,
+};
 use boa_interner::{Interner, ToInternedString};
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of

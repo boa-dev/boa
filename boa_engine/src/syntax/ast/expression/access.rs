@@ -134,6 +134,7 @@ pub struct PrivatePropertyAccess {
 
 impl PrivatePropertyAccess {
     /// Creates a `GetPrivateField` AST Expression.
+    #[inline]
     pub fn new(value: Expression, field: Sym) -> Self {
         Self {
             target: value.into(),
@@ -142,14 +143,17 @@ impl PrivatePropertyAccess {
     }
 
     /// Gets the original object from where to get the field from.
+    #[inline]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
     /// Gets the name of the field to retrieve.
+    #[inline]
     pub fn field(&self) -> Sym {
         self.field
     }
+
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.target.contains_arguments()

@@ -22,6 +22,7 @@ pub struct Await {
 
 impl Await {
     /// Return the expression that should be awaited.
+    #[inline]
     pub(crate) fn expr(&self) -> &Expression {
         &self.expr
     }

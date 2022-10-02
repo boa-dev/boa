@@ -26,6 +26,7 @@ pub struct Call {
 
 impl Call {
     /// Creates a new `Call` AST Expression.
+    #[inline]
     pub fn new(target: Expression, args: Box<[Expression]>) -> Self {
         Self {
             target: target.into(),
@@ -34,11 +35,13 @@ impl Call {
     }
 
     /// Gets the name of the function call.
+    #[inline]
     pub fn expr(&self) -> &Expression {
         &self.target
     }
 
     /// Retrieves the arguments passed to the function.
+    #[inline]
     pub fn args(&self) -> &[Expression] {
         &self.args
     }
