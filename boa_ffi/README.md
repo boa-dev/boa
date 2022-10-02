@@ -17,7 +17,6 @@ This is meant to address boa-dev/boa#332
 - [ ] Panic handling?
 - [ ] C++ as well as C bindings?
 - [ ] Where to put `cbindgen` output?
-- [ ] What `boa_engine` features do we need? I have `boa_engine = { workspace = true, features = ["deser", "console"] }`
 
 ## Interesting Things
 

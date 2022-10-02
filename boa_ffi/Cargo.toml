@@ -11,7 +11,7 @@ rust-version.workspace = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-boa_engine = { workspace = true, features = ["deser", "console"] }
+boa_engine = { workspace = true }
 
 [lib]
 crate-type = ["cdylib"]
