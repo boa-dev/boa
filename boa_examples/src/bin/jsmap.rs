@@ -1,5 +1,5 @@
 use boa_engine::{
-    object::{JsArray, JsMap},
+    object::{js_objects::JsArray, js_objects::JsMap},
     Context, JsResult, JsValue,
 };
 
