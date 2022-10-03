@@ -5,12 +5,12 @@
 
 //! A UTF-16–encoded, reference counted, immutable string.
 //!
-//! This module contains the [`JsString`] type, the [`js_string`] macro and
-//! the [`utf16`] macro.
+//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string]
+//! macro and the [`utf16`] macro.
 //!
-//! The [`js_string`] macro is almost always used when you need to create a new
-//! [`JsString`], and the [`utf16`] macro is used for const conversions of
-//! string literals to UTF-16.
+//! The [`js_string`][crate::js_string] macro is almost always used when you
+//! need to create a new [`JsString`], and the [`utf16`] macro is used for const
+//! conversions of string literals to UTF-16.
 
 use crate::{builtins::string::is_trimmable_whitespace, JsBigInt};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
@@ -564,7 +564,7 @@ thread_local! {
             // Safety:
             // As we're just building a cache of `JsString` indices
             // to access the stored `COMMON_STRINGS`, this
-            // cannot generate invalid `TaggedInner`s, since `idx` is always
+            // cannot generate invalid `TaggedJsString`s, since `idx` is always
             // a valid index in `COMMON_STRINGS`.
             let v = unsafe {
                 JsString {
@@ -794,7 +794,7 @@ impl JsString {
             .expect("failed to create memory layout");
 
         // SAFETY:
-        // The layout size of `Inner` is never zero, since it has to store
+        // The layout size of `RawJsString` is never zero, since it has to store
         // the length of the string and the reference count.
         let inner = unsafe { alloc(layout).cast::<RawJsString>() };
 
@@ -807,7 +807,7 @@ impl JsString {
         // `NonNull` verified for us that the pointer returned by `alloc` is valid,
         // meaning we can write to its pointed memory.
         unsafe {
-            // Write the first part, the Inner.
+            // Write the first part, the `RawJsString`.
             inner.as_ptr().write(RawJsString {
                 len: str_len,
                 refcount: Cell::new(1),
@@ -819,9 +819,9 @@ impl JsString {
             let inner = inner.as_ptr();
             // SAFETY:
             // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `Inner`.
+            // meaning we can safely dereference it to `RawJsString`.
             // - `offset` should point us to the beginning of the array,
-            // and since we requested an `Inner` layout with a trailing
+            // and since we requested an `RawJsString` layout with a trailing
             // `[u16; str_len]`, the memory of the array must be in the `usize`
             // range for the allocation to succeed.
             unsafe {
@@ -1182,7 +1182,7 @@ impl Deref for JsString {
         match self.ptr() {
             JsStringPtrKind::Heap(h) => {
                 // SAFETY:
-                // - The `Inner` type has all the necessary information
+                // - The `RawJsString` type has all the necessary information
                 // to reconstruct a valid slice (length and starting pointer).
                 //
                 // - We aligned `h.data` on allocation, and the
