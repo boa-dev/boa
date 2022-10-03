@@ -84,12 +84,13 @@ pub mod js_object {
 
     pub use super::jsarray::*;
     pub use super::jsarraybuffer::*;
+    pub use super::jsdataview::*;
     pub use super::jsfunction::*;
     pub use super::jsmap::*;
     pub use super::jsobject::JsObject;
     pub use super::jsproxy::{JsProxy, JsRevocableProxy};
+    pub use super::jsset::*;
     pub use super::jstypedarray::*;
-    pub use super::jsdataview::*;
 }
 pub(crate) use js_object::*;
 
