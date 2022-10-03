@@ -67,6 +67,7 @@ mod tests;
 pub(crate) mod internal_methods;
 mod jsarray;
 mod jsarraybuffer;
+mod jsdataview;
 mod jsfunction;
 mod jsmap;
 mod jsmap_iterator;
@@ -87,8 +88,8 @@ pub mod js_object {
     pub use super::jsmap::*;
     pub use super::jsobject::JsObject;
     pub use super::jsproxy::{JsProxy, JsRevocableProxy};
-    pub use super::jsset::*;
     pub use super::jstypedarray::*;
+    pub use super::jsdataview::*;
 }
 pub(crate) use js_object::*;
 
