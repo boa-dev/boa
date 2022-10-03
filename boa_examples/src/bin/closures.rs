@@ -2,7 +2,7 @@
 // inside Rust and call them from Javascript.
 
 use boa_engine::{
-    object::{FunctionBuilder, js_objects::JsObject},
+    object::{js_object::JsObject, FunctionBuilder},
     property::{Attribute, PropertyDescriptor},
     Context, JsString, JsValue,
 };

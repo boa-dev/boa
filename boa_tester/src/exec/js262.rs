@@ -1,6 +1,6 @@
 use boa_engine::{
     builtins::JsArgs,
-    object::{js_objects::JsObject, ObjectInitializer},
+    object::{js_object::JsObject, ObjectInitializer},
     property::Attribute,
     Context, JsResult, JsValue,
 };

@@ -1,4 +1,4 @@
-//! This module implements the Rust representation of a JavaScript object, see [js_objects] for implementors.
+//! This module implements the Rust representation of a JavaScript object, see [js_object] for implementors.
 //!
 //! This module also provides helper objects for working with JavaScript objects.
 
@@ -78,7 +78,7 @@ mod jstypedarray;
 mod operations;
 mod property_map;
 
-pub mod js_objects {
+pub mod js_object {
     //! Contains all the Rust representations of JavaScript objects.
 
     pub use super::jsarray::*;
@@ -90,7 +90,7 @@ pub mod js_objects {
     pub use super::jsset::*;
     pub use super::jstypedarray::*;
 }
-pub(crate) use js_objects::*;
+pub(crate) use js_object::*;
 
 pub use jsmap_iterator::*;
 pub use jsproxy::JsProxyBuilder;
