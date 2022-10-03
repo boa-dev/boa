@@ -350,7 +350,7 @@ impl Interner {
             let utf16_index = self.utf16_interner.intern(utf16);
 
             // Just to check everything is okay
-            assert_eq!(index, utf16_index);
+            debug_assert_eq!(index, utf16_index);
 
             index
                 .checked_add(1 + COMMON_STRINGS_UTF8.len())
