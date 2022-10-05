@@ -1,9 +1,9 @@
 //! Tests for the parser.
 
 use super::Parser;
-use crate::string::utf16;
 use crate::{
     context::ContextBuilder,
+    string::utf16,
     syntax::ast::{
         node::{
             field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp,
@@ -50,10 +50,10 @@ fn check_construct_call_precedence() {
         vec![Node::from(Call::new(
             GetConstField::new(
                 New::from(Call::new(
-                    Identifier::new(interner.get_or_intern_static("Date", &utf16!("Date"))),
+                    Identifier::new(interner.get_or_intern_static("Date", utf16!("Date"))),
                     vec![],
                 )),
-                interner.get_or_intern_static("getTime", &utf16!("getTime")),
+                interner.get_or_intern_static("getTime", utf16!("getTime")),
             ),
             vec![],
         ))],
@@ -67,10 +67,10 @@ fn assign_operator_precedence() {
     check_parser(
         "a = a + 1",
         vec![Assign::new(
-            Identifier::new(interner.get_or_intern_static("a", &utf16!("a"))),
+            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
             BinOp::new(
                 NumOp::Add,
-                Identifier::new(interner.get_or_intern_static("a", &utf16!("a"))),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
                 Const::from(1),
             ),
         )
@@ -82,8 +82,8 @@ fn assign_operator_precedence() {
 #[test]
 fn hoisting() {
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello", &utf16!("hello"));
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         r"
             var a = hello();
@@ -111,7 +111,7 @@ fn hoisting() {
     );
 
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         r"
             a = 10;
@@ -139,12 +139,12 @@ fn ambigous_regex_divide_expression() {
             BinOp::new(
                 NumOp::Div,
                 Const::Int(1),
-                Identifier::new(interner.get_or_intern_static("a", &utf16!("a"))),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
             ),
             BinOp::new(
                 NumOp::Div,
                 Const::Int(1),
-                Identifier::new(interner.get_or_intern_static("b", &utf16!("b"))),
+                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))),
             ),
         )
         .into()],
@@ -157,7 +157,7 @@ fn two_divisions_in_expression() {
     let s = "a !== 0 || 1 / a === 1 / b;";
 
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         s,
         vec![BinOp::new(
@@ -169,7 +169,7 @@ fn two_divisions_in_expression() {
                 BinOp::new(
                     NumOp::Div,
                     Const::Int(1),
-                    Identifier::new(interner.get_or_intern_static("b", &utf16!("b"))),
+                    Identifier::new(interner.get_or_intern_static("b", utf16!("b"))),
                 ),
             ),
         )
@@ -191,7 +191,7 @@ fn comment_semi_colon_insertion() {
         vec![
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", &utf16!("a")),
+                    interner.get_or_intern_static("a", utf16!("a")),
                     Some(Const::Int(10).into()),
                 )]
                 .into(),
@@ -199,7 +199,7 @@ fn comment_semi_colon_insertion() {
             .into(),
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", &utf16!("b")),
+                    interner.get_or_intern_static("b", utf16!("b")),
                     Some(Const::Int(20).into()),
                 )]
                 .into(),
@@ -225,7 +225,7 @@ fn multiline_comment_semi_colon_insertion() {
         vec![
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", &utf16!("a")),
+                    interner.get_or_intern_static("a", utf16!("a")),
                     Some(Const::Int(10).into()),
                 )]
                 .into(),
@@ -233,7 +233,7 @@ fn multiline_comment_semi_colon_insertion() {
             .into(),
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", &utf16!("b")),
+                    interner.get_or_intern_static("b", utf16!("b")),
                     Some(Const::Int(20).into()),
                 )]
                 .into(),
@@ -256,7 +256,7 @@ fn multiline_comment_no_lineterminator() {
         vec![
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", &utf16!("a")),
+                    interner.get_or_intern_static("a", utf16!("a")),
                     Some(Const::Int(10).into()),
                 )]
                 .into(),
@@ -264,7 +264,7 @@ fn multiline_comment_no_lineterminator() {
             .into(),
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", &utf16!("b")),
+                    interner.get_or_intern_static("b", utf16!("b")),
                     Some(Const::Int(20).into()),
                 )]
                 .into(),
@@ -290,14 +290,14 @@ fn assignment_line_terminator() {
         vec![
             DeclarationList::Let(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", &utf16!("a")),
+                    interner.get_or_intern_static("a", utf16!("a")),
                     Some(Const::Int(3).into()),
                 )]
                 .into(),
             )
             .into(),
             Assign::new(
-                Identifier::new(interner.get_or_intern_static("a", &utf16!("a"))),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
                 Const::from(5),
             )
             .into(),
@@ -319,7 +319,7 @@ fn assignment_multiline_terminator() {
     "#;
 
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         s,
         vec![
@@ -344,7 +344,7 @@ fn bracketed_expr() {
     let mut interner = Interner::default();
     check_parser(
         s,
-        vec![Identifier::new(interner.get_or_intern_static("b", &utf16!("b"))).into()],
+        vec![Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into()],
         interner,
     );
 }
@@ -354,7 +354,7 @@ fn increment_in_comma_op() {
     let s = r#"(b++, b)"#;
 
     let mut interner = Interner::default();
-    let b = interner.get_or_intern_static("b", &utf16!("b"));
+    let b = interner.get_or_intern_static("b", utf16!("b"));
     check_parser(
         s,
         vec![BinOp::new::<_, Node, Node>(
@@ -380,11 +380,11 @@ fn spread_in_object() {
 
     let object_properties = vec![
         PropertyDefinition::property(
-            interner.get_or_intern_static("a", &utf16!("a")),
+            interner.get_or_intern_static("a", utf16!("a")),
             Const::from(1),
         ),
         PropertyDefinition::spread_object(Identifier::new(
-            interner.get_or_intern_static("b", &utf16!("b")),
+            interner.get_or_intern_static("b", utf16!("b")),
         )),
     ];
 
@@ -392,7 +392,7 @@ fn spread_in_object() {
         s,
         vec![DeclarationList::Let(
             vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", &utf16!("x")),
+                interner.get_or_intern_static("x", utf16!("x")),
                 Some(Object::from(object_properties).into()),
             )]
             .into(),
@@ -411,7 +411,7 @@ fn spread_in_arrow_function() {
     "#;
 
     let mut interner = Interner::default();
-    let b = interner.get_or_intern_static("b", &utf16!("b"));
+    let b = interner.get_or_intern_static("b", utf16!("b"));
     check_parser(
         s,
         vec![ArrowFunctionDecl::new(
@@ -435,7 +435,7 @@ fn spread_in_arrow_function() {
 #[test]
 fn empty_statement() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         r"
             ;;var a = 10;

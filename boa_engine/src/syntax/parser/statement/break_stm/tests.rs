@@ -1,10 +1,12 @@
-use crate::string::utf16;
-use crate::syntax::{
-    ast::{
-        node::{Block, Break, Node, WhileLoop},
-        Const,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{Block, Break, Node, WhileLoop},
+            Const,
+        },
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
 };
 use boa_interner::Interner;
 
@@ -50,7 +52,7 @@ fn new_line_semicolon_insertion() {
         vec![WhileLoop::new(
             Const::from(true),
             Block::from(vec![Break::new(
-                interner.get_or_intern_static("test", &utf16!("test")),
+                interner.get_or_intern_static("test", utf16!("test")),
             )
             .into()]),
         )
@@ -82,7 +84,7 @@ fn new_line_block() {
         vec![WhileLoop::new(
             Const::from(true),
             Block::from(vec![Break::new(
-                interner.get_or_intern_static("test", &utf16!("test")),
+                interner.get_or_intern_static("test", utf16!("test")),
             )
             .into()]),
         )
@@ -101,7 +103,7 @@ fn reserved_label() {
         vec![WhileLoop::new(
             Const::from(true),
             Block::from(vec![Break::new(
-                interner.get_or_intern_static("await", &utf16!("await")),
+                interner.get_or_intern_static("await", utf16!("await")),
             )
             .into()]),
         )
@@ -117,7 +119,7 @@ fn reserved_label() {
         vec![WhileLoop::new(
             Const::from(true),
             Block::from(vec![Break::new(
-                interner.get_or_intern_static("yield", &utf16!("yield")),
+                interner.get_or_intern_static("yield", utf16!("yield")),
             )
             .into()]),
         )

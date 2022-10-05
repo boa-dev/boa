@@ -10,18 +10,20 @@
 #[cfg(test)]
 mod tests;
 
-use crate::string::utf16;
-use crate::syntax::{
-    ast::{
-        node::{self, FormalParameterList},
-        node::{declaration::Declaration, FormalParameterListFlags},
-        Punctuator,
-    },
-    lexer::{Error as LexError, InputElement, TokenKind},
-    parser::{
-        expression::{BindingIdentifier, Initializer},
-        statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{self, FormalParameterList},
+            node::{declaration::Declaration, FormalParameterListFlags},
+            Punctuator,
+        },
+        lexer::{Error as LexError, InputElement, TokenKind},
+        parser::{
+            expression::{BindingIdentifier, Initializer},
+            statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
 };
 use boa_interner::{Interner, Sym};

@@ -70,14 +70,14 @@ fn main() -> Result<(), JsValue> {
 
             // We create a new message from our captured variable.
             let message = js_string!(
-                &utf16!("message from `"),
+                utf16!("message from `"),
                 &name.to_string(context)?,
-                &utf16!("`: "),
+                utf16!("`: "),
                 &captures.greeting
             );
 
             // We can also mutate the moved data inside the closure.
-            captures.greeting = js_string!(&captures.greeting, &utf16!(" Hello!"));
+            captures.greeting = js_string!(&captures.greeting, utf16!(" Hello!"));
 
             println!("{}", message.to_std_string_escaped());
             println!();

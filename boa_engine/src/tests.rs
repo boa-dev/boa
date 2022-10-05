@@ -1202,23 +1202,23 @@ fn to_string() {
     let mut context = Context::default();
 
     assert_eq!(
-        JsValue::null().to_string(&mut context).unwrap(),
+        &JsValue::null().to_string(&mut context).unwrap(),
         utf16!("null")
     );
     assert_eq!(
-        JsValue::undefined().to_string(&mut context).unwrap(),
+        &JsValue::undefined().to_string(&mut context).unwrap(),
         utf16!("undefined")
     );
     assert_eq!(
-        JsValue::new(55).to_string(&mut context).unwrap(),
+        &JsValue::new(55).to_string(&mut context).unwrap(),
         utf16!("55")
     );
     assert_eq!(
-        JsValue::new(55.0).to_string(&mut context).unwrap(),
+        &JsValue::new(55.0).to_string(&mut context).unwrap(),
         utf16!("55")
     );
     assert_eq!(
-        JsValue::new("hello").to_string(&mut context).unwrap(),
+        &JsValue::new("hello").to_string(&mut context).unwrap(),
         utf16!("hello")
     );
 }

@@ -768,7 +768,7 @@ impl Number {
             // 3. Let sign be 1.
             // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
             //    set sign to -1.
-            let sign = if !var_s.is_empty() && var_s.starts_with(&utf16!("-")) {
+            let sign = if !var_s.is_empty() && var_s.starts_with(utf16!("-")) {
                 -1
             } else {
                 1
@@ -777,7 +777,7 @@ impl Number {
             // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
             //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
             if !var_s.is_empty()
-                && (var_s.starts_with(&utf16!("+")) || var_s.starts_with(&utf16!("-")))
+                && (var_s.starts_with(utf16!("+")) || var_s.starts_with(utf16!("-")))
             {
                 var_s = &var_s[1..];
             }
@@ -812,7 +812,7 @@ impl Number {
             //         ii. Set R to 16.
             if strip_prefix
                 && var_s.len() >= 2
-                && (var_s.starts_with(&utf16!("0x")) || var_s.starts_with(&utf16!("0X")))
+                && (var_s.starts_with(utf16!("0x")) || var_s.starts_with(utf16!("0X")))
             {
                 var_s = &var_s[2..];
 

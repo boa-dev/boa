@@ -1,12 +1,15 @@
-use crate::string::utf16;
-use crate::syntax::{
-    ast::{
-        node::{
-            Declaration, DeclarationList, FormalParameterList, FunctionExpr, Return, StatementList,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                Declaration, DeclarationList, FormalParameterList, FunctionExpr, Return,
+                StatementList,
+            },
+            Const,
         },
-        Const,
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
 };
 use boa_interner::{Interner, Sym};
 
@@ -14,7 +17,7 @@ use boa_interner::{Interner, Sym};
 #[test]
 fn check_function_expression() {
     let mut interner = Interner::default();
-    let add = interner.get_or_intern_static("add", &utf16!("add"));
+    let add = interner.get_or_intern_static("add", utf16!("add"));
     check_parser(
         "const add = function() {
             return 1;
@@ -42,8 +45,8 @@ fn check_function_expression() {
 #[test]
 fn check_nested_function_expression() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a", &utf16!("a"));
-    let b = interner.get_or_intern_static("b", &utf16!("b"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
+    let b = interner.get_or_intern_static("b", utf16!("b"));
     check_parser(
         "const a = function() {
             const b = function() {
@@ -96,10 +99,10 @@ fn check_function_non_reserved_keyword() {
         ($keyword:literal, $interner:expr) => {
             vec![DeclarationList::Const(
                 vec![Declaration::new_with_identifier(
-                    $interner.get_or_intern_static("add", &utf16!("add")[..]),
+                    $interner.get_or_intern_static("add", utf16!("add")),
                     Some(
                         FunctionExpr::new::<_, _, StatementList>(
-                            Some($interner.get_or_intern_static($keyword, &utf16!($keyword)[..])),
+                            Some($interner.get_or_intern_static($keyword, utf16!($keyword))),
                             FormalParameterList::default(),
                             vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
                         )

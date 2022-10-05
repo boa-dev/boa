@@ -10,22 +10,24 @@
 #[cfg(test)]
 mod tests;
 
-use crate::string::utf16;
-use crate::syntax::{
-    ast::{
-        node::{
-            function_contains_super, has_direct_super,
-            object::{self, MethodDefinition},
-            AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
-            GeneratorExpr, Node, Object,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                function_contains_super, has_direct_super,
+                object::{self, MethodDefinition},
+                AsyncFunctionExpr, AsyncGeneratorExpr, FormalParameterList, FunctionExpr,
+                GeneratorExpr, Node, Object,
+            },
+            Const, Keyword, Punctuator,
         },
-        Const, Keyword, Punctuator,
-    },
-    lexer::{token::Numeric, Error as LexError, TokenKind},
-    parser::{
-        expression::{identifiers::IdentifierReference, AssignmentExpression},
-        function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        lexer::{token::Numeric, Error as LexError, TokenKind},
+        parser::{
+            expression::{identifiers::IdentifierReference, AssignmentExpression},
+            function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
+            AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        },
     },
 };
 use boa_interner::{Interner, Sym};
@@ -546,11 +548,11 @@ where
             TokenKind::NullLiteral => Node::Const(Const::from(Sym::NULL)).into(),
             TokenKind::BooleanLiteral(bool) => match bool {
                 true => Node::Const(Const::from(
-                    interner.get_or_intern_static("true", &utf16!("true")),
+                    interner.get_or_intern_static("true", utf16!("true")),
                 ))
                 .into(),
                 false => Node::Const(Const::from(
-                    interner.get_or_intern_static("false", &utf16!("false")),
+                    interner.get_or_intern_static("false", utf16!("false")),
                 ))
                 .into(),
             },

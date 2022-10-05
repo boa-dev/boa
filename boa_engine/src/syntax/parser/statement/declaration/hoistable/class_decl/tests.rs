@@ -1,16 +1,18 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            declaration::class_decl::ClassElement as ClassElementNode,
-            object::{MethodDefinition, PropertyName},
-            Class, FormalParameterList, FunctionExpr, Node,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                declaration::class_decl::ClassElement as ClassElementNode,
+                object::{MethodDefinition, PropertyName},
+                Class, FormalParameterList, FunctionExpr, Node,
+            },
+            Const,
         },
-        Const,
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
 };
 use boa_interner::Interner;
-use utf16_lit::utf16;
 
 #[test]
 fn check_async_ordinary_method() {
@@ -18,7 +20,7 @@ fn check_async_ordinary_method() {
 
     let elements = vec![ClassElementNode::MethodDefinition(
         PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", &utf16!("async")[..]),
+            interner.get_or_intern_static("async", utf16!("async")),
         ))),
         MethodDefinition::Ordinary(FunctionExpr::new(
             None,
@@ -33,7 +35,7 @@ fn check_async_ordinary_method() {
          }
         ",
         [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", &utf16!("A")[..]),
+            interner.get_or_intern_static("A", utf16!("A")),
             None,
             None,
             elements,
@@ -48,7 +50,7 @@ fn check_async_field_initialization() {
 
     let elements = vec![ClassElementNode::FieldDefinition(
         PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", &utf16!("async")[..]),
+            interner.get_or_intern_static("async", utf16!("async")),
         ))),
         Some(Node::Const(Const::from(1))),
     )];
@@ -60,7 +62,7 @@ fn check_async_field_initialization() {
          }
         ",
         [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", &utf16!("A")[..]),
+            interner.get_or_intern_static("A", utf16!("A")),
             None,
             None,
             elements,
@@ -75,7 +77,7 @@ fn check_async_field() {
 
     let elements = vec![ClassElementNode::FieldDefinition(
         PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", &utf16!("async")[..]),
+            interner.get_or_intern_static("async", utf16!("async")),
         ))),
         None,
     )];
@@ -86,7 +88,7 @@ fn check_async_field() {
          }
         ",
         [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", &utf16!("A")[..]),
+            interner.get_or_intern_static("A", utf16!("A")),
             None,
             None,
             elements,

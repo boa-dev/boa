@@ -78,6 +78,7 @@ dependencies = [
  "bitflags",
  "boa_gc",
  "boa_interner",
+ "boa_macros",
  "boa_profiler",
  "boa_unicode",
  "chrono",
@@ -110,7 +111,6 @@ dependencies = [
  "sys-locale",
  "tap",
  "unicode-normalization",
- "utf16_lit",
 ]
 
 [[package]]
@@ -141,6 +141,14 @@ dependencies = [
  "serde",
  "static_assertions",
  "utf16_lit",
+]
+
+[[package]]
+name = "boa_macros"
+version = "0.16.0"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]

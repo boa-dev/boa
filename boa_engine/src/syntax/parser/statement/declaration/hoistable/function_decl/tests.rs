@@ -1,7 +1,9 @@
-use crate::string::utf16;
-use crate::syntax::{
-    ast::node::{FormalParameterList, FunctionDecl},
-    parser::tests::check_parser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::node::{FormalParameterList, FunctionDecl},
+        parser::tests::check_parser,
+    },
 };
 use boa_interner::Interner;
 
@@ -12,7 +14,7 @@ fn function_declaration() {
     check_parser(
         "function hello() {}",
         vec![FunctionDecl::new(
-            interner.get_or_intern_static("hello", &utf16!("hello")),
+            interner.get_or_intern_static("hello", utf16!("hello")),
             FormalParameterList::default(),
             vec![],
         )
@@ -27,7 +29,7 @@ fn function_declaration_keywords() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
             vec![FunctionDecl::new(
-                $interner.get_or_intern_static($keyword, &utf16!($keyword)),
+                $interner.get_or_intern_static($keyword, utf16!($keyword)),
                 FormalParameterList::default(),
                 vec![],
             )

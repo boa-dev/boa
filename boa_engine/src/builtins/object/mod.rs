@@ -784,7 +784,7 @@ impl Object {
         let tag_str = tag.as_string().unwrap_or(&builtin_tag);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(js_string!(&utf16!("[object "), tag_str, &utf16!("]")).into())
+        Ok(js_string!(utf16!("[object "), tag_str, utf16!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`

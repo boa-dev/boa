@@ -1,9 +1,11 @@
 // ! Tests for array initializer parsing.
 
-use crate::string::utf16;
-use crate::syntax::{
-    ast::{node::ArrayDecl, Const, Node},
-    parser::tests::check_parser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{node::ArrayDecl, Const, Node},
+        parser::tests::check_parser,
+    },
 };
 use boa_interner::{Interner, Sym};
 
@@ -98,7 +100,7 @@ fn check_combined() {
         "[1, \"a\", 2]",
         vec![ArrayDecl::from(vec![
             Const::from(1).into(),
-            Const::from(interner.get_or_intern_static("a", &utf16!("a"))).into(),
+            Const::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
             Const::from(2).into(),
         ])
         .into()],

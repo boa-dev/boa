@@ -1,9 +1,11 @@
-use crate::syntax::{
-    ast::node::{field::GetConstField, Call, Identifier},
-    parser::tests::check_parser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::node::{field::GetConstField, Call, Identifier},
+        parser::tests::check_parser,
+    },
 };
 use boa_interner::Interner;
-use utf16_lit::utf16;
 
 macro_rules! check_call_property_identifier {
     ($property:literal) => {{
@@ -12,10 +14,10 @@ macro_rules! check_call_property_identifier {
             format!("a().{}", $property).as_str(),
             vec![GetConstField::new(
                 Call::new(
-                    Identifier::new(interner.get_or_intern_static("a", &utf16!("a")[..])),
+                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
                     vec![],
                 ),
-                interner.get_or_intern_static($property, &utf16!($property)[..]),
+                interner.get_or_intern_static($property, utf16!($property)),
             )
             .into()],
             interner,
@@ -38,8 +40,8 @@ macro_rules! check_member_property_identifier {
         check_parser(
             format!("a.{}", $property).as_str(),
             vec![GetConstField::new(
-                Identifier::new(interner.get_or_intern_static("a", &utf16!("a")[..])),
-                interner.get_or_intern_static($property, &utf16!($property)[..]),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
+                interner.get_or_intern_static($property, utf16!($property)),
             )
             .into()],
             interner,
