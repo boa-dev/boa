@@ -231,7 +231,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpalloc
-    fn alloc(new_target: &JsValue, context: &mut Context) -> JsResult<JsObject> {
+    pub(crate) fn alloc(new_target: &JsValue, context: &mut Context) -> JsResult<JsObject> {
         // 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, "%RegExp.prototype%", « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).
         let proto =
             get_prototype_from_constructor(new_target, StandardConstructors::regexp, context)?;
@@ -259,7 +259,7 @@ impl RegExp {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize
-    fn initialize(
+    pub(crate) fn initialize(
         obj: JsObject,
         pattern: &JsValue,
         flags: &JsValue,
