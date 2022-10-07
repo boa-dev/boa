@@ -41,6 +41,17 @@ pub struct JsRegExp {
 
 impl JsRegExp {
     /// Create a new `JsRegExp` object
+    /// ```
+    /// # use boa_engine::{
+    /// #  object::JsRegExp,
+    /// #  Context, JsValue,
+    /// # };
+    /// // Initialize the `Context`
+    /// let context = &mut Context::default();
+    ///
+    /// // Create a new RegExp with pattern and flags
+    /// let regexp = JsRegExp::new("foo", "gi", context).unwrap();
+    /// ```
     #[inline]
     pub fn new<S>(pattern: S, flags: S, context: &mut Context) -> JsResult<Self>
     where
