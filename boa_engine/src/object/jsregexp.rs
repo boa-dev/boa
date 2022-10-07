@@ -143,7 +143,7 @@ impl JsRegExp {
         })
     }
 
-    /// Returns the pattern source of `JsRegExp` as a string
+    /// Returns the source pattern of `JsRegExp` as a string
     /// ```
     /// # use boa_engine::{
     /// #  object::JsRegExp,
