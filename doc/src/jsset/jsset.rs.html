@@ -53,7 +53,7 @@
 <span id="53">53</span>
 </pre><pre class="rust"><code><span class="comment">// This example shows how to manipulate a Javascript Set using Rust code.</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::bool_assert_comparison</span>)]</span>
-<span class="kw">use</span> <span class="ident">boa_engine</span>::{<span class="ident">object::JsSet</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="ident">boa_engine</span>::{<span class="ident">object::builtins::JsSet</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
 
 <span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="comment">// New `Context` for a new Javascript executor.</span>

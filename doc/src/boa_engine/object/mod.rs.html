@@ -2252,21 +2252,11 @@
 <span id="2250">2250</span>
 <span id="2251">2251</span>
 <span id="2252">2252</span>
-<span id="2253">2253</span>
-<span id="2254">2254</span>
-<span id="2255">2255</span>
-<span id="2256">2256</span>
-<span id="2257">2257</span>
-<span id="2258">2258</span>
-<span id="2259">2259</span>
-<span id="2260">2260</span>
-<span id="2261">2261</span>
-<span id="2262">2262</span>
-<span id="2263">2263</span>
-<span id="2264">2264</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object.</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module also provides helper objects for working with JavaScript objects.</span>
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">JsObject</span>, <span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::{<span class="ident">RecursionLimiter</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">operations::IntegrityLevel</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">property_map</span>::<span class="kw-2">*</span>;
 
@@ -2329,30 +2319,16 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">internal_methods</span>;
-<span class="kw">mod</span> <span class="ident">jsarray</span>;
-<span class="kw">mod</span> <span class="ident">jsarraybuffer</span>;
-<span class="kw">mod</span> <span class="ident">jsdataview</span>;
-<span class="kw">mod</span> <span class="ident">jsfunction</span>;
-<span class="kw">mod</span> <span class="ident">jsmap</span>;
-<span class="kw">mod</span> <span class="ident">jsmap_iterator</span>;
+
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builtins</span>;
 <span class="kw">mod</span> <span class="ident">jsobject</span>;
-<span class="kw">mod</span> <span class="ident">jsproxy</span>;
-<span class="kw">mod</span> <span class="ident">jsset</span>;
-<span class="kw">mod</span> <span class="ident">jsset_iterator</span>;
-<span class="kw">mod</span> <span class="ident">jstypedarray</span>;
 <span class="kw">mod</span> <span class="ident">operations</span>;
 <span class="kw">mod</span> <span class="ident">property_map</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarray</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarraybuffer</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsdataview</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsfunction</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap_iterator</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsproxy</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsset</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsset_iterator</span>::<span class="kw-2">*</span>;
-<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jstypedarray</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">builtins</span>::<span class="kw-2">*</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">builtins::jsproxy::JsProxyBuilder</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsobject</span>::<span class="kw-2">*</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">JsObjectType</span>:
     <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Deref</span><span class="op">&lt;</span><span class="ident">Target</span> <span class="op">=</span> <span class="ident">JsObject</span><span class="op">&gt;</span>

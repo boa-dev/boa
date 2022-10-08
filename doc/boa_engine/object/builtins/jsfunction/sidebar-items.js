@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["JsFunction","JavaScript `Function` rust object."]]};

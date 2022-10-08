@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["JsSet","JavaScript `Set` rust object."]]};
