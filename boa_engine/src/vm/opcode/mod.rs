@@ -1,4 +1,35 @@
 /// The opcodes of the vm.
+use crate::{
+    vm::ShouldExit,
+    Context,JsResult
+};
+
+// Operation modules
+pub(crate) mod pop;
+pub(crate) mod dup;
+pub(crate) mod swap;
+pub(crate) mod push;
+pub(crate) mod set;
+
+// Operation structs
+pub(crate) use pop::{Pop, PopIfThrown};
+pub(crate) use dup::Dup;
+pub(crate) use swap::Swap;
+pub(crate) use push::{
+    PushUndefined, PushNull, PushTrue, PushFalse,
+    PushZero, PushOne, PushInt8, PushInt16, PushInt32, 
+    PushRational, PushNaN, PushPositiveInfinity, PushNegativeInfinity, 
+    PushLiteral, PushEmptyObject, PushClassPrototype
+};
+pub(crate) use set::{SetClassPrototype, SetHomeObject};
+
+pub(crate) trait Operation {
+    const NAME: &'static str;
+    const INSTRUCTION: &'static str;
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit>;
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(u8)]
 pub enum Opcode {
@@ -7,119 +38,119 @@ pub enum Opcode {
     /// Operands:
     ///
     /// Stack: value **=>**
-    Pop,
+    Pop(Pop),
 
     /// Pop the top value from the stack if the last try block has thrown a value.
     ///
     /// Operands:
     ///
     /// Stack: value **=>**
-    PopIfThrown,
+    PopIfThrown(PopIfThrown),
 
     /// Push a copy of the top value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: value **=>** value, value
-    Dup,
+    Dup(Dup),
 
     /// Swap the top two values on the stack.
     ///
     /// Operands:
     ///
     /// Stack: second, first **=>** first, second
-    Swap,
+    Swap(Swap),
 
     /// Push integer `0` on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `0`
-    PushZero,
+    PushZero(PushZero),
 
     /// Push integer `1` on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `1`
-    PushOne,
+    PushOne(PushZero),
 
     /// Push `i8` value on the stack.
     ///
     /// Operands: value: `i8`
     ///
     /// Stack: **=>** value
-    PushInt8,
+    PushInt8(PushInt8),
 
     /// Push i16 value on the stack.
     ///
     /// Operands: value: `i16`
     ///
     /// Stack: **=>** value
-    PushInt16,
+    PushInt16(PushInt16),
 
     /// Push i32 value on the stack.
     ///
     /// Operands: value: `i32`
     ///
     /// Stack: **=>** value
-    PushInt32,
+    PushInt32(PushInt32),
 
     /// Push `f64` value on the stack.
     ///
     /// Operands: value: `f64`
     ///
     /// Stack: **=>** value
-    PushRational,
+    PushRational(PushRational),
 
     /// Push `NaN` integer on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `NaN`
-    PushNaN,
+    PushNaN(PushNaN),
 
     /// Push `Infinity` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `Infinity`
-    PushPositiveInfinity,
+    PushPositiveInfinity(PushPositiveInfinity),
 
     /// Push `-Infinity` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `-Infinity`
-    PushNegativeInfinity,
+    PushNegativeInfinity(PushNegativeInfinity),
 
     /// Push `null` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `null`
-    PushNull,
+    PushNull(PushNull),
 
     /// Push `true` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `true`
-    PushTrue,
+    PushTrue(PushTrue),
 
     /// Push `false` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `false`
-    PushFalse,
+    PushFalse(PushFalse),
 
     /// Push `undefined` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `undefined`
-    PushUndefined,
+    PushUndefined(PushUndefined),
 
     /// Push literal value on the stack.
     ///
@@ -129,35 +160,35 @@ pub enum Opcode {
     /// Operands: index: `u32`
     ///
     /// Stack: **=>** (`literals[index]`)
-    PushLiteral,
+    PushLiteral(PushLiteral),
 
     /// Push empty object `{}` value on the stack.
     ///
     /// Operands:
     ///
     /// Stack: **=>** `{}`
-    PushEmptyObject,
+    PushEmptyObject(PushEmptyObject),
 
     /// Get the prototype of a superclass and push it on the stack.
     ///
     /// Operands:
     ///
     /// Stack: class, superclass **=>** class, superclass.prototype
-    PushClassPrototype,
+    PushClassPrototype(PushClassPrototype),
 
     /// Set the prototype of a class object.
     ///
     /// Operands:
     ///
     /// Stack: class, prototype **=>** class.prototype
-    SetClassPrototype,
+    SetClassPrototype(SetClassPrototype),
 
     /// Set home object internal slot of a function object.
     ///
     /// Operands:
     ///
     /// Stack: home, function **=>** home, function
-    SetHomeObject,
+    SetHomeObject(SetHomeObject),
 
     /// Push an empty array value on the stack.
     ///
@@ -1212,28 +1243,28 @@ impl Opcode {
 
     pub fn as_str(self) -> &'static str {
         match self {
-            Self::Pop => "Pop",
-            Self::PopIfThrown => "PopIfThrown",
-            Self::Dup => "Dup",
-            Self::Swap => "Swap",
-            Self::PushZero => "PushZero",
-            Self::PushOne => "PushOne",
-            Self::PushInt8 => "PushInt8",
-            Self::PushInt16 => "PushInt16",
-            Self::PushInt32 => "PushInt32",
-            Self::PushRational => "PushRational",
-            Self::PushNaN => "PushNaN",
-            Self::PushPositiveInfinity => "PushPositiveInfinity",
-            Self::PushNegativeInfinity => "PushNegativeInfinity",
-            Self::PushNull => "PushNull",
-            Self::PushTrue => "PushTrue",
-            Self::PushFalse => "PushFalse",
-            Self::PushUndefined => "PushUndefined",
-            Self::PushLiteral => "PushLiteral",
-            Self::PushEmptyObject => "PushEmptyObject",
-            Self::PushClassPrototype => "PushClassPrototype",
-            Self::SetClassPrototype => "SetClassPrototype",
-            Self::SetHomeObject => "SetHomeObject",
+            Self::Pop(op) => Pop::NAME,
+            Self::PopIfThrown(op) => PopIfThrown::NAME,
+            Self::Dup(op) => Dup::NAME,
+            Self::Swap(op) => Swap::NAME,
+            Self::PushZero(op) => PushZero::NAME,
+            Self::PushOne(op) => PushOne::NAME,
+            Self::PushInt8(op) => PushInt8::NAME,
+            Self::PushInt16(op) => PushInt16::NAME,
+            Self::PushInt32(op) => PushInt32::NAME,
+            Self::PushRational(op) => PushRational::NAME,
+            Self::PushNaN(op) => PushNaN::NAME,
+            Self::PushPositiveInfinity(op) => PushPositiveInfinity::NAME,
+            Self::PushNegativeInfinity(op) => PushNegativeInfinity::NAME,
+            Self::PushNull(op) => PushNull::NAME,
+            Self::PushTrue(op) => PushTrue::NAME,
+            Self::PushFalse(op) => PushFalse::NAME,
+            Self::PushUndefined(op) => PushUndefined::NAME,
+            Self::PushLiteral(op) => PushLiteral::NAME,
+            Self::PushEmptyObject(op) => PushEmptyObject::NAME,
+            Self::PushClassPrototype(op) => PushClassPrototype::NAME,
+            Self::SetClassPrototype(op) => SetClassPrototype::NAME,
+            Self::SetHomeObject(op) => SetHomeObject::NAME,
             Self::PushNewArray => "PushNewArray",
             Self::PushValueToArray => "PushValueToArray",
             Self::PushElisionToArray => "PushElisionToArray",
@@ -1380,25 +1411,25 @@ impl Opcode {
     /// Name of the profiler event for this opcode
     pub fn as_instruction_str(self) -> &'static str {
         match self {
-            Self::Pop => "INST - Pop",
-            Self::PopIfThrown => "INST - PopIfThrown",
-            Self::Dup => "INST - Dup",
-            Self::Swap => "INST - Swap",
-            Self::PushZero => "INST - PushZero",
-            Self::PushOne => "INST - PushOne",
-            Self::PushInt8 => "INST - PushInt8",
-            Self::PushInt16 => "INST - PushInt16",
-            Self::PushInt32 => "INST - PushInt32",
-            Self::PushRational => "INST - PushRational",
-            Self::PushNaN => "INST - PushNaN",
-            Self::PushPositiveInfinity => "INST - PushPositiveInfinity",
-            Self::PushNegativeInfinity => "INST - PushNegativeInfinity",
-            Self::PushNull => "INST - PushNull",
-            Self::PushTrue => "INST - PushTrue",
-            Self::PushFalse => "INST - PushFalse",
-            Self::PushUndefined => "INST - PushUndefined",
-            Self::PushLiteral => "INST - PushLiteral",
-            Self::PushEmptyObject => "INST - PushEmptyObject",
+            Self::Pop(op) => Pop::INSTRUCTION,
+            Self::PopIfThrown(op) => PopIfThrown::INSTRUCTION,
+            Self::Dup(op) => Dup::INSTRUCTION,
+            Self::Swap(op)  => Swap::INSTRUCTION,
+            Self::PushZero(op) => PushZero::INSTRUCTION,
+            Self::PushOne(op) => PushOne::INSTRUCTION,
+            Self::PushInt8(op)  => PushInt8::INSTRUCTION,
+            Self::PushInt16(op)  => PushInt16::INSTRUCTION,
+            Self::PushInt32(op)  => PushInt32::INSTRUCTION,
+            Self::PushRational(op) => PushRational::INSTRUCTION,
+            Self::PushNaN(op) => PushNaN::INSTRUCTION,
+            Self::PushPositiveInfinity(op) => PushPositiveInfinity::INSTRUCTION,
+            Self::PushNegativeInfinity(op) => PushNegativeInfinity::INSTRUCTION,
+            Self::PushNull(op) => PushNull::INSTRUCTION,
+            Self::PushTrue(op) => PushTrue::INSTRUCTION,
+            Self::PushFalse(op) => PushFalse::INSTRUCTION,
+            Self::PushUndefined(op) => PushUndefined::INSTRUCTION,
+            Self::PushLiteral(op) =>  PushLiteral::INSTRUCTION,
+            Self::PushEmptyObject(op) => PushEmptyObject::INSTRUCTION,
             Self::PushNewArray => "INST - PushNewArray",
             Self::PushValueToArray => "INST - PushValueToArray",
             Self::PushElisionToArray => "INST - PushElisionToArray",
@@ -1521,9 +1552,9 @@ impl Opcode {
             Self::Await => "INST - Await",
             Self::GeneratorNextDelegate => "INST - GeneratorNextDelegate",
             Self::Nop => "INST - Nop",
-            Self::PushClassPrototype => "INST - PushClassPrototype",
-            Self::SetClassPrototype => "INST - SetClassPrototype",
-            Self::SetHomeObject => "INST - SetHomeObject",
+            Self::PushClassPrototype(op) => PushClassPrototype::INSTRUCTION,
+            Self::SetClassPrototype(op) => SetClassPrototype::INSTRUCTION,
+            Self::SetHomeObject(op) => SetHomeObject::INSTRUCTION,
             Self::DefineClassMethodByName => "INST - DefineClassMethodByName",
             Self::DefineClassMethodByValue => "INST - DefineClassMethodByValue",
             Self::DefineClassGetterByName => "INST - DefineClassGetterByName",

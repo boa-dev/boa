@@ -28,6 +28,8 @@ mod call_frame;
 mod code_block;
 mod opcode;
 
+use opcode::*;
+
 pub use {call_frame::CallFrame, code_block::CodeBlock, opcode::Opcode};
 
 pub(crate) use {
@@ -145,163 +147,30 @@ impl Context {
 
         let _timer = Profiler::global().start_event(opcode.as_instruction_str(), "vm");
 
-        match opcode {
-            Opcode::Nop => {}
-            Opcode::Pop => {
-                let _val = self.vm.pop();
-            }
-            Opcode::PopIfThrown => {
-                let frame = self.vm.frame_mut();
-                if frame.thrown {
-                    frame.thrown = false;
-                    self.vm.pop();
-                }
-            }
-            Opcode::Dup => {
-                let value = self.vm.pop();
-                self.vm.push(value.clone());
-                self.vm.push(value);
-            }
-            Opcode::Swap => {
-                let first = self.vm.pop();
-                let second = self.vm.pop();
-
-                self.vm.push(first);
-                self.vm.push(second);
-            }
-            Opcode::PushUndefined => self.vm.push(JsValue::undefined()),
-            Opcode::PushNull => self.vm.push(JsValue::null()),
-            Opcode::PushTrue => self.vm.push(true),
-            Opcode::PushFalse => self.vm.push(false),
-            Opcode::PushZero => self.vm.push(0),
-            Opcode::PushOne => self.vm.push(1),
-            Opcode::PushInt8 => {
-                let value = self.vm.read::<i8>();
-                self.vm.push(i32::from(value));
-            }
-            Opcode::PushInt16 => {
-                let value = self.vm.read::<i16>();
-                self.vm.push(i32::from(value));
-            }
-            Opcode::PushInt32 => {
-                let value = self.vm.read::<i32>();
-                self.vm.push(value);
-            }
-            Opcode::PushRational => {
-                let value = self.vm.read::<f64>();
-                self.vm.push(value);
-            }
-            Opcode::PushNaN => self.vm.push(JsValue::nan()),
-            Opcode::PushPositiveInfinity => self.vm.push(JsValue::positive_infinity()),
-            Opcode::PushNegativeInfinity => self.vm.push(JsValue::negative_infinity()),
-            Opcode::PushLiteral => {
-                let index = self.vm.read::<u32>() as usize;
-                let value = self.vm.frame().code.literals[index].clone();
-                self.vm.push(value);
-            }
-            Opcode::PushEmptyObject => self.vm.push(self.construct_object()),
-            Opcode::PushClassPrototype => {
-                let superclass = self.vm.pop();
-
-                if let Some(superclass) = superclass.as_constructor() {
-                    let proto = superclass.get("prototype", self)?;
-                    if !proto.is_object() && !proto.is_null() {
-                        return Err(JsNativeError::typ()
-                            .with_message("superclass prototype must be an object or null")
-                            .into());
-                    }
-
-                    let class = self.vm.pop();
-                    {
-                        let class_object = class.as_object().expect("class must be object");
-                        class_object.set_prototype(Some(superclass.clone()));
-
-                        let mut class_object_mut = class_object.borrow_mut();
-                        let class_function = class_object_mut
-                            .as_function_mut()
-                            .expect("class must be function object");
-                        if let Function::Ordinary {
-                            constructor_kind, ..
-                        } = class_function
-                        {
-                            *constructor_kind = ConstructorKind::Derived;
-                        }
-                    }
-
-                    self.vm.push(class);
-                    self.vm.push(proto);
-                } else if superclass.is_null() {
-                    self.vm.push(JsValue::Null);
-                } else {
-                    return Err(JsNativeError::typ()
-                        .with_message("superclass must be a constructor")
-                        .into());
-                }
-            }
-            Opcode::SetClassPrototype => {
-                let prototype_value = self.vm.pop();
-                let prototype = match &prototype_value {
-                    JsValue::Object(proto) => Some(proto.clone()),
-                    JsValue::Null => None,
-                    JsValue::Undefined => {
-                        Some(self.intrinsics().constructors().object().prototype.clone())
-                    }
-                    _ => unreachable!(),
-                };
-
-                let proto = JsObject::from_proto_and_data(prototype, ObjectData::ordinary());
-                let class = self.vm.pop();
-
-                {
-                    let class_object = class.as_object().expect("class must be object");
-                    class_object
-                        .define_property_or_throw(
-                            "prototype",
-                            PropertyDescriptorBuilder::new()
-                                .value(proto.clone())
-                                .writable(false)
-                                .enumerable(false)
-                                .configurable(false),
-                            self,
-                        )
-                        .expect("cannot fail per spec");
-                    let mut class_object_mut = class_object.borrow_mut();
-                    let class_function = class_object_mut
-                        .as_function_mut()
-                        .expect("class must be function object");
-                    class_function.set_home_object(proto.clone());
-                }
-
-                proto
-                    .__define_own_property__(
-                        "constructor".into(),
-                        PropertyDescriptorBuilder::new()
-                            .value(class)
-                            .writable(true)
-                            .enumerable(false)
-                            .configurable(true)
-                            .build(),
-                        self,
-                    )
-                    .expect("cannot fail per spec");
-
-                self.vm.push(proto);
-            }
-            Opcode::SetHomeObject => {
-                let function = self.vm.pop();
-                let function_object = function.as_object().expect("must be object");
-                let home = self.vm.pop();
-                let home_object = home.as_object().expect("must be object");
-
-                function_object
-                    .borrow_mut()
-                    .as_function_mut()
-                    .expect("must be function object")
-                    .set_home_object(home_object.clone());
-
-                self.vm.push(home);
-                self.vm.push(function);
-            }
+        let result = match opcode {
+            Opcode::Nop => {ShouldExit::False}
+            Opcode::Pop(op) => Pop::execute(self)?,
+            Opcode::PopIfThrown(op) => PopIfThrown::execute(self)?,
+            Opcode::Dup(op) => Dup::execute(self)?,
+            Opcode::Swap(op) => Swap::execute(self)?,
+            Opcode::PushUndefined(op) => PushUndefined::execute(self)?,
+            Opcode::PushNull(op) => PushNull::execute(self)?,
+            Opcode::PushTrue(op) => PushTrue::execute(self)?,
+            Opcode::PushFalse(op) => PushFalse::execute(self)?,
+            Opcode::PushZero(op) => PushZero::execute(self)?,
+            Opcode::PushOne(op) => PushOne::execute(self)?,
+            Opcode::PushInt8(op) => PushInt8::execute(self)?,
+            Opcode::PushInt16(op) => PushInt16::execute(self)?,
+            Opcode::PushInt32(op) => PushInt32::execute(self)?,
+            Opcode::PushRational(op) => PushRational::execute(self)?,
+            Opcode::PushNaN(op) => PushNaN::execute(self)?,
+            Opcode::PushPositiveInfinity(op) => PushPositiveInfinity::execute(self)?,
+            Opcode::PushNegativeInfinity(op) => PushNegativeInfinity::execute(self)?,
+            Opcode::PushLiteral(op) => PushLiteral::execute(self)?,
+            Opcode::PushEmptyObject(op) => PushEmptyObject::execute(self)?,
+            Opcode::PushClassPrototype(op) => PushClassPrototype::execute(self)?,
+            Opcode::SetClassPrototype(op) => SetClassPrototype::execute(self)?,
+            Opcode::SetHomeObject(op) => SetHomeObject::execute(self)?,
             Opcode::PushNewArray => {
                 let array = Array::array_create(0, None, self)
                     .expect("Array creation with 0 length should never fail");
@@ -2645,9 +2514,9 @@ impl Context {
                     self.vm.push(JsValue::undefined());
                 }
             }
-        }
+        };
 
-        Ok(ShouldExit::False)
+        Ok(result)
     }
 
     pub(crate) fn run(&mut self) -> JsResult<(JsValue, ReturnType)> {
