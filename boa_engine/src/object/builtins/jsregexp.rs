@@ -16,7 +16,7 @@ use std::ops::Deref;
 ///
 /// ```
 /// # use boa_engine::{
-/// #  object::JsRegExp,
+/// #  object::builtins::JsRegExp,
 /// #  Context, JsValue,
 /// # };
 ///
@@ -43,7 +43,7 @@ impl JsRegExp {
     /// Create a new `JsRegExp` object
     /// ```
     /// # use boa_engine::{
-    /// #  object::JsRegExp,
+    /// #  object::builtins::JsRegExp,
     /// #  Context, JsValue,
     /// # };
     /// // Initialize the `Context`
@@ -135,7 +135,7 @@ impl JsRegExp {
     /// Returns the flags of `JsRegExp` as a string
     /// ```
     /// # use boa_engine::{
-    /// #  object::JsRegExp,
+    /// #  object::builtins::JsRegExp,
     /// #  Context, JsValue,
     /// # };
     /// # let context = &mut Context::default();
@@ -157,7 +157,7 @@ impl JsRegExp {
     /// Returns the source pattern of `JsRegExp` as a string
     /// ```
     /// # use boa_engine::{
-    /// #  object::JsRegExp,
+    /// #  object::builtins::JsRegExp,
     /// #  Context, JsValue,
     /// # };
     /// # let context = &mut Context::default();
@@ -179,7 +179,7 @@ impl JsRegExp {
     /// Executes a search for a match between `JsRegExp` and the provided string
     /// ```
     /// # use boa_engine::{
-    /// #  object::JsRegExp,
+    /// #  object::builtins::JsRegExp,
     /// #  Context, JsValue,
     /// # };
     /// # let context = &mut Context::default();
@@ -223,7 +223,7 @@ impl JsRegExp {
     /// Return a string representing the regular expression.
     /// ```
     /// # use boa_engine::{
-    /// #  object::JsRegExp,
+    /// #  object::builtins::JsRegExp,
     /// #  Context, JsValue,
     /// # };
     /// # let context = &mut Context::default();
