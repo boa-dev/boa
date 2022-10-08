@@ -17,7 +17,7 @@ use std::ops::Deref;
 /// # Examples
 /// ```
 /// # use boa_engine::{
-/// #     object::js_object::{JsArrayBuffer, JsDataView},
+/// #     object::builtins::{JsArrayBuffer, JsDataView},
 /// #     Context, JsValue
 /// # };
 ///

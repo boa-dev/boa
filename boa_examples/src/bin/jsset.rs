@@ -1,6 +1,6 @@
 // This example shows how to manipulate a Javascript Set using Rust code.
 #![allow(clippy::bool_assert_comparison)]
-use boa_engine::{object::js_object::JsSet, Context, JsValue};
+use boa_engine::{object::builtins::JsSet, Context, JsValue};
 
 fn main() -> Result<(), JsValue> {
     // New `Context` for a new Javascript executor.

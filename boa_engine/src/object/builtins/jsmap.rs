@@ -16,7 +16,7 @@ use std::ops::Deref;
 /// Create a `JsMap` and set a new entry
 /// ```
 /// # use boa_engine::{
-/// #  object::js_object::JsMap,
+/// #  object::builtins::JsMap,
 /// #  Context, JsValue,
 /// # };
 ///
@@ -37,7 +37,7 @@ use std::ops::Deref;
 /// Create a `JsMap` from a `JsArray`
 /// ```
 /// # use boa_engine::{
-/// #    object::js_object::{JsArray, JsMap},
+/// #    object::builtins::{JsArray, JsMap},
 /// #    Context, JsValue,
 /// # };
 ///
@@ -72,7 +72,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -94,7 +94,7 @@ impl JsMap {
     /// # Examples
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::{JsArray, JsMap},
+    /// #    object::builtins::{JsArray, JsMap},
     /// #    Context, JsResult, JsValue,
     /// # };
     ///
@@ -136,7 +136,7 @@ impl JsMap {
     /// ```
     /// # use boa_engine::{
     /// #    builtins::map::ordered_map::OrderedMap,
-    /// #    object::{js_object::{JsObject, JsMap}, ObjectData},
+    /// #    object::{builtins::JsMap, JsObject, ObjectData},
     /// #    Context, JsValue,
     /// # };
     ///
@@ -156,7 +156,7 @@ impl JsMap {
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::{JsObject, JsArray, JsMap},
+    /// #    object::{JsObject, builtins::{JsArray, JsMap}},
     /// #    Context, JsResult, JsValue,
     /// # };
     ///
@@ -210,7 +210,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -244,7 +244,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -270,7 +270,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -300,7 +300,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -327,7 +327,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -353,7 +353,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::js_object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
