@@ -8,7 +8,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-// This is an wrapper for `JsSet`
+/// JavaScript `Set` rust object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsSet {
     inner: JsObject,

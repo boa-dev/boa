@@ -16,7 +16,7 @@ use std::ops::Deref;
 /// Create a `JsMap` and set a new entry
 /// ```
 /// # use boa_engine::{
-/// #  object::JsMap,
+/// #  object::builtins::JsMap,
 /// #  Context, JsValue,
 /// # };
 ///
@@ -37,7 +37,7 @@ use std::ops::Deref;
 /// Create a `JsMap` from a `JsArray`
 /// ```
 /// # use boa_engine::{
-/// #    object::{JsArray, JsMap},
+/// #    object::builtins::{JsArray, JsMap},
 /// #    Context, JsValue,
 /// # };
 ///
@@ -46,7 +46,7 @@ use std::ops::Deref;
 ///
 /// // Create an array of two `[key, value]` pairs
 /// let js_array = JsArray::new(context);
-///     
+///
 /// // Create a `[key, value]` pair of JsValues
 /// let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
 ///
@@ -72,7 +72,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -94,7 +94,7 @@ impl JsMap {
     /// # Examples
     /// ```
     /// # use boa_engine::{
-    /// #    object::{JsArray, JsMap},
+    /// #    object::builtins::{JsArray, JsMap},
     /// #    Context, JsResult, JsValue,
     /// # };
     ///
@@ -103,7 +103,7 @@ impl JsMap {
     ///
     /// // Create an array of two `[key, value]` pairs
     /// let js_array = JsArray::new(context);
-    ///     
+    ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
     /// let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
     /// js_array.push(JsArray::from_iter(vec_one, context), context).unwrap();
@@ -136,7 +136,7 @@ impl JsMap {
     /// ```
     /// # use boa_engine::{
     /// #    builtins::map::ordered_map::OrderedMap,
-    /// #    object::{JsObject, ObjectData, JsMap},
+    /// #    object::{builtins::JsMap, JsObject, ObjectData},
     /// #    Context, JsValue,
     /// # };
     ///
@@ -147,7 +147,7 @@ impl JsMap {
     ///     context.intrinsics().constructors().map().prototype(),
     ///     ObjectData::map(OrderedMap::new())
     /// );
-    ///     
+    ///
     /// // Create `JsMap` object with incoming object.
     /// let js_map = JsMap::from_object(some_object, context).unwrap();
     ///
@@ -156,7 +156,7 @@ impl JsMap {
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
     /// ```
     /// # use boa_engine::{
-    /// #    object::{JsObject, JsArray, JsMap},
+    /// #    object::{JsObject, builtins::{JsArray, JsMap}},
     /// #    Context, JsResult, JsValue,
     /// # };
     ///
@@ -166,7 +166,7 @@ impl JsMap {
     ///
     /// // Some object is an Array object, not a map object
     /// assert!(JsMap::from_object(some_object.into(), context).is_err());
-    ///     
+    ///
     /// ```
     #[inline]
     pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
@@ -210,7 +210,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -223,7 +223,7 @@ impl JsMap {
     ///
     /// assert_eq!(js_map.get("foo", context).unwrap(), "bar".into());
     /// assert_eq!(js_map.get(2, context).unwrap(), 4.into())
-    ///     
+    ///
     /// ```
     #[inline]
     pub fn set<K, V>(&self, key: K, value: V, context: &mut Context) -> JsResult<JsValue>
@@ -244,7 +244,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -270,7 +270,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -300,7 +300,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -327,7 +327,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///
@@ -353,7 +353,7 @@ impl JsMap {
     ///
     /// ```
     /// # use boa_engine::{
-    /// #    object::JsMap,
+    /// #    object::builtins::JsMap,
     /// #    Context, JsValue,
     /// # };
     ///

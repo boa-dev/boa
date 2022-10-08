@@ -1,6 +1,8 @@
-//! This module implements the Rust representation of a JavaScript object.
+//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.
+//!
+//! This module also provides helper objects for working with JavaScript objects.
 
-pub use jsobject::{JsObject, RecursionLimiter, Ref, RefMut};
+pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
 
@@ -63,30 +65,16 @@ use std::{
 mod tests;
 
 pub(crate) mod internal_methods;
-mod jsarray;
-mod jsarraybuffer;
-mod jsdataview;
-mod jsfunction;
-mod jsmap;
-mod jsmap_iterator;
+
+pub mod builtins;
 mod jsobject;
-mod jsproxy;
-mod jsset;
-mod jsset_iterator;
-mod jstypedarray;
 mod operations;
 mod property_map;
 
-pub use jsarray::*;
-pub use jsarraybuffer::*;
-pub use jsdataview::*;
-pub use jsfunction::*;
-pub use jsmap::*;
-pub use jsmap_iterator::*;
-pub use jsproxy::*;
-pub use jsset::*;
-pub use jsset_iterator::*;
-pub use jstypedarray::*;
+pub(crate) use builtins::*;
+
+pub use builtins::jsproxy::JsProxyBuilder;
+pub use jsobject::*;
 
 pub(crate) trait JsObjectType:
     Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>

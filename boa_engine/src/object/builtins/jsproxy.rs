@@ -2,10 +2,11 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::{function::NativeFunctionSignature, Proxy},
+    object::{FunctionBuilder, JsObject, JsObjectType, ObjectData},
     Context, JsResult, JsValue,
 };
 
-use super::{FunctionBuilder, JsFunction, JsObject, JsObjectType, ObjectData};
+use super::JsFunction;
 
 /// JavaScript [`Proxy`][proxy] rust object.
 ///
