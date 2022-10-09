@@ -13,7 +13,7 @@ pub(super) struct RawInterner<Char> {
     // some of our stored pointers inside `spans`.
     // This means that any operation on `head` and `full` should be carefully
     // reviewed to not cause Undefined Behaviour.
-    // `get_or_intern` has a more thorough explanation on this.
+    // `intern` has a more thorough explanation on this.
     //
     // Also, if you want to implement `shrink_to_fit` (and friends),
     // please check out https://github.com/Robbepop/string-interner/pull/47 first.
@@ -37,7 +37,7 @@ impl<Char> Default for RawInterner<Char> {
 }
 
 impl<Char> RawInterner<Char> {
-    /// Creates a new [`Interner`] with the specified capacity.
+    /// Creates a new `RawInterner` with the specified capacity.
     #[inline]
     pub(super) fn with_capacity(capacity: usize) -> Self {
         Self {
@@ -54,7 +54,7 @@ impl<Char> RawInterner<Char> {
         self.spans.len()
     }
 
-    /// Returns `true` if the [`Interner`] contains no interned strings.
+    /// Returns `true` if the interner contains no interned strings.
     #[inline]
     pub(super) fn is_empty(&self) -> bool {
         self.spans.is_empty()
@@ -85,8 +85,8 @@ where
     ///
     /// # Note
     ///
-    /// This is more efficient than [`Interner::get_or_intern`], since it
-    /// avoids storing `string` inside the [`Interner`].
+    /// This is more efficient than [`RawInterner::intern`], since it
+    /// avoids storing `string` inside the interner.
     ///
     /// # Panics
     ///
@@ -161,12 +161,12 @@ where
         // having to reallocate, and the only way to do that without invalidating
         // any other alive `InternedStr` is to create a brand new `head` with
         // enough capacity and push the old `head` to `full` to keep it alive
-        // throughout the lifetime of the whole `Interner`.
+        // throughout the lifetime of the whole interner.
         //
         // `FixedString` encapsulates this by only allowing checked `push`es
         // to the internal string, but we still have to ensure the memory
-        // of `head` is not deallocated until the whole `Interner` deallocates,
-        // which we can do by moving it inside the `Interner` itself, specifically
+        // of `head` is not deallocated until the whole interner deallocates,
+        // which we can do by moving it inside the interner itself, specifically
         // on the `full` vector, where every other old `head` also lives.
         let interned_str = unsafe {
             self.head.push(string).unwrap_or_else(|| {
@@ -189,7 +189,7 @@ where
         };
 
         // SAFETY: We are obtaining a pointer to the internal memory of
-        // `head`, which is alive through the whole life of `Interner`, so
+        // `head`, which is alive through the whole life of the interner, so
         // this is safe.
         unsafe { self.next_index(interned_str) }
     }
