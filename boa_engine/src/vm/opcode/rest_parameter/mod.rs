@@ -8,8 +8,8 @@ use crate::{
 pub(crate) struct RestParameterInit;
 
 impl Operation for RestParameterInit {
-    const NAME: &'static str = "RestParameterInit";
-    const INSTRUCTION: &'static str = "INST - RestParameterInit";
+    const NAME: &'static str = "FunctionRestParameter";
+    const INSTRUCTION: &'static str = "INST - FunctionRestParameter";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let arg_count = context.vm.frame().arg_count;

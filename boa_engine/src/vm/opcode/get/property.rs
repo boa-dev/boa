@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyKey,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsString, JsValue,
+    Context, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

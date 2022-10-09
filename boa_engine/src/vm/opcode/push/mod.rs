@@ -36,20 +36,12 @@ macro_rules! implement_push_generics {
     };
 }
 
-implement_push_generics!(PushUndefined, { JsValue::undefined() });
-
-implement_push_generics!(PushNull, { JsValue::null() });
-
+implement_push_generics!(PushUndefined, JsValue::undefined());
+implement_push_generics!(PushNull, JsValue::null());
 implement_push_generics!(PushTrue, true);
-
 implement_push_generics!(PushFalse, false);
-
 implement_push_generics!(PushZero, 0);
-
 implement_push_generics!(PushOne, 1);
-
 implement_push_generics!(PushNaN, JsValue::nan());
-
 implement_push_generics!(PushPositiveInfinity, JsValue::positive_infinity());
-
 implement_push_generics!(PushNegativeInfinity, JsValue::negative_infinity());

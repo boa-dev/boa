@@ -6,9 +6,15 @@ use crate::{
 };
 use std::ops::Neg as StdNeg;
 
+pub(crate) mod bin_ops;
+pub(crate) mod decrement;
+pub(crate) mod increment;
 pub(crate) mod jump;
 pub(crate) mod logical;
 
+pub(crate) use bin_ops::*;
+pub(crate) use decrement::*;
+pub(crate) use increment::*;
 pub(crate) use jump::*;
 pub(crate) use logical::*;
 
@@ -19,7 +25,7 @@ impl Operation for Nop {
     const NAME: &'static str = "Nop";
     const INSTRUCTION: &'static str = "INST - Nop";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(_context: &mut Context) -> JsResult<ShouldExit> {
         Ok(ShouldExit::False)
     }
 }
@@ -172,86 +178,6 @@ impl Operation for Neg {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Inc;
-
-impl Operation for Inc {
-    const NAME: &'static str = "Inc";
-    const INSTRUCTION: &'static str = "INST - Inc";
-
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let value = context.vm.pop();
-        match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(number + 1f64),
-            Numeric::BigInt(bigint) => {
-                context.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
-            }
-        }
-        Ok(ShouldExit::False)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct IncPost;
-
-impl Operation for IncPost {
-    const NAME: &'static str = "IncPost";
-    const INSTRUCTION: &'static str = "INST - IncPost";
-
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let value = context.vm.pop();
-        let value = value.to_numeric(context)?;
-        context.vm.push(value.clone());
-        match value {
-            Numeric::Number(number) => context.vm.push(number + 1f64),
-            Numeric::BigInt(bigint) => {
-                context.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
-            }
-        }
-        Ok(ShouldExit::False)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Dec;
-
-impl Operation for Dec {
-    const NAME: &'static str = "Dec";
-    const INSTRUCTION: &'static str = "INST - Dec";
-
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let value = context.vm.pop();
-        match value.to_numeric(context)? {
-            Numeric::Number(number) => context.vm.push(number - 1f64),
-            Numeric::BigInt(bigint) => {
-                context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
-            }
-        }
-        Ok(ShouldExit::False)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct DecPost;
-
-impl Operation for DecPost {
-    const NAME: &'static str = "DecPost";
-    const INSTRUCTION: &'static str = "INST - DecPost";
-
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let value = context.vm.pop();
-        let value = value.to_numeric(context)?;
-        context.vm.push(value.clone());
-        match value {
-            Numeric::Number(number) => context.vm.push(number - 1f64),
-            Numeric::BigInt(bigint) => {
-                context.vm.push(JsBigInt::sub(&bigint, &JsBigInt::one()));
-            }
-        }
-        Ok(ShouldExit::False)
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct BitNot;
 
 impl Operation for BitNot {
@@ -267,41 +193,3 @@ impl Operation for BitNot {
         Ok(ShouldExit::False)
     }
 }
-
-macro_rules! implement_bin_ops {
-    ($name:ident, $op:ident) => {
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-        pub(crate) struct $name;
-
-        impl Operation for $name {
-            const NAME: &'static str = stringify!($name);
-            const INSTRUCTION: &'static str = stringify!("INST - " + $name);
-
-            fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-                let rhs = context.vm.pop();
-                let lhs = context.vm.pop();
-                let value = lhs.$op(&rhs, context)?;
-                context.vm.push(value);
-                Ok(ShouldExit::False)
-            }
-        }
-    };
-}
-
-implement_bin_ops!(Add, add);
-implement_bin_ops!(Sub, sub);
-implement_bin_ops!(Mul, mul);
-implement_bin_ops!(Div, div);
-implement_bin_ops!(Pow, pow);
-implement_bin_ops!(Mod, rem);
-implement_bin_ops!(BitAnd, bitand);
-implement_bin_ops!(BitOr, bitor);
-implement_bin_ops!(BitXor, bitxor);
-implement_bin_ops!(ShiftLeft, shl);
-implement_bin_ops!(ShiftRight, shr);
-implement_bin_ops!(UnsignedShiftRight, ushr);
-implement_bin_ops!(Eq, equals);
-implement_bin_ops!(GreaterThan, gt);
-implement_bin_ops!(GreaterThanOrEq, ge);
-implement_bin_ops!(LessThan, lt);
-implement_bin_ops!(LessThanOrEq, le);

@@ -18,7 +18,7 @@ impl Operation for Yield {
     const NAME: &'static str = "Yield";
     const INSTRUCTION: &'static str = "INST - Yield";
 
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+    fn execute(_context: &mut Context) -> JsResult<ShouldExit> {
         Ok(ShouldExit::Yield)
     }
 }
@@ -32,10 +32,10 @@ impl Operation for GeneratorNext {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         match context.vm.frame().generator_resume_kind {
-            GeneratorResumeKind::Normal => return Ok(ShouldExit::False),
+            GeneratorResumeKind::Normal => Ok(ShouldExit::False),
             GeneratorResumeKind::Throw => {
                 let received = context.vm.pop();
-                return Err(received);
+                Err(received)
             }
             GeneratorResumeKind::Return => {
                 let mut finally_left = false;
@@ -55,7 +55,7 @@ impl Operation for GeneratorNext {
                 if finally_left {
                     return Ok(ShouldExit::False);
                 }
-                return Ok(ShouldExit::True);
+                Ok(ShouldExit::True)
             }
         }
     }
@@ -156,7 +156,7 @@ impl Operation for GeneratorNextDelegate {
                 context.vm.push(next_method.clone());
                 context.vm.push(done);
                 context.vm.push(value);
-                return Ok(ShouldExit::Yield);
+                Ok(ShouldExit::Yield)
             }
             GeneratorResumeKind::Throw => {
                 let throw = iterator.get_method("throw", context)?;
@@ -183,7 +183,7 @@ impl Operation for GeneratorNextDelegate {
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
                 let error = context.construct_type_error("iterator does not have a throw method");
-                return Err(error);
+                Err(error)
             }
             GeneratorResumeKind::Return => {
                 let r#return = iterator.get_method("return", context)?;
@@ -208,7 +208,7 @@ impl Operation for GeneratorNextDelegate {
                 }
                 context.vm.frame_mut().pc = done_address as usize;
                 context.vm.push(received);
-                return Ok(ShouldExit::True);
+                Ok(ShouldExit::True)
             }
         }
     }

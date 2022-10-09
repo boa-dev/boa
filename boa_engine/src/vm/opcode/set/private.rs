@@ -51,8 +51,8 @@ impl Operation for AssignPrivateField {
 pub(crate) struct SetPrivateField;
 
 impl Operation for SetPrivateField {
-    const NAME: &'static str = "SetPrivateField";
-    const INSTRUCTION: &'static str = "INST - SetPrivateField";
+    const NAME: &'static str = "SetPrivateValue";
+    const INSTRUCTION: &'static str = "INST - SetPrivateValue";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();

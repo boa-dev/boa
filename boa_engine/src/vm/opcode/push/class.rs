@@ -45,7 +45,7 @@ impl Operation for PushClassPrototype {
             context.vm.push(JsValue::Null);
             Ok(ShouldExit::False)
         } else {
-            return context.throw_type_error("superclass must be a constructor");
+            context.throw_type_error("superclass must be a constructor")
         }
     }
 }

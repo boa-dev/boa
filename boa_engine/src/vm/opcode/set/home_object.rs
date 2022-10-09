@@ -1,8 +1,6 @@
 use crate::{
-    object::{JsObject, ObjectData},
-    property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

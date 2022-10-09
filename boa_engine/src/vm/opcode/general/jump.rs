@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

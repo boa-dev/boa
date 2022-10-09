@@ -40,13 +40,13 @@ impl Operation for FinallyEnd {
                 if let Some(address) = address {
                     context.vm.frame_mut().pc = address as usize;
                 }
-                return Ok(ShouldExit::False);
+                Ok(ShouldExit::False)
             }
             FinallyReturn::Ok => {
-                return Ok(ShouldExit::True);
+                Ok(ShouldExit::True)
             }
             FinallyReturn::Err => {
-                return Err(context.vm.pop());
+                Err(context.vm.pop())
             }
         }
     }

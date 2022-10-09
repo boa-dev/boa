@@ -1,5 +1,5 @@
 use crate::{
-    property::{PropertyDescriptor, PropertyKey},
+    property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
