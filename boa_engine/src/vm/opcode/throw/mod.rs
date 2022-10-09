@@ -4,16 +4,14 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Dup;
+pub(crate) struct Throw;
 
-impl Operation for Dup {
-    const NAME: &'static str = "Dup";
-    const INSTRUCTION: &'static str = "INST - Dup";
+impl Operation for Throw {
+    const NAME: &'static str = "Throw";
+    const INSTRUCTION: &'static str = "INST - Throw";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
-        context.vm.push(value.clone());
-        context.vm.push(value);
-        Ok(ShouldExit::False)
+        Err(value)
     }
 }

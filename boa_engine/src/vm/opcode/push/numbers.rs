@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult
+    Context, JsResult,
 };
 
 macro_rules! implement_push_numbers_with_conversion {
@@ -18,7 +18,7 @@ macro_rules! implement_push_numbers_with_conversion {
                 Ok(ShouldExit::False)
             }
         }
-    }
+    };
 }
 
 macro_rules! implement_push_numbers_no_conversion {
@@ -36,20 +36,12 @@ macro_rules! implement_push_numbers_no_conversion {
                 Ok(ShouldExit::False)
             }
         }
-    }
+    };
 }
-implement_push_numbers_with_conversion! (
-    PushInt8, i8
-);
+implement_push_numbers_with_conversion!(PushInt8, i8);
 
-implement_push_numbers_with_conversion!(
-    PushInt16, i16
-);
+implement_push_numbers_with_conversion!(PushInt16, i16);
 
-implement_push_numbers_no_conversion!(
-    PushInt32, i32
-);
+implement_push_numbers_no_conversion!(PushInt32, i32);
 
-implement_push_numbers_no_conversion!(
-    PushRational, f64
-);
+implement_push_numbers_no_conversion!(PushRational, f64);

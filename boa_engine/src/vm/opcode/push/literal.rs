@@ -1,5 +1,5 @@
 use crate::{
-    vm::{ShouldExit, opcode::Operation},
+    vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
 

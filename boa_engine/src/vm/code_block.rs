@@ -165,68 +165,68 @@ impl CodeBlock {
     /// Modifies the `pc` to point to the next instruction.
     ///
     /// Returns an empty `String` if no operands are present.
-    pub(crate) fn instruction_operands(&self, pc: &mut usize, interner: &Interner) -> String {
+    pub(crate) fn instruction_erands(&self, pc: &mut usize, interner: &Interner) -> String {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
-            Opcode::PushInt8 => {
+            Opcode::PushInt8(_) => {
                 let result = self.read::<i8>(*pc).to_string();
                 *pc += size_of::<i8>();
                 result
             }
-            Opcode::PushInt16 => {
+            Opcode::PushInt16(_) => {
                 let result = self.read::<i16>(*pc).to_string();
                 *pc += size_of::<i16>();
                 result
             }
-            Opcode::PushInt32 => {
+            Opcode::PushInt32(_) => {
                 let result = self.read::<i32>(*pc).to_string();
                 *pc += size_of::<i32>();
                 result
             }
-            Opcode::PushRational => {
+            Opcode::PushRational(_) => {
                 let operand = self.read::<f64>(*pc);
                 *pc += size_of::<f64>();
                 ryu_js::Buffer::new().format(operand).to_string()
             }
-            Opcode::PushLiteral
-            | Opcode::Jump
-            | Opcode::JumpIfFalse
-            | Opcode::JumpIfNotUndefined
-            | Opcode::CatchStart
-            | Opcode::FinallySetJump
-            | Opcode::Case
-            | Opcode::Default
-            | Opcode::LogicalAnd
-            | Opcode::LogicalOr
-            | Opcode::Coalesce
-            | Opcode::CallEval
-            | Opcode::Call
-            | Opcode::New
-            | Opcode::SuperCall
-            | Opcode::ForInLoopInitIterator
-            | Opcode::ForInLoopNext
-            | Opcode::ForAwaitOfLoopNext
-            | Opcode::ConcatToString
-            | Opcode::GeneratorNextDelegate => {
+            Opcode::PushLiteral(_)
+            | Opcode::Jump(_)
+            | Opcode::JumpIfFalse(_)
+            | Opcode::JumpIfNotUndefined(_)
+            | Opcode::CatchStart(_)
+            | Opcode::FinallySetJump(_)
+            | Opcode::Case(_)
+            | Opcode::Default(_)
+            | Opcode::LogicalAnd(_)
+            | Opcode::LogicalOr(_)
+            | Opcode::Coalesce(_)
+            | Opcode::CallEval(_)
+            | Opcode::Call(_)
+            | Opcode::New(_)
+            | Opcode::SuperCall(_)
+            | Opcode::ForInLoopInitIterator(_)
+            | Opcode::ForInLoopNext(_)
+            | Opcode::ForAwaitOfLoopNext(_)
+            | Opcode::ConcatToString(_)
+            | Opcode::GeneratorNextDelegate(_) => {
                 let result = self.read::<u32>(*pc).to_string();
                 *pc += size_of::<u32>();
                 result
             }
-            Opcode::TryStart
-            | Opcode::PushDeclarativeEnvironment
-            | Opcode::PushFunctionEnvironment
-            | Opcode::CopyDataProperties => {
+            Opcode::TryStart(_)
+            | Opcode::PushDeclarativeEnvironment(_)
+            | Opcode::PushFunctionEnvironment(_)
+            | Opcode::CopyDataProperties(_) => {
                 let operand1 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 let operand2 = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
             }
-            Opcode::GetFunction
-            | Opcode::GetFunctionAsync
-            | Opcode::GetGenerator
-            | Opcode::GetGeneratorAsync => {
+            Opcode::GetFunction(_)
+            | Opcode::GetFunctionAsync(_)
+            | Opcode::GetGenerator(_)
+            | Opcode::GetGeneratorAsync(_) => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -235,15 +235,15 @@ impl CodeBlock {
                     self.functions[operand as usize].length
                 )
             }
-            Opcode::DefInitArg
-            | Opcode::DefVar
-            | Opcode::DefInitVar
-            | Opcode::DefLet
-            | Opcode::DefInitLet
-            | Opcode::DefInitConst
-            | Opcode::GetName
-            | Opcode::GetNameOrUndefined
-            | Opcode::SetName => {
+            Opcode::DefInitArg(_)
+            | Opcode::DefVar(_)
+            | Opcode::DefInitVar(_)
+            | Opcode::DefLet(_)
+            | Opcode::DefInitLet(_)
+            | Opcode::DefInitConst(_)
+            | Opcode::GetName(_)
+            | Opcode::GetNameOrUndefined(_)
+            | Opcode::SetName(_) => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -252,25 +252,25 @@ impl CodeBlock {
                     interner.resolve_expect(self.bindings[operand as usize].name().sym()),
                 )
             }
-            Opcode::GetPropertyByName
-            | Opcode::SetPropertyByName
-            | Opcode::DefineOwnPropertyByName
-            | Opcode::DefineClassMethodByName
-            | Opcode::SetPropertyGetterByName
-            | Opcode::DefineClassGetterByName
-            | Opcode::SetPropertySetterByName
-            | Opcode::DefineClassSetterByName
-            | Opcode::AssignPrivateField
-            | Opcode::SetPrivateField
-            | Opcode::SetPrivateMethod
-            | Opcode::SetPrivateSetter
-            | Opcode::SetPrivateGetter
-            | Opcode::GetPrivateField
-            | Opcode::DeletePropertyByName
-            | Opcode::PushClassFieldPrivate
-            | Opcode::PushClassPrivateGetter
-            | Opcode::PushClassPrivateSetter
-            | Opcode::PushClassPrivateMethod => {
+            Opcode::GetPropertyByName(_)
+            | Opcode::SetPropertyByName(_)
+            | Opcode::DefineOwnPropertyByName(_)
+            | Opcode::DefineClassMethodByName(_)
+            | Opcode::SetPropertyGetterByName(_)
+            | Opcode::DefineClassGetterByName(_)
+            | Opcode::SetPropertySetterByName(_)
+            | Opcode::DefineClassSetterByName(_)
+            | Opcode::AssignPrivateField(_)
+            | Opcode::SetPrivateField(_)
+            | Opcode::SetPrivateMethod(_)
+            | Opcode::SetPrivateSetter(_)
+            | Opcode::SetPrivateGetter(_)
+            | Opcode::GetPrivateField(_)
+            | Opcode::DeletePropertyByName(_)
+            | Opcode::PushClassFieldPrivate(_)
+            | Opcode::PushClassPrivateGetter(_)
+            | Opcode::PushClassPrivateSetter(_)
+            | Opcode::PushClassPrivateMethod(_) => {
                 let operand = self.read::<u32>(*pc);
                 *pc += size_of::<u32>();
                 format!(
@@ -278,108 +278,108 @@ impl CodeBlock {
                     interner.resolve_expect(self.names[operand as usize].sym()),
                 )
             }
-            Opcode::Pop
-            | Opcode::PopIfThrown
-            | Opcode::Dup
-            | Opcode::Swap
-            | Opcode::PushZero
-            | Opcode::PushOne
-            | Opcode::PushNaN
-            | Opcode::PushPositiveInfinity
-            | Opcode::PushNegativeInfinity
-            | Opcode::PushNull
-            | Opcode::PushTrue
-            | Opcode::PushFalse
-            | Opcode::PushUndefined
-            | Opcode::PushEmptyObject
-            | Opcode::PushClassPrototype
-            | Opcode::SetClassPrototype
-            | Opcode::SetHomeObject
-            | Opcode::Add
-            | Opcode::Sub
-            | Opcode::Div
-            | Opcode::Mul
-            | Opcode::Mod
-            | Opcode::Pow
-            | Opcode::ShiftRight
-            | Opcode::ShiftLeft
-            | Opcode::UnsignedShiftRight
-            | Opcode::BitOr
-            | Opcode::BitAnd
-            | Opcode::BitXor
-            | Opcode::BitNot
-            | Opcode::In
-            | Opcode::Eq
-            | Opcode::StrictEq
-            | Opcode::NotEq
-            | Opcode::StrictNotEq
-            | Opcode::GreaterThan
-            | Opcode::GreaterThanOrEq
-            | Opcode::LessThan
-            | Opcode::LessThanOrEq
-            | Opcode::InstanceOf
-            | Opcode::TypeOf
-            | Opcode::Void
-            | Opcode::LogicalNot
-            | Opcode::Pos
-            | Opcode::Neg
-            | Opcode::Inc
-            | Opcode::IncPost
-            | Opcode::Dec
-            | Opcode::DecPost
-            | Opcode::GetPropertyByValue
-            | Opcode::GetPropertyByValuePush
-            | Opcode::SetPropertyByValue
-            | Opcode::DefineOwnPropertyByValue
-            | Opcode::DefineClassMethodByValue
-            | Opcode::SetPropertyGetterByValue
-            | Opcode::DefineClassGetterByValue
-            | Opcode::SetPropertySetterByValue
-            | Opcode::DefineClassSetterByValue
-            | Opcode::DeletePropertyByValue
-            | Opcode::ToPropertyKey
-            | Opcode::ToBoolean
-            | Opcode::Throw
-            | Opcode::TryEnd
-            | Opcode::CatchEnd
-            | Opcode::CatchEnd2
-            | Opcode::FinallyStart
-            | Opcode::FinallyEnd
-            | Opcode::This
-            | Opcode::Super
-            | Opcode::Return
-            | Opcode::PopEnvironment
-            | Opcode::LoopStart
-            | Opcode::LoopContinue
-            | Opcode::LoopEnd
-            | Opcode::InitIterator
-            | Opcode::InitIteratorAsync
-            | Opcode::IteratorNext
-            | Opcode::IteratorClose
-            | Opcode::IteratorToArray
-            | Opcode::RequireObjectCoercible
-            | Opcode::ValueNotNullOrUndefined
-            | Opcode::RestParameterInit
-            | Opcode::RestParameterPop
-            | Opcode::PushValueToArray
-            | Opcode::PushElisionToArray
-            | Opcode::PushIteratorToArray
-            | Opcode::PushNewArray
-            | Opcode::PopOnReturnAdd
-            | Opcode::PopOnReturnSub
-            | Opcode::Yield
-            | Opcode::GeneratorNext
-            | Opcode::AsyncGeneratorNext
-            | Opcode::PushClassField
-            | Opcode::SuperCallDerived
-            | Opcode::Await
-            | Opcode::PushNewTarget
-            | Opcode::CallEvalSpread
-            | Opcode::CallSpread
-            | Opcode::NewSpread
-            | Opcode::SuperCallSpread
-            | Opcode::ForAwaitOfLoopIterate
-            | Opcode::Nop => String::new(),
+            Opcode::Pop(_)
+            | Opcode::PopIfThrown(_)
+            | Opcode::Dup(_)
+            | Opcode::Swap(_)
+            | Opcode::PushZero(_)
+            | Opcode::PushOne(_)
+            | Opcode::PushNaN(_)
+            | Opcode::PushPositiveInfinity(_)
+            | Opcode::PushNegativeInfinity(_)
+            | Opcode::PushNull(_)
+            | Opcode::PushTrue(_)
+            | Opcode::PushFalse(_)
+            | Opcode::PushUndefined(_)
+            | Opcode::PushEmptyObject(_)
+            | Opcode::PushClassPrototype(_)
+            | Opcode::SetClassPrototype(_)
+            | Opcode::SetHomeObject(_)
+            | Opcode::Add(_)
+            | Opcode::Sub(_)
+            | Opcode::Div(_)
+            | Opcode::Mul(_)
+            | Opcode::Mod(_)
+            | Opcode::Pow(_)
+            | Opcode::ShiftRight(_)
+            | Opcode::ShiftLeft(_)
+            | Opcode::UnsignedShiftRight(_)
+            | Opcode::BitOr(_)
+            | Opcode::BitAnd(_)
+            | Opcode::BitXor(_)
+            | Opcode::BitNot(_)
+            | Opcode::In(_)
+            | Opcode::Eq(_)
+            | Opcode::StrictEq(_)
+            | Opcode::NotEq(_)
+            | Opcode::StrictNotEq(_)
+            | Opcode::GreaterThan(_)
+            | Opcode::GreaterThanOrEq(_)
+            | Opcode::LessThan(_)
+            | Opcode::LessThanOrEq(_)
+            | Opcode::InstanceOf(_)
+            | Opcode::TypeOf(_)
+            | Opcode::Void(_)
+            | Opcode::LogicalNot(_)
+            | Opcode::Pos(_)
+            | Opcode::Neg(_)
+            | Opcode::Inc(_)
+            | Opcode::IncPost(_)
+            | Opcode::Dec(_)
+            | Opcode::DecPost(_)
+            | Opcode::GetPropertyByValue(_)
+            | Opcode::GetPropertyByValuePush(_)
+            | Opcode::SetPropertyByValue(_)
+            | Opcode::DefineOwnPropertyByValue(_)
+            | Opcode::DefineClassMethodByValue(_)
+            | Opcode::SetPropertyGetterByValue(_)
+            | Opcode::DefineClassGetterByValue(_)
+            | Opcode::SetPropertySetterByValue(_)
+            | Opcode::DefineClassSetterByValue(_)
+            | Opcode::DeletePropertyByValue(_)
+            | Opcode::ToPropertyKey(_)
+            | Opcode::ToBoolean(_)
+            | Opcode::Throw(_)
+            | Opcode::TryEnd(_)
+            | Opcode::CatchEnd(_)
+            | Opcode::CatchEnd2(_)
+            | Opcode::FinallyStart(_)
+            | Opcode::FinallyEnd(_)
+            | Opcode::This(_)
+            | Opcode::Super(_)
+            | Opcode::Return(_)
+            | Opcode::PopEnvironment(_)
+            | Opcode::LoopStart(_)
+            | Opcode::LoopContinue(_)
+            | Opcode::LoopEnd(_)
+            | Opcode::InitIterator(_)
+            | Opcode::InitIteratorAsync(_)
+            | Opcode::IteratorNext(_)
+            | Opcode::IteratorClose(_)
+            | Opcode::IteratorToArray(_)
+            | Opcode::RequireObjectCoercible(_)
+            | Opcode::ValueNotNullOrUndefined(_)
+            | Opcode::RestParameterInit(_)
+            | Opcode::RestParameterPop(_)
+            | Opcode::PushValueToArray(_)
+            | Opcode::PushElisionToArray(_)
+            | Opcode::PushIteratorToArray(_)
+            | Opcode::PushNewArray(_)
+            | Opcode::PopOnReturnAdd(_)
+            | Opcode::PopOnReturnSub(_)
+            | Opcode::Yield(_)
+            | Opcode::GeneratorNext(_)
+            | Opcode::AsyncGeneratorNext(_)
+            | Opcode::PushClassField(_)
+            | Opcode::SuperCallDerived(_)
+            | Opcode::Await(_)
+            | Opcode::PushNewTarget(_)
+            | Opcode::CallEvalSpread(_)
+            | Opcode::CallSpread(_)
+            | Opcode::NewSpread(_)
+            | Opcode::SuperCallSpread(_)
+            | Opcode::ForAwaitOfLoopIterate(_)
+            | Opcode::Nop(_) => String::new(),
         }
     }
 }
@@ -404,7 +404,7 @@ impl ToInternedString for CodeBlock {
             let opcode: Opcode = self.code[pc].try_into().expect("invalid opcode");
             let opcode = opcode.as_str();
             let previous_pc = pc;
-            let operands = self.instruction_operands(&mut pc, interner);
+            let operands = self.instruction_erands(&mut pc, interner);
             f.push_str(&format!(
                 "{previous_pc:06}    {count:04}    {opcode:<27}{operands}\n",
             ));

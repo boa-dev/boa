@@ -2,7 +2,7 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptorBuilder,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue
+    Context, JsResult, JsValue,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -17,9 +17,14 @@ impl Operation for SetClassPrototype {
         let prototype = match &prototype_value {
             JsValue::Object(proto) => Some(proto.clone()),
             JsValue::Null => None,
-            JsValue::Undefined => {
-                Some(context.intrinsics().constructors().object().prototype.clone())
-            }
+            JsValue::Undefined => Some(
+                context
+                    .intrinsics()
+                    .constructors()
+                    .object()
+                    .prototype
+                    .clone(),
+            ),
             _ => unreachable!(),
         };
 
