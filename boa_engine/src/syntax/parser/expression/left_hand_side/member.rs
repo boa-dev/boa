@@ -14,7 +14,7 @@ use crate::syntax::{
         },
         Keyword, Punctuator,
     },
-    lexer::TokenKind,
+    lexer::{InputElement, TokenKind},
     parser::{
         expression::{
             left_hand_side::template::TaggedTemplateLiteral, primary::PrimaryExpression, Expression,
@@ -63,6 +63,8 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("MemberExpression", "Parsing");
+
+        cursor.set_goal(InputElement::RegExp);
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let mut lhs = match token.kind() {
@@ -146,6 +148,8 @@ where
             _ => PrimaryExpression::new(self.name, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?,
         };
+
+        cursor.set_goal(InputElement::Div);
 
         while let Some(tok) = cursor.peek(0, interner)? {
             match tok.kind() {
