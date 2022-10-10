@@ -3,7 +3,7 @@ use crate::{
     object::FunctionBuilder,
     property::{Attribute, PropertyDescriptor},
     string::utf16,
-    Context, JsString,
+    Context,
 };
 
 #[allow(clippy::float_cmp)]
@@ -223,7 +223,7 @@ fn function_prototype_apply_on_object() {
 fn closure_capture_clone() {
     let mut context = Context::default();
 
-    let string = JsString::from("Hello");
+    let string = js_string!("Hello");
     let object = context.construct_object();
     object
         .define_property_or_throw(

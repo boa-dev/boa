@@ -5,13 +5,14 @@ use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     string::utf16,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
@@ -1642,7 +1643,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
@@ -1744,7 +1745,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
@@ -1780,7 +1781,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 

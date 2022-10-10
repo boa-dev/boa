@@ -15,7 +15,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::{JsString, JsSymbol, JsValue};
+use crate::{js_string, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
 use std::fmt;
 
@@ -608,7 +608,7 @@ impl From<usize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -618,7 +618,7 @@ impl From<i64> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -628,7 +628,7 @@ impl From<u64> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -638,7 +638,7 @@ impl From<isize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -648,7 +648,7 @@ impl From<i32> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
