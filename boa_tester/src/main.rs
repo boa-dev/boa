@@ -73,7 +73,7 @@ use self::{
 };
 use anyhow::{bail, Context};
 use bitflags::bitflags;
-use clap::{Parser, ValueHint};
+use clap::{ArgAction, Parser, ValueHint};
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
 use once_cell::sync::Lazy;
@@ -199,7 +199,7 @@ enum Cli {
     /// Run the test suite.
     Run {
         /// Whether to show verbose output.
-        #[arg(short, long, action = clap::ArgAction::Count)]
+        #[arg(short, long, action = ArgAction::Count)]
         verbose: u8,
 
         /// Path to the Test262 suite.
@@ -221,11 +221,11 @@ enum Cli {
     /// Compare two test suite results.
     Compare {
         /// Base results of the suite.
-        #[arg(short, long, value_hint = ValueHint::DirPath)]
+        #[arg(value_hint = ValueHint::FilePath)]
         base: PathBuf,
 
         /// New results to compare.
-        #[arg(short, long, value_hint = ValueHint::DirPath)]
+        #[arg(value_hint = ValueHint::FilePath)]
         new: PathBuf,
 
         /// Whether to use markdown output
