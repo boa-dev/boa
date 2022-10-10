@@ -1,4 +1,5 @@
-//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.
+//! This module implements the Rust representation of a JavaScript object, see
+//! [`object::builtins`][builtins] for implementors.
 //!
 //! This module also provides helper objects for working with JavaScript objects.
 
