@@ -14,7 +14,10 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON
 
 use super::JsArgs;
-use std::{borrow::Cow, iter::once};
+use std::{
+    borrow::Cow,
+    iter::{once, FusedIterator},
+};
 
 use crate::{
     builtins::BuiltIn,
@@ -27,12 +30,105 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 use boa_profiler::Profiler;
-use itertools::Itertools;
-use serde_json::{self, Value as JSONValue};
 use tap::{Conv, Pipe};
 
 #[cfg(test)]
 mod tests;
+
+// `Intersperse` impl taken from `itertools`
+#[must_use = "iterator adaptors are lazy and do nothing unless consumed"]
+#[derive(Clone, Debug)]
+struct Intersperse<I>
+where
+    I: Iterator,
+{
+    element: I::Item,
+    iter: std::iter::Fuse<I>,
+    peek: Option<I::Item>,
+}
+
+fn intersperse<I>(iter: I, element: I::Item) -> Intersperse<I>
+where
+    I: Iterator,
+{
+    let mut iter = iter.fuse();
+    Intersperse {
+        peek: iter.next(),
+        iter,
+        element,
+    }
+}
+
+impl<I> Iterator for Intersperse<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+    type Item = I::Item;
+    #[inline]
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.peek.is_some() {
+            self.peek.take()
+        } else {
+            self.peek = self.iter.next();
+            if self.peek.is_some() {
+                Some(self.element.clone())
+            } else {
+                None
+            }
+        }
+    }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        type SizeHint = (usize, Option<usize>);
+        fn add(a: SizeHint, b: SizeHint) -> SizeHint {
+            let min = a.0.saturating_add(b.0);
+            let max = match (a.1, b.1) {
+                (Some(x), Some(y)) => x.checked_add(y),
+                _ => None,
+            };
+
+            (min, max)
+        }
+
+        fn add_scalar(sh: SizeHint, x: usize) -> SizeHint {
+            let (mut low, mut hi) = sh;
+            low = low.saturating_add(x);
+            hi = hi.and_then(|elt| elt.checked_add(x));
+            (low, hi)
+        }
+        // 2 * SH + { 1 or 0 }
+        let has_peek = usize::from(self.peek.is_some());
+        let sh = self.iter.size_hint();
+        add_scalar(add(sh, sh), has_peek)
+    }
+
+    fn fold<B, F>(mut self, init: B, mut f: F) -> B
+    where
+        Self: Sized,
+        F: FnMut(B, Self::Item) -> B,
+    {
+        let mut accum = init;
+
+        if let Some(x) = self.peek.take() {
+            accum = f(accum, x);
+        }
+
+        let element = &mut self.element;
+
+        self.iter.fold(accum, |accum, x| {
+            let accum = f(accum, element.clone());
+            f(accum, x)
+        })
+    }
+}
+
+impl<I> FusedIterator for Intersperse<I>
+where
+    I: Iterator,
+    I::Item: Clone,
+{
+}
 
 /// JavaScript `JSON` global object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -82,7 +178,7 @@ impl Json {
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
-        if let Err(e) = serde_json::from_str::<JSONValue>(&json_string) {
+        if let Err(e) = serde_json::from_str::<serde_json::Value>(&json_string) {
             return context.throw_syntax_error(e.to_string());
         }
 
@@ -615,14 +711,11 @@ impl Json {
                 // ii. Let final be the string-concatenation of "{", properties, and "}".
                 let separator = utf16!(",");
                 let result = once(utf16!("{"))
-                    .chain(itertools::Itertools::intersperse(
-                        partial.iter().map(|v| &v[..]),
-                        separator,
-                    ))
+                    .chain(intersperse(partial.iter().map(Vec::as_slice), separator))
                     .chain(once(utf16!("}")))
                     .flatten()
                     .copied()
-                    .collect_vec();
+                    .collect::<Vec<_>>();
                 js_string!(&result[..])
             // b. Else,
             } else {
@@ -638,14 +731,11 @@ impl Json {
                 //      the code unit 0x000A (LINE FEED), stepback, and "}".
                 let result = [utf16!("{\n"), &state.indent[..]]
                     .into_iter()
-                    .chain(itertools::Itertools::intersperse(
-                        partial.iter().map(|v| &v[..]),
-                        &separator,
-                    ))
+                    .chain(intersperse(partial.iter().map(Vec::as_slice), &separator))
                     .chain([utf16!("\n"), &stepback[..], utf16!("}")].into_iter())
                     .flatten()
                     .copied()
-                    .collect_vec();
+                    .collect::<Vec<_>>();
                 js_string!(&result[..])
             }
         };
@@ -729,14 +819,11 @@ impl Json {
                 // ii. Let final be the string-concatenation of "[", properties, and "]".
                 let separator = utf16!(",");
                 let result = once(utf16!("["))
-                    .chain(itertools::Itertools::intersperse(
-                        partial.iter().map(|v| &v[..]),
-                        separator,
-                    ))
+                    .chain(intersperse(partial.iter().map(Cow::as_ref), separator))
                     .chain(once(utf16!("]")))
                     .flatten()
                     .copied()
-                    .collect_vec();
+                    .collect::<Vec<_>>();
                 js_string!(&result[..])
             // b. Else,
             } else {
@@ -750,14 +837,11 @@ impl Json {
                 // iii. Let final be the string-concatenation of "[", the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and "]".
                 let result = [utf16!("[\n"), &state.indent[..]]
                     .into_iter()
-                    .chain(itertools::Itertools::intersperse(
-                        partial.iter().map(|v| &v[..]),
-                        &separator,
-                    ))
+                    .chain(intersperse(partial.iter().map(Cow::as_ref), &separator))
                     .chain([utf16!("\n"), &stepback[..], utf16!("]")].into_iter())
                     .flatten()
                     .copied()
-                    .collect_vec();
+                    .collect::<Vec<_>>();
                 js_string!(&result[..])
             }
         };

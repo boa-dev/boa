@@ -2,7 +2,6 @@
 #![allow(clippy::indexing_slicing)]
 
 use boa_interner::Sym;
-use itertools::Itertools;
 
 // use super::regex::RegExpFlags;
 use super::token::Numeric;
@@ -1031,7 +1030,7 @@ fn string_legacy_octal_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
+        let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
@@ -1061,7 +1060,7 @@ fn string_zero_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
+        let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);
@@ -1076,7 +1075,7 @@ fn string_non_octal_decimal_escape() {
         let mut lexer = Lexer::new(s.as_bytes());
         let mut interner = Interner::default();
 
-        let sym = interner.get_or_intern(expected.encode_utf16().collect_vec().as_slice());
+        let sym = interner.get_or_intern(expected.encode_utf16().collect::<Vec<_>>().as_slice());
         let expected_tokens = [TokenKind::StringLiteral(sym)];
 
         expect_tokens(&mut lexer, &expected_tokens, &mut interner);

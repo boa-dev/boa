@@ -94,7 +94,6 @@ dependencies = [
  "icu_provider",
  "icu_testdata",
  "indexmap",
- "itertools",
  "jemallocator",
  "num-bigint",
  "num-integer",
@@ -134,13 +133,13 @@ dependencies = [
 name = "boa_interner"
 version = "0.16.0"
 dependencies = [
+ "boa_macros",
  "indexmap",
  "once_cell",
  "phf",
  "rustc-hash",
  "serde",
  "static_assertions",
- "utf16_lit",
 ]
 
 [[package]]
@@ -1620,12 +1619,6 @@ name = "unsafe-libyaml"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c1e5fa573d8ac5f1a856f8d7be41d390ee973daf97c806b2c1a465e4e1406e68"
-
-[[package]]
-name = "utf16_lit"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "14706d2a800ee8ff38c1d3edb873cd616971ea59eb7c0d046bb44ef59b06a1ae"
 
 [[package]]
 name = "utf8parse"

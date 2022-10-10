@@ -1,9 +1,11 @@
 //! Local identifier node.
 
-use crate::string::ToStringEscaped;
-use crate::syntax::{
-    ast::{node::Node, Position},
-    parser::ParseError,
+use crate::{
+    string::ToStringEscaped,
+    syntax::{
+        ast::{node::Node, Position},
+        parser::ParseError,
+    },
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 

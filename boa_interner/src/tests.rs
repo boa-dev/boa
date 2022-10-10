@@ -1,5 +1,5 @@
 use crate::{Interner, Sym, COMMON_STRINGS_UTF16, COMMON_STRINGS_UTF8};
-use utf16_lit::utf16;
+use boa_macros::utf16;
 
 #[track_caller]
 fn sym_from_usize(index: usize) -> Sym {
@@ -28,11 +28,7 @@ fn check_resolve() {
 
     let utf_8_strings = ["test string", "arguments", "hello"];
     let utf_8_strings = utf_8_strings.into_iter();
-    let utf_16_strings = [
-        &utf16!("TEST STRING")[..],
-        &utf16!("ARGUMENTS"),
-        &utf16!("HELLO"),
-    ];
+    let utf_16_strings = [utf16!("TEST STRING"), utf16!("ARGUMENTS"), utf16!("HELLO")];
     let utf_16_strings = utf_16_strings.into_iter();
 
     for (s8, s16) in utf_8_strings.zip(utf_16_strings) {
@@ -60,9 +56,9 @@ fn check_static_resolve() {
         .zip(COMMON_STRINGS_UTF16.iter().copied())
         .chain(
             [
-                ("my test str", &utf16!("my test str")[..]),
-                ("hello world", &utf16!("hello world")),
-                (";", &utf16!(";")),
+                ("my test str", utf16!("my test str")),
+                ("hello world", utf16!("hello world")),
+                (";", utf16!(";")),
             ]
             .into_iter(),
         )
@@ -93,7 +89,7 @@ fn check_unpaired_surrogates() {
     let sym2 = interner.get_or_intern("def");
 
     let sym3 = interner.get_or_intern(unp);
-    let sym4 = interner.get_or_intern(&utf16!("ghi"));
+    let sym4 = interner.get_or_intern(utf16!("ghi"));
     let sym5 = interner.get_or_intern(unp2);
 
     let sym6 = interner.get_or_intern("jkl");

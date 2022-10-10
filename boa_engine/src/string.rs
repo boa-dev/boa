@@ -1,16 +1,25 @@
-#![deny(unsafe_op_in_unsafe_fn)]
-#![deny(clippy::undocumented_unsafe_blocks)]
-#![deny(clippy::missing_safety_doc)]
-#![allow(unstable_name_collisions)]
-
 //! A UTF-16–encoded, reference counted, immutable string.
 //!
-//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string]
-//! macro and the [`utf16`] macro.
+//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the
+//! [`utf16`] macro.
 //!
-//! The [`js_string`][crate::js_string] macro is almost always used when you
-//! need to create a new [`JsString`], and the [`utf16`] macro is used for const
-//! conversions of string literals to UTF-16.
+//! The [`js_string`][crate::js_string] macro is used when you need to create a new [`JsString`],
+//! and the [`utf16`] macro is used for const conversions of string literals to UTF-16.
+
+// Required per unsafe code standards to ensure every unsafe usage is properly documented.
+// - `unsafe_op_in_unsafe_fn` will be warn-by-default in edition 2024:
+//   https://github.com/rust-lang/rust/issues/71668#issuecomment-1189396860
+// - `undocumented_unsafe_blocks` and `missing_safety_doc` requires a `Safety:` section in the
+//   comment or doc of the unsafe block or function, respectively.
+#![deny(
+    unsafe_op_in_unsafe_fn,
+    clippy::undocumented_unsafe_blocks,
+    clippy::missing_safety_doc
+)]
+// Remove when/if https://github.com/rust-lang/rust/issues/95228 stabilizes.
+// Right now this allows us to use the stable polyfill from the `sptr` crate, which uses
+// the same names from the unstable functions of the `std::ptr` module.
+#![allow(unstable_name_collisions)]
 
 use crate::{builtins::string::is_trimmable_whitespace, JsBigInt};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
@@ -28,11 +37,11 @@ use std::{
     slice::SliceIndex,
 };
 
-/// Utility macro to create a `JsString`.
+/// Utility macro to create a [`JsString`].
 ///
 /// # Examples
 ///
-/// You can call the macro without arguments to create an empty [`JsString`]:
+/// You can call the macro without arguments to create an empty `JsString`:
 ///
 /// ```
 /// use boa_engine::js_string;
@@ -43,8 +52,8 @@ use std::{
 /// ```
 ///
 ///
-/// You can create a [`JsString`] from a string literal, which completely skips
-/// the runtime conversion from [`&str`] to [`&\[u16\]`]:
+/// You can create a `JsString` from a string literal, which completely skips the runtime
+/// conversion from [`&str`] to [`&\[u16\]`]:
 ///
 /// ```
 /// # use boa_engine::js_string;
@@ -53,15 +62,15 @@ use std::{
 /// assert_eq!(&hw, utf16!("Hello, world!"));
 /// ```
 ///
-/// Any [`\[u16\]`] slice is a valid [`JsString`], including unpaired surrogates:
+/// Any `&[u16]` slice is a valid `JsString`, including unpaired surrogates:
 ///
 /// ```
 /// # use boa_engine::js_string;
 /// let array = js_string!(&[0xD8AFu16, 0x00A0, 0xD8FF, 0x00F0]);
 /// ```
 ///
-/// You can also pass it any number of [`&\[u16\]`] as arguments to create a new
-/// [`JsString`] with the concatenation of every slice:
+/// You can also pass it any number of `&[u16]` as arguments to create a new `JsString` with
+/// the concatenation of every slice:
 ///
 /// ```
 /// # use boa_engine::js_string;
@@ -562,10 +571,9 @@ thread_local! {
 
         for (idx, &s) in COMMON_STRINGS.iter().enumerate() {
             // Safety:
-            // As we're just building a cache of `JsString` indices
-            // to access the stored `COMMON_STRINGS`, this
-            // cannot generate invalid `TaggedJsString`s, since `idx` is always
-            // a valid index in `COMMON_STRINGS`.
+            // As we're just building a cache of `JsString` indices  to access the stored
+            // `COMMON_STRINGS`, this cannot generate invalid `TaggedJsString`s, since `idx` is
+            // always a valid index in `COMMON_STRINGS`.
             let v = unsafe {
                 JsString {
                     ptr: TaggedJsString::new_static(idx),
@@ -589,8 +597,7 @@ pub(crate) enum CodePoint {
 }
 
 impl CodePoint {
-    /// Get the number of UTF-16 code units needed to encode
-    /// this code point.
+    /// Get the number of UTF-16 code units needed to encode this code point.
     pub(crate) fn code_unit_count(self) -> usize {
         match self {
             Self::Unicode(c) => c.len_utf16(),
@@ -606,9 +613,8 @@ impl CodePoint {
         }
     }
 
-    /// If the code point represents a valid 'Unicode scalar value', returns
-    /// its [`char`] representation, otherwise returns [`None`] on unpaired
-    /// surrogates.
+    /// If the code point represents a valid 'Unicode scalar value', returns its [`char`]
+    /// representation, otherwise returns [`None`] on unpaired surrogates.
     pub(crate) fn as_char(self) -> Option<char> {
         match self {
             Self::Unicode(c) => Some(c),
@@ -616,13 +622,13 @@ impl CodePoint {
         }
     }
 
-    /// Encodes this code point as UTF-16 into the provided u16 buffer, and then
-    /// returns the subslice of the buffer that contains the encoded character.
+    /// Encodes this code point as UTF-16 into the provided u16 buffer, and then returns the subslice
+    /// of the buffer that contains the encoded character.
     ///
     /// # Panics
     ///
-    /// Panics if the buffer is not large enough. A buffer of length 2 is large
-    /// enough to encode any code point.
+    /// Panics if the buffer is not large enough. A buffer of length 2 is large enough to encode any
+    /// code point.
     pub(crate) fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
         match self {
             CodePoint::Unicode(c) => c.encode_utf16(dst),
@@ -649,16 +655,14 @@ struct RawJsString {
     data: [u16; 0],
 }
 
-// Safety: `JsString` does not contain any objects which needs to be traced,
-// so this is safe.
+// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
 unsafe impl Trace for JsString {
     unsafe_empty_trace!();
 }
 
-/// This struct uses a technique called tagged pointer to benefit from the fact that newly
-/// allocated pointers are always word aligned on 64-bits platforms, making it impossible
-/// to have a LSB equal to 1. More details about this technique on the article of Wikipedia
-/// about [tagged pointers][tagged_wp].
+/// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated
+/// pointers are always word aligned on 64-bits platforms, making it impossible to have a LSB equal
+/// to 1. More details about this technique on the article of Wikipedia about [tagged pointers][tagged_wp].
 ///
 /// # Representation
 ///
@@ -666,15 +670,15 @@ unsafe impl Trace for JsString {
 /// an index value for [`COMMON_STRINGS`], where the remaining MSBs store the index.
 /// Otherwise, the whole pointer represents the address of a heap allocated [`RawJsString`].
 ///
-/// It uses [`NonNull`], which guarantees that [`TaggedJsString`] (and subsequently [`JsString`])
-/// can use the "null pointer optimization" to optimize the size of [`Option<TaggedJsString>`].
+/// It uses [`NonNull`], which guarantees that [`TaggedJsString`] (and subsequently [`JsString`]) can
+/// use the "null pointer optimization" to optimize the size of [`Option<TaggedJsString>`].
 ///
 /// # Provenance
 ///
 /// This struct stores a [`NonNull<RawJsString>`] instead of a [`NonZeroUsize`][std::num::NonZeroUsize]
 /// in order to preserve the provenance of our valid heap pointers.
-/// On the other hand, all index values are just casted to invalid pointers,
-/// because we don't need to preserve the provenance of [`usize`] indices.
+/// On the other hand, all index values are just casted to invalid pointers, because we don't need to
+/// preserve the provenance of [`usize`] indices.
 ///
 /// [tagged_wp]: https://en.wikipedia.org/wiki/Tagged_pointer
 #[repr(transparent)]
@@ -686,8 +690,8 @@ impl TaggedJsString {
     ///
     /// # Safety
     ///
-    /// `inner` must point to a valid instance of [`RawJsString`], which should be
-    /// deallocated only by [`JsString`].
+    /// `inner` must point to a valid instance of [`RawJsString`], which should be deallocated only
+    /// by [`JsString`].
     #[inline]
     unsafe fn new_heap(inner: NonNull<RawJsString>) -> Self {
         Self(inner)
@@ -702,9 +706,8 @@ impl TaggedJsString {
     #[inline]
     const unsafe fn new_static(idx: usize) -> Self {
         // SAFETY:
-        // The operation `(idx << 1) | 1` sets the least significant
-        // bit to 1, meaning any pointer (valid or invalid) created using
-        // this address cannot be null.
+        // The operation `(idx << 1) | 1` sets the least significant bit to 1, meaning any pointer
+        // (valid or invalid) created using this address cannot be null.
         unsafe { Self(NonNull::new_unchecked(sptr::invalid_mut((idx << 1) | 1))) }
     }
 
@@ -714,8 +717,8 @@ impl TaggedJsString {
         (self.0.as_ptr() as usize) & 1 == 1
     }
 
-    /// Returns a reference to a string stored on the heap,
-    /// without checking if its internal pointer is valid.
+    /// Returns a reference to a string stored on the heap, without checking if its internal pointer
+    /// is valid.
     ///
     /// # Safety
     ///
@@ -725,43 +728,40 @@ impl TaggedJsString {
         self.0
     }
 
-    /// Returns the string inside [`COMMON_STRINGS`] corresponding to the
-    /// index inside [`TaggedJsString`], without checking its validity.
+    /// Returns the string inside [`COMMON_STRINGS`] corresponding to the index inside
+    /// [`TaggedJsString`], without checking its validity.
     ///
     /// # Safety
     ///
-    /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it
-    /// must be a valid index inside [`COMMON_STRINGS`].
+    /// `self` must not be a pointer to a heap allocated [`RawJsString`], and it must be a valid
+    /// index inside [`COMMON_STRINGS`].
     #[inline]
     unsafe fn get_static_unchecked(self) -> &'static [u16] {
         // SAFETY:
-        // The caller must ensure `self` is a valid index inside
-        // `COMMON_STRINGS`.
+        // The caller must ensure `self` is a valid index inside `COMMON_STRINGS`.
         unsafe { COMMON_STRINGS.get_unchecked((self.0.as_ptr() as usize) >> 1) }
     }
 }
 /// A UTF-16–encoded, reference counted, immutable string.
 ///
-/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][std::slice]\></code>,
-/// but without the length metadata associated with the [`Rc`][std::rc::Rc] fat pointer.
-/// Instead, the length of every string
-/// is stored on the heap, along with its reference counter and its data.
+/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][std::slice]\></code>, but without
+/// the length metadata associated with the [`Rc`][std::rc::Rc] fat pointer. Instead, the length of
+/// every string is stored on the heap, along with its reference counter and its data.
 ///
-/// We define some commonly used string constants in an interner. For these
-/// strings, we don't allocate memory on the heap to reduce the overhead of
-/// memory allocation and reference counting.
+/// We define some commonly used string constants in an interner. For these strings, we don't allocate
+/// memory on the heap to reduce the overhead of memory allocation and reference counting.
 ///
 /// # Deref
 ///
-/// [`JsString`] implements <code>[Deref]<Target = [\[u16\]][std::slice]></code>, inheriting
-/// all of [`\[u16\]`][std::slice]'s methods.
+/// [`JsString`] implements <code>[Deref]<Target = [\[u16\]][std::slice]></code>, inheriting all of
+/// [`\[u16\]`][std::slice]'s methods.
 #[derive(Finalize)]
 pub struct JsString {
     ptr: TaggedJsString,
 }
 
-/// Enum representing either a reference to a heap allocated [`RawJsString`]
-/// or a static reference to a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
+/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
+/// a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
 enum JsStringPtrKind<'a> {
     // A string allocated on the heap.
     Heap(&'a mut RawJsString),
@@ -770,8 +770,8 @@ enum JsStringPtrKind<'a> {
 }
 
 impl JsString {
-    /// Returns the inner pointer data, unwrapping its tagged data
-    /// if the pointer contains a static index for [`COMMON_STRINGS`].
+    /// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
+    /// index for [`COMMON_STRINGS`].
     #[inline]
     fn ptr(&self) -> JsStringPtrKind<'_> {
         // Check the first bit to 1.
@@ -784,8 +784,8 @@ impl JsString {
         }
     }
 
-    // This is marked as safe because it is always valid to call this function to request
-    // any number of `u16`, since this function ought to fail on an OOM error.
+    // This is marked as safe because it is always valid to call this function to request any number
+    // of `u16`, since this function ought to fail on an OOM error.
     /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
     fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
         let (layout, offset) = Layout::array::<u16>(str_len)
@@ -833,20 +833,18 @@ impl JsString {
         inner
     }
 
-    /// Creates a new [`JsString`] from `data`, without checking if the string is
-    /// in the interner.
+    /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
     fn from_slice_skip_interning(data: &[u16]) -> Self {
         let count = data.len();
         let ptr = Self::allocate_inner(count);
         // SAFETY:
-        // - We read `count = data.len()` elements from `data`, which is within the bounds
-        //   of the slice.
-        // - `allocate_inner` must allocate at least `count` elements, which
-        //   allows us to safely write at least `count` elements.
-        // - `allocate_inner` should already take care of the alignment of `ptr`,
-        //   and `data` must be aligned to be a valid slice.
-        // - `allocate_inner` must return a valid pointer to newly allocated memory,
-        //    meaning `ptr` and `data` should never overlap.
+        // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
+        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
+        //   write at least `count` elements.
+        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
+        //   aligned to be a valid slice.
+        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+        //   and `data` should never overlap.
         unsafe {
             ptr::copy_nonoverlapping(data.as_ptr(), (*ptr.as_ptr()).data.as_mut_ptr(), count);
         }
@@ -875,22 +873,20 @@ impl JsString {
 
         let string = {
             // SAFETY:
-            // `ptr` being a `NonNull` ensures that a dereference of its underlying
-            // pointer is always valid.
+            // `ptr` being a `NonNull` ensures that a dereference of its underlying pointer is always valid.
             let mut data = unsafe { (*ptr.as_ptr()).data.as_mut_ptr() };
             for string in strings {
                 let count = string.len();
                 // SAFETY:
-                // The sum of all `count` for each `string` equals `full_count`,
-                // and since we're iteratively writing each of them to `data`,
-                // `copy_non_overlapping` always stays in-bounds for `count` reads
-                // of each string and `full_count` writes to `data`.
+                // The sum of all `count` for each `string` equals `full_count`, and since we're
+                // iteratively writing each of them to `data`, `copy_non_overlapping` always stays
+                // in-bounds for `count` reads of each string and `full_count` writes to `data`.
                 //
-                // Each `string` must be properly aligned to be a valid
-                // slice, and `data` must be properly aligned by `allocate_inner`.
+                // Each `string` must be properly aligned to be a valid slice, and `data` must be
+                // properly aligned by `allocate_inner`.
                 //
-                // `allocate_inner` must return a valid pointer to newly allocated memory,
-                // meaning `ptr` and all `string`s should never overlap.
+                // `allocate_inner` must return a valid pointer to newly allocated memory, meaning
+                // `ptr` and all `string`s should never overlap.
                 unsafe {
                     ptr::copy_nonoverlapping(string.as_ptr(), data, count);
                     data = data.add(count);
@@ -911,8 +907,8 @@ impl JsString {
         string
     }
 
-    /// Decodes a [`JsString`] into a [`String`], replacing invalid data with
-    /// its escaped representation in 4 digit hexadecimal.
+    /// Decodes a [`JsString`] into a [`String`], replacing invalid data with its escaped representation
+    /// in 4 digit hexadecimal.
     pub fn to_std_string_escaped(&self) -> String {
         self.to_string_escaped()
     }
@@ -933,9 +929,8 @@ impl JsString {
 
     /// Abstract operation `StringIndexOf ( string, searchValue, fromIndex )`
     ///
-    /// Note: Instead of returning an isize with `-1` as the "not found" value,
-    /// we make use of the type system and return <code>[Option]\<usize\></code>
-    /// with [`None`] as the "not found" value.
+    /// Note: Instead of returning an isize with `-1` as the "not found" value, we make use of the
+    /// type system and return <code>[Option]\<usize\></code> with [`None`] as the "not found" value.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -1139,9 +1134,8 @@ impl Drop for JsString {
             inner.refcount.set(inner.refcount.get() - 1);
             if inner.refcount.get() == 0 {
                 // SAFETY:
-                // All the checks for the validity of the layout
-                // have already been made on `alloc_inner`, so
-                // we can skip the unwrap.
+                // All the checks for the validity of the layout have already been made on `alloc_inner`,
+                // so we can skip the unwrap.
                 let layout = unsafe {
                     Layout::for_value(inner)
                         .extend(Layout::array::<u16>(inner.len).unwrap_unchecked())
@@ -1151,8 +1145,8 @@ impl Drop for JsString {
                 };
 
                 // Safety:
-                // If refcount is 0 and we call drop, that means this is the last `JsString`
-                // which points to this memory allocation, so deallocating it is safe.
+                // If refcount is 0 and we call drop, that means this is the last `JsString` which
+                // points to this memory allocation, so deallocating it is safe.
                 unsafe {
                     dealloc((inner as *mut RawJsString).cast(), layout);
                 }
@@ -1182,16 +1176,14 @@ impl Deref for JsString {
         match self.ptr() {
             JsStringPtrKind::Heap(h) => {
                 // SAFETY:
-                // - The `RawJsString` type has all the necessary information
-                // to reconstruct a valid slice (length and starting pointer).
+                // - The `RawJsString` type has all the necessary information to reconstruct a valid
+                //   slice (length and starting pointer).
                 //
-                // - We aligned `h.data` on allocation, and the
-                // block is of size `h.len`, so this should only generate
-                // valid reads.
+                // - We aligned `h.data` on allocation, and the block is of size `h.len`, so this
+                //   should only generate valid reads.
                 //
-                // - The lifetime of `&Self::Target` is shorter
-                // than the lifetime of `self`, as seen by its signature,
-                // so this doesn't outlive `self`.
+                // - The lifetime of `&Self::Target` is shorter than the lifetime of `self`, as seen
+                //   by its signature, so this doesn't outlive `self`.
                 unsafe { std::slice::from_raw_parts(h.data.as_ptr(), h.len) }
             }
             JsStringPtrKind::Static(s) => s,
@@ -1344,8 +1336,8 @@ impl Utf16Trim for [u16] {
 /// Utility trait that adds a `UTF-16` escaped representation to every
 /// [`[u16]`][std::slice].
 pub(crate) trait ToStringEscaped {
-    /// Decodes `self` as an `UTF-16` encoded string,
-    /// escaping any unpaired surrogates by its codepoint value.
+    /// Decodes `self` as an `UTF-16` encoded string, escaping any unpaired surrogates by its
+    /// codepoint value.
     fn to_string_escaped(&self) -> String;
 }
 

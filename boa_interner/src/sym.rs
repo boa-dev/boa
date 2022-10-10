@@ -1,7 +1,7 @@
+use boa_macros::utf16;
 use indexmap::IndexSet;
 use once_cell::sync::Lazy;
 use std::num::NonZeroUsize;
-use utf16_lit::utf16;
 
 #[cfg(feature = "serde")]
 use serde::{Deserialize, Serialize};
@@ -158,7 +158,7 @@ macro_rules! create_static_strings {
         // FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
         pub(super) static COMMON_STRINGS_UTF16: Lazy<IndexSet<&'static [u16]>> = Lazy::new(|| {
             let mut set = IndexSet::with_capacity(COMMON_STRINGS_UTF8.len());
-            $( set.insert(&utf16!($s)[..]); )+
+            $( set.insert(utf16!($s)); )+
             set
         });
     };

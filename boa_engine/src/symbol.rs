@@ -302,10 +302,10 @@ impl JsSymbol {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring
     pub fn descriptive_string(&self) -> JsString {
-        match &self.inner.description {
-            Some(desc) => js_string!(utf16!("Symbol("), desc, utf16!(")")),
-            None => js_string!("Symbol()"),
-        }
+        self.inner.description.as_ref().map_or_else(
+            || js_string!("Symbol()"),
+            |desc| js_string!(utf16!("Symbol("), desc, utf16!(")")),
+        )
     }
 }
 
