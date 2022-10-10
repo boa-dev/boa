@@ -149,7 +149,7 @@ where
                 .parse(cursor, interner)?,
         };
 
-        cursor.set_goal(InputElement::Div);
+        cursor.set_goal(InputElement::TemplateTail);
 
         while let Some(tok) = cursor.peek(0, interner)? {
             match tok.kind() {
