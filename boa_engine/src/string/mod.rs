@@ -21,21 +21,23 @@
 // the same names from the unstable functions of the `std::ptr` module.
 #![allow(unstable_name_collisions)]
 
+mod common;
+
 use crate::{builtins::string::is_trimmable_whitespace, JsBigInt};
 use boa_gc::{unsafe_empty_trace, Finalize, Trace};
 pub use boa_macros::utf16;
 
-use rustc_hash::{FxHashMap, FxHasher};
 use std::{
     alloc::{alloc, dealloc, Layout},
     borrow::Borrow,
     cell::Cell,
-    hash::BuildHasherDefault,
     hash::{Hash, Hasher},
     ops::{Deref, Index},
     ptr::{self, NonNull},
     slice::SliceIndex,
 };
+
+use self::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGTH};
 
 /// Utility macro to create a [`JsString`].
 ///
@@ -100,505 +102,19 @@ macro_rules! js_string {
     };
 }
 
-const COMMON_STRINGS: &[&[u16]] = &[
-    // Empty string
-    utf16!(""),
-    // Misc
-    utf16!(","),
-    utf16!(":"),
-    // Generic use
-    utf16!("name"),
-    utf16!("length"),
-    utf16!("arguments"),
-    utf16!("prototype"),
-    utf16!("constructor"),
-    utf16!("return"),
-    utf16!("throw"),
-    utf16!("global"),
-    utf16!("globalThis"),
-    // typeof
-    utf16!("null"),
-    utf16!("undefined"),
-    utf16!("number"),
-    utf16!("string"),
-    utf16!("symbol"),
-    utf16!("bigint"),
-    utf16!("object"),
-    utf16!("function"),
-    // Property descriptor
-    utf16!("value"),
-    utf16!("get"),
-    utf16!("set"),
-    utf16!("writable"),
-    utf16!("enumerable"),
-    utf16!("configurable"),
-    // Object object
-    utf16!("Object"),
-    utf16!("assign"),
-    utf16!("create"),
-    utf16!("toString"),
-    utf16!("valueOf"),
-    utf16!("is"),
-    utf16!("seal"),
-    utf16!("isSealed"),
-    utf16!("freeze"),
-    utf16!("isFrozen"),
-    utf16!("isExtensible"),
-    utf16!("hasOwnProperty"),
-    utf16!("isPrototypeOf"),
-    utf16!("setPrototypeOf"),
-    utf16!("getPrototypeOf"),
-    utf16!("defineProperty"),
-    utf16!("defineProperties"),
-    utf16!("deleteProperty"),
-    utf16!("construct"),
-    utf16!("hasOwn"),
-    utf16!("ownKeys"),
-    utf16!("keys"),
-    utf16!("values"),
-    utf16!("entries"),
-    utf16!("fromEntries"),
-    // Function object
-    utf16!("Function"),
-    utf16!("apply"),
-    utf16!("bind"),
-    utf16!("call"),
-    // Generator object
-    utf16!("Generator"),
-    // Array object
-    utf16!("Array"),
-    utf16!("at"),
-    utf16!("from"),
-    utf16!("isArray"),
-    utf16!("of"),
-    utf16!("copyWithin"),
-    utf16!("entries"),
-    utf16!("every"),
-    utf16!("fill"),
-    utf16!("filter"),
-    utf16!("find"),
-    utf16!("findIndex"),
-    utf16!("findLast"),
-    utf16!("findLastIndex"),
-    utf16!("flat"),
-    utf16!("flatMap"),
-    utf16!("forEach"),
-    utf16!("includes"),
-    utf16!("indexOf"),
-    utf16!("join"),
-    utf16!("map"),
-    utf16!("next"),
-    utf16!("reduce"),
-    utf16!("reduceRight"),
-    utf16!("reverse"),
-    utf16!("shift"),
-    utf16!("slice"),
-    utf16!("splice"),
-    utf16!("some"),
-    utf16!("sort"),
-    utf16!("unshift"),
-    utf16!("push"),
-    utf16!("pop"),
-    // String object
-    utf16!("String"),
-    utf16!("charAt"),
-    utf16!("charCodeAt"),
-    utf16!("codePointAt"),
-    utf16!("concat"),
-    utf16!("endsWith"),
-    utf16!("fromCharCode"),
-    utf16!("fromCodePoint"),
-    utf16!("includes"),
-    utf16!("indexOf"),
-    utf16!("lastIndexOf"),
-    utf16!("match"),
-    utf16!("matchAll"),
-    utf16!("normalize"),
-    utf16!("padEnd"),
-    utf16!("padStart"),
-    utf16!("raw"),
-    utf16!("repeat"),
-    utf16!("replace"),
-    utf16!("replaceAll"),
-    utf16!("search"),
-    utf16!("slice"),
-    utf16!("split"),
-    utf16!("startsWith"),
-    utf16!("substr"),
-    utf16!("substring"),
-    utf16!("toLocaleString"),
-    utf16!("toLowerCase"),
-    utf16!("toUpperCase"),
-    utf16!("trim"),
-    utf16!("trimEnd"),
-    utf16!("trimStart"),
-    // Number object
-    utf16!("Number"),
-    utf16!("Infinity"),
-    utf16!("NaN"),
-    utf16!("parseInt"),
-    utf16!("parseFloat"),
-    utf16!("isFinite"),
-    utf16!("isNaN"),
-    utf16!("parseInt"),
-    utf16!("EPSILON"),
-    utf16!("MAX_SAFE_INTEGER"),
-    utf16!("MIN_SAFE_INTEGER"),
-    utf16!("MAX_VALUE"),
-    utf16!("MIN_VALUE"),
-    utf16!("isSafeInteger"),
-    utf16!("isInteger"),
-    utf16!("toExponential"),
-    utf16!("toFixed"),
-    utf16!("toPrecision"),
-    // Boolean object
-    utf16!("Boolean"),
-    // BigInt object
-    utf16!("BigInt"),
-    utf16!("asIntN"),
-    utf16!("asUintN"),
-    // RegExp object
-    utf16!("RegExp"),
-    utf16!("exec"),
-    utf16!("test"),
-    utf16!("flags"),
-    utf16!("index"),
-    utf16!("lastIndex"),
-    utf16!("hasIndices"),
-    utf16!("ignoreCase"),
-    utf16!("multiline"),
-    utf16!("dotAll"),
-    utf16!("unicode"),
-    utf16!("sticky"),
-    utf16!("source"),
-    utf16!("get hasIndices"),
-    utf16!("get global"),
-    utf16!("get ignoreCase"),
-    utf16!("get multiline"),
-    utf16!("get dotAll"),
-    utf16!("get unicode"),
-    utf16!("get sticky"),
-    utf16!("get flags"),
-    utf16!("get source"),
-    // Symbol object
-    utf16!("Symbol"),
-    utf16!("for"),
-    utf16!("keyFor"),
-    utf16!("description"),
-    utf16!("asyncIterator"),
-    utf16!("hasInstance"),
-    utf16!("species"),
-    utf16!("Symbol.species"),
-    utf16!("unscopables"),
-    utf16!("iterator"),
-    utf16!("Symbol.iterator"),
-    utf16!("Symbol.match"),
-    utf16!("[Symbol.match]"),
-    utf16!("Symbol.matchAll"),
-    utf16!("Symbol.replace"),
-    utf16!("[Symbol.replace]"),
-    utf16!("Symbol.search"),
-    utf16!("[Symbol.search]"),
-    utf16!("Symbol.split"),
-    utf16!("[Symbol.split]"),
-    utf16!("toStringTag"),
-    utf16!("toPrimitive"),
-    utf16!("get description"),
-    // Map object
-    utf16!("Map"),
-    utf16!("clear"),
-    utf16!("delete"),
-    utf16!("has"),
-    utf16!("size"),
-    // Set object
-    utf16!("Set"),
-    utf16!("add"),
-    // Reflect object
-    utf16!("Reflect"),
-    // Proxy object
-    utf16!("Proxy"),
-    utf16!("revocable"),
-    // Error objects
-    utf16!("Error"),
-    utf16!("AggregateError"),
-    utf16!("TypeError"),
-    utf16!("RangeError"),
-    utf16!("SyntaxError"),
-    utf16!("ReferenceError"),
-    utf16!("EvalError"),
-    utf16!("ThrowTypeError"),
-    utf16!("URIError"),
-    utf16!("message"),
-    // Date object
-    utf16!("Date"),
-    utf16!("toJSON"),
-    utf16!("getDate"),
-    utf16!("getDay"),
-    utf16!("getFullYear"),
-    utf16!("getHours"),
-    utf16!("getMilliseconds"),
-    utf16!("getMinutes"),
-    utf16!("getMonth"),
-    utf16!("getSeconds"),
-    utf16!("getTime"),
-    utf16!("getYear"),
-    utf16!("getUTCDate"),
-    utf16!("getUTCDay"),
-    utf16!("getUTCFullYear"),
-    utf16!("getUTCHours"),
-    utf16!("getUTCMinutes"),
-    utf16!("getUTCMonth"),
-    utf16!("getUTCSeconds"),
-    utf16!("setDate"),
-    utf16!("setFullYear"),
-    utf16!("setHours"),
-    utf16!("setMilliseconds"),
-    utf16!("setMinutes"),
-    utf16!("setMonth"),
-    utf16!("setSeconds"),
-    utf16!("setYear"),
-    utf16!("setTime"),
-    utf16!("setUTCDate"),
-    utf16!("setUTCFullYear"),
-    utf16!("setUTCHours"),
-    utf16!("setUTCMinutes"),
-    utf16!("setUTCMonth"),
-    utf16!("setUTCSeconds"),
-    utf16!("toDateString"),
-    utf16!("toGMTString"),
-    utf16!("toISOString"),
-    utf16!("toTimeString"),
-    utf16!("toUTCString"),
-    utf16!("now"),
-    utf16!("UTC"),
-    // JSON object
-    utf16!("JSON"),
-    utf16!("parse"),
-    utf16!("stringify"),
-    // Iterator object
-    utf16!("Array Iterator"),
-    utf16!("Set Iterator"),
-    utf16!("String Iterator"),
-    utf16!("Map Iterator"),
-    utf16!("For In Iterator"),
-    // Math object
-    utf16!("Math"),
-    utf16!("LN10"),
-    utf16!("LN2"),
-    utf16!("LOG10E"),
-    utf16!("LOG2E"),
-    utf16!("PI"),
-    utf16!("SQRT1_2"),
-    utf16!("SQRT2"),
-    utf16!("abs"),
-    utf16!("acos"),
-    utf16!("acosh"),
-    utf16!("asin"),
-    utf16!("asinh"),
-    utf16!("atan"),
-    utf16!("atanh"),
-    utf16!("atan2"),
-    utf16!("cbrt"),
-    utf16!("ceil"),
-    utf16!("clz32"),
-    utf16!("cos"),
-    utf16!("cosh"),
-    utf16!("exp"),
-    utf16!("expm1"),
-    utf16!("floor"),
-    utf16!("fround"),
-    utf16!("hypot"),
-    utf16!("imul"),
-    utf16!("log"),
-    utf16!("log1p"),
-    utf16!("log10"),
-    utf16!("log2"),
-    utf16!("max"),
-    utf16!("min"),
-    utf16!("pow"),
-    utf16!("random"),
-    utf16!("round"),
-    utf16!("sign"),
-    utf16!("sin"),
-    utf16!("sinh"),
-    utf16!("sqrt"),
-    utf16!("tan"),
-    utf16!("tanh"),
-    utf16!("trunc"),
-    // Intl object
-    utf16!("Intl"),
-    utf16!("DateTimeFormat"),
-    // TypedArray object
-    utf16!("TypedArray"),
-    utf16!("ArrayBuffer"),
-    utf16!("Int8Array"),
-    utf16!("Uint8Array"),
-    utf16!("Int16Array"),
-    utf16!("Uint16Array"),
-    utf16!("Int32Array"),
-    utf16!("Uint32Array"),
-    utf16!("BigInt64Array"),
-    utf16!("BigUint64Array"),
-    utf16!("Float32Array"),
-    utf16!("Float64Array"),
-    utf16!("buffer"),
-    utf16!("byteLength"),
-    utf16!("byteOffset"),
-    utf16!("isView"),
-    utf16!("subarray"),
-    utf16!("get byteLength"),
-    utf16!("get buffer"),
-    utf16!("get byteOffset"),
-    utf16!("get size"),
-    utf16!("get length"),
-    // DataView object
-    utf16!("DataView"),
-    utf16!("getBigInt64"),
-    utf16!("getBigUint64"),
-    utf16!("getFloat32"),
-    utf16!("getFloat64"),
-    utf16!("getInt8"),
-    utf16!("getInt16"),
-    utf16!("getInt32"),
-    utf16!("getUint8"),
-    utf16!("getUint16"),
-    utf16!("getUint32"),
-    utf16!("setBigInt64"),
-    utf16!("setBigUint64"),
-    utf16!("setFloat32"),
-    utf16!("setFloat64"),
-    utf16!("setInt8"),
-    utf16!("setInt16"),
-    utf16!("setInt32"),
-    utf16!("setUint8"),
-    utf16!("setUint16"),
-    utf16!("setUint32"),
-    // Console object
-    utf16!("console"),
-    utf16!("assert"),
-    utf16!("debug"),
-    utf16!("error"),
-    utf16!("info"),
-    utf16!("trace"),
-    utf16!("warn"),
-    utf16!("exception"),
-    utf16!("count"),
-    utf16!("countReset"),
-    utf16!("group"),
-    utf16!("groupCollapsed"),
-    utf16!("groupEnd"),
-    utf16!("time"),
-    utf16!("timeLog"),
-    utf16!("timeEnd"),
-    utf16!("dir"),
-    utf16!("dirxml"),
-    // Minified name
-    utf16!("a"),
-    utf16!("b"),
-    utf16!("c"),
-    utf16!("d"),
-    utf16!("e"),
-    utf16!("f"),
-    utf16!("g"),
-    utf16!("h"),
-    utf16!("i"),
-    utf16!("j"),
-    utf16!("k"),
-    utf16!("l"),
-    utf16!("m"),
-    utf16!("n"),
-    utf16!("o"),
-    utf16!("p"),
-    utf16!("q"),
-    utf16!("r"),
-    utf16!("s"),
-    utf16!("t"),
-    utf16!("u"),
-    utf16!("v"),
-    utf16!("w"),
-    utf16!("x"),
-    utf16!("y"),
-    utf16!("z"),
-    utf16!("A"),
-    utf16!("B"),
-    utf16!("C"),
-    utf16!("D"),
-    utf16!("E"),
-    utf16!("F"),
-    utf16!("G"),
-    utf16!("H"),
-    utf16!("I"),
-    utf16!("J"),
-    utf16!("K"),
-    utf16!("L"),
-    utf16!("M"),
-    utf16!("N"),
-    utf16!("O"),
-    utf16!("P"),
-    utf16!("Q"),
-    utf16!("R"),
-    utf16!("S"),
-    utf16!("T"),
-    utf16!("U"),
-    utf16!("V"),
-    utf16!("W"),
-    utf16!("X"),
-    utf16!("Y"),
-    utf16!("Z"),
-    utf16!("_"),
-    utf16!("$"),
-];
-
-const MAX_COMMON_STRING_LENGTH: usize = {
-    let mut max = 0;
-    let mut i = 0;
-    while i < COMMON_STRINGS.len() {
-        let len = COMMON_STRINGS[i].len();
-        if len > max {
-            max = len;
-        }
-        i += 1;
-    }
-    max
-};
-
-thread_local! {
-    static COMMON_STRINGS_CACHE: FxHashMap<&'static [u16], JsString> = {
-        let mut constants = FxHashMap::with_capacity_and_hasher(
-            COMMON_STRINGS.len(),
-            BuildHasherDefault::<FxHasher>::default(),
-        );
-
-        for (idx, &s) in COMMON_STRINGS.iter().enumerate() {
-            // Safety:
-            // As we're just building a cache of `JsString` indices  to access the stored
-            // `COMMON_STRINGS`, this cannot generate invalid `TaggedJsString`s, since `idx` is
-            // always a valid index in `COMMON_STRINGS`.
-            let v = unsafe {
-                JsString {
-                    ptr: TaggedJsString::new_static(idx),
-                }
-            };
-            constants.insert(s, v);
-        }
-
-        constants
-    };
-}
-
 /// Represents a Unicode codepoint within a [`JsString`], which could be a valid
 /// '[Unicode scalar value]', or an unpaired surrogate.
 ///
 /// [Unicode scalar value]: https://www.unicode.org/glossary/#unicode_scalar_value
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(crate) enum CodePoint {
+pub enum CodePoint {
     Unicode(char),
     UnpairedSurrogate(u16),
 }
 
 impl CodePoint {
     /// Get the number of UTF-16 code units needed to encode this code point.
-    pub(crate) fn code_unit_count(self) -> usize {
+    pub fn code_unit_count(self) -> usize {
         match self {
             Self::Unicode(c) => c.len_utf16(),
             Self::UnpairedSurrogate(_) => 1,
@@ -606,7 +122,7 @@ impl CodePoint {
     }
 
     /// Convert the code point to its [`u32`] representation.
-    pub(crate) fn as_u32(self) -> u32 {
+    pub fn as_u32(self) -> u32 {
         match self {
             Self::Unicode(c) => u32::from(c),
             Self::UnpairedSurrogate(surr) => u32::from(surr),
@@ -615,7 +131,7 @@ impl CodePoint {
 
     /// If the code point represents a valid 'Unicode scalar value', returns its [`char`]
     /// representation, otherwise returns [`None`] on unpaired surrogates.
-    pub(crate) fn as_char(self) -> Option<char> {
+    pub fn as_char(self) -> Option<char> {
         match self {
             Self::Unicode(c) => Some(c),
             Self::UnpairedSurrogate(_) => None,
@@ -629,7 +145,7 @@ impl CodePoint {
     ///
     /// Panics if the buffer is not large enough. A buffer of length 2 is large enough to encode any
     /// code point.
-    pub(crate) fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
+    pub fn encode_utf16(self, dst: &mut [u16]) -> &mut [u16] {
         match self {
             CodePoint::Unicode(c) => c.encode_utf16(dst),
             CodePoint::UnpairedSurrogate(surr) => {
@@ -653,11 +169,6 @@ struct RawJsString {
 
     /// An empty array which is used to get the offset of string data.
     data: [u16; 0],
-}
-
-// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
-unsafe impl Trace for JsString {
-    unsafe_empty_trace!();
 }
 
 /// This struct uses a technique called tagged pointer to benefit from the fact that newly allocated
@@ -742,6 +253,16 @@ impl TaggedJsString {
         unsafe { COMMON_STRINGS.get_unchecked((self.0.as_ptr() as usize) >> 1) }
     }
 }
+
+/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
+/// a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
+enum JsStringPtrKind<'a> {
+    // A string allocated on the heap.
+    Heap(&'a mut RawJsString),
+    // A static string slice.
+    Static(&'static [u16]),
+}
+
 /// A UTF-16–encoded, reference counted, immutable string.
 ///
 /// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][std::slice]\></code>, but without
@@ -760,100 +281,12 @@ pub struct JsString {
     ptr: TaggedJsString,
 }
 
-/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
-/// a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
-enum JsStringPtrKind<'a> {
-    // A string allocated on the heap.
-    Heap(&'a mut RawJsString),
-    // A static string slice.
-    Static(&'static [u16]),
+// Safety: `JsString` does not contain any objects which needs to be traced, so this is safe.
+unsafe impl Trace for JsString {
+    unsafe_empty_trace!();
 }
 
 impl JsString {
-    /// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
-    /// index for [`COMMON_STRINGS`].
-    #[inline]
-    fn ptr(&self) -> JsStringPtrKind<'_> {
-        // Check the first bit to 1.
-        if self.ptr.is_static() {
-            // Safety: We already checked.
-            JsStringPtrKind::Static(unsafe { self.ptr.get_static_unchecked() })
-        } else {
-            // Safety: We already checked.
-            JsStringPtrKind::Heap(unsafe { self.ptr.get_heap_unchecked().as_mut() })
-        }
-    }
-
-    // This is marked as safe because it is always valid to call this function to request any number
-    // of `u16`, since this function ought to fail on an OOM error.
-    /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
-    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
-        let (layout, offset) = Layout::array::<u16>(str_len)
-            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
-            .map(|(layout, offset)| (layout.pad_to_align(), offset))
-            .expect("failed to create memory layout");
-
-        // SAFETY:
-        // The layout size of `RawJsString` is never zero, since it has to store
-        // the length of the string and the reference count.
-        let inner = unsafe { alloc(layout).cast::<RawJsString>() };
-
-        // We need to verify that the pointer returned by `alloc` is not null, otherwise
-        // we should abort, since an allocation error is pretty unrecoverable for us
-        // right now.
-        let inner = NonNull::new(inner).unwrap_or_else(|| std::alloc::handle_alloc_error(layout));
-
-        // SAFETY:
-        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
-        // meaning we can write to its pointed memory.
-        unsafe {
-            // Write the first part, the `RawJsString`.
-            inner.as_ptr().write(RawJsString {
-                len: str_len,
-                refcount: Cell::new(1),
-                data: [0; 0],
-            });
-        }
-
-        debug_assert!({
-            let inner = inner.as_ptr();
-            // SAFETY:
-            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
-            // meaning we can safely dereference it to `RawJsString`.
-            // - `offset` should point us to the beginning of the array,
-            // and since we requested an `RawJsString` layout with a trailing
-            // `[u16; str_len]`, the memory of the array must be in the `usize`
-            // range for the allocation to succeed.
-            unsafe {
-                let data = (*inner).data.as_ptr();
-                ptr::eq(inner.cast::<u8>().add(offset).cast(), data)
-            }
-        });
-
-        inner
-    }
-
-    /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
-    fn from_slice_skip_interning(data: &[u16]) -> Self {
-        let count = data.len();
-        let ptr = Self::allocate_inner(count);
-        // SAFETY:
-        // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
-        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
-        //   write at least `count` elements.
-        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
-        //   aligned to be a valid slice.
-        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
-        //   and `data` should never overlap.
-        unsafe {
-            ptr::copy_nonoverlapping(data.as_ptr(), (*ptr.as_ptr()).data.as_mut_ptr(), count);
-        }
-        Self {
-            // Safety: We already know it's a valid heap pointer.
-            ptr: unsafe { TaggedJsString::new_heap(ptr) },
-        }
-    }
-
     /// Obtains the underlying [`&[u16]`][std::slice] slice of a [`JsString`]
     pub fn as_slice(&self) -> &[u16] {
         self
@@ -920,7 +353,7 @@ impl JsString {
     }
 
     /// Gets an iterator of all the Unicode codepoints of a [`JsString`].
-    pub(crate) fn code_points(&self) -> impl Iterator<Item = CodePoint> + '_ {
+    pub fn code_points(&self) -> impl Iterator<Item = CodePoint> + '_ {
         char::decode_utf16(self.iter().copied()).map(|res| match res {
             Ok(c) => CodePoint::Unicode(c),
             Err(e) => CodePoint::UnpairedSurrogate(e.unpaired_surrogate()),
@@ -1087,6 +520,90 @@ impl JsString {
         // 5. Assert: mv is an integer.
         // 6. Return ℤ(mv).
         JsBigInt::from_string(self.to_std_string().ok().as_ref()?)
+    }
+
+    /// Returns the inner pointer data, unwrapping its tagged data if the pointer contains a static
+    /// index for [`COMMON_STRINGS`].
+    #[inline]
+    fn ptr(&self) -> JsStringPtrKind<'_> {
+        // Check the first bit to 1.
+        if self.ptr.is_static() {
+            // Safety: We already checked.
+            JsStringPtrKind::Static(unsafe { self.ptr.get_static_unchecked() })
+        } else {
+            // Safety: We already checked.
+            JsStringPtrKind::Heap(unsafe { self.ptr.get_heap_unchecked().as_mut() })
+        }
+    }
+
+    // This is marked as safe because it is always valid to call this function to request any number
+    // of `u16`, since this function ought to fail on an OOM error.
+    /// Allocates a new [`RawJsString`] with an internal capacity of `str_len` chars.
+    fn allocate_inner(str_len: usize) -> NonNull<RawJsString> {
+        let (layout, offset) = Layout::array::<u16>(str_len)
+            .and_then(|arr| Layout::new::<RawJsString>().extend(arr))
+            .map(|(layout, offset)| (layout.pad_to_align(), offset))
+            .expect("failed to create memory layout");
+
+        // SAFETY:
+        // The layout size of `RawJsString` is never zero, since it has to store
+        // the length of the string and the reference count.
+        let inner = unsafe { alloc(layout).cast::<RawJsString>() };
+
+        // We need to verify that the pointer returned by `alloc` is not null, otherwise
+        // we should abort, since an allocation error is pretty unrecoverable for us
+        // right now.
+        let inner = NonNull::new(inner).unwrap_or_else(|| std::alloc::handle_alloc_error(layout));
+
+        // SAFETY:
+        // `NonNull` verified for us that the pointer returned by `alloc` is valid,
+        // meaning we can write to its pointed memory.
+        unsafe {
+            // Write the first part, the `RawJsString`.
+            inner.as_ptr().write(RawJsString {
+                len: str_len,
+                refcount: Cell::new(1),
+                data: [0; 0],
+            });
+        }
+
+        debug_assert!({
+            let inner = inner.as_ptr();
+            // SAFETY:
+            // - `inner` must be a valid pointer, since it comes from a `NonNull`,
+            // meaning we can safely dereference it to `RawJsString`.
+            // - `offset` should point us to the beginning of the array,
+            // and since we requested an `RawJsString` layout with a trailing
+            // `[u16; str_len]`, the memory of the array must be in the `usize`
+            // range for the allocation to succeed.
+            unsafe {
+                let data = (*inner).data.as_ptr();
+                ptr::eq(inner.cast::<u8>().add(offset).cast(), data)
+            }
+        });
+
+        inner
+    }
+
+    /// Creates a new [`JsString`] from `data`, without checking if the string is in the interner.
+    fn from_slice_skip_interning(data: &[u16]) -> Self {
+        let count = data.len();
+        let ptr = Self::allocate_inner(count);
+        // SAFETY:
+        // - We read `count = data.len()` elements from `data`, which is within the bounds of the slice.
+        // - `allocate_inner` must allocate at least `count` elements, which allows us to safely
+        //   write at least `count` elements.
+        // - `allocate_inner` should already take care of the alignment of `ptr`, and `data` must be
+        //   aligned to be a valid slice.
+        // - `allocate_inner` must return a valid pointer to newly allocated memory, meaning `ptr`
+        //   and `data` should never overlap.
+        unsafe {
+            ptr::copy_nonoverlapping(data.as_ptr(), (*ptr.as_ptr()).data.as_mut_ptr(), count);
+        }
+        Self {
+            // Safety: We already know it's a valid heap pointer.
+            ptr: unsafe { TaggedJsString::new_heap(ptr) },
+        }
     }
 }
 
@@ -1360,8 +877,8 @@ mod tests {
     impl JsString {
         /// Gets the number of `JsString`s which point to this allocation.
         #[inline]
-        pub fn refcount(this: &Self) -> Option<usize> {
-            match this.ptr() {
+        fn refcount(&self) -> Option<usize> {
+            match self.ptr() {
                 JsStringPtrKind::Heap(inner) => Some(inner.refcount.get()),
                 JsStringPtrKind::Static(_inner) => None,
             }
@@ -1383,39 +900,39 @@ mod tests {
     #[test]
     fn refcount() {
         let x = js_string!("Hello world");
-        assert_eq!(JsString::refcount(&x), Some(1));
+        assert_eq!(x.refcount(), Some(1));
 
         {
             let y = x.clone();
-            assert_eq!(JsString::refcount(&x), Some(2));
-            assert_eq!(JsString::refcount(&y), Some(2));
+            assert_eq!(x.refcount(), Some(2));
+            assert_eq!(y.refcount(), Some(2));
 
             {
                 let z = y.clone();
-                assert_eq!(JsString::refcount(&x), Some(3));
-                assert_eq!(JsString::refcount(&y), Some(3));
-                assert_eq!(JsString::refcount(&z), Some(3));
+                assert_eq!(x.refcount(), Some(3));
+                assert_eq!(y.refcount(), Some(3));
+                assert_eq!(z.refcount(), Some(3));
             }
 
-            assert_eq!(JsString::refcount(&x), Some(2));
-            assert_eq!(JsString::refcount(&y), Some(2));
+            assert_eq!(x.refcount(), Some(2));
+            assert_eq!(y.refcount(), Some(2));
         }
 
-        assert_eq!(JsString::refcount(&x), Some(1));
+        assert_eq!(x.refcount(), Some(1));
     }
 
     #[test]
     fn static_refcount() {
         let x = js_string!();
-        assert_eq!(JsString::refcount(&x), None);
+        assert_eq!(x.refcount(), None);
 
         {
             let y = x.clone();
-            assert_eq!(JsString::refcount(&x), None);
-            assert_eq!(JsString::refcount(&y), None);
+            assert_eq!(x.refcount(), None);
+            assert_eq!(y.refcount(), None);
         };
 
-        assert_eq!(JsString::refcount(&x), None);
+        assert_eq!(x.refcount(), None);
     }
 
     #[test]
@@ -1485,14 +1002,14 @@ mod tests {
 
         let xy = js_string!(&x, Y);
         assert_eq!(&xy, utf16!("hello, "));
-        assert_eq!(JsString::refcount(&xy), Some(1));
+        assert_eq!(xy.refcount(), Some(1));
 
         let xyz = js_string!(&xy, &z);
         assert_eq!(&xyz, utf16!("hello, world"));
-        assert_eq!(JsString::refcount(&xyz), Some(1));
+        assert_eq!(xyz.refcount(), Some(1));
 
         let xyzw = js_string!(&xyz, W);
         assert_eq!(&xyzw, utf16!("hello, world!"));
-        assert_eq!(JsString::refcount(&xyzw), Some(1));
+        assert_eq!(xyzw.refcount(), Some(1));
     }
 }
