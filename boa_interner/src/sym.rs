@@ -1,3 +1,6 @@
+use boa_macros::utf16;
+use indexmap::IndexSet;
+use once_cell::sync::Lazy;
 use std::num::NonZeroUsize;
 
 #[cfg(feature = "serde")]
@@ -129,44 +132,65 @@ impl Sym {
     }
 }
 
-/// Ordered set of commonly used static strings.
-///
-/// # Note
-///
-/// `COMMON_STRINGS` and the constants defined in [`Sym`] must always
-/// be in sync.
-pub(super) static COMMON_STRINGS: phf::OrderedSet<&'static str> = {
-    const COMMON_STRINGS: phf::OrderedSet<&'static str> = phf::phf_ordered_set! {
-        "",
-        "arguments",
-        "await",
-        "yield",
-        "eval",
-        "default",
-        "null",
-        "RegExp",
-        "get",
-        "set",
-        "<main>",
-        "raw",
-        "static",
-        "prototype",
-        "constructor",
-        "implements",
-        "interface",
-        "let",
-        "package",
-        "private",
-        "protected",
-        "public",
-        "anonymous",
-        "true",
-        "false",
-        "async",
-        "of",
-        "target",
+macro_rules! create_static_strings {
+    ( $( $s:literal ),+ ) => {
+        /// Ordered set of commonly used static `UTF-8` strings.
+        ///
+        /// # Note
+        ///
+        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
+        /// defined in [`Sym`] must always be in sync.
+        pub(super) static COMMON_STRINGS_UTF8: phf::OrderedSet<&'static str> = {
+            const COMMON_STRINGS: phf::OrderedSet<&'static str> = phf::phf_ordered_set! {
+                $( $s ),+
+            };
+            // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
+            sa::const_assert!(COMMON_STRINGS.len() < usize::MAX);
+            COMMON_STRINGS
+        };
+
+        /// Ordered set of commonly used static `UTF-16` strings.
+        ///
+        /// # Note
+        ///
+        /// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants
+        /// defined in [`Sym`] must always be in sync.
+        // FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188
+        pub(super) static COMMON_STRINGS_UTF16: Lazy<IndexSet<&'static [u16]>> = Lazy::new(|| {
+            let mut set = IndexSet::with_capacity(COMMON_STRINGS_UTF8.len());
+            $( set.insert(utf16!($s)); )+
+            set
+        });
     };
-    // A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`
-    sa::const_assert!(COMMON_STRINGS.len() < usize::MAX);
-    COMMON_STRINGS
-};
+}
+
+create_static_strings! {
+    "",
+    "arguments",
+    "await",
+    "yield",
+    "eval",
+    "default",
+    "null",
+    "RegExp",
+    "get",
+    "set",
+    "<main>",
+    "raw",
+    "static",
+    "prototype",
+    "constructor",
+    "implements",
+    "interface",
+    "let",
+    "package",
+    "private",
+    "protected",
+    "public",
+    "anonymous",
+    "true",
+    "false",
+    "async",
+    "of",
+    "target"
+}

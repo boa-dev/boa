@@ -13,11 +13,13 @@
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    Context, JsResult, JsString, JsValue,
+    string::utf16,
+    Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
@@ -151,21 +153,21 @@ impl Error {
         };
 
         // 3. Let name be ? Get(O, "name").
-        let name = o.get("name", context)?;
+        let name = o.get(js_string!("name"), context)?;
 
         // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
         let name = if name.is_undefined() {
-            JsString::new("Error")
+            js_string!("Error")
         } else {
             name.to_string(context)?
         };
 
         // 5. Let msg be ? Get(O, "message").
-        let msg = o.get("message", context)?;
+        let msg = o.get(js_string!("message"), context)?;
 
         // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
         let msg = if msg.is_undefined() {
-            JsString::empty()
+            js_string!()
         } else {
             msg.to_string(context)?
         };
@@ -182,6 +184,6 @@ impl Error {
 
         // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
         // the code unit 0x0020 (SPACE), and msg.
-        Ok(format!("{name}: {msg}").into())
+        Ok(js_string!(&name, utf16!(": "), &msg).into())
     }
 }

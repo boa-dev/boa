@@ -1,6 +1,6 @@
 use crate::{
-    builtins::Number, check_output, exec, forward, forward_val, value::IntegerOrInfinity, Context,
-    JsValue, TestAction,
+    builtins::Number, check_output, exec, forward, forward_val, string::utf16,
+    value::IntegerOrInfinity, Context, JsValue, TestAction,
 };
 
 #[test]
@@ -1201,16 +1201,25 @@ fn to_int32() {
 fn to_string() {
     let mut context = Context::default();
 
-    assert_eq!(JsValue::null().to_string(&mut context).unwrap(), "null");
     assert_eq!(
-        JsValue::undefined().to_string(&mut context).unwrap(),
-        "undefined"
+        &JsValue::null().to_string(&mut context).unwrap(),
+        utf16!("null")
     );
-    assert_eq!(JsValue::new(55).to_string(&mut context).unwrap(), "55");
-    assert_eq!(JsValue::new(55.0).to_string(&mut context).unwrap(), "55");
     assert_eq!(
-        JsValue::new("hello").to_string(&mut context).unwrap(),
-        "hello"
+        &JsValue::undefined().to_string(&mut context).unwrap(),
+        utf16!("undefined")
+    );
+    assert_eq!(
+        &JsValue::new(55).to_string(&mut context).unwrap(),
+        utf16!("55")
+    );
+    assert_eq!(
+        &JsValue::new(55.0).to_string(&mut context).unwrap(),
+        utf16!("55")
+    );
+    assert_eq!(
+        &JsValue::new("hello").to_string(&mut context).unwrap(),
+        utf16!("hello")
     );
 }
 

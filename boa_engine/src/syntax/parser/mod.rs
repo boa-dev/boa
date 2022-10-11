@@ -12,6 +12,7 @@ pub mod error;
 mod tests;
 
 use crate::{
+    string::utf16,
     syntax::{
         ast::{
             node::{ContainsSymbol, FormalParameterList, StatementList},
@@ -23,7 +24,7 @@ use crate::{
             function::{FormalParameters, FunctionStatementList},
         },
     },
-    Context,
+    Context, JsString,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -268,7 +269,11 @@ impl Script {
                 match tok.kind() {
                     // Set the strict mode
                     TokenKind::StringLiteral(string)
-                        if context.interner_mut().resolve_expect(*string) == "use strict" =>
+                        if context.interner_mut().resolve_expect(*string).join(
+                            |s| s == "use strict",
+                            |g| g == utf16!("use strict"),
+                            true,
+                        ) =>
                     {
                         cursor.set_strict_mode(true);
                         strict = true;
@@ -316,7 +321,7 @@ impl Script {
                             .realm
                             .global_property_map
                             .string_property_map()
-                            .get(name_str);
+                            .get(&name_str.into_common::<JsString>(false));
                         let non_configurable_binding_exists = match desc {
                             Some(desc) => !matches!(desc.configurable(), Some(true)),
                             None => false,

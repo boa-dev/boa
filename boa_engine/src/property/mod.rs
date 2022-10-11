@@ -15,7 +15,7 @@
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty
 //! [section]: https://tc39.es/ecma262/#sec-property-attributes
 
-use crate::{JsString, JsSymbol, JsValue};
+use crate::{js_string, JsString, JsSymbol, JsValue};
 use boa_gc::{Finalize, Trace};
 use std::fmt;
 
@@ -498,7 +498,7 @@ pub enum PropertyKey {
 impl From<JsString> for PropertyKey {
     #[inline]
     fn from(string: JsString) -> Self {
-        if let Ok(index) = string.parse() {
+        if let Some(index) = string.to_std_string().ok().and_then(|s| s.parse().ok()) {
             Self::Index(index)
         } else {
             Self::String(string)
@@ -534,7 +534,7 @@ impl From<Box<str>> for PropertyKey {
         if let Ok(index) = string.parse() {
             Self::Index(index)
         } else {
-            Self::String(string.into())
+            Self::String(string.as_ref().into())
         }
     }
 }
@@ -550,8 +550,8 @@ impl fmt::Display for PropertyKey {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::String(ref string) => string.fmt(f),
-            Self::Symbol(ref symbol) => symbol.fmt(f),
+            Self::String(ref string) => string.to_std_string_escaped().fmt(f),
+            Self::Symbol(ref symbol) => symbol.descriptive_string().to_std_string_escaped().fmt(f),
             Self::Index(index) => index.fmt(f),
         }
     }
@@ -608,7 +608,7 @@ impl From<usize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -618,7 +618,7 @@ impl From<i64> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -628,7 +628,7 @@ impl From<u64> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -638,7 +638,7 @@ impl From<isize> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -648,7 +648,7 @@ impl From<i32> for PropertyKey {
         if let Ok(index) = u32::try_from(value) {
             Self::Index(index)
         } else {
-            Self::String(JsString::from(value.to_string()))
+            Self::String(js_string!(value.to_string()))
         }
     }
 }
@@ -664,8 +664,8 @@ impl From<f64> for PropertyKey {
     }
 }
 
-impl PartialEq<&str> for PropertyKey {
-    fn eq(&self, other: &&str) -> bool {
+impl PartialEq<[u16]> for PropertyKey {
+    fn eq(&self, other: &[u16]) -> bool {
         match self {
             Self::String(ref string) => string == other,
             _ => false,

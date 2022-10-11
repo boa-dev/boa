@@ -1,8 +1,11 @@
 //! Local identifier node.
 
-use crate::syntax::{
-    ast::{node::Node, Position},
-    parser::ParseError,
+use crate::{
+    string::ToStringEscaped,
+    syntax::{
+        ast::{node::Node, Position},
+        parser::ParseError,
+    },
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -63,7 +66,11 @@ impl Identifier {
 
 impl ToInternedString for Identifier {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        interner.resolve_expect(self.ident).to_owned()
+        interner.resolve_expect(self.ident).join(
+            String::from,
+            ToStringEscaped::to_string_escaped,
+            true,
+        )
     }
 }
 

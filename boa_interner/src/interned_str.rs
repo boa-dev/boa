@@ -1,4 +1,4 @@
-use std::{borrow::Borrow, ptr::NonNull};
+use std::{hash::Hash, ptr::NonNull};
 
 /// Wrapper for an interned str pointer, required to
 /// quickly check using a hash if a string is inside an [`Interner`][`super::Interner`].
@@ -7,23 +7,27 @@ use std::{borrow::Borrow, ptr::NonNull};
 ///
 /// This struct could cause Undefined Behaviour on:
 /// - Use without ensuring the referenced memory is still allocated.
-/// - Construction of an [`InternedStr`] from an invalid [`NonNull<str>`].
+/// - Construction of an [`InternedStr`] from an invalid [`NonNull<Char>`] pointer.
+/// - Construction of an [`InternedStr`] from a [`NonNull<Char>`] pointer
+/// without checking if the pointed memory of the [`NonNull<Char>`] outlives
+/// the [`InternedStr`].
 ///
 /// In general, this should not be used outside of an [`Interner`][`super::Interner`].
-#[derive(Debug, Clone)]
-pub(super) struct InternedStr {
-    ptr: NonNull<str>,
+#[derive(Debug)]
+pub(super) struct InternedStr<Char> {
+    ptr: NonNull<[Char]>,
 }
 
-impl InternedStr {
-    /// Create a new interned string from the given `str`.
+impl<Char> InternedStr<Char> {
+    /// Create a new interned string from the given `*const u8` pointer,
+    /// length and encoding kind
     ///
     /// # Safety
     ///
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
     #[inline]
-    pub(super) unsafe fn new(ptr: NonNull<str>) -> Self {
+    pub(super) unsafe fn new(ptr: NonNull<[Char]>) -> Self {
         Self { ptr }
     }
 
@@ -34,37 +38,45 @@ impl InternedStr {
     /// Not maintaining the invariants specified on the struct definition
     /// could cause Undefined Behaviour.
     #[inline]
-    pub(super) unsafe fn as_str(&self) -> &str {
-        // SAFETY: The caller must verify the invariants
-        // specified on the struct definition.
+    pub(super) unsafe fn as_ref(&self) -> &[Char] {
+        // SAFETY:
+        // The caller must ensure `ptr` is still valid throughout the
+        // lifetime of `self`.
         unsafe { self.ptr.as_ref() }
     }
 }
 
-impl std::hash::Hash for InternedStr {
-    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        // SAFETY: The caller must verify the invariants
-        // specified in the struct definition.
-        unsafe {
-            self.as_str().hash(state);
-        }
+impl<Char> Clone for InternedStr<Char> {
+    fn clone(&self) -> Self {
+        Self { ptr: self.ptr }
     }
 }
 
-impl Eq for InternedStr {}
+impl<Char> Copy for InternedStr<Char> {}
 
-impl PartialEq for InternedStr {
+impl<Char> Eq for InternedStr<Char> where Char: Eq {}
+
+impl<Char> PartialEq for InternedStr<Char>
+where
+    Char: PartialEq,
+{
     fn eq(&self, other: &Self) -> bool {
         // SAFETY: The caller must verify the invariants
         // specified in the struct definition.
-        unsafe { self.as_str() == other.as_str() }
+        unsafe { self.as_ref() == other.as_ref() }
     }
 }
 
-impl Borrow<str> for InternedStr {
-    fn borrow(&self) -> &str {
-        // SAFETY: The caller must verify the invariants
-        // specified in the struct definition.
-        unsafe { self.as_str() }
+impl<Char> Hash for InternedStr<Char>
+where
+    Char: Hash,
+{
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        // SAFETY:
+        // The caller must ensure `ptr` is still valid throughout the
+        // lifetime of `self`.
+        unsafe {
+            self.as_ref().hash(state);
+        }
     }
 }

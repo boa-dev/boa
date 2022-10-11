@@ -17,10 +17,10 @@ use self::consts::{
     is_uri_unescaped,
 };
 
-use super::{string::code_point_at, BuiltIn};
+use super::BuiltIn;
 use crate::{
-    builtins::JsArgs, object::FunctionBuilder, property::Attribute, Context, JsResult, JsString,
-    JsValue,
+    builtins::JsArgs, js_string, object::FunctionBuilder, property::Attribute, string::CodePoint,
+    Context, JsResult, JsString, JsValue,
 };
 
 /// URI Handling Functions
@@ -228,17 +228,15 @@ impl Uri {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-encode
-fn encode<F>(context: &mut Context, string: &JsString, unescaped_set: F) -> JsResult<String>
+fn encode<F>(context: &mut Context, string: &JsString, unescaped_set: F) -> JsResult<JsString>
 where
     F: Fn(u16) -> bool,
 {
-    let code_units = string.encode_utf16().collect::<Vec<_>>();
-
     // 1. Let strLen be the length of string.
-    let str_len = code_units.len();
+    let str_len = string.len();
 
     // 2. Let R be the empty String.
-    let mut r = String::new();
+    let mut r = Vec::new();
 
     // 3. Let k be 0.
     let mut k = 0;
@@ -246,11 +244,11 @@ where
     loop {
         // a. If k = strLen, return R.
         if k == str_len {
-            return Ok(r);
+            return Ok(js_string!(r));
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = code_units[k];
+        let c = string[k];
 
         // c. If C is in unescapedSet, then
         if unescaped_set(c) {
@@ -258,27 +256,27 @@ where
             k += 1;
 
             // ii. Set R to the string-concatenation of R and C.
-            r.push(char::from_u32(u32::from(c)).expect("char from code point cannot fail here"));
+            r.push(c);
         } else {
             // d. Else,
             // i. Let cp be CodePointAt(string, k).
-            let cp = code_point_at(string, k as u64);
+            let cp = string.code_point_at(k);
 
             // ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.
-            if cp.is_unpaired_surrogate {
-                context.throw_uri_error("trying to encode an invalid string")?;
-            }
+            let ch = if let CodePoint::Unicode(ch) = cp {
+                ch
+            } else {
+                return Err(context.construct_uri_error("trying to encode an invalid string"));
+            };
 
             // iii. Set k to k + cp.[[CodeUnitCount]].
-            k += cp.code_unit_count as usize;
+            k += cp.code_unit_count();
 
             // iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation
             //     to cp.[[CodePoint]].
             let mut buff = [0_u8; 4]; // Will never be more than 4 bytes
 
-            let octets = char::from_u32(cp.code_point)
-                .expect("valid unicode code point to char conversion failed")
-                .encode_utf8(&mut buff);
+            let octets = ch.encode_utf8(&mut buff);
 
             // v. For each element octet of Octets, do
             for octet in octets.bytes() {
@@ -287,7 +285,7 @@ where
                 //    "%"
                 //    the String representation of octet, formatted as a two-digit uppercase
                 //    hexadecimal number, padded to the left with a zero if necessary
-                r = format!("{r}%{octet:0>2X}");
+                r.extend(format!("%{octet:0>2X}").encode_utf16());
             }
         }
     }
@@ -304,16 +302,16 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-decode
 #[allow(clippy::many_single_char_names)]
-fn decode<F>(context: &mut Context, string: &JsString, reserved_set: F) -> JsResult<String>
+fn decode<F>(context: &mut Context, string: &JsString, reserved_set: F) -> JsResult<JsString>
 where
     F: Fn(u16) -> bool,
 {
-    let code_units = string.encode_utf16().collect::<Vec<_>>();
-
     // 1. Let strLen be the length of string.
-    let str_len = code_units.len();
+    let str_len = string.len();
     // 2. Let R be the empty String.
     let mut r = Vec::new();
+
+    let mut octets = Vec::with_capacity(4);
 
     // 3. Let k be 0.
     let mut k = 0;
@@ -321,11 +319,11 @@ where
     loop {
         // a. If k = strLen, return R.
         if k == str_len {
-            return Ok(String::from_utf16(&r).expect("invalid UTF-16 characters found"));
+            return Ok(js_string!(r));
         }
 
         // b. Let C be the code unit at index k within string.
-        let c = code_units[k];
+        let c = string[k];
 
         // c. If C is not the code unit 0x0025 (PERCENT SIGN), then
         #[allow(clippy::if_not_else)]
@@ -345,7 +343,7 @@ where
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(code_units[k + 1], code_units[k + 2])
+            let b = decode_hex_byte(string[k + 1], string[k + 2])
                 .ok_or_else(|| context.construct_uri_error("invalid hexadecimal digit found"))?;
 
             // v. Set k to k + 2.
@@ -366,7 +364,7 @@ where
                 } else {
                     // 3. Else,
                     // a. Let S be the substring of string from start to k + 1.
-                    Vec::from(&code_units[start..=k])
+                    Vec::from(&string[start..=k])
                 }
             } else {
                 // viii. Else,
@@ -381,7 +379,7 @@ where
                 }
 
                 // 3. Let Octets be « B ».
-                let mut octets = Vec::from([b]);
+                octets.push(b);
 
                 // 4. Let j be 1.
                 // 5. Repeat, while j < n,
@@ -390,17 +388,16 @@ where
                     k += 1;
 
                     // b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
-                    if code_units[k] != 0x0025 {
+                    if string[k] != 0x0025 {
                         context
                             .throw_uri_error("escape characters must be preceded with a % sign")?;
                     }
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-                    let b =
-                        decode_hex_byte(code_units[k + 1], code_units[k + 2]).ok_or_else(|| {
-                            context.construct_uri_error("invalid hexadecimal digit found")
-                        })?;
+                    let b = decode_hex_byte(string[k + 1], string[k + 2]).ok_or_else(|| {
+                        context.construct_uri_error("invalid hexadecimal digit found")
+                    })?;
 
                     // e. Set k to k + 2.
                     k += 2;
@@ -415,7 +412,7 @@ where
                 assert_eq!(octets.len(), n);
 
                 // 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.
-                match String::from_utf8(octets) {
+                match std::str::from_utf8(&octets) {
                     Err(_) => {
                         return Err(context.construct_uri_error("invalid UTF-8 encoding found"))
                     }
@@ -424,7 +421,9 @@ where
 
                         // 9. Let S be UTF16EncodeCodePoint(V).
                         // utf16_encode_codepoint(v)
-                        v.encode_utf16().collect::<Vec<_>>()
+                        let s = v.encode_utf16().collect::<Vec<_>>();
+                        octets.clear();
+                        s
                     }
                 }
             }

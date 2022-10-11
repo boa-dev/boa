@@ -17,14 +17,16 @@ use super::Array;
 use crate::{
     builtins::{map, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    string::utf16,
     symbol::WellKnownSymbols,
     value::JsValue,
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
@@ -603,8 +605,10 @@ impl Object {
             JsValue::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
             val => {
-                return ctx
-                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+                return ctx.throw_type_error(format!(
+                    "expected an object or null, got {}",
+                    val.type_of().to_std_string_escaped()
+                ))
             }
         };
 
@@ -747,8 +751,8 @@ impl Object {
 
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
-        let builtin_tag = if JsValue::from(o.clone()).is_array(context)? {
-            "Array"
+        let builtin_tag = if o.is_array_abstract(context)? {
+            js_string!("Array")
         } else {
             // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
             // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
@@ -761,16 +765,15 @@ impl Object {
             // 14. Else, let builtinTag be "Object".
             let o = o.borrow();
             match o.kind() {
-                ObjectKind::Array => "Array",
-                ObjectKind::Arguments(_) => "Arguments",
-                ObjectKind::Function(_) => "Function",
-                ObjectKind::Error => "Error",
-                ObjectKind::Boolean(_) => "Boolean",
-                ObjectKind::Number(_) => "Number",
-                ObjectKind::String(_) => "String",
-                ObjectKind::Date(_) => "Date",
-                ObjectKind::RegExp(_) => "RegExp",
-                _ => "Object",
+                ObjectKind::Arguments(_) => js_string!("Arguments"),
+                ObjectKind::Function(_) => js_string!("Function"),
+                ObjectKind::Error => js_string!("Error"),
+                ObjectKind::Boolean(_) => js_string!("Boolean"),
+                ObjectKind::Number(_) => js_string!("Number"),
+                ObjectKind::String(_) => js_string!("String"),
+                ObjectKind::Date(_) => js_string!("Date"),
+                ObjectKind::RegExp(_) => js_string!("RegExp"),
+                _ => js_string!("Object"),
             }
         };
 
@@ -778,10 +781,10 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag_str = tag.as_string().unwrap_or(&builtin_tag);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(format!("[object {tag_str}]").into())
+        Ok(js_string!(utf16!("[object "), tag_str, utf16!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`

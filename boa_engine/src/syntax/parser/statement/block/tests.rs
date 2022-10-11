@@ -1,14 +1,17 @@
 //! Block statement parsing tests.
 
-use crate::syntax::{
-    ast::{
-        node::{
-            Assign, Block, Call, Declaration, DeclarationList, FormalParameterList, FunctionDecl,
-            Identifier, Node, Return, UnaryOp,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                Assign, Block, Call, Declaration, DeclarationList, FormalParameterList,
+                FunctionDecl, Identifier, Node, Return, UnaryOp,
+            },
+            op, Const,
         },
-        op, Const,
+        parser::tests::check_parser,
     },
-    parser::tests::check_parser,
 };
 use boa_interner::Interner;
 
@@ -29,7 +32,7 @@ fn empty() {
 #[test]
 fn non_empty() {
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
         r"{
             var a = 10;
@@ -50,8 +53,8 @@ fn non_empty() {
     );
 
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello");
-    let a = interner.get_or_intern_static("a");
+    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
         r"{
             function hello() {
@@ -85,8 +88,8 @@ fn non_empty() {
 #[test]
 fn hoisting() {
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello");
-    let a = interner.get_or_intern_static("a");
+    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
         r"{
             var a = hello();
@@ -115,7 +118,7 @@ fn hoisting() {
     );
 
     let mut interner = Interner::default();
-    let a = interner.get_or_intern_static("a");
+    let a = interner.get_or_intern_static("a", utf16!("a"));
     check_block(
         r"{
             a = 10;

@@ -91,7 +91,7 @@ impl<R> Tokenizer<R> for StringLiteral {
             Self::take_string_characters(cursor, start_pos, self.terminator, cursor.strict_mode())?;
 
         Ok(Token::new(
-            TokenKind::string_literal(interner.get_or_intern(lit)),
+            TokenKind::string_literal(interner.get_or_intern(&lit[..])),
             span,
         ))
     }
@@ -118,7 +118,7 @@ impl StringLiteral {
         start_pos: Position,
         terminator: StringTerminator,
         is_strict_mode: bool,
-    ) -> Result<(String, Span), Error>
+    ) -> Result<(Vec<u16>, Span), Error>
     where
         R: Read,
     {
@@ -157,7 +157,7 @@ impl StringLiteral {
             }
         }
 
-        Ok((buf.to_string_lossy(), Span::new(start_pos, cursor.pos())))
+        Ok((buf, Span::new(start_pos, cursor.pos())))
     }
 
     #[inline]

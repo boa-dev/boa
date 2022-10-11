@@ -16,12 +16,14 @@ use crate::{
     bytecompiler::{FunctionCompiler, FunctionKind},
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
         ObjectData,
     },
     object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
     symbol::WellKnownSymbols,
     syntax::{
         ast::node::{FormalParameterList, StatementList},
@@ -36,7 +38,6 @@ use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{
     any::Any,
-    borrow::Cow,
     fmt,
     ops::{Deref, DerefMut},
 };
@@ -498,16 +499,15 @@ impl BuiltInFunctionObject {
             } else {
                 let mut parameters = Vec::with_capacity(args.len());
                 for arg in args {
-                    parameters.push(arg.to_string(context)?);
+                    parameters.push(arg.to_string(context)?.as_slice().to_owned());
                 }
-                let mut parameters = parameters.join(",");
-                parameters.push(')');
+                let mut parameters = parameters.join(utf16!(","));
+                parameters.push(u16::from(b')'));
 
-                let parameters = match Parser::new(parameters.as_bytes()).parse_formal_parameters(
-                    context.interner_mut(),
-                    generator,
-                    r#async,
-                ) {
+                // TODO: make parser generic to u32 iterators
+                let parameters = match Parser::new(String::from_utf16_lossy(&parameters).as_bytes())
+                    .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                {
                     Ok(parameters) => parameters,
                     Err(e) => {
                         return context.throw_syntax_error(format!(
@@ -541,11 +541,10 @@ impl BuiltInFunctionObject {
 
             let body_arg = body_arg.to_string(context)?;
 
-            let body = match Parser::new(body_arg.as_bytes()).parse_function_body(
-                context.interner_mut(),
-                generator,
-                r#async,
-            ) {
+            // TODO: make parser generic to u32 iterators
+            let body = match Parser::new(body_arg.to_std_string_escaped().as_bytes())
+                .parse_function_body(context.interner_mut(), generator, r#async)
+            {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
                     return context
@@ -767,12 +766,10 @@ impl BuiltInFunctionObject {
         let target_name = target.get("name", context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
-        let target_name = target_name
-            .as_string()
-            .map_or(JsString::new(""), Clone::clone);
+        let target_name = target_name.as_string().map_or(js_string!(), Clone::clone);
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
-        set_function_name(&f, &target_name.into(), Some("bound"), context);
+        set_function_name(&f, &target_name.into(), Some(js_string!("bound")), context);
 
         // 11. Return F.
         Ok(f.into())
@@ -832,16 +829,23 @@ impl BuiltInFunctionObject {
                     constructor: _,
                 },
                 Some(name),
-            ) => Ok(format!("function {name}() {{\n  [native Code]\n}}").into()),
+            ) => Ok(js_string!(
+                utf16!("function "),
+                &name,
+                utf16!("() {{\n  [native Code]\n}}")
+            )
+            .into()),
             (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
-                Ok("[Function (anonymous)]".into())
+                Ok(js_string!("[Function (anonymous)]").into())
             }
-            (Function::Ordinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
-            (Function::Ordinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Ordinary { .. }, Some(name)) => {
+                Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
+            }
+            (Function::Ordinary { .. }, None) => Ok(js_string!("[Function (anonymous)]").into()),
             (Function::Generator { .. }, Some(name)) => {
-                Ok(format!("[Function*: {}]", &name).into())
+                Ok(js_string!(utf16!("[Function*: "), &name, utf16!("]")).into())
             }
-            (Function::Generator { .. }, None) => Ok("[Function* (anonymous)]".into()),
+            (Function::Generator { .. }, None) => Ok(js_string!("[Function* (anonymous)]").into()),
             _ => Ok("TODO".into()),
         }
     }
@@ -930,7 +934,7 @@ impl BuiltIn for BuiltInFunctionObject {
 fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
-    prefix: Option<&str>,
+    prefix: Option<JsString>,
     context: &mut Context,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
@@ -940,14 +944,14 @@ fn set_function_name(
             // a. Let description be name's [[Description]] value.
             if let Some(desc) = sym.description() {
                 // c. Else, set name to the string-concatenation of "[", description, and "]".
-                Cow::Owned(JsString::concat_array(&["[", &desc, "]"]))
+                js_string!(utf16!("["), &desc, utf16!("]"))
             } else {
                 // b. If description is undefined, set name to the empty String.
-                Cow::Owned(JsString::new(""))
+                js_string!()
             }
         }
-        PropertyKey::String(string) => Cow::Borrowed(string),
-        PropertyKey::Index(index) => Cow::Owned(JsString::new(index.to_string())),
+        PropertyKey::String(string) => string.clone(),
+        PropertyKey::Index(index) => js_string!(format!("{}", index)),
     };
 
     // 3. Else if name is a Private Name, then
@@ -960,7 +964,7 @@ fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = Cow::Owned(JsString::concat_array(&[prefix, " ", &name]));
+        name = js_string!(&prefix, utf16!(" "), &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
@@ -972,7 +976,7 @@ fn set_function_name(
         .define_property_or_throw(
             "name",
             PropertyDescriptor::builder()
-                .value(name.into_owned())
+                .value(name)
                 .writable(false)
                 .enumerable(false)
                 .configurable(true),

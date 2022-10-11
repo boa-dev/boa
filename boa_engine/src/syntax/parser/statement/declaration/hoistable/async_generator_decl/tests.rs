@@ -1,6 +1,9 @@
-use crate::syntax::{
-    ast::node::{AsyncGeneratorDecl, FormalParameterList},
-    parser::tests::check_parser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::node::{AsyncGeneratorDecl, FormalParameterList},
+        parser::tests::check_parser,
+    },
 };
 use boa_interner::Interner;
 
@@ -10,7 +13,7 @@ fn async_generator_function_declaration() {
     check_parser(
         "async function* gen() {}",
         vec![AsyncGeneratorDecl::new(
-            interner.get_or_intern_static("gen"),
+            interner.get_or_intern_static("gen", utf16!("gen")),
             FormalParameterList::default(),
             vec![],
         )
