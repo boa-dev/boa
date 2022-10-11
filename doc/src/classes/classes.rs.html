@@ -146,17 +146,12 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-<span id="154">154</span>
 </pre><pre class="rust"><code><span class="comment">// NOTE: this example requires the `console` feature to run correctly.</span>
 <span class="kw">use</span> <span class="ident">boa_engine</span>::{
+    <span class="ident">builtins::JsArgs</span>,
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
     <span class="ident">property::Attribute</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
@@ -171,7 +166,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Person</span> {
     <span class="doccomment">/// The name of the person.</span>
-    <span class="ident">name</span>: <span class="ident">String</span>,
+    <span class="ident">name</span>: <span class="ident">JsString</span>,
     <span class="doccomment">/// The age of the person.</span>
     <span class="ident">age</span>: <span class="ident">u32</span>,
 }
@@ -190,7 +185,7 @@
                 <span class="comment">// and print a message to stdout.</span>
                 <span class="macro">println!</span>(
                     <span class="string">&quot;Hello my name is {}, I&#39;m {} years old&quot;</span>,
-                    <span class="ident">person</span>.<span class="ident">name</span>,
+                    <span class="ident">person</span>.<span class="ident">name</span>.<span class="ident">to_std_string_escaped</span>(),
                     <span class="ident">person</span>.<span class="ident">age</span> <span class="comment">// Here we can access the native rust fields of the struct.</span>
                 );
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
@@ -218,11 +213,7 @@
         <span class="comment">// and then we call `to_string()`.</span>
         <span class="comment">//</span>
         <span class="comment">// This is equivalent to `String(arg)`.</span>
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// We get the second argument. If it is unavailable we default to `undefined`,</span>
         <span class="comment">// and then we call `to_u32`.</span>
         <span class="comment">//</span>
@@ -230,10 +221,7 @@
         <span class="kw">let</span> <span class="ident">age</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">cloned</span>().<span class="ident">unwrap_or_default</span>().<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// We construct a new native struct `Person`</span>
-        <span class="kw">let</span> <span class="ident">person</span> <span class="op">=</span> <span class="ident">Person</span> {
-            <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">to_string</span>(),
-            <span class="ident">age</span>,
-        };
+        <span class="kw">let</span> <span class="ident">person</span> <span class="op">=</span> <span class="ident">Person</span> { <span class="ident">name</span>, <span class="ident">age</span> };
 
         <span class="prelude-val">Ok</span>(<span class="ident">person</span>) <span class="comment">// and we return it.</span>
     }

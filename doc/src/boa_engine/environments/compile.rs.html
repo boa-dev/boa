@@ -369,6 +369,9 @@
 <span id="367">367</span>
 <span id="368">368</span>
 <span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environments::runtime::BindingLocator</span>, <span class="ident">property::PropertyDescriptor</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
@@ -661,7 +664,10 @@
             .<span class="ident">borrow_mut</span>()
             .<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="ident">function_scope</span>)
         {
-            <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">JsString::from</span>(<span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>));
+            <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="self">self</span>
+                .<span class="ident">interner</span>()
+                .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>);
             <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="self">self</span>
                 .<span class="ident">realm</span>
                 .<span class="ident">global_property_map</span>

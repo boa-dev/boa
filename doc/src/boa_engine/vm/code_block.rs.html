@@ -1520,6 +1520,17 @@
 <span id="1518">1518</span>
 <span id="1519">1519</span>
 <span id="1520">1520</span>
+<span id="1521">1521</span>
+<span id="1522">1522</span>
+<span id="1523">1523</span>
+<span id="1524">1524</span>
+<span id="1525">1525</span>
+<span id="1526">1526</span>
+<span id="1527">1527</span>
+<span id="1528">1528</span>
+<span id="1529">1529</span>
+<span id="1530">1530</span>
+<span id="1531">1531</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1535,6 +1546,7 @@
     },
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PrivateElement</span>,
     },
@@ -1542,7 +1554,7 @@
     <span class="ident">syntax::ast::node::FormalParameterList</span>,
     <span class="ident">vm::call_frame::GeneratorResumeKind</span>,
     <span class="ident">vm</span>::{<span class="ident">call_frame::FinallyReturn</span>, <span class="ident">CallFrame</span>, <span class="ident">Opcode</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
@@ -1939,7 +1951,7 @@
             <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">value</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="ident">literals</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
                 <span class="ident">f</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
                     <span class="string">&quot;    {i:04}: &lt;{}&gt; {}\n&quot;</span>,
-                    <span class="ident">value</span>.<span class="ident">type_of</span>(),
+                    <span class="ident">value</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>(),
                     <span class="ident">value</span>.<span class="ident">display</span>()
                 ));
             }
@@ -1998,7 +2010,12 @@
     <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">construct_object</span>();
 
     <span class="kw">let</span> <span class="ident">name_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-        .<span class="ident">value</span>(<span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>))
+        .<span class="ident">value</span>(
+            <span class="ident">context</span>
+                .<span class="ident">interner</span>()
+                .<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>)
+                .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>),
+        )
         .<span class="ident">writable</span>(<span class="bool-val">false</span>)
         .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
         .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
@@ -2050,7 +2067,7 @@
         .<span class="ident">build</span>();
 
     <span class="ident">prototype</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;constructor&quot;</span>, <span class="ident">constructor_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;constructor&quot;</span>), <span class="ident">constructor_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the constructor property of the function&quot;</span>);
 
     <span class="kw">let</span> <span class="ident">prototype_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
@@ -2061,14 +2078,14 @@
         .<span class="ident">build</span>();
 
     <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), <span class="ident">length_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the length property of the function&quot;</span>);
     <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), <span class="ident">name_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the name property of the function&quot;</span>);
     <span class="kw">if</span> <span class="op">!</span><span class="ident">r#async</span> {
         <span class="ident">constructor</span>
-            .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">prototype_property</span>, <span class="ident">context</span>)
+            .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), <span class="ident">prototype_property</span>, <span class="ident">context</span>)
             .<span class="ident">expect</span>(<span class="string">&quot;failed to define the prototype property of the function&quot;</span>);
     }
 
@@ -2096,7 +2113,12 @@
     };
 
     <span class="kw">let</span> <span class="ident">name_property</span> <span class="op">=</span> <span class="ident">PropertyDescriptor::builder</span>()
-        .<span class="ident">value</span>(<span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>))
+        .<span class="ident">value</span>(
+            <span class="ident">context</span>
+                .<span class="ident">interner</span>()
+                .<span class="ident">resolve_expect</span>(<span class="ident">code</span>.<span class="ident">name</span>)
+                .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>),
+        )
         .<span class="ident">writable</span>(<span class="bool-val">false</span>)
         .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
         .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
@@ -2147,13 +2169,13 @@
         .<span class="ident">build</span>();
 
     <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;prototype&quot;</span>, <span class="ident">prototype_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;prototype&quot;</span>), <span class="ident">prototype_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the prototype property of the generator function&quot;</span>);
     <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">name_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), <span class="ident">name_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the name property of the generator function&quot;</span>);
     <span class="ident">constructor</span>
-        .<span class="ident">define_property_or_throw</span>(<span class="string">&quot;length&quot;</span>, <span class="ident">length_property</span>, <span class="ident">context</span>)
+        .<span class="ident">define_property_or_throw</span>(<span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>), <span class="ident">length_property</span>, <span class="ident">context</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;failed to define the length property of the generator function&quot;</span>);
 
     <span class="ident">constructor</span>

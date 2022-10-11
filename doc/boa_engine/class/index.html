@@ -23,7 +23,7 @@
         <span class="comment">// This is equivalent to `String(arg)`.</span>
         <span class="kw">let</span> <span class="ident">kind</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">animal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">as_str</span>() {
+        <span class="kw">let</span> <span class="ident">animal</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">kind</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_str</span>() {
             <span class="string">&quot;cat&quot;</span> =&gt; <span class="ident"><span class="self">Self</span>::Cat</span>,
             <span class="string">&quot;dog&quot;</span> =&gt; <span class="ident"><span class="self">Self</span>::Dog</span>,
             <span class="kw">_</span> =&gt; <span class="ident"><span class="self">Self</span>::Other</span>,

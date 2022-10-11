@@ -254,9 +254,11 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
+<span id="255">255</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">object::JsObject</span>,
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">string::utf16</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 
@@ -288,7 +290,7 @@
     <span class="comment">// 1. Assert: IsPropertyKey(P) is true.</span>
     <span class="kw">match</span> <span class="ident">key</span> {
         <span class="comment">// 2. If P is &quot;length&quot;, then</span>
-        <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;length&quot;</span> =&gt; {
+        <span class="ident">PropertyKey::String</span>(<span class="kw-2">ref</span> <span class="ident">s</span>) <span class="kw">if</span> <span class="ident">s</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;length&quot;</span>) =&gt; {
             <span class="comment">// a. Return ? ArraySetLength(A, Desc).</span>
 
             <span class="ident">array_set_length</span>(<span class="ident">obj</span>, <span class="ident">desc</span>, <span class="ident">context</span>)

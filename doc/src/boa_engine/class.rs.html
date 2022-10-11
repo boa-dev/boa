@@ -334,7 +334,7 @@
 <span class="doccomment">//!         // This is equivalent to `String(arg)`.</span>
 <span class="doccomment">//!         let kind = args.get_or_undefined(0).to_string(context)?;</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//!         let animal = match kind.as_str() {</span>
+<span class="doccomment">//!         let animal = match kind.to_std_string_escaped().as_str() {</span>
 <span class="doccomment">//!             &quot;cat&quot; =&gt; Self::Cat,</span>
 <span class="doccomment">//!             &quot;dog&quot; =&gt; Self::Dog,</span>
 <span class="doccomment">//!             _ =&gt; Self::Other,</span>

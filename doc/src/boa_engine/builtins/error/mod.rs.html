@@ -187,6 +187,8 @@
 <span id="185">185</span>
 <span id="186">186</span>
 <span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Error` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Error objects are thrown when runtime errors occur.</span>
@@ -202,11 +204,13 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
     <span class="ident">property::Attribute</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">string::utf16</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
@@ -340,21 +344,21 @@
         };
 
         <span class="comment">// 3. Let name be ? Get(O, &quot;name&quot;).</span>
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="macro">js_string!</span>(<span class="string">&quot;name&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If name is undefined, set name to &quot;Error&quot;; otherwise set name to ? ToString(name).</span>
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::new</span>(<span class="string">&quot;Error&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;Error&quot;</span>)
         } <span class="kw">else</span> {
             <span class="ident">name</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
 
         <span class="comment">// 5. Let msg be ? Get(O, &quot;message&quot;).</span>
-        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="string">&quot;message&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="macro">js_string!</span>(<span class="string">&quot;message&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).</span>
         <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">msg</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::empty</span>()
+            <span class="macro">js_string!</span>()
         } <span class="kw">else</span> {
             <span class="ident">msg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
@@ -371,7 +375,7 @@
 
         <span class="comment">// 9. Return the string-concatenation of name, the code unit 0x003A (COLON),</span>
         <span class="comment">// the code unit 0x0020 (SPACE), and msg.</span>
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{name}: {msg}&quot;</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="macro">utf16!</span>(<span class="string">&quot;: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">msg</span>).<span class="ident">into</span>())
     }
 }
 </code></pre></div>

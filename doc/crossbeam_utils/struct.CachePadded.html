@@ -28,9 +28,9 @@ a value of type <code>T</code>.</p>
 <span class="kw">let</span> <span class="ident">addr1</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">array</span>[<span class="number">0</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">i8</span> <span class="kw">as</span> <span class="ident">usize</span>;
 <span class="kw">let</span> <span class="ident">addr2</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">array</span>[<span class="number">1</span>] <span class="kw">as</span> <span class="kw-2">*const</span> <span class="ident">i8</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-<span class="macro">assert!</span>(<span class="ident">addr2</span> <span class="op">-</span> <span class="ident">addr1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">64</span>);
-<span class="macro">assert_eq!</span>(<span class="ident">addr1</span> <span class="op">%</span> <span class="number">64</span>, <span class="number">0</span>);
-<span class="macro">assert_eq!</span>(<span class="ident">addr2</span> <span class="op">%</span> <span class="number">64</span>, <span class="number">0</span>);</code></pre></div>
+<span class="macro">assert!</span>(<span class="ident">addr2</span> <span class="op">-</span> <span class="ident">addr1</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">32</span>);
+<span class="macro">assert_eq!</span>(<span class="ident">addr1</span> <span class="op">%</span> <span class="number">32</span>, <span class="number">0</span>);
+<span class="macro">assert_eq!</span>(<span class="ident">addr2</span> <span class="op">%</span> <span class="number">32</span>, <span class="number">0</span>);</code></pre></div>
 <p>When building a concurrent queue with a head and a tail index, it is wise to place them in
 different cache lines so that concurrent threads pushing and popping elements don’t invalidate
 each other’s cache lines:</p>

@@ -2921,6 +2921,12 @@
 <span id="2919">2919</span>
 <span id="2920">2920</span>
 <span id="2921">2921</span>
+<span id="2922">2922</span>
+<span id="2923">2923</span>
+<span id="2924">2924</span>
+<span id="2925">2925</span>
+<span id="2926">2926</span>
+<span id="2927">2927</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -2946,6 +2952,7 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">builtins::Number</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -2953,7 +2960,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>, <span class="ident">Ordering</span>};
 
@@ -3335,7 +3342,12 @@
         <span class="kw">let</span> <span class="ident">mapping</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">mapfn</span> {
             <span class="ident">JsValue::Undefined</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">JsValue::Object</span>(<span class="ident">o</span>) <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">o</span>),
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">mapfn</span>.<span class="ident">type_of</span>())),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;{} is not a function&quot;</span>,
+                    <span class="ident">mapfn</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
+                ))
+            }
         };
 
         <span class="comment">// 4. Let usingIterator be ? GetMethod(items, @@iterator).</span>
@@ -3787,34 +3799,34 @@
         <span class="comment">// 4. Else, let sep be ? ToString(separator).</span>
         <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">separator</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::new</span>(<span class="string">&quot;,&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;,&quot;</span>)
         } <span class="kw">else</span> {
             <span class="ident">separator</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
 
         <span class="comment">// 5. Let R be the empty String.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
         <span class="comment">// 6. Let k be 0.</span>
         <span class="comment">// 7. Repeat, while k &lt; len,</span>
         <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
             <span class="comment">// a. If k &gt; 0, set R to the string-concatenation of R and sep.</span>
             <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">r</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
+                <span class="ident">r</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
             }
             <span class="comment">// b. Let element be ? Get(O, ! ToString(𝔽(k))).</span>
             <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">get</span>(<span class="ident">k</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// c. If element is undefined or null, let next be the empty String; otherwise, let next be ? ToString(element).</span>
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">element</span>.<span class="ident">is_null_or_undefined</span>() {
-                <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>)
+                <span class="macro">js_string!</span>()
             } <span class="kw">else</span> {
                 <span class="ident">element</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
             };
             <span class="comment">// d. Set R to the string-concatenation of R and next.</span>
-            <span class="ident">r</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>);
+            <span class="ident">r</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">next</span>);
             <span class="comment">// e. Set k to k + 1.</span>
         }
         <span class="comment">// 8. Return R.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">r</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>[..]).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Array.prototype.toString( separator )`</span>

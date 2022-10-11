@@ -348,6 +348,8 @@
 <span id="346">346</span>
 <span id="347">347</span>
 <span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data type symbol is a primitive data type.</span>
@@ -365,11 +367,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-symbol-value</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::JsString</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">js_string</span>, <span class="ident">string::utf16</span>, <span class="ident">JsString</span>};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">unsafe_empty_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cell::Cell</span>,
-    <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">hash</span>::{<span class="ident">Hash</span>, <span class="ident">Hasher</span>},
     <span class="ident">rc::Rc</span>,
 };
@@ -381,7 +382,7 @@
 <span class="doccomment">///# use boa_engine::symbol::WellKnownSymbols;</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// let iterator = WellKnownSymbols::iterator();</span>
-<span class="doccomment">/// assert_eq!(iterator.description().as_deref(), Some(&quot;Symbol.iterator&quot;));</span>
+<span class="doccomment">/// assert_eq!(iterator.description().unwrap().to_std_string_escaped(), &quot;Symbol.iterator&quot;);</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// This is equivalent to `let iterator = Symbol.iterator` in JavaScript.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
@@ -653,15 +654,18 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symboldescriptivestring</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">descriptive_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsString</span> {
-        <span class="self">self</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()
+        <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span>.<span class="ident">as_ref</span>().<span class="ident">map_or_else</span>(
+            <span class="op">|</span><span class="op">|</span> <span class="macro">js_string!</span>(<span class="string">&quot;Symbol()&quot;</span>),
+            <span class="op">|</span><span class="ident">desc</span><span class="op">|</span> <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;Symbol(&quot;</span>), <span class="ident">desc</span>, <span class="macro">utf16!</span>(<span class="string">&quot;)&quot;</span>)),
+        )
     }
 }
 
-<span class="kw">impl</span> <span class="ident">Display</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
+<span class="kw">impl</span> <span class="ident">std::fmt::Display</span> <span class="kw">for</span> <span class="ident">JsSymbol</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
+    <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">std::fmt::Result</span> {
         <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">description</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({desc})&quot;</span>),
+            <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol({})&quot;</span>, <span class="ident">desc</span>.<span class="ident">to_std_string_escaped</span>()),
             <span class="prelude-val">None</span> =&gt; <span class="macro">write!</span>(<span class="ident">f</span>, <span class="string">&quot;Symbol()&quot;</span>),
         }
     }

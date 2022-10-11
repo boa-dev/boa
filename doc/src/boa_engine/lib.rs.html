@@ -201,6 +201,8 @@
 <span id="199">199</span>
 <span id="200">200</span>
 <span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This is an experimental Javascript lexer, parser and compiler written in Rust. Currently, it</span>
 <span class="doccomment">//! has support for some of the language.</span>
 <span class="doccomment">//!</span>
@@ -270,13 +272,15 @@
     <span class="ident">clippy::missing_errors_doc</span>,
     <span class="ident">clippy::as_conversions</span>,
     <span class="ident">clippy::let_unit_value</span>,
+    <span class="comment">// TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).</span>
+    <span class="ident">clippy::trait_duplication_in_bounds</span>,
     <span class="comment">// Ignore because `write!(string, ...)` instead of `string.push_str(&amp;format!(...))` can fail.</span>
     <span class="comment">// We only use it in `ToInternedString` where performance is not an issue.</span>
     <span class="ident">clippy::format_push_string</span>,
-    <span class="comment">// TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).</span>
-    <span class="ident">clippy::trait_duplication_in_bounds</span>,
     <span class="ident">rustdoc::missing_doc_code_examples</span>
 )]</span>
+
+<span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">static_assertions</span> <span class="kw">as</span> <span class="ident">sa</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">bigint</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">builtins</span>;

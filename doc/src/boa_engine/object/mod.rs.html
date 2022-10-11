@@ -2252,7 +2252,10 @@
 <span id="2250">2250</span>
 <span id="2251">2251</span>
 <span id="2252">2252</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object,</span>
+<span class="doccomment">//! see [`object::builtins`][builtins] for implementors.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module also provides helper objects for working with JavaScript objects.</span>
 
@@ -2302,6 +2305,7 @@
         <span class="ident">DataView</span>, <span class="ident">Date</span>, <span class="ident">Promise</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">context::intrinsics::StandardConstructor</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
 };
@@ -3882,7 +3886,7 @@
                 <span class="ident">function</span>,
                 <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
             },
-            <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
+            <span class="ident">name</span>: <span class="macro">js_string!</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
         }
     }
@@ -3900,7 +3904,7 @@
                 <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(()),
             },
-            <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
+            <span class="ident">name</span>: <span class="macro">js_string!</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
         }
     }
@@ -3934,7 +3938,7 @@
                 <span class="ident">constructor</span>: <span class="prelude-val">None</span>,
                 <span class="ident">captures</span>: <span class="ident">Captures::new</span>(<span class="ident">captures</span>),
             },
-            <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
+            <span class="ident">name</span>: <span class="macro">js_string!</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
         }
     }
@@ -3946,9 +3950,9 @@
     <span class="attribute">#[<span class="ident">must_use</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">N</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
-        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">as_ref</span>().<span class="ident">into</span>();
+        <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>.<span class="ident">into</span>();
         <span class="self">self</span>
     }
 
@@ -4169,7 +4173,7 @@
             <span class="ident">object</span>: <span class="ident">JsObject::empty</span>(),
             <span class="ident">prototype</span>: <span class="ident">JsObject::empty</span>(),
             <span class="ident">length</span>: <span class="number">0</span>,
-            <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
+            <span class="ident">name</span>: <span class="macro">js_string!</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
             <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,
@@ -4191,7 +4195,7 @@
             <span class="ident">has_prototype_property</span>: <span class="bool-val">true</span>,
             <span class="ident">prototype</span>: <span class="ident">standard_constructor</span>.<span class="ident">prototype</span>,
             <span class="ident">length</span>: <span class="number">0</span>,
-            <span class="ident">name</span>: <span class="ident">JsString::default</span>(),
+            <span class="ident">name</span>: <span class="macro">js_string!</span>(),
             <span class="ident">callable</span>: <span class="bool-val">true</span>,
             <span class="ident">constructor</span>: <span class="prelude-val">Some</span>(<span class="ident">ConstructorKind::Base</span>),
             <span class="ident">inherit</span>: <span class="prelude-val">None</span>,

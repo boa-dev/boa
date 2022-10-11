@@ -402,6 +402,7 @@
 <span id="400">400</span>
 <span id="401">401</span>
 <span id="402">402</span>
+<span id="403">403</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Execution module for the test runner.</span>
 
 <span class="kw">mod</span> <span class="ident">js262</span>;
@@ -798,7 +799,8 @@
     <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_string</span>() {
-        <span class="kw-2">*</span><span class="ident">captures</span>.<span class="ident">result</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">as_str</span>() <span class="op">==</span> <span class="string">&quot;Test262:AsyncTestComplete&quot;</span>);
+        <span class="kw-2">*</span><span class="ident">captures</span>.<span class="ident">result</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span>
+            <span class="prelude-val">Some</span>(<span class="ident">message</span>.<span class="ident">to_std_string_escaped</span>() <span class="op">==</span> <span class="string">&quot;Test262:AsyncTestComplete&quot;</span>);
     } <span class="kw">else</span> {
         <span class="kw-2">*</span><span class="ident">captures</span>.<span class="ident">result</span>.<span class="ident">borrow_mut</span>() <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="bool-val">false</span>);
     }

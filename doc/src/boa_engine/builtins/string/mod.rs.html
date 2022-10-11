@@ -2301,122 +2301,6 @@
 <span id="2299">2299</span>
 <span id="2300">2300</span>
 <span id="2301">2301</span>
-<span id="2302">2302</span>
-<span id="2303">2303</span>
-<span id="2304">2304</span>
-<span id="2305">2305</span>
-<span id="2306">2306</span>
-<span id="2307">2307</span>
-<span id="2308">2308</span>
-<span id="2309">2309</span>
-<span id="2310">2310</span>
-<span id="2311">2311</span>
-<span id="2312">2312</span>
-<span id="2313">2313</span>
-<span id="2314">2314</span>
-<span id="2315">2315</span>
-<span id="2316">2316</span>
-<span id="2317">2317</span>
-<span id="2318">2318</span>
-<span id="2319">2319</span>
-<span id="2320">2320</span>
-<span id="2321">2321</span>
-<span id="2322">2322</span>
-<span id="2323">2323</span>
-<span id="2324">2324</span>
-<span id="2325">2325</span>
-<span id="2326">2326</span>
-<span id="2327">2327</span>
-<span id="2328">2328</span>
-<span id="2329">2329</span>
-<span id="2330">2330</span>
-<span id="2331">2331</span>
-<span id="2332">2332</span>
-<span id="2333">2333</span>
-<span id="2334">2334</span>
-<span id="2335">2335</span>
-<span id="2336">2336</span>
-<span id="2337">2337</span>
-<span id="2338">2338</span>
-<span id="2339">2339</span>
-<span id="2340">2340</span>
-<span id="2341">2341</span>
-<span id="2342">2342</span>
-<span id="2343">2343</span>
-<span id="2344">2344</span>
-<span id="2345">2345</span>
-<span id="2346">2346</span>
-<span id="2347">2347</span>
-<span id="2348">2348</span>
-<span id="2349">2349</span>
-<span id="2350">2350</span>
-<span id="2351">2351</span>
-<span id="2352">2352</span>
-<span id="2353">2353</span>
-<span id="2354">2354</span>
-<span id="2355">2355</span>
-<span id="2356">2356</span>
-<span id="2357">2357</span>
-<span id="2358">2358</span>
-<span id="2359">2359</span>
-<span id="2360">2360</span>
-<span id="2361">2361</span>
-<span id="2362">2362</span>
-<span id="2363">2363</span>
-<span id="2364">2364</span>
-<span id="2365">2365</span>
-<span id="2366">2366</span>
-<span id="2367">2367</span>
-<span id="2368">2368</span>
-<span id="2369">2369</span>
-<span id="2370">2370</span>
-<span id="2371">2371</span>
-<span id="2372">2372</span>
-<span id="2373">2373</span>
-<span id="2374">2374</span>
-<span id="2375">2375</span>
-<span id="2376">2376</span>
-<span id="2377">2377</span>
-<span id="2378">2378</span>
-<span id="2379">2379</span>
-<span id="2380">2380</span>
-<span id="2381">2381</span>
-<span id="2382">2382</span>
-<span id="2383">2383</span>
-<span id="2384">2384</span>
-<span id="2385">2385</span>
-<span id="2386">2386</span>
-<span id="2387">2387</span>
-<span id="2388">2388</span>
-<span id="2389">2389</span>
-<span id="2390">2390</span>
-<span id="2391">2391</span>
-<span id="2392">2392</span>
-<span id="2393">2393</span>
-<span id="2394">2394</span>
-<span id="2395">2395</span>
-<span id="2396">2396</span>
-<span id="2397">2397</span>
-<span id="2398">2398</span>
-<span id="2399">2399</span>
-<span id="2400">2400</span>
-<span id="2401">2401</span>
-<span id="2402">2402</span>
-<span id="2403">2403</span>
-<span id="2404">2404</span>
-<span id="2405">2405</span>
-<span id="2406">2406</span>
-<span id="2407">2407</span>
-<span id="2408">2408</span>
-<span id="2409">2409</span>
-<span id="2410">2410</span>
-<span id="2411">2411</span>
-<span id="2412">2412</span>
-<span id="2413">2413</span>
-<span id="2414">2414</span>
-<span id="2415">2415</span>
-<span id="2416">2416</span>
-<span id="2417">2417</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `String` global object is a constructor for strings or a sequence of characters.</span>
@@ -2436,110 +2320,25 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">Number</span>, <span class="ident">RegExp</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
+    <span class="ident">string::utf16</span>,
+    <span class="ident">string</span>::{<span class="ident">CodePoint</span>, <span class="ident">Utf16Trim</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">std</span>::{
-    <span class="ident">char::from_u32</span>,
-    <span class="ident">cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>},
-    <span class="ident">string::String</span> <span class="kw">as</span> <span class="ident">StdString</span>,
-};
+<span class="kw">use</span> <span class="ident">std::cmp</span>::{<span class="ident">max</span>, <span class="ident">min</span>};
 <span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
-<span class="kw">use</span> <span class="ident">unicode_normalization::UnicodeNormalization</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Placement</span> {
     <span class="ident">Start</span>,
     <span class="ident">End</span>,
-}
-
-<span class="doccomment">/// Code point information for the `CodePointAt` abstract operation.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">CodePointInfo</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code_point</span>: <span class="ident">u32</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">code_unit_count</span>: <span class="ident">u8</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">is_unpaired_surrogate</span>: <span class="ident">bool</span>,
-}
-
-<span class="doccomment">/// The `CodePointAt ( string, position )` abstract operation.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// The abstract operation `CodePointAt` takes arguments `string` (a String) and `position` (a</span>
-<span class="doccomment">/// non-negative integer) and returns a Record with fields `[[CodePoint]]` (a code point),</span>
-<span class="doccomment">/// `[[CodeUnitCount]]` (a positive integer), and `[[IsUnpairedSurrogate]]` (a Boolean). It</span>
-<span class="doccomment">/// interprets string as a sequence of UTF-16 encoded code points, as described in 6.1.4, and reads</span>
-<span class="doccomment">/// from it a single code point starting with the code unit at index `position`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-codepointat</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">code_point_at</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">position</span>: <span class="ident">u64</span>) -&gt; <span class="ident">CodePointInfo</span> {
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">encoded</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>();
-
-    <span class="comment">// 1. Let size be the length of string.</span>
-    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">encoded</span>.<span class="ident">clone</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
-
-    <span class="comment">// 2. Assert: position ≥ 0 and position &lt; size.</span>
-    <span class="macro">assert!</span>(<span class="ident">position</span> <span class="op">&lt;</span> <span class="ident">size</span>);
-
-    <span class="comment">// 3. Let first be the code unit at index position within string.</span>
-    <span class="kw">let</span> <span class="ident">first</span> <span class="op">=</span> <span class="ident">encoded</span>
-        .<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>)
-        .<span class="ident">expect</span>(<span class="string">&quot;The callers of this function must&#39;ve already checked bounds.&quot;</span>);
-
-    <span class="comment">// 4. Let cp be the code point whose numeric value is that of first.</span>
-    <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">u32::from</span>(<span class="ident">first</span>);
-
-    <span class="comment">// 5. If first is not a leading surrogate or trailing surrogate, then</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_leading_surrogate</span>(<span class="ident">first</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">is_trailing_surrogate</span>(<span class="ident">first</span>) {
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: false }.</span>
-        <span class="kw">return</span> <span class="ident">CodePointInfo</span> {
-            <span class="ident">code_point</span>: <span class="ident">cp</span>,
-            <span class="ident">code_unit_count</span>: <span class="number">1</span>,
-            <span class="ident">is_unpaired_surrogate</span>: <span class="bool-val">false</span>,
-        };
-    }
-
-    <span class="comment">// 6. If first is a trailing surrogate or position + 1 = size, then</span>
-    <span class="kw">if</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">first</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">position</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">size</span> {
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.</span>
-        <span class="kw">return</span> <span class="ident">CodePointInfo</span> {
-            <span class="ident">code_point</span>: <span class="ident">cp</span>,
-            <span class="ident">code_unit_count</span>: <span class="number">1</span>,
-            <span class="ident">is_unpaired_surrogate</span>: <span class="bool-val">true</span>,
-        };
-    }
-
-    <span class="comment">// 7. Let second be the code unit at index position + 1 within string.</span>
-    <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">encoded</span>
-        .<span class="ident">next</span>()
-        .<span class="ident">expect</span>(<span class="string">&quot;The callers of this function must&#39;ve already checked bounds.&quot;</span>);
-
-    <span class="comment">// 8. If second is not a trailing surrogate, then</span>
-    <span class="kw">if</span> <span class="op">!</span><span class="ident">is_trailing_surrogate</span>(<span class="ident">second</span>) {
-        <span class="comment">// a. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 1, [[IsUnpairedSurrogate]]: true }.</span>
-        <span class="kw">return</span> <span class="ident">CodePointInfo</span> {
-            <span class="ident">code_point</span>: <span class="ident">cp</span>,
-            <span class="ident">code_unit_count</span>: <span class="number">1</span>,
-            <span class="ident">is_unpaired_surrogate</span>: <span class="bool-val">true</span>,
-        };
-    }
-
-    <span class="comment">// 9. Set cp to UTF16SurrogatePairToCodePoint(first, second).</span>
-    <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> (<span class="ident">u32::from</span>(<span class="ident">first</span>) <span class="op">-</span> <span class="number">0xD800</span>) <span class="op">*</span> <span class="number">0x400</span> <span class="op">+</span> (<span class="ident">u32::from</span>(<span class="ident">second</span>) <span class="op">-</span> <span class="number">0xDC00</span>) <span class="op">+</span> <span class="number">0x10000</span>;
-
-    <span class="comment">// 10. Return the Record { [[CodePoint]]: cp, [[CodeUnitCount]]: 2, [[IsUnpairedSurrogate]]: false }.</span>
-    <span class="ident">CodePointInfo</span> {
-        <span class="ident">code_point</span>: <span class="ident">cp</span>,
-        <span class="ident">code_unit_count</span>: <span class="number">2</span>,
-        <span class="ident">is_unpaired_surrogate</span>: <span class="bool-val">false</span>,
-    }
 }
 
 <span class="doccomment">/// Helper function to check if a `char` is trimmable.</span>
@@ -2561,26 +2360,6 @@
     <span class="comment">// Line terminators: https://tc39.es/ecma262/#sec-line-terminators</span>
     <span class="string">&#39;\u{000A}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{000D}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2028}&#39;</span> <span class="op">|</span> <span class="string">&#39;\u{2029}&#39;</span>
     )
-}
-
-<span class="doccomment">/// Checks if the given code unit is a leading surrogate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#leading-surrogate</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_leading_surrogate</span>(<span class="ident">value</span>: <span class="ident">u16</span>) -&gt; <span class="ident">bool</span> {
-    (<span class="number">0xD800</span>..<span class="op">=</span><span class="number">0xDBFF</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)
-}
-
-<span class="doccomment">/// Checks if the given code unit is a trailing surrogate.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#trailing-surrogate</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">value</span>: <span class="ident">u16</span>) -&gt; <span class="ident">bool</span> {
-    (<span class="number">0xDC00</span>..<span class="op">=</span><span class="number">0xDFFF</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>)
 }
 
 <span class="doccomment">/// JavaScript `String` implementation.</span>
@@ -2655,7 +2434,7 @@
     <span class="doccomment">/// which can differ in JavaScript engines. In Boa it is `2^32 - 1`</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_STRING_LENGTH</span>: <span class="ident">usize</span> <span class="op">=</span> <span class="ident">u32::MAX</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
-    <span class="doccomment">/// `String( value )`</span>
+    <span class="doccomment">/// Constructor `String( value )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// &lt;https://tc39.es/ecma262/#sec-string-constructor-string-value&gt;</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(
@@ -2674,7 +2453,7 @@
             <span class="comment">// b. Let s be ? ToString(value).</span>
             <span class="prelude-val">Some</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
             <span class="comment">// 1. If value is not present, let s be the empty String.</span>
-            <span class="prelude-val">None</span> =&gt; <span class="ident">JsString::default</span>(),
+            <span class="prelude-val">None</span> =&gt; <span class="macro">js_string!</span>(),
         };
 
         <span class="comment">// 3. If NewTarget is undefined, return s.</span>
@@ -2684,6 +2463,7 @@
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::string</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="comment">// 4. Return ! StringCreate(s, ? GetPrototypeFromConstructor(NewTarget, &quot;%String.prototype%&quot;)).</span>
         <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::string_create</span>(<span class="ident">string</span>, <span class="ident">prototype</span>, <span class="ident">context</span>).<span class="ident">into</span>())
     }
 
@@ -2697,7 +2477,7 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringcreate</span>
     <span class="kw">fn</span> <span class="ident">string_create</span>(<span class="ident">value</span>: <span class="ident">JsString</span>, <span class="ident">prototype</span>: <span class="ident">JsObject</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsObject</span> {
         <span class="comment">// 7. Let length be the number of code unit elements in value.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">len</span>();
 
         <span class="comment">// 1. Let S be ! MakeBasicObject(« [[Prototype]], [[Extensible]], [[StringData]] »).</span>
         <span class="comment">// 2. Set S.[[Prototype]] to prototype.</span>
@@ -2759,7 +2539,9 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let result be the empty String.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">args</span>.<span class="ident">len</span>());
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
 
         <span class="comment">// 2. For each element next of codePoints, do</span>
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>() {
@@ -2776,17 +2558,19 @@
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>)));
             }
 
-            <span class="comment">// TODO: Full UTF-16 support</span>
+            <span class="kw">let</span> <span class="ident">nextcp</span> <span class="op">=</span>
+                <span class="ident">char::from_u32</span>(<span class="ident">nextcp</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;Checked above the range of `nextcp`&quot;</span>);
+
             <span class="comment">// d. Set result to the string-concatenation of result and ! UTF16EncodeCodePoint(ℝ(nextCP)).</span>
-            <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">char::try_from</span>(<span class="ident">nextcp</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">unwrap_or</span>(<span class="string">&#39;\u{FFFD}&#39;</span> <span class="comment">/* replacement char */</span>));
+            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">nextcp</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
         }
 
         <span class="comment">// 3. Assert: If codePoints is empty, then result is the empty String.</span>
         <span class="comment">// 4. Return result.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..]).<span class="ident">into</span>())
     }
 
-    <span class="doccomment">/// `String.prototype.raw( template, ...substitutions )`</span>
+    <span class="doccomment">/// `String.raw( template, ...substitutions )`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -2812,7 +2596,7 @@
         <span class="comment">// 5. If literalSegments ≤ 0, return the empty String.</span>
         <span class="comment">// This is not &lt;= because a `usize` is always positive.</span>
         <span class="kw">if</span> <span class="ident">literal_segments</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsString::empty</span>().<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>());
         }
 
         <span class="comment">// 6. Let stringElements be a new empty List.</span>
@@ -2829,13 +2613,13 @@
             <span class="kw">let</span> <span class="ident">next_seg</span> <span class="op">=</span> <span class="ident">raw</span>.<span class="ident">get</span>(<span class="ident">next_key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// c. Append the code unit elements of nextSeg to the end of stringElements.</span>
-            <span class="ident">string_elements</span>.<span class="ident">extend</span>(<span class="ident">next_seg</span>.<span class="ident">encode_utf16</span>());
+            <span class="ident">string_elements</span>.<span class="ident">extend</span>(<span class="ident">next_seg</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
 
             <span class="comment">// d. If nextIndex + 1 = literalSegments, then</span>
             <span class="kw">if</span> <span class="ident">next_index</span> <span class="op">+</span> <span class="number">1</span> <span class="op">==</span> <span class="ident">literal_segments</span> {
                 <span class="comment">// i. Return the String value whose code units are the elements in the List stringElements.</span>
                 <span class="comment">//    If stringElements has no elements, the empty String is returned.</span>
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">string_elements</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string_elements</span>).<span class="ident">into</span>());
             }
 
             <span class="comment">// e. If nextIndex &lt; numberOfSubstitutions, let next be substitutions[nextIndex].</span>
@@ -2844,14 +2628,14 @@
 
             <span class="comment">// f. Else, let next be the empty String.</span>
             } <span class="kw">else</span> {
-                <span class="ident">JsString::empty</span>().<span class="ident">into</span>()
+                <span class="macro">js_string!</span>().<span class="ident">into</span>()
             };
 
             <span class="comment">// g. Let nextSub be ? ToString(next).</span>
             <span class="kw">let</span> <span class="ident">next_sub</span> <span class="op">=</span> <span class="ident">next</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// h. Append the code unit elements of nextSub to the end of stringElements.</span>
-            <span class="ident">string_elements</span>.<span class="ident">extend</span>(<span class="ident">next_sub</span>.<span class="ident">encode_utf16</span>());
+            <span class="ident">string_elements</span>.<span class="ident">extend</span>(<span class="ident">next_sub</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
 
             <span class="comment">// i. Set nextIndex to nextIndex + 1.</span>
             <span class="ident">next_index</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
@@ -2883,9 +2667,7 @@
         }
 
         <span class="comment">// 3. Return result.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::String</span>(<span class="ident">JsString::new</span>(
-            <span class="ident">std::string::String::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>),
-        )))
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">result</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.toString ( )`</span>
@@ -2932,26 +2714,18 @@
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
-
         <span class="comment">// 3. Let position be ? ToIntegerOrInfinity(pos).</span>
-        <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">position</span>) <span class="kw">if</span> (<span class="number">0</span>..<span class="ident">size</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">position</span>) =&gt; {
-                <span class="comment">// 6. Return the substring of S from position to position + 1.</span>
-                <span class="kw">let</span> <span class="ident">char</span> <span class="op">=</span> <span class="ident">string</span>
-                    .<span class="ident">encode_utf16</span>()
-                    .<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;Already checked bounds above&quot;</span>);
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                <span class="prelude-val">Ok</span>(<span class="ident">char::try_from</span>(<span class="ident">u32::from</span>(<span class="ident">char</span>))
-                    .<span class="ident">unwrap_or</span>(<span class="string">&#39;\u{FFFD}&#39;</span> <span class="comment">/* replacement char */</span>)
-                    .<span class="ident">into</span>())
+        <span class="kw">match</span> <span class="ident">position</span> {
+            <span class="comment">// 4. Let size be the length of S.</span>
+            <span class="comment">// 6. Return the substring of S from position to position + 1.</span>
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>;
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">i</span>..<span class="op">=</span><span class="ident">i</span>]).<span class="ident">into</span>())
             }
-            <span class="kw">_</span> =&gt; {
-                <span class="comment">// 5. If position &lt; 0 or position ≥ size, return the empty String.</span>
-                <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
-            }
+            <span class="comment">// 5. If position &lt; 0 or position ≥ size, return the empty String.</span>
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>()),
         }
     }
 
@@ -2974,7 +2748,7 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let relativeIndex be ? ToIntegerOrInfinity(index).</span>
         <span class="kw">let</span> <span class="ident">relative_index</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2990,13 +2764,7 @@
         };
 
         <span class="comment">// 8. Return the substring of S from k to k + 1.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">utf16_val</span>) <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">k</span>) {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
-                <span class="ident">from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">utf16_val</span>)).<span class="ident">expect</span>(<span class="string">&quot;invalid utf-16 character&quot;</span>),
-            ))
-        } <span class="kw">else</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())
-        }
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[<span class="ident">k</span>..<span class="op">=</span><span class="ident">k</span>]).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.codePointAt( index )`</span>
@@ -3027,14 +2795,15 @@
         <span class="comment">// 3. Let position be ? ToIntegerOrInfinity(pos).</span>
         <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
-
         <span class="kw">match</span> <span class="ident">position</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">position</span>) <span class="kw">if</span> (<span class="number">0</span>..<span class="ident">size</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">position</span>) =&gt; {
+            <span class="comment">// 4. Let size be the length of S.</span>
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span> =&gt; {
                 <span class="comment">// 6. Let cp be ! CodePointAt(S, position).</span>
                 <span class="comment">// 7. Return 𝔽(cp.[[CodePoint]]).</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">code_point_at</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>, <span class="ident">position</span> <span class="kw">as</span> <span class="ident">u64</span>).<span class="ident">code_point</span>.<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="ident">string</span>
+                    .<span class="ident">code_point_at</span>(<span class="ident">usize::try_from</span>(<span class="ident">i</span>).<span class="ident">expect</span>(<span class="string">&quot;already checked that i &gt;= 0&quot;</span>))
+                    .<span class="ident">as_u32</span>()
+                    .<span class="ident">into</span>())
             }
             <span class="comment">// 5. If position &lt; 0 or position ≥ size, return undefined.</span>
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>()),
@@ -3069,19 +2838,11 @@
         <span class="comment">// 3. Let position be ? ToIntegerOrInfinity(pos).</span>
         <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
-
         <span class="kw">match</span> <span class="ident">position</span> {
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">position</span>) <span class="kw">if</span> (<span class="number">0</span>..<span class="ident">size</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">position</span>) =&gt; {
+            <span class="comment">// 4. Let size be the length of S.</span>
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span> =&gt; {
                 <span class="comment">// 6. Return the Number value for the numeric value of the code unit at index position within the String S.</span>
-                <span class="kw">let</span> <span class="ident">char_code</span> <span class="op">=</span> <span class="ident">u32::from</span>(
-                    <span class="ident">string</span>
-                        .<span class="ident">encode_utf16</span>()
-                        .<span class="ident">nth</span>(<span class="ident">position</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;Already checked bounds above.&quot;</span>),
-                );
-                <span class="prelude-val">Ok</span>(<span class="ident">char_code</span>.<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="ident">u32::from</span>(<span class="ident">string</span>[<span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>]).<span class="ident">into</span>())
             }
             <span class="comment">// 5. If position &lt; 0 or position ≥ size, return NaN.</span>
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::nan</span>()),
@@ -3111,14 +2872,14 @@
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let R be S.</span>
         <span class="comment">// 4. For each element next of args, do</span>
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
             <span class="comment">// a. Let nextString be ? ToString(next).</span>
             <span class="comment">// b. Set R to the string-concatenation of R and nextString.</span>
-            <span class="ident">string</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+            <span class="ident">string</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>, <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
         }
 
         <span class="comment">// 5. Return R.</span>
@@ -3147,7 +2908,7 @@
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
 
         <span class="comment">// 3. Let n be ? ToIntegerOrInfinity(count).</span>
         <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
@@ -3155,20 +2916,20 @@
                 <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> (<span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>) <span class="op">*</span> <span class="ident">len</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident"><span class="self">Self</span>::MAX_STRING_LENGTH</span> =&gt;
             {
                 <span class="kw">if</span> <span class="ident">string</span>.<span class="ident">is_empty</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>());
                 }
                 <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">n</span> <span class="kw">as</span> <span class="ident">usize</span>;
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">std::string::String::with_capacity</span>(<span class="ident">n</span> <span class="op">*</span> <span class="ident">len</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">n</span> <span class="op">*</span> <span class="ident">len</span>);
 
                 <span class="ident">std::iter::repeat</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[..])
                     .<span class="ident">take</span>(<span class="ident">n</span>)
-                    .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">s</span>));
+                    .<span class="ident">for_each</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">s</span>));
 
                 <span class="comment">// 6. Return the String value that is made from n copies of S appended together.</span>
-                <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">result</span>).<span class="ident">into</span>())
             }
             <span class="comment">// 5. If n is 0, return the empty String.</span>
-            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()),
+            <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>()),
             <span class="comment">// 4. If n &lt; 0 or n is +∞, throw a RangeError exception.</span>
             <span class="kw">_</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
                 <span class="string">&quot;repeat count must be a positive finite number \
@@ -3199,7 +2960,7 @@
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let intStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="ident">from</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span> {
@@ -3235,13 +2996,10 @@
 
         <span class="comment">// 12. If from ≥ to, return the empty String.</span>
         <span class="kw">if</span> <span class="ident">from</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">to</span> {
-            <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="comment">// 13. Return the substring of S from from to to.</span>
-            <span class="kw">let</span> <span class="ident">span</span> <span class="op">=</span> <span class="ident">to</span> <span class="op">-</span> <span class="ident">from</span>;
-            <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">from</span>).<span class="ident">take</span>(<span class="ident">span</span>).<span class="ident">collect</span>();
-            <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
-            <span class="prelude-val">Ok</span>(<span class="ident">substring_lossy</span>.<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">from</span>..<span class="ident">to</span>]).<span class="ident">into</span>())
         }
     }
 
@@ -3280,7 +3038,7 @@
         <span class="kw">let</span> <span class="ident">search_string</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 7. If position is undefined, let pos be 0; else let pos be ? ToIntegerOrInfinity(position).</span>
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
@@ -3292,7 +3050,7 @@
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 9. Let searchLength be the length of searchStr.</span>
-        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">len</span>();
 
         <span class="comment">// 10. If searchLength = 0, return true.</span>
         <span class="kw">if</span> <span class="ident">search_length</span> <span class="op">==</span> <span class="number">0</span> {
@@ -3310,9 +3068,7 @@
             <span class="comment">// 14. Return ! SameValueNonNumeric(substring, searchStr).</span>
             <span class="comment">// `SameValueNonNumeric` forwards to `==`, so directly check</span>
             <span class="comment">// equality to avoid converting to `JsValue`</span>
-            <span class="kw">let</span> <span class="ident">substring_utf16</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">take</span>(<span class="ident">search_length</span>);
-            <span class="kw">let</span> <span class="ident">search_str_utf16</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">encode_utf16</span>();
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">substring_utf16</span>.<span class="ident">eq</span>(<span class="ident">search_str_utf16</span>)))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">search_string</span> <span class="op">==</span> <span class="ident">string</span>[<span class="ident">start</span>..<span class="ident">end</span>]))
         }
     }
 
@@ -3350,7 +3106,7 @@
         };
 
         <span class="comment">// 6. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 7. If endPosition is undefined, let pos be len; else let pos be ? ToIntegerOrInfinity(endPosition).</span>
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
@@ -3362,7 +3118,7 @@
         <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">end</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 9. Let searchLength be the length of searchStr.</span>
-        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">len</span>();
 
         <span class="comment">// 10. If searchLength = 0, return true.</span>
         <span class="kw">if</span> <span class="ident">search_length</span> <span class="op">==</span> <span class="number">0</span> {
@@ -3375,11 +3131,7 @@
             <span class="comment">// 14. Return ! SameValueNonNumeric(substring, searchStr).</span>
             <span class="comment">// `SameValueNonNumeric` forwards to `==`, so directly check</span>
             <span class="comment">// equality to avoid converting to `JsValue`</span>
-
-            <span class="kw">let</span> <span class="ident">substring_utf16</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">start</span>).<span class="ident">take</span>(<span class="ident">search_length</span>);
-            <span class="kw">let</span> <span class="ident">search_str_utf16</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>();
-
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">substring_utf16</span>.<span class="ident">eq</span>(<span class="ident">search_str_utf16</span>)))
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">search_str</span> <span class="op">==</span> <span class="ident">string</span>[<span class="ident">start</span>..<span class="ident">end</span>]))
         } <span class="kw">else</span> {
             <span class="comment">// 12. If start &lt; 0, return false.</span>
             <span class="prelude-val">Ok</span>(<span class="bool-val">false</span>.<span class="ident">into</span>())
@@ -3425,7 +3177,7 @@
 
         <span class="comment">// 8. Let len be the length of S.</span>
         <span class="comment">// 9. Let start be the result of clamping pos between 0 and len.</span>
-        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
+        <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 10. Let index be ! StringIndexOf(S, searchStr, start).</span>
         <span class="comment">// 11. If index is not -1, return true.</span>
@@ -3503,9 +3255,7 @@
         };
 
         <span class="comment">// 10. Let preserved be the substring of string from 0 to position.</span>
-        <span class="kw">let</span> <span class="ident">preserved</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(
-            <span class="kw-2">&amp;</span><span class="ident">this_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">position</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-        );
+        <span class="kw">let</span> <span class="ident">preserved</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">this_str</span>[..<span class="ident">position</span>];
 
         <span class="comment">// 11. If functionalReplace is true, then</span>
         <span class="comment">// 12. Else,</span>
@@ -3525,8 +3275,8 @@
 
             <span class="comment">// c. Let replacement be ! GetSubstitution(searchString, string, position, captures, undefined, replaceValue).</span>
             <span class="ident">get_substitution</span>(
-                <span class="ident">search_str</span>.<span class="ident">as_str</span>(),
-                <span class="ident">this_str</span>.<span class="ident">as_str</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">search_str</span>,
+                <span class="kw-2">&amp;</span><span class="ident">this_str</span>,
                 <span class="ident">position</span>,
                 <span class="kw-2">&amp;</span><span class="ident">captures</span>,
                 <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
@@ -3536,14 +3286,10 @@
         };
 
         <span class="comment">// 13. Return the string-concatenation of preserved, replacement, and the substring of string from position + searchLength.</span>
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;{preserved}{replacement}{}&quot;</span>,
-            <span class="ident">StdString::from_utf16_lossy</span>(
-                <span class="kw-2">&amp;</span><span class="ident">this_str</span>
-                    .<span class="ident">encode_utf16</span>()
-                    .<span class="ident">skip</span>(<span class="ident">position</span> <span class="op">+</span> <span class="ident">search_length</span>)
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-            )
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
+            <span class="ident">preserved</span>,
+            <span class="kw-2">&amp;</span><span class="ident">replacement</span>,
+            <span class="kw-2">&amp;</span><span class="ident">this_str</span>[<span class="ident">position</span> <span class="op">+</span> <span class="ident">search_length</span>..]
         )
         .<span class="ident">into</span>())
     }
@@ -3588,7 +3334,7 @@
                     <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
                     <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>)) {
                         <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
                             <span class="string">&quot;String.prototype.replaceAll called with a non-global RegExp argument&quot;</span>,
                         );
@@ -3627,7 +3373,7 @@
         };
 
         <span class="comment">// 7. Let searchLength be the length of searchString.</span>
-        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">search_length</span> <span class="op">=</span> <span class="ident">search_string</span>.<span class="ident">len</span>();
 
         <span class="comment">// 8. Let advanceBy be max(1, searchLength).</span>
         <span class="kw">let</span> <span class="ident">advance_by</span> <span class="op">=</span> <span class="ident">max</span>(<span class="number">1</span>, <span class="ident">search_length</span>);
@@ -3651,19 +3397,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">end_of_last_match</span> <span class="op">=</span> <span class="number">0</span>;
 
         <span class="comment">// 13. Let result be the empty String.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">string</span>.<span class="ident">len</span>());
 
         <span class="comment">// 14. For each element p of matchPositions, do</span>
         <span class="kw">for</span> <span class="ident">p</span> <span class="kw">in</span> <span class="ident">match_positions</span> {
             <span class="comment">// a. Let preserved be the substring of string from endOfLastMatch to p.</span>
-            <span class="kw">let</span> <span class="ident">preserved</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(
-                <span class="kw-2">&amp;</span><span class="ident">string</span>
-                    .<span class="ident">clone</span>()
-                    .<span class="ident">encode_utf16</span>()
-                    .<span class="ident">skip</span>(<span class="ident">end_of_last_match</span>)
-                    .<span class="ident">take</span>(<span class="ident">p</span> <span class="op">-</span> <span class="ident">end_of_last_match</span>)
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            );
+            <span class="kw">let</span> <span class="ident">preserved</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">end_of_last_match</span>..<span class="ident">p</span>];
 
             <span class="comment">// c. Else,</span>
             <span class="kw">let</span> <span class="ident">replacement</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">replace_value</span>) <span class="op">=</span> <span class="ident">replace_value_string</span> {
@@ -3698,29 +3437,21 @@
             };
 
             <span class="comment">// d. Set result to the string-concatenation of result, preserved, and replacement.</span>
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}{preserved}{replacement}&quot;</span>, <span class="ident">result</span>.<span class="ident">as_str</span>()));
+            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">preserved</span>);
+            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>);
 
             <span class="comment">// e. Set endOfLastMatch to p + searchLength.</span>
             <span class="ident">end_of_last_match</span> <span class="op">=</span> <span class="ident">p</span> <span class="op">+</span> <span class="ident">search_length</span>;
         }
 
         <span class="comment">// 15. If endOfLastMatch &lt; the length of string, then</span>
-        <span class="kw">if</span> <span class="ident">end_of_last_match</span> <span class="op">&lt;</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() {
+        <span class="kw">if</span> <span class="ident">end_of_last_match</span> <span class="op">&lt;</span> <span class="ident">string</span>.<span class="ident">len</span>() {
             <span class="comment">// a. Set result to the string-concatenation of result and the substring of string from endOfLastMatch.</span>
-            <span class="ident">result</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;{}{}&quot;</span>,
-                <span class="ident">result</span>.<span class="ident">as_str</span>(),
-                <span class="kw-2">&amp;</span><span class="ident">StdString::from_utf16_lossy</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">string</span>
-                        .<span class="ident">encode_utf16</span>()
-                        .<span class="ident">skip</span>(<span class="ident">end_of_last_match</span>)
-                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>()
-                )
-            ));
+            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">end_of_last_match</span>..]);
         }
 
         <span class="comment">// 16. Return result.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">result</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.indexOf( searchValue[, fromIndex] )`</span>
@@ -3755,7 +3486,7 @@
         <span class="kw">let</span> <span class="ident">pos</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 6. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 7. Let start be the result of clamping pos between 0 and len.</span>
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">len</span>) <span class="kw">as</span> <span class="ident">usize</span>;
@@ -3808,7 +3539,7 @@
         };
 
         <span class="comment">// 7. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
         <span class="comment">// 8. Let start be the result of clamping pos between 0 and len.</span>
         <span class="kw">let</span> <span class="ident">start</span> <span class="op">=</span> <span class="ident">pos</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">len</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
@@ -3818,17 +3549,19 @@
         }
 
         <span class="comment">// 10. Let searchLen be the length of searchStr.</span>
-        <span class="kw">let</span> <span class="ident">search_len</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">search_len</span> <span class="op">=</span> <span class="ident">search_str</span>.<span class="ident">len</span>();
 
-        <span class="comment">// 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do</span>
-        <span class="comment">// a. Let candidate be the substring of S from i to i + searchLen.</span>
-        <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">start</span> <span class="op">+</span> <span class="ident">search_len</span>).<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">substring_lossy</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">position</span>) <span class="op">=</span> <span class="ident">substring_lossy</span>.<span class="ident">rfind</span>(<span class="ident">search_str</span>.<span class="ident">as_str</span>()) {
-            <span class="comment">// b. If candidate is the same sequence of code units as searchStr, return 𝔽(i).</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
-                <span class="ident">substring_lossy</span>[..<span class="ident">position</span>].<span class="ident">encode_utf16</span>().<span class="ident">count</span>(),
-            ));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">end</span>) <span class="op">=</span> <span class="ident">len</span>.<span class="ident">checked_sub</span>(<span class="ident">search_len</span>) {
+            <span class="comment">// 11. For each non-negative integer i starting with start such that i ≤ len - searchLen, in descending order, do</span>
+            <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="op">=</span><span class="ident">min</span>(<span class="ident">start</span>, <span class="ident">end</span>)).<span class="ident">rev</span>() {
+                <span class="comment">// a. Let candidate be the substring of S from i to i + searchLen.</span>
+                <span class="kw">let</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">i</span>..<span class="ident">i</span> <span class="op">+</span> <span class="ident">search_len</span>];
+
+                <span class="comment">// b. If candidate is the same sequence of code units as searchStr, return 𝔽(i).</span>
+                <span class="kw">if</span> <span class="ident">candidate</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">search_str</span> {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">i</span>.<span class="ident">into</span>());
+                }
+            }
         }
 
         <span class="comment">// 12. Return -1𝔽.</span>
@@ -3884,7 +3617,7 @@
     <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-stringpad</span>
-    <span class="kw">fn</span> <span class="ident">string_pad</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">string_pad</span>(
         <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">max_length</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">fill_string</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
@@ -3898,7 +3631,7 @@
         <span class="kw">let</span> <span class="ident">int_max_length</span> <span class="op">=</span> <span class="ident">max_length</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let stringLength be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">string_length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">string_length</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 4. If intMaxLength ≤ stringLength, return S.</span>
         <span class="kw">if</span> <span class="ident">int_max_length</span> <span class="op">&lt;</span><span class="op">=</span> <span class="ident">string_length</span> {
@@ -3907,7 +3640,7 @@
 
         <span class="comment">// 5. If fillString is undefined, let filler be the String value consisting solely of the code unit 0x0020 (SPACE).</span>
         <span class="kw">let</span> <span class="ident">filler</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">fill_string</span>.<span class="ident">is_undefined</span>() {
-            <span class="string">&quot;\u{0020}&quot;</span>.<span class="ident">into</span>()
+            <span class="macro">js_string!</span>(<span class="string">&quot;\u{0020}&quot;</span>)
         } <span class="kw">else</span> {
             <span class="comment">// 6. Else, let filler be ? ToString(fillString).</span>
             <span class="ident">fill_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
@@ -3920,7 +3653,7 @@
 
         <span class="comment">// 8. Let fillLen be intMaxLength - stringLength.</span>
         <span class="kw">let</span> <span class="ident">fill_len</span> <span class="op">=</span> <span class="ident">int_max_length</span> <span class="op">-</span> <span class="ident">string_length</span>;
-        <span class="kw">let</span> <span class="ident">filler_len</span> <span class="op">=</span> <span class="ident">filler</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">filler_len</span> <span class="op">=</span> <span class="ident">filler</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 9. Let truncatedStringFiller be the String value consisting of repeated</span>
         <span class="comment">// concatenations of filler truncated to length fillLen.</span>
@@ -3934,20 +3667,15 @@
             }
         };
 
-        <span class="kw">let</span> <span class="ident">truncated_string_filler</span> <span class="op">=</span> <span class="ident">filler</span>
-            .<span class="ident">repeat</span>(<span class="ident">repetitions</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">encode_utf16</span>()
-            .<span class="ident">take</span>(<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>)
-            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">truncated_string_filler</span> <span class="op">=</span>
-            <span class="ident">std::string::String::from_utf16_lossy</span>(<span class="ident">truncated_string_filler</span>.<span class="ident">as_slice</span>());
+        <span class="kw">let</span> <span class="ident">truncated_string_filler</span> <span class="op">=</span> <span class="ident">filler</span>.<span class="ident">repeat</span>(<span class="ident">repetitions</span> <span class="kw">as</span> <span class="ident">usize</span>);
+        <span class="kw">let</span> <span class="ident">truncated_string_filler</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">truncated_string_filler</span>[..<span class="ident">fill_len</span> <span class="kw">as</span> <span class="ident">usize</span>];
 
         <span class="comment">// 10. If placement is start, return the string-concatenation of truncatedStringFiller and S.</span>
         <span class="kw">if</span> <span class="ident">placement</span> <span class="op">==</span> <span class="ident">Placement::Start</span> {
-            <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{truncated_string_filler}{string}&quot;</span>).<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">truncated_string_filler</span>, <span class="kw-2">&amp;</span><span class="ident">string</span>).<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="comment">// 11. Else, return the string-concatenation of S and truncatedStringFiller.</span>
-            <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{string}{truncated_string_filler}&quot;</span>).<span class="ident">into</span>())
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>, <span class="ident">truncated_string_filler</span>).<span class="ident">into</span>())
         }
     }
 
@@ -4001,7 +3729,7 @@
         <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
-        <span class="comment">// 2. Return ? StringPad(O, maxLength, fillString, start).</span>
+        <span class="comment">// 2. Return ? StringPad(O, maxLength, fillString, end).</span>
         <span class="ident"><span class="self">Self</span>::string_pad</span>(<span class="ident">this</span>, <span class="ident">max_length</span>, <span class="ident">fill_string</span>, <span class="ident">Placement::Start</span>, <span class="ident">context</span>)
     }
 
@@ -4018,9 +3746,11 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.trim</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/trim</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="comment">// 1. Let S be the this value.</span>
+        <span class="comment">// 2. Return ? TrimString(S, start+end).</span>
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">trim_matches</span>(<span class="ident">is_trimmable_whitespace</span>)))
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.trimStart()`</span>
@@ -4040,11 +3770,11 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
-            <span class="ident">string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
-        ))
+        <span class="comment">// 1. Let S be the this value.</span>
+        <span class="comment">// 2. Return ? TrimString(S, start).</span>
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim_start</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// String.prototype.trimEnd()</span>
@@ -4064,11 +3794,11 @@
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(
-            <span class="ident">string</span>.<span class="ident">trim_end_matches</span>(<span class="ident">is_trimmable_whitespace</span>),
-        ))
+        <span class="comment">// 1. Let S be the this value.</span>
+        <span class="comment">// 2. Return ? TrimString(S, end).</span>
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim_end</span>()).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.toLowerCase()`</span>
@@ -4093,12 +3823,38 @@
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_points</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">code_points</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lower_text</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">string</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+
         <span class="comment">// 3. Let sText be ! StringToCodePoints(S).</span>
         <span class="comment">// 4. Let lowerText be the result of toLowercase(sText), according to</span>
         <span class="comment">// the Unicode Default Case Conversion algorithm.</span>
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">only_chars</span> <span class="op">=</span> <span class="ident">code_points</span>
+                .<span class="ident">by_ref</span>()
+                .<span class="ident">map_while</span>(<span class="op">|</span><span class="ident">cpoint</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">cpoint</span> {
+                    <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">c</span>),
+                    <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">s</span>) =&gt; {
+                        <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+                        <span class="prelude-val">None</span>
+                    }
+                })
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">std::string::String</span><span class="op">&gt;</span>()
+                .<span class="ident">to_lowercase</span>();
+
+            <span class="ident">lower_text</span>.<span class="ident">extend</span>(<span class="ident">only_chars</span>.<span class="ident">encode_utf16</span>());
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">surr</span>) <span class="op">=</span> <span class="ident">next_unpaired_surrogate</span>.<span class="ident">take</span>() {
+                <span class="ident">lower_text</span>.<span class="ident">push</span>(<span class="ident">surr</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">break</span>;
+            }
+        }
+
         <span class="comment">// 5. Let L be ! CodePointsToString(lowerText).</span>
         <span class="comment">// 6. Return L.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">to_lowercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">lower_text</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.toUpperCase()`</span>
@@ -4130,12 +3886,38 @@
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_points</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">code_points</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">upper_text</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">string</span>.<span class="ident">len</span>());
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+
         <span class="comment">// 3. Let sText be ! StringToCodePoints(S).</span>
         <span class="comment">// 4. Let upperText be the result of toUppercase(sText), according to</span>
         <span class="comment">// the Unicode Default Case Conversion algorithm.</span>
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">only_chars</span> <span class="op">=</span> <span class="ident">code_points</span>
+                .<span class="ident">by_ref</span>()
+                .<span class="ident">map_while</span>(<span class="op">|</span><span class="ident">cpoint</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">cpoint</span> {
+                    <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">c</span>),
+                    <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">s</span>) =&gt; {
+                        <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+                        <span class="prelude-val">None</span>
+                    }
+                })
+                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">std::string::String</span><span class="op">&gt;</span>()
+                .<span class="ident">to_uppercase</span>();
+
+            <span class="ident">upper_text</span>.<span class="ident">extend</span>(<span class="ident">only_chars</span>.<span class="ident">encode_utf16</span>());
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">surr</span>) <span class="op">=</span> <span class="ident">next_unpaired_surrogate</span>.<span class="ident">take</span>() {
+                <span class="ident">upper_text</span>.<span class="ident">push</span>(<span class="ident">surr</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">break</span>;
+            }
+        }
+
         <span class="comment">// 5. Let L be ! CodePointsToString(upperText).</span>
         <span class="comment">// 6. Return L.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">string</span>.<span class="ident">to_uppercase</span>()))
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">upper_text</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.substring( indexStart[, indexEnd] )`</span>
@@ -4160,7 +3942,7 @@
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let len be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let intStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="ident">int_start</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -4184,13 +3966,7 @@
         <span class="kw">let</span> <span class="ident">to</span> <span class="op">=</span> <span class="ident">max</span>(<span class="ident">final_start</span>, <span class="ident">final_end</span>);
 
         <span class="comment">// 10. Return the substring of S from from to to.</span>
-        <span class="comment">// Extract the part of the string contained between the from index and the to index</span>
-        <span class="comment">// where from is guaranteed to be smaller or equal to to</span>
-        <span class="comment">// TODO: Full UTF-16 support</span>
-        <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">from</span>).<span class="ident">take</span>(<span class="ident">to</span> <span class="op">-</span> <span class="ident">from</span>).<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
-
-        <span class="prelude-val">Ok</span>(<span class="ident">substring</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">from</span>..<span class="ident">to</span>]).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.substr( start[, length] )`</span>
@@ -4216,7 +3992,7 @@
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">i64</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. Let intStart be ? ToIntegerOrInfinity(start).</span>
         <span class="kw">let</span> <span class="ident">int_start</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -4233,7 +4009,7 @@
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; <span class="ident">max</span>(<span class="ident">size</span> <span class="op">+</span> <span class="ident">i</span>, <span class="number">0</span>),
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>,
             <span class="comment">// 8. If intStart is +∞, ... return the empty String</span>
-            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()),
+            <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>()),
             <span class="comment">// 5. If intStart is -∞, set intStart to 0.</span>
             <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
         } <span class="kw">as</span> <span class="ident">usize</span>;
@@ -4241,22 +4017,19 @@
         <span class="comment">// 8. If ... intLength ≤ 0, or intLength is +∞, return the empty String.</span>
         <span class="kw">let</span> <span class="ident">int_length</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">int_length</span> {
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span> <span class="number">0</span> =&gt; <span class="ident">i</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="string">&quot;&quot;</span>.<span class="ident">into</span>()),
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>()),
         } <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 9. Let intEnd be min(intStart + intLength, size).</span>
         <span class="kw">let</span> <span class="ident">int_end</span> <span class="op">=</span> <span class="ident">min</span>(<span class="ident">int_start</span> <span class="op">+</span> <span class="ident">int_length</span>, <span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
-        <span class="comment">// 11. Return the substring of S from intStart to intEnd.</span>
-        <span class="comment">// 10. If intStart ≥ intEnd, return the empty String.</span>
-        <span class="kw">let</span> <span class="ident">substring_utf16</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">string</span>
-            .<span class="ident">encode_utf16</span>()
-            .<span class="ident">skip</span>(<span class="ident">int_start</span>)
-            .<span class="ident">take</span>(<span class="ident">int_end</span> <span class="op">-</span> <span class="ident">int_start</span>)
-            .<span class="ident">collect</span>();
-        <span class="kw">let</span> <span class="ident">substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">substring_utf16</span>);
-
-        <span class="prelude-val">Ok</span>(<span class="ident">substring</span>.<span class="ident">into</span>())
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">substr</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">get</span>(<span class="ident">int_start</span>..<span class="ident">int_end</span>) {
+            <span class="comment">// 11. Return the substring of S from intStart to intEnd.</span>
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">substr</span>).<span class="ident">into</span>())
+        } <span class="kw">else</span> {
+            <span class="comment">// 10. If intStart ≥ intEnd, return the empty String.</span>
+            <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>())
+        }
     }
 
     <span class="doccomment">/// `String.prototype.split ( separator, limit )`</span>
@@ -4295,120 +4068,88 @@
         <span class="comment">// 3. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">this_str</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 4. Let A be ! ArrayCreate(0).</span>
-        <span class="kw">let</span> <span class="ident">a</span> <span class="op">=</span> <span class="ident">Array::array_create</span>(<span class="number">0</span>, <span class="prelude-val">None</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// 5. Let lengthA be 0.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">length_a</span> <span class="op">=</span> <span class="number">0</span>;
-
-        <span class="comment">// 6.  If limit is undefined, let lim be 2^32 - 1; else let lim be ℝ(? ToUint32(limit)).</span>
+        <span class="comment">// 4.  If limit is undefined, let lim be 2^32 - 1; else let lim be ℝ(? ToUint32(limit)).</span>
         <span class="kw">let</span> <span class="ident">lim</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">limit</span>.<span class="ident">is_undefined</span>() {
             <span class="ident">u32::MAX</span>
         } <span class="kw">else</span> {
             <span class="ident">limit</span>.<span class="ident">to_u32</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
-        };
+        } <span class="kw">as</span> <span class="ident">usize</span>;
 
-        <span class="comment">// 7. Let R be ? ToString(separator).</span>
+        <span class="comment">// 5. Let R be ? ToString(separator).</span>
         <span class="kw">let</span> <span class="ident">separator_str</span> <span class="op">=</span> <span class="ident">separator</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// 8. If lim = 0, return A.</span>
+        <span class="comment">// 6. If lim = 0, return A.</span>
         <span class="kw">if</span> <span class="ident">lim</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
+            <span class="comment">// a. Return ! CreateArrayFromList(« »).</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>([], <span class="ident">context</span>).<span class="ident">into</span>());
         }
 
-        <span class="comment">// 9. If separator is undefined, then</span>
+        <span class="comment">// 7. If separator is undefined, then</span>
         <span class="kw">if</span> <span class="ident">separator</span>.<span class="ident">is_undefined</span>() {
-            <span class="comment">// a. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, S).</span>
-            <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">this_str</span>, <span class="ident">context</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-
-            <span class="comment">// b. Return A.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
+            <span class="comment">// a. Return ! CreateArrayFromList(« S »).</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>([<span class="ident">this_str</span>.<span class="ident">into</span>()], <span class="ident">context</span>).<span class="ident">into</span>());
         }
 
-        <span class="comment">// 10. Let s be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">this_str_length</span> <span class="op">=</span> <span class="ident">this_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="comment">// 8. Let separatorLength be the length of R.</span>
+        <span class="kw">let</span> <span class="ident">separator_length</span> <span class="op">=</span> <span class="ident">separator_str</span>.<span class="ident">len</span>();
 
-        <span class="comment">// 11. If s = 0, then</span>
-        <span class="kw">if</span> <span class="ident">this_str_length</span> <span class="op">==</span> <span class="number">0</span> {
-            <span class="comment">// a. If R is not the empty String, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">separator_str</span>.<span class="ident">is_empty</span>() {
-                <span class="comment">// i. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, S).</span>
-                <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">this_str</span>, <span class="ident">context</span>)
-                    .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
+        <span class="comment">// 9. If separatorLength is 0, then</span>
+        <span class="kw">if</span> <span class="ident">separator_length</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="comment">// a. Let head be the substring of S from 0 to lim.</span>
+            <span class="comment">// b. Let codeUnits be a List consisting of the sequence of code units that are the elements of head.</span>
+            <span class="kw">let</span> <span class="ident">head</span> <span class="op">=</span> <span class="ident">this_str</span>
+                .<span class="ident">get</span>(..<span class="ident">lim</span>)
+                .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">this_str</span>[..])
+                .<span class="ident">iter</span>()
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">code</span><span class="op">|</span> <span class="macro">js_string!</span>(<span class="ident">std::slice::from_ref</span>(<span class="ident">code</span>)).<span class="ident">into</span>());
+            <span class="comment">// c. Return ! CreateArrayFromList(codeUnits).</span>
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>(<span class="ident">head</span>, <span class="ident">context</span>).<span class="ident">into</span>());
+        }
+
+        <span class="comment">// 10. If S is the empty String, return ! CreateArrayFromList(« S »).</span>
+        <span class="kw">if</span> <span class="ident">this_str</span>.<span class="ident">is_empty</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>([<span class="ident">this_str</span>.<span class="ident">into</span>()], <span class="ident">context</span>).<span class="ident">into</span>());
+        }
+
+        <span class="comment">// 11. Let substrings be a new empty List.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">substrings</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+
+        <span class="comment">// 12. Let i be 0.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">i</span> <span class="op">=</span> <span class="number">0</span>;
+
+        <span class="comment">// 13. Let j be ! StringIndexOf(S, R, 0).</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">j</span> <span class="op">=</span> <span class="ident">this_str</span>.<span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="ident">separator_str</span>, <span class="number">0</span>);
+
+        <span class="comment">// 14. Repeat, while j is not -1</span>
+        <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">j</span> {
+            <span class="comment">// a. Let T be the substring of S from i to j.</span>
+            <span class="comment">// b. Append T as the last element of substrings.</span>
+            <span class="ident">substrings</span>.<span class="ident">push</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">this_str</span>[<span class="ident">i</span>..<span class="ident">index</span>]));
+
+            <span class="comment">// c. If the number of elements of substrings is lim, return ! CreateArrayFromList(substrings).</span>
+            <span class="kw">if</span> <span class="ident">substrings</span>.<span class="ident">len</span>() <span class="op">==</span> <span class="ident">lim</span> {
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Array::create_array_from_list</span>(
+                    <span class="ident">substrings</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">JsValue::from</span>),
+                    <span class="ident">context</span>,
+                )
+                .<span class="ident">into</span>());
             }
+            <span class="comment">// d. Set i to j + separatorLength.</span>
+            <span class="ident">i</span> <span class="op">=</span> <span class="ident">index</span> <span class="op">+</span> <span class="ident">separator_length</span>;
 
-            <span class="comment">// b. Return A.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
+            <span class="comment">// e. Set j to ! StringIndexOf(S, R, i).</span>
+            <span class="ident">j</span> <span class="op">=</span> <span class="ident">this_str</span>.<span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="ident">separator_str</span>, <span class="ident">i</span>);
         }
 
-        <span class="comment">// 12. Let p be 0.</span>
-        <span class="comment">// 13. Let q be p.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">p</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">q</span> <span class="op">=</span> <span class="ident">p</span>;
+        <span class="comment">// 15. Let T be the substring of S from i.</span>
+        <span class="comment">// 16. Append T to substrings.</span>
+        <span class="ident">substrings</span>.<span class="ident">push</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">this_str</span>[<span class="ident">i</span>..]));
 
-        <span class="comment">// 14. Repeat, while q ≠ s,</span>
-        <span class="kw">while</span> <span class="ident">q</span> <span class="op">!</span><span class="op">=</span> <span class="ident">this_str_length</span> {
-            <span class="comment">// a. Let e be SplitMatch(S, q, R).</span>
-            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">split_match</span>(<span class="kw-2">&amp;</span><span class="ident">this_str</span>, <span class="ident">q</span>, <span class="kw-2">&amp;</span><span class="ident">separator_str</span>);
-
-            <span class="kw">match</span> <span class="ident">e</span> {
-                <span class="comment">// b. If e is not-matched, set q to q + 1.</span>
-                <span class="prelude-val">None</span> =&gt; <span class="ident">q</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>,
-                <span class="comment">// c. Else,</span>
-                <span class="prelude-val">Some</span>(<span class="ident">e</span>) =&gt; {
-                    <span class="comment">// i. Assert: e is a non-negative integer ≤ s.</span>
-                    <span class="comment">// ii. If e = p, set q to q + 1.</span>
-                    <span class="comment">// iii. Else,</span>
-                    <span class="kw">if</span> <span class="ident">e</span> <span class="op">==</span> <span class="ident">p</span> {
-                        <span class="ident">q</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-                    } <span class="kw">else</span> {
-                        <span class="comment">// 1. Let T be the substring of S from p to q.</span>
-                        <span class="kw">let</span> <span class="ident">this_str_substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">this_str</span>
-                                .<span class="ident">encode_utf16</span>()
-                                .<span class="ident">skip</span>(<span class="ident">p</span>)
-                                .<span class="ident">take</span>(<span class="ident">q</span> <span class="op">-</span> <span class="ident">p</span>)
-                                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-                        );
-
-                        <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
-                        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">this_str_substring</span>, <span class="ident">context</span>)
-                            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-
-                        <span class="comment">// 3. Set lengthA to lengthA + 1.</span>
-                        <span class="ident">length_a</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
-
-                        <span class="comment">// 4. If lengthA = lim, return A.</span>
-                        <span class="kw">if</span> <span class="ident">length_a</span> <span class="op">==</span> <span class="ident">lim</span> {
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>());
-                        }
-
-                        <span class="comment">// 5. Set p to e.</span>
-                        <span class="ident">p</span> <span class="op">=</span> <span class="ident">e</span>;
-
-                        <span class="comment">// 6. Set q to p.</span>
-                        <span class="ident">q</span> <span class="op">=</span> <span class="ident">p</span>;
-                    }
-                }
-            }
-        }
-
-        <span class="comment">// 15. Let T be the substring of S from p to s.</span>
-        <span class="kw">let</span> <span class="ident">this_str_substring</span> <span class="op">=</span> <span class="ident">StdString::from_utf16_lossy</span>(
-            <span class="kw-2">&amp;</span><span class="ident">this_str</span>
-                .<span class="ident">encode_utf16</span>()
-                .<span class="ident">skip</span>(<span class="ident">p</span>)
-                .<span class="ident">take</span>(<span class="ident">this_str_length</span> <span class="op">-</span> <span class="ident">p</span>)
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-        );
-
-        <span class="comment">// 16. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
-        <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">this_str_substring</span>, <span class="ident">context</span>)
-            .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
-
-        <span class="comment">// 17. Return A.</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">a</span>.<span class="ident">into</span>())
+        <span class="comment">// 17. Return ! CreateArrayFromList(substrings).</span>
+        <span class="prelude-val">Ok</span>(
+            <span class="ident">Array::create_array_from_list</span>(<span class="ident">substrings</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="ident">JsValue::from</span>), <span class="ident">context</span>)
+                .<span class="ident">into</span>(),
+        )
     }
 
     <span class="doccomment">/// String.prototype.valueOf()</span>
@@ -4423,7 +4164,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/valueOf</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
+        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ? thisStringValue(this value).</span>
@@ -4455,18 +4196,20 @@
         <span class="kw">if</span> <span class="op">!</span><span class="ident">regexp</span>.<span class="ident">is_null_or_undefined</span>() {
             <span class="comment">// a. Let isRegExp be ? IsRegExp(regexp).</span>
             <span class="comment">// b. If isRegExp is true, then</span>
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp_obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_regexp</span>()) {
-                <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).</span>
-                <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">regexp_obj</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">regexp_obj</span>) <span class="op">=</span> <span class="ident">regexp</span>.<span class="ident">as_object</span>() {
+                <span class="kw">if</span> <span class="ident">is_reg_exp_object</span>(<span class="ident">regexp_obj</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
+                    <span class="comment">// i. Let flags be ? Get(regexp, &quot;flags&quot;).</span>
+                    <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">regexp_obj</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).</span>
-                <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).</span>
+                    <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-                <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.</span>
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>) {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;String.prototype.matchAll called with a non-global RegExp argument&quot;</span>,
-                    );
+                    <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.</span>
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>)) {
+                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                            <span class="string">&quot;String.prototype.matchAll called with a non-global RegExp argument&quot;</span>,
+                        );
+                    }
                 }
             }
             <span class="comment">// c. Let matcher be ? GetMethod(regexp, @@matchAll).</span>
@@ -4481,7 +4224,7 @@
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let rx be ? RegExpCreate(regexp, &quot;g&quot;).</span>
-        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue::new</span>(<span class="string">&quot;g&quot;</span>), <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">rx</span> <span class="op">=</span> <span class="ident">RegExp::create</span>(<span class="ident">regexp</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue::new</span>(<span class="macro">js_string!</span>(<span class="string">&quot;g&quot;</span>)), <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 5. Return ? Invoke(rx, @@matchAll, « S »).</span>
         <span class="ident">rx</span>.<span class="ident">invoke</span>(<span class="ident">WellKnownSymbols::match_all</span>(), <span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">s</span>)], <span class="ident">context</span>)
@@ -4502,38 +4245,91 @@
         <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">use</span> <span class="ident">unicode_normalization::UnicodeNormalization</span>;
+        <span class="doccomment">/// Represents the type of normalization applied to a [`JsString`]</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">Normalization</span> {
+            <span class="ident">Nfc</span>,
+            <span class="ident">Nfd</span>,
+            <span class="ident">Nfkc</span>,
+            <span class="ident">Nfkd</span>,
+        }
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">form</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
-
-        <span class="kw">let</span> <span class="ident">f_str</span>;
-
-        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">form</span>.<span class="ident">is_undefined</span>() {
+        <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>) {
             <span class="comment">// 3. If form is undefined, let f be &quot;NFC&quot;.</span>
-            <span class="string">&quot;NFC&quot;</span>
-        } <span class="kw">else</span> {
+            <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span> =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;NFC&quot;</span>),
             <span class="comment">// 4. Else, let f be ? ToString(form).</span>
-            <span class="ident">f_str</span> <span class="op">=</span> <span class="ident">form</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="ident">f_str</span>.<span class="ident">as_str</span>()
+            <span class="ident">form</span> =&gt; <span class="ident">form</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
         };
 
         <span class="comment">// 6. Let ns be the String value that is the result of normalizing S</span>
         <span class="comment">// into the normalization form named by f as specified in</span>
         <span class="comment">// https://unicode.org/reports/tr15/.</span>
-        <span class="comment">// 7. Return ns.</span>
-        <span class="kw">match</span> <span class="ident">f</span> {
-            <span class="string">&quot;NFC&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFD&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFKC&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfkc</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
-            <span class="string">&quot;NFKD&quot;</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">s</span>.<span class="ident">nfkd</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">StdString</span><span class="op">&gt;</span>())),
+        <span class="kw">let</span> <span class="ident">normalization</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">f</span> {
+            <span class="ident">ntype</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">ntype</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;NFC&quot;</span>) =&gt; <span class="ident">Normalization::Nfc</span>,
+            <span class="ident">ntype</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">ntype</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;NFD&quot;</span>) =&gt; <span class="ident">Normalization::Nfd</span>,
+            <span class="ident">ntype</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">ntype</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;NFKC&quot;</span>) =&gt; <span class="ident">Normalization::Nfkc</span>,
+            <span class="ident">ntype</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">ntype</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;NFKD&quot;</span>) =&gt; <span class="ident">Normalization::Nfkd</span>,
             <span class="comment">// 5. If f is not one of &quot;NFC&quot;, &quot;NFD&quot;, &quot;NFKC&quot;, or &quot;NFKD&quot;, throw a RangeError exception.</span>
-            <span class="kw">_</span> =&gt; <span class="ident">context</span>
-                .<span class="ident">throw_range_error</span>(<span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
+                    <span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>,
+                )
+            }
+        };
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code_points</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">code_points</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">s</span>.<span class="ident">len</span>());
+
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
+
+        <span class="kw">loop</span> {
+            <span class="kw">let</span> <span class="ident">only_chars</span> <span class="op">=</span> <span class="ident">code_points</span>.<span class="ident">by_ref</span>().<span class="ident">map_while</span>(<span class="op">|</span><span class="ident">cpoint</span><span class="op">|</span> <span class="kw">match</span> <span class="ident">cpoint</span> {
+                <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">c</span>),
+                <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">s</span>) =&gt; {
+                    <span class="ident">next_unpaired_surrogate</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>);
+                    <span class="prelude-val">None</span>
+                }
+            });
+
+            <span class="kw">match</span> <span class="ident">normalization</span> {
+                <span class="ident">Normalization::Nfc</span> =&gt; {
+                    <span class="kw">for</span> <span class="ident">mapped</span> <span class="kw">in</span> <span class="ident">only_chars</span>.<span class="ident">nfc</span>() {
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">mapped</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+                    }
+                }
+                <span class="ident">Normalization::Nfd</span> =&gt; {
+                    <span class="kw">for</span> <span class="ident">mapped</span> <span class="kw">in</span> <span class="ident">only_chars</span>.<span class="ident">nfd</span>() {
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">mapped</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+                    }
+                }
+                <span class="ident">Normalization::Nfkc</span> =&gt; {
+                    <span class="kw">for</span> <span class="ident">mapped</span> <span class="kw">in</span> <span class="ident">only_chars</span>.<span class="ident">nfkc</span>() {
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">mapped</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+                    }
+                }
+                <span class="ident">Normalization::Nfkd</span> =&gt; {
+                    <span class="kw">for</span> <span class="ident">mapped</span> <span class="kw">in</span> <span class="ident">only_chars</span>.<span class="ident">nfkd</span>() {
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">mapped</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+                    }
+                }
+            }
+
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">surr</span>) <span class="op">=</span> <span class="ident">next_unpaired_surrogate</span>.<span class="ident">take</span>() {
+                <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">surr</span>);
+            } <span class="kw">else</span> {
+                <span class="kw">break</span>;
+            }
         }
+
+        <span class="comment">// 7. Return ns.</span>
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">result</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.search( regexp )`</span>
@@ -4592,23 +4388,24 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-getsubstitution</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_substitution</span>(
-    <span class="ident">matched</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
-    <span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
+    <span class="ident">matched</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>,
+    <span class="ident">str</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>,
     <span class="ident">position</span>: <span class="ident">usize</span>,
     <span class="ident">captures</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
     <span class="ident">named_captures</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
     <span class="ident">replacement</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
     <span class="comment">// 1. Assert: Type(matched) is String.</span>
 
     <span class="comment">// 2. Let matchLength be the number of code units in matched.</span>
-    <span class="kw">let</span> <span class="ident">match_length</span> <span class="op">=</span> <span class="ident">matched</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+    <span class="kw">let</span> <span class="ident">match_length</span> <span class="op">=</span> <span class="ident">matched</span>.<span class="ident">len</span>();
 
     <span class="comment">// 3. Assert: Type(str) is String.</span>
 
     <span class="comment">// 4. Let stringLength be the number of code units in str.</span>
-    <span class="kw">let</span> <span class="ident">str_length</span> <span class="op">=</span> <span class="ident">str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+    <span class="kw">let</span> <span class="ident">str_length</span> <span class="op">=</span> <span class="ident">str</span>.<span class="ident">len</span>();
 
     <span class="comment">// 5. Assert: position ≤ stringLength.</span>
     <span class="comment">// 6. Assert: captures is a possibly empty List of Strings.</span>
@@ -4624,47 +4421,55 @@
     <span class="comment">//     from replacement to result while performing replacements as specified in Table 58.</span>
     <span class="comment">//     These $ replacements are done left-to-right, and, once such a replacement is performed,</span>
     <span class="comment">//     the new replacement text is not subject to further replacements.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">chars</span>().<span class="ident">peekable</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="macro">vec!</span>[];
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">chars</span> <span class="op">=</span> <span class="ident">replacement</span>.<span class="ident">code_points</span>().<span class="ident">peekable</span>();
 
     <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">first</span>) <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-        <span class="kw">if</span> <span class="ident">first</span> <span class="op">==</span> <span class="string">&#39;$&#39;</span> {
+        <span class="kw">if</span> <span class="ident">first</span> <span class="op">==</span> <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;$&#39;</span>) {
             <span class="kw">let</span> <span class="ident">second</span> <span class="op">=</span> <span class="ident">chars</span>.<span class="ident">next</span>();
-            <span class="kw">let</span> <span class="ident">second_is_digit</span> <span class="op">=</span> <span class="ident">second</span>.<span class="ident">as_ref</span>().<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
+            <span class="kw">let</span> <span class="ident">second_is_digit</span> <span class="op">=</span> <span class="ident">second</span>
+                .<span class="ident">and_then</span>(<span class="ident">CodePoint::as_char</span>)
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
             <span class="comment">// we use peek so that it is still in the iterator if not used</span>
-            <span class="kw">let</span> <span class="ident">third</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">second_is_digit</span> { <span class="ident">chars</span>.<span class="ident">peek</span>() } <span class="kw">else</span> { <span class="prelude-val">None</span> };
-            <span class="kw">let</span> <span class="ident">third_is_digit</span> <span class="op">=</span> <span class="ident">third</span>.<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
+            <span class="kw">let</span> <span class="ident">third</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">second_is_digit</span> {
+                <span class="ident">chars</span>.<span class="ident">peek</span>().<span class="ident">copied</span>()
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            };
+            <span class="kw">let</span> <span class="ident">third_is_digit</span> <span class="op">=</span> <span class="ident">third</span>
+                .<span class="ident">and_then</span>(<span class="ident">CodePoint::as_char</span>)
+                .<span class="ident">as_ref</span>()
+                .<span class="ident">map_or</span>(<span class="bool-val">false</span>, <span class="ident">char::is_ascii_digit</span>);
 
             <span class="kw">match</span> (<span class="ident">second</span>, <span class="ident">third</span>) {
                 <span class="comment">// $$</span>
-                (<span class="prelude-val">Some</span>(<span class="string">&#39;$&#39;</span>), <span class="kw">_</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;$&#39;</span>)), <span class="kw">_</span>) =&gt; {
                     <span class="comment">// $</span>
-                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span>);
+                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
                 }
                 <span class="comment">// $&amp;</span>
-                (<span class="prelude-val">Some</span>(<span class="string">&#39;&amp;&#39;</span>), <span class="kw">_</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;&amp;&#39;</span>)), <span class="kw">_</span>) =&gt; {
                     <span class="comment">// matched</span>
-                    <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">matched</span>);
+                    <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">matched</span>);
                 }
                 <span class="comment">// $`</span>
-                (<span class="prelude-val">Some</span>(<span class="string">&#39;`&#39;</span>), <span class="kw">_</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;`&#39;</span>)), <span class="kw">_</span>) =&gt; {
                     <span class="comment">// The replacement is the substring of str from 0 to position.</span>
-                    <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">StdString::from_utf16_lossy</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">str</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="ident">position</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-                    ));
+                    <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>[..<span class="ident">position</span>]);
                 }
                 <span class="comment">// $&#39;</span>
-                (<span class="prelude-val">Some</span>(<span class="string">&#39;\&#39;&#39;</span>), <span class="kw">_</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\&#39;&#39;</span>)), <span class="kw">_</span>) =&gt; {
                     <span class="comment">// If tailPos ≥ stringLength, the replacement is the empty String.</span>
                     <span class="comment">// Otherwise the replacement is the substring of str from tailPos.</span>
                     <span class="kw">if</span> <span class="ident">tail_pos</span> <span class="op">&lt;</span> <span class="ident">str_length</span> {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">StdString::from_utf16_lossy</span>(
-                            <span class="kw-2">&amp;</span><span class="ident">str</span>.<span class="ident">encode_utf16</span>().<span class="ident">skip</span>(<span class="ident">tail_pos</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-                        ));
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>[<span class="ident">tail_pos</span>..]);
                     }
                 }
                 <span class="comment">// $nn</span>
-                (<span class="prelude-val">Some</span>(<span class="ident">second</span>), <span class="prelude-val">Some</span>(<span class="ident">third</span>)) <span class="kw">if</span> <span class="ident">second_is_digit</span> <span class="op">&amp;&amp;</span> <span class="ident">third_is_digit</span> =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="ident">second</span>)), <span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="ident">third</span>)))
+                    <span class="kw">if</span> <span class="ident">second_is_digit</span> <span class="op">&amp;&amp;</span> <span class="ident">third_is_digit</span> =&gt;
+                {
                     <span class="comment">// The nnth element of captures, where nn is a two-digit decimal number in the range 01 to 99.</span>
                     <span class="kw">let</span> <span class="ident">tens</span> <span class="op">=</span> <span class="ident">second</span>
                         .<span class="ident">to_digit</span>(<span class="number">10</span>)
@@ -4679,19 +4484,17 @@
                     <span class="comment">// If nn ≤ m and the nnth element of captures is undefined, use the empty String instead.</span>
                     <span class="comment">// If nn is 00 or nn &gt; m, no replacement is done.</span>
                     <span class="kw">if</span> <span class="ident">nn</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">nn</span> <span class="op">&gt;</span> <span class="ident">m</span> {
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span>);
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">second</span>);
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">third</span>);
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="ident">second</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="ident">third</span> <span class="kw">as</span> <span class="ident">u16</span>]);
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">capture</span>) <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">get</span>(<span class="ident">nn</span> <span class="op">-</span> <span class="number">1</span>) {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">capture</span>.<span class="ident">as_string</span>() {
-                            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
+                            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">s</span>);
                         }
                     }
 
                     <span class="ident">chars</span>.<span class="ident">next</span>();
                 }
                 <span class="comment">// $n</span>
-                (<span class="prelude-val">Some</span>(<span class="ident">second</span>), <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">second_is_digit</span> =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="ident">second</span>)), <span class="kw">_</span>) <span class="kw">if</span> <span class="ident">second_is_digit</span> =&gt; {
                     <span class="comment">// The nth element of captures, where n is a single digit in the range 1 to 9.</span>
                     <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">second</span>
                         .<span class="ident">to_digit</span>(<span class="number">10</span>)
@@ -4701,20 +4504,19 @@
                     <span class="comment">// If n ≤ m and the nth element of captures is undefined, use the empty String instead.</span>
                     <span class="comment">// If n &gt; m, no replacement is done.</span>
                     <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="ident">m</span> {
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span>);
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">second</span>);
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;$&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>, <span class="ident">second</span> <span class="kw">as</span> <span class="ident">u16</span>]);
                     } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">capture</span>) <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">get</span>(<span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>) {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">capture</span>.<span class="ident">as_string</span>() {
-                            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">s</span>);
+                            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">s</span>);
                         }
                     }
                 }
                 <span class="comment">// $&lt;</span>
-                (<span class="prelude-val">Some</span>(<span class="string">&#39;&lt;&#39;</span>), <span class="kw">_</span>) =&gt; {
+                (<span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;&lt;&#39;</span>)), <span class="kw">_</span>) =&gt; {
                     <span class="comment">// 1. If namedCaptures is undefined, the replacement text is the String &quot;$&lt;&quot;.</span>
                     <span class="comment">// 2. Else,</span>
                     <span class="kw">if</span> <span class="ident">named_captures</span>.<span class="ident">is_undefined</span>() {
-                        <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="string">&quot;$&lt;&quot;</span>);
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">&quot;$&lt;&quot;</span>));
                     } <span class="kw">else</span> {
                         <span class="comment">// a. Assert: Type(namedCaptures) is Object.</span>
                         <span class="kw">let</span> <span class="ident">named_captures</span> <span class="op">=</span> <span class="ident">named_captures</span>
@@ -4722,15 +4524,15 @@
                             .<span class="ident">expect</span>(<span class="string">&quot;should be an object according to spec&quot;</span>);
 
                         <span class="comment">// b. Scan until the next &gt; U+003E (GREATER-THAN SIGN).</span>
-                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group_name</span> <span class="op">=</span> <span class="ident">StdString::new</span>();
+                        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">group_name</span> <span class="op">=</span> <span class="macro">vec!</span>[];
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">false</span>;
                         <span class="kw">loop</span> {
                             <span class="kw">match</span> <span class="ident">chars</span>.<span class="ident">next</span>() {
-                                <span class="prelude-val">Some</span>(<span class="string">&#39;&gt;&#39;</span>) =&gt; {
+                                <span class="prelude-val">Some</span>(<span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;&gt;&#39;</span>)) =&gt; {
                                     <span class="ident">found</span> <span class="op">=</span> <span class="bool-val">true</span>;
                                     <span class="kw">break</span>;
                                 }
-                                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">group_name</span>.<span class="ident">push</span>(<span class="ident">c</span>),
+                                <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; <span class="ident">group_name</span>.<span class="ident">extend_from_slice</span>(<span class="ident">c</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)),
                                 <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
                             }
                         }
@@ -4738,72 +4540,38 @@
                         <span class="comment">// c. If none is found, the replacement text is the String &quot;$&lt;&quot;.</span>
                         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::if_not_else</span>)]</span>
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">found</span> {
-                            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="string">&quot;$&lt;&quot;</span>);
-                            <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">group_name</span>);
+                            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">&quot;$&lt;&quot;</span>));
+                            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">group_name</span>);
                         <span class="comment">// d. Else,</span>
                         } <span class="kw">else</span> {
                             <span class="comment">// i. Let groupName be the enclosed substring.</span>
+                            <span class="kw">let</span> <span class="ident">group_name</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="ident">group_name</span>);
                             <span class="comment">// ii. Let capture be ? Get(namedCaptures, groupName).</span>
                             <span class="kw">let</span> <span class="ident">capture</span> <span class="op">=</span> <span class="ident">named_captures</span>.<span class="ident">get</span>(<span class="ident">group_name</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                             <span class="comment">// iii. If capture is undefined, replace the text through &gt; with the empty String.</span>
                             <span class="comment">// iv. Otherwise, replace the text through &gt; with ? ToString(capture).</span>
                             <span class="kw">if</span> <span class="op">!</span><span class="ident">capture</span>.<span class="ident">is_undefined</span>() {
-                                <span class="ident">result</span>.<span class="ident">push_str</span>(<span class="ident">capture</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_str</span>());
+                                <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">capture</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
                             }
                         }
                     }
                 }
                 <span class="comment">// $?, ? is none of the above</span>
                 <span class="kw">_</span> =&gt; {
-                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span>);
+                    <span class="ident">result</span>.<span class="ident">push</span>(<span class="string">&#39;$&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">second</span>) <span class="op">=</span> <span class="ident">second</span> {
-                        <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">second</span>);
+                        <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">second</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
                     }
                 }
             }
         } <span class="kw">else</span> {
-            <span class="ident">result</span>.<span class="ident">push</span>(<span class="ident">first</span>);
+            <span class="ident">result</span>.<span class="ident">extend_from_slice</span>(<span class="ident">first</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
         }
     }
 
     <span class="comment">// 11. Return result.</span>
-    <span class="prelude-val">Ok</span>(<span class="ident">result</span>.<span class="ident">into</span>())
-}
-
-<span class="doccomment">/// `22.1.3.21.1 SplitMatch ( S, q, R )`</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-splitmatch</span>
-<span class="kw">fn</span> <span class="ident">split_match</span>(<span class="ident">s_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">q</span>: <span class="ident">usize</span>, <span class="ident">r_str</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
-    <span class="comment">// 1. Let r be the number of code units in R.</span>
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">r_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
-
-    <span class="comment">// 2. Let s be the number of code units in S.</span>
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
-
-    <span class="comment">// 3. If q + r &gt; s, return not-matched.</span>
-    <span class="kw">if</span> <span class="ident">q</span> <span class="op">+</span> <span class="ident">r</span> <span class="op">&gt;</span> <span class="ident">s</span> {
-        <span class="kw">return</span> <span class="prelude-val">None</span>;
-    }
-
-    <span class="comment">// 4. If there exists an integer i between 0 (inclusive) and r (exclusive)</span>
-    <span class="comment">//    such that the code unit at index q + i within S is different from the code unit at index i within R,</span>
-    <span class="comment">//    return not-matched.</span>
-    <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">r</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s_char</span>) <span class="op">=</span> <span class="ident">s_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">q</span> <span class="op">+</span> <span class="ident">i</span>) {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">r_char</span>) <span class="op">=</span> <span class="ident">r_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">nth</span>(<span class="ident">i</span>) {
-                <span class="kw">if</span> <span class="ident">s_char</span> <span class="op">!</span><span class="op">=</span> <span class="ident">r_char</span> {
-                    <span class="kw">return</span> <span class="prelude-val">None</span>;
-                }
-            }
-        }
-    }
-
-    <span class="comment">// 5. Return q + r.</span>
-    <span class="prelude-val">Some</span>(<span class="ident">q</span> <span class="op">+</span> <span class="ident">r</span>)
+    <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">result</span>))
 }
 
 <span class="doccomment">/// Abstract operation `IsRegExp( argument )`</span>

@@ -549,7 +549,6 @@
 <span id="547">547</span>
 <span id="548">548</span>
 <span id="549">549</span>
-<span id="550">550</span>
 </pre><pre class="rust"><code><span class="doccomment">//! URI Handling Functions</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or</span>
@@ -569,10 +568,10 @@
     <span class="ident">is_uri_unescaped</span>,
 };
 
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">string::code_point_at</span>, <span class="ident">BuiltIn</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::BuiltIn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins::JsArgs</span>, <span class="ident">object::FunctionBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
-    <span class="ident">JsValue</span>,
+    <span class="ident">builtins::JsArgs</span>, <span class="ident">js_string</span>, <span class="ident">object::FunctionBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">string::CodePoint</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="doccomment">/// URI Handling Functions</span>
@@ -780,17 +779,15 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-encode</span>
-<span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">unescaped_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">unescaped_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
 {
-    <span class="kw">let</span> <span class="ident">code_units</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
     <span class="comment">// 1. Let strLen be the length of string.</span>
-    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">code_units</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
 
     <span class="comment">// 2. Let R be the empty String.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="comment">// 3. Let k be 0.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
@@ -798,11 +795,11 @@
     <span class="kw">loop</span> {
         <span class="comment">// a. If k = strLen, return R.</span>
         <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="ident">str_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">r</span>);
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">r</span>));
         }
 
         <span class="comment">// b. Let C be the code unit at index k within string.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">code_units</span>[<span class="ident">k</span>];
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">string</span>[<span class="ident">k</span>];
 
         <span class="comment">// c. If C is in unescapedSet, then</span>
         <span class="kw">if</span> <span class="ident">unescaped_set</span>(<span class="ident">c</span>) {
@@ -810,27 +807,27 @@
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
             <span class="comment">// ii. Set R to the string-concatenation of R and C.</span>
-            <span class="ident">r</span>.<span class="ident">push</span>(<span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">c</span>)).<span class="ident">expect</span>(<span class="string">&quot;char from code point cannot fail here&quot;</span>));
+            <span class="ident">r</span>.<span class="ident">push</span>(<span class="ident">c</span>);
         } <span class="kw">else</span> {
             <span class="comment">// d. Else,</span>
             <span class="comment">// i. Let cp be CodePointAt(string, k).</span>
-            <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">code_point_at</span>(<span class="ident">string</span>, <span class="ident">k</span> <span class="kw">as</span> <span class="ident">u64</span>);
+            <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">code_point_at</span>(<span class="ident">k</span>);
 
             <span class="comment">// ii. If cp.[[IsUnpairedSurrogate]] is true, throw a URIError exception.</span>
-            <span class="kw">if</span> <span class="ident">cp</span>.<span class="ident">is_unpaired_surrogate</span> {
-                <span class="ident">context</span>.<span class="ident">throw_uri_error</span>(<span class="string">&quot;trying to encode an invalid string&quot;</span>)<span class="question-mark">?</span>;
-            }
+            <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CodePoint::Unicode</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cp</span> {
+                <span class="ident">ch</span>
+            } <span class="kw">else</span> {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;trying to encode an invalid string&quot;</span>));
+            };
 
             <span class="comment">// iii. Set k to k + cp.[[CodeUnitCount]].</span>
-            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cp</span>.<span class="ident">code_unit_count</span> <span class="kw">as</span> <span class="ident">usize</span>;
+            <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="ident">cp</span>.<span class="ident">code_unit_count</span>();
 
             <span class="comment">// iv. Let Octets be the List of octets resulting by applying the UTF-8 transformation</span>
             <span class="comment">//     to cp.[[CodePoint]].</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buff</span> <span class="op">=</span> [<span class="number">0_u8</span>; <span class="number">4</span>]; <span class="comment">// Will never be more than 4 bytes</span>
 
-            <span class="kw">let</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">char::from_u32</span>(<span class="ident">cp</span>.<span class="ident">code_point</span>)
-                .<span class="ident">expect</span>(<span class="string">&quot;valid unicode code point to char conversion failed&quot;</span>)
-                .<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buff</span>);
+            <span class="kw">let</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">ch</span>.<span class="ident">encode_utf8</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buff</span>);
 
             <span class="comment">// v. For each element octet of Octets, do</span>
             <span class="kw">for</span> <span class="ident">octet</span> <span class="kw">in</span> <span class="ident">octets</span>.<span class="ident">bytes</span>() {
@@ -839,7 +836,7 @@
                 <span class="comment">//    &quot;%&quot;</span>
                 <span class="comment">//    the String representation of octet, formatted as a two-digit uppercase</span>
                 <span class="comment">//    hexadecimal number, padded to the left with a zero if necessary</span>
-                <span class="ident">r</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;{r}%{octet:0&gt;2X}&quot;</span>);
+                <span class="ident">r</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;%{octet:0&gt;2X}&quot;</span>).<span class="ident">encode_utf16</span>());
             }
         }
     }
@@ -856,16 +853,16 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-decode</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
-<span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">reserved_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">reserved_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
 {
-    <span class="kw">let</span> <span class="ident">code_units</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
-
     <span class="comment">// 1. Let strLen be the length of string.</span>
-    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">code_units</span>.<span class="ident">len</span>();
+    <span class="kw">let</span> <span class="ident">str_len</span> <span class="op">=</span> <span class="ident">string</span>.<span class="ident">len</span>();
     <span class="comment">// 2. Let R be the empty String.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
+
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="number">4</span>);
 
     <span class="comment">// 3. Let k be 0.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="number">0</span>;
@@ -873,11 +870,11 @@
     <span class="kw">loop</span> {
         <span class="comment">// a. If k = strLen, return R.</span>
         <span class="kw">if</span> <span class="ident">k</span> <span class="op">==</span> <span class="ident">str_len</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">String::from_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid UTF-16 characters found&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">r</span>));
         }
 
         <span class="comment">// b. Let C be the code unit at index k within string.</span>
-        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">code_units</span>[<span class="ident">k</span>];
+        <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">string</span>[<span class="ident">k</span>];
 
         <span class="comment">// c. If C is not the code unit 0x0025 (PERCENT SIGN), then</span>
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::if_not_else</span>)]</span>
@@ -897,7 +894,7 @@
             <span class="comment">// iii. If the code units at index (k + 1) and (k + 2) within string do not represent</span>
             <span class="comment">// hexadecimal digits, throw a URIError exception.</span>
             <span class="comment">// iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
-            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">code_units</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">code_units</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>])
+            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>])
                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>))<span class="question-mark">?</span>;
 
             <span class="comment">// v. Set k to k + 2.</span>
@@ -918,7 +915,7 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// 3. Else,</span>
                     <span class="comment">// a. Let S be the substring of string from start to k + 1.</span>
-                    <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">code_units</span>[<span class="ident">start</span>..<span class="op">=</span><span class="ident">k</span>])
+                    <span class="ident">Vec::from</span>(<span class="kw-2">&amp;</span><span class="ident">string</span>[<span class="ident">start</span>..<span class="op">=</span><span class="ident">k</span>])
                 }
             } <span class="kw">else</span> {
                 <span class="comment">// viii. Else,</span>
@@ -933,7 +930,7 @@
                 }
 
                 <span class="comment">// 3. Let Octets be « B ».</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">octets</span> <span class="op">=</span> <span class="ident">Vec::from</span>([<span class="ident">b</span>]);
+                <span class="ident">octets</span>.<span class="ident">push</span>(<span class="ident">b</span>);
 
                 <span class="comment">// 4. Let j be 1.</span>
                 <span class="comment">// 5. Repeat, while j &lt; n,</span>
@@ -942,17 +939,16 @@
                     <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
 
                     <span class="comment">// b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.</span>
-                    <span class="kw">if</span> <span class="ident">code_units</span>[<span class="ident">k</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x0025</span> {
+                    <span class="kw">if</span> <span class="ident">string</span>[<span class="ident">k</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x0025</span> {
                         <span class="ident">context</span>
                             .<span class="ident">throw_uri_error</span>(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)<span class="question-mark">?</span>;
                     }
 
                     <span class="comment">// c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.</span>
                     <span class="comment">// d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
-                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span>
-                        <span class="ident">decode_hex_byte</span>(<span class="ident">code_units</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">code_units</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
-                        })<span class="question-mark">?</span>;
+                    <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+                    })<span class="question-mark">?</span>;
 
                     <span class="comment">// e. Set k to k + 2.</span>
                     <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
@@ -967,7 +963,7 @@
                 <span class="macro">assert_eq!</span>(<span class="ident">octets</span>.<span class="ident">len</span>(), <span class="ident">n</span>);
 
                 <span class="comment">// 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.</span>
-                <span class="kw">match</span> <span class="ident">String::from_utf8</span>(<span class="ident">octets</span>) {
+                <span class="kw">match</span> <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">octets</span>) {
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>))
                     }
@@ -976,7 +972,9 @@
 
                         <span class="comment">// 9. Let S be UTF16EncodeCodePoint(V).</span>
                         <span class="comment">// utf16_encode_codepoint(v)</span>
-                        <span class="ident">v</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+                        <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">v</span>.<span class="ident">encode_utf16</span>().<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                        <span class="ident">octets</span>.<span class="ident">clear</span>();
+                        <span class="ident">s</span>
                     }
                 }
             }

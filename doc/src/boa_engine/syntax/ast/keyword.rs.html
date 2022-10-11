@@ -628,6 +628,10 @@
 <span id="626">626</span>
 <span id="627">627</span>
 <span id="628">628</span>
+<span id="629">629</span>
+<span id="630">630</span>
+<span id="631">631</span>
+<span id="632">632</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -637,7 +641,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words</span>
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::op</span>::{<span class="ident">BinOp</span>, <span class="ident">CompOp</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">string::utf16</span>,
+    <span class="ident">syntax::ast::op</span>::{<span class="ident">BinOp</span>, <span class="ident">CompOp</span>},
+};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">convert::TryInto</span>, <span class="ident">error</span>, <span class="ident">fmt</span>, <span class="ident">str::FromStr</span>};
 
@@ -1121,56 +1128,57 @@
         }
     }
 
-    <span class="doccomment">/// Gets the keyword as a string.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="doccomment">/// Gets the keyword as a tuple of strings.</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; (<span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>, <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>]) {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Await</span> =&gt; <span class="string">&quot;await&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Async</span> =&gt; <span class="string">&quot;async&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Break</span> =&gt; <span class="string">&quot;break&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="string">&quot;case&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Catch</span> =&gt; <span class="string">&quot;catch&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Class</span> =&gt; <span class="string">&quot;class&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Continue</span> =&gt; <span class="string">&quot;continue&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Const</span> =&gt; <span class="string">&quot;const&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Debugger</span> =&gt; <span class="string">&quot;debugger&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="string">&quot;default&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; <span class="string">&quot;delete&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Do</span> =&gt; <span class="string">&quot;do&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Else</span> =&gt; <span class="string">&quot;else&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Enum</span> =&gt; <span class="string">&quot;enum&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Extends</span> =&gt; <span class="string">&quot;extends&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Export</span> =&gt; <span class="string">&quot;export&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::False</span> =&gt; <span class="string">&quot;false&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Finally</span> =&gt; <span class="string">&quot;finally&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::For</span> =&gt; <span class="string">&quot;for&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Function</span> =&gt; <span class="string">&quot;function&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::If</span> =&gt; <span class="string">&quot;if&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::In</span> =&gt; <span class="string">&quot;in&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; <span class="string">&quot;instanceof&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Import</span> =&gt; <span class="string">&quot;import&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Let</span> =&gt; <span class="string">&quot;let&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::New</span> =&gt; <span class="string">&quot;new&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="string">&quot;null&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Of</span> =&gt; <span class="string">&quot;of&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Return</span> =&gt; <span class="string">&quot;return&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Super</span> =&gt; <span class="string">&quot;super&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Switch</span> =&gt; <span class="string">&quot;switch&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::This</span> =&gt; <span class="string">&quot;this&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Throw</span> =&gt; <span class="string">&quot;throw&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::True</span> =&gt; <span class="string">&quot;true&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Try</span> =&gt; <span class="string">&quot;try&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; <span class="string">&quot;typeof&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Var</span> =&gt; <span class="string">&quot;var&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Void</span> =&gt; <span class="string">&quot;void&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::While</span> =&gt; <span class="string">&quot;while&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::With</span> =&gt; <span class="string">&quot;with&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; <span class="string">&quot;yield&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Await</span> =&gt; (<span class="string">&quot;await&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;await&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Async</span> =&gt; (<span class="string">&quot;async&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;async&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Break</span> =&gt; (<span class="string">&quot;break&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;break&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Case</span> =&gt; (<span class="string">&quot;case&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;case&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Catch</span> =&gt; (<span class="string">&quot;catch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;catch&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Class</span> =&gt; (<span class="string">&quot;class&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;class&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Continue</span> =&gt; (<span class="string">&quot;continue&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;continue&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Const</span> =&gt; (<span class="string">&quot;const&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;const&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Debugger</span> =&gt; (<span class="string">&quot;debugger&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;debugger&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Default</span> =&gt; (<span class="string">&quot;default&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;default&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Delete</span> =&gt; (<span class="string">&quot;delete&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;delete&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Do</span> =&gt; (<span class="string">&quot;do&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;do&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Else</span> =&gt; (<span class="string">&quot;else&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;else&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Enum</span> =&gt; (<span class="string">&quot;enum&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;enum&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Extends</span> =&gt; (<span class="string">&quot;extends&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;extends&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Export</span> =&gt; (<span class="string">&quot;export&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;export&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::False</span> =&gt; (<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Finally</span> =&gt; (<span class="string">&quot;finally&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;finally&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::For</span> =&gt; (<span class="string">&quot;for&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;for&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Function</span> =&gt; (<span class="string">&quot;function&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;function&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::If</span> =&gt; (<span class="string">&quot;if&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;if&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::In</span> =&gt; (<span class="string">&quot;in&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;in&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::InstanceOf</span> =&gt; (<span class="string">&quot;instanceof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;instanceof&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Import</span> =&gt; (<span class="string">&quot;import&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;import&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Let</span> =&gt; (<span class="string">&quot;let&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;let&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::New</span> =&gt; (<span class="string">&quot;new&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;new&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; (<span class="string">&quot;null&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Of</span> =&gt; (<span class="string">&quot;of&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;of&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Return</span> =&gt; (<span class="string">&quot;return&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;return&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Super</span> =&gt; (<span class="string">&quot;super&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;super&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Switch</span> =&gt; (<span class="string">&quot;switch&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;switch&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::This</span> =&gt; (<span class="string">&quot;this&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;this&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Throw</span> =&gt; (<span class="string">&quot;throw&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;throw&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::True</span> =&gt; (<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Try</span> =&gt; (<span class="string">&quot;try&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;try&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::TypeOf</span> =&gt; (<span class="string">&quot;typeof&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;typeof&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Var</span> =&gt; (<span class="string">&quot;var&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;var&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Void</span> =&gt; (<span class="string">&quot;void&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;void&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::While</span> =&gt; (<span class="string">&quot;while&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;while&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::With</span> =&gt; (<span class="string">&quot;with&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;with&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Yield</span> =&gt; (<span class="string">&quot;yield&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;yield&quot;</span>)),
         }
     }
 
     <span class="doccomment">/// Converts the keyword to a symbol in the given interner.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_sym</span>(<span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">Sym</span> {
-        <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="self">self</span>.<span class="ident">as_str</span>())
+        <span class="kw">let</span> (<span class="ident">utf8</span>, <span class="ident">utf16</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">as_str</span>();
+        <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">utf8</span>, <span class="ident">utf16</span>)
     }
 }
 
@@ -1253,7 +1261,7 @@
 
 <span class="kw">impl</span> <span class="ident">fmt::Display</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
-        <span class="ident">fmt::Display::fmt</span>(<span class="self">self</span>.<span class="ident">as_str</span>(), <span class="ident">f</span>)
+        <span class="ident">fmt::Display::fmt</span>(<span class="self">self</span>.<span class="ident">as_str</span>().<span class="number">0</span>, <span class="ident">f</span>)
     }
 }
 </code></pre></div>

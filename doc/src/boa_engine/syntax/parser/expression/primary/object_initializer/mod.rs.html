@@ -1013,6 +1013,16 @@
 <span id="1011">1011</span>
 <span id="1012">1012</span>
 <span id="1013">1013</span>
+<span id="1014">1014</span>
+<span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1025,21 +1035,24 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{
-            <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
-            <span class="ident">object</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
-            <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
-            <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>, <span class="ident">Object</span>,
+<span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">string::utf16</span>,
+    <span class="ident">syntax</span>::{
+        <span class="ident">ast</span>::{
+            <span class="ident">node</span>::{
+                <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
+                <span class="ident">object</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
+                <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
+                <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>, <span class="ident">Object</span>,
+            },
+            <span class="ident">Const</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
         },
-        <span class="ident">Const</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
-    <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">expression</span>::{<span class="ident">identifiers::IdentifierReference</span>, <span class="ident">AssignmentExpression</span>},
-        <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
+        <span class="ident">parser</span>::{
+            <span class="ident">expression</span>::{<span class="ident">identifiers::IdentifierReference</span>, <span class="ident">AssignmentExpression</span>},
+            <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>},
+            <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        },
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -1554,12 +1567,19 @@
                 <span class="ident">Numeric::BigInt</span>(<span class="ident">num</span>) =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())).<span class="ident">into</span>(),
             },
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">word</span>, <span class="kw">_</span>)) =&gt; {
-                <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">word</span>.<span class="ident">as_str</span>()))).<span class="ident">into</span>()
+                <span class="kw">let</span> (<span class="ident">utf8</span>, <span class="ident">utf16</span>) <span class="op">=</span> <span class="ident">word</span>.<span class="ident">as_str</span>();
+                <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">utf8</span>, <span class="ident">utf16</span>))).<span class="ident">into</span>()
             }
             <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">Sym::NULL</span>)).<span class="ident">into</span>(),
             <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">bool</span>) =&gt; <span class="kw">match</span> <span class="ident">bool</span> {
-                <span class="bool-val">true</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;true&quot;</span>))).<span class="ident">into</span>(),
-                <span class="bool-val">false</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;false&quot;</span>))).<span class="ident">into</span>(),
+                <span class="bool-val">true</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(
+                    <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>)),
+                ))
+                .<span class="ident">into</span>(),
+                <span class="bool-val">false</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(
+                    <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>)),
+                ))
+                .<span class="ident">into</span>(),
             },
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::AbruptEnd</span>),
         };

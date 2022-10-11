@@ -1693,65 +1693,6 @@
 <span id="1691">1691</span>
 <span id="1692">1692</span>
 <span id="1693">1693</span>
-<span id="1694">1694</span>
-<span id="1695">1695</span>
-<span id="1696">1696</span>
-<span id="1697">1697</span>
-<span id="1698">1698</span>
-<span id="1699">1699</span>
-<span id="1700">1700</span>
-<span id="1701">1701</span>
-<span id="1702">1702</span>
-<span id="1703">1703</span>
-<span id="1704">1704</span>
-<span id="1705">1705</span>
-<span id="1706">1706</span>
-<span id="1707">1707</span>
-<span id="1708">1708</span>
-<span id="1709">1709</span>
-<span id="1710">1710</span>
-<span id="1711">1711</span>
-<span id="1712">1712</span>
-<span id="1713">1713</span>
-<span id="1714">1714</span>
-<span id="1715">1715</span>
-<span id="1716">1716</span>
-<span id="1717">1717</span>
-<span id="1718">1718</span>
-<span id="1719">1719</span>
-<span id="1720">1720</span>
-<span id="1721">1721</span>
-<span id="1722">1722</span>
-<span id="1723">1723</span>
-<span id="1724">1724</span>
-<span id="1725">1725</span>
-<span id="1726">1726</span>
-<span id="1727">1727</span>
-<span id="1728">1728</span>
-<span id="1729">1729</span>
-<span id="1730">1730</span>
-<span id="1731">1731</span>
-<span id="1732">1732</span>
-<span id="1733">1733</span>
-<span id="1734">1734</span>
-<span id="1735">1735</span>
-<span id="1736">1736</span>
-<span id="1737">1737</span>
-<span id="1738">1738</span>
-<span id="1739">1739</span>
-<span id="1740">1740</span>
-<span id="1741">1741</span>
-<span id="1742">1742</span>
-<span id="1743">1743</span>
-<span id="1744">1744</span>
-<span id="1745">1745</span>
-<span id="1746">1746</span>
-<span id="1747">1747</span>
-<span id="1748">1748</span>
-<span id="1749">1749</span>
-<span id="1750">1750</span>
-<span id="1751">1751</span>
-<span id="1752">1752</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `RegExp` object is used for matching text with a pattern.</span>
@@ -1770,14 +1711,16 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array::Array</span>, <span class="ident">string</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptorBuilder</span>},
+    <span class="ident">string</span>::{<span class="ident">utf16</span>, <span class="ident">CodePoint</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax::lexer::regex::RegExpFlags</span>,
-    <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
+    <span class="ident">value::JsValue</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -2020,7 +1963,7 @@
         <span class="comment">// 1. If pattern is undefined, let P be the empty String.</span>
         <span class="comment">// 2. Else, let P be ? ToString(pattern).</span>
         <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>)
+            <span class="macro">js_string!</span>()
         } <span class="kw">else</span> {
             <span class="ident">pattern</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
@@ -2028,14 +1971,15 @@
         <span class="comment">// 3. If flags is undefined, let F be the empty String.</span>
         <span class="comment">// 4. Else, let F be ? ToString(flags).</span>
         <span class="kw">let</span> <span class="ident">f</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>)
+            <span class="macro">js_string!</span>()
         } <span class="kw">else</span> {
             <span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
 
         <span class="comment">// 5. If F contains any code unit other than &quot;g&quot;, &quot;i&quot;, &quot;m&quot;, &quot;s&quot;, &quot;u&quot;, or &quot;y&quot;</span>
         <span class="comment">//    or if it contains the same code unit more than once, throw a SyntaxError exception.</span>
-        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">RegExpFlags::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>) {
+        <span class="comment">// TODO: Should directly parse the JsString instead of converting to String</span>
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">RegExpFlags::from_str</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>.<span class="ident">to_std_string_escaped</span>()) {
             <span class="prelude-val">Err</span>(<span class="ident">msg</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">msg</span>),
             <span class="prelude-val">Ok</span>(<span class="ident">result</span>) =&gt; <span class="ident">result</span>,
         };
@@ -2049,7 +1993,10 @@
         <span class="comment">// 13. Set obj.[[OriginalFlags]] to F.</span>
         <span class="comment">// 14. NOTE: The definitions of DotAll, IgnoreCase, Multiline, and Unicode in 22.2.2.1 refer to this value of obj.[[OriginalFlags]].</span>
         <span class="comment">// 15. Set obj.[[RegExpMatcher]] to CompilePattern of parseResult.</span>
-        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>, <span class="ident">f</span>.<span class="ident">as_ref</span>()) {
+        <span class="comment">// TODO: add support for utf16 regex to remove this conversions.</span>
+        <span class="kw">let</span> <span class="ident">ps</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">to_std_string_escaped</span>();
+        <span class="kw">let</span> <span class="ident">fs</span> <span class="op">=</span> <span class="ident">f</span>.<span class="ident">to_std_string_escaped</span>();
+        <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Regex::with_flags</span>(<span class="kw-2">&amp;</span><span class="ident">ps</span>, <span class="ident">fs</span>.<span class="ident">as_ref</span>()) {
             <span class="prelude-val">Err</span>(<span class="ident">error</span>) =&gt; {
                 <span class="kw">return</span> <span class="ident">context</span>
                     .<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(<span class="string">&quot;failed to create matcher: {}&quot;</span>, <span class="ident">error</span>.<span class="ident">text</span>));
@@ -2398,22 +2345,23 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-escaperegexppattern</span>
-    <span class="kw">fn</span> <span class="ident">escape_pattern</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">_flags</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">JsValue</span> {
+    <span class="kw">fn</span> <span class="ident">escape_pattern</span>(<span class="ident">src</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">_flags</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">JsValue</span> {
         <span class="kw">if</span> <span class="ident">src</span>.<span class="ident">is_empty</span>() {
-            <span class="ident">JsValue::new</span>(<span class="string">&quot;(?:)&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;(?:)&quot;</span>).<span class="ident">into</span>()
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;&quot;</span>);
-
-            <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">src</span>.<span class="ident">chars</span>() {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">src</span>.<span class="ident">len</span>());
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
+            <span class="kw">for</span> <span class="ident">c</span> <span class="kw">in</span> <span class="ident">src</span>.<span class="ident">code_points</span>() {
                 <span class="kw">match</span> <span class="ident">c</span> {
-                    <span class="string">&#39;/&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\/&quot;</span>),
-                    <span class="string">&#39;\n&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\n&quot;</span>),
-                    <span class="string">&#39;\r&#39;</span> =&gt; <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\r&quot;</span>),
-                    <span class="kw">_</span> =&gt; <span class="ident">s</span>.<span class="ident">push</span>(<span class="ident">c</span>),
+                    <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;/&#39;</span>) =&gt; <span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\/&quot;</span>)),
+                    <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\n&#39;</span>) =&gt; <span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\\n&quot;</span>)),
+                    <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\r&#39;</span>) =&gt; <span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\\r&quot;</span>)),
+                    <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; <span class="ident">s</span>.<span class="ident">extend_from_slice</span>(<span class="ident">c</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>)),
+                    <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">surr</span>) =&gt; <span class="ident">s</span>.<span class="ident">push</span>(<span class="ident">surr</span>),
                 }
             }
 
-            <span class="ident">JsValue::new</span>(<span class="ident">s</span>)
+            <span class="ident">JsValue::new</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>[..]))
         }
     }
 
@@ -2560,7 +2508,7 @@
         <span class="comment">// 2. Assert: Type(S) is String.</span>
 
         <span class="comment">// 3. Let length be the number of code units in S.</span>
-        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 4. Let lastIndex be ℝ(? ToLength(? Get(R, &quot;lastIndex&quot;))).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_index</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">get</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_length</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2569,10 +2517,10 @@
         <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">rx</span>.<span class="ident">original_flags</span>;
 
         <span class="comment">// 6. If flags contains &quot;g&quot;, let global be true; else let global be false.</span>
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>);
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 7. If flags contains &quot;y&quot;, let sticky be true; else let sticky be false.</span>
-        <span class="kw">let</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;y&#39;</span>);
+        <span class="kw">let</span> <span class="ident">sticky</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;y&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 8. If global is false and sticky is false, set lastIndex to 0.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">global</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">sticky</span> {
@@ -2583,7 +2531,7 @@
         <span class="kw">let</span> <span class="ident">matcher</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">rx</span>.<span class="ident">matcher</span>;
 
         <span class="comment">// 10. If flags contains &quot;u&quot;, let fullUnicode be true; else let fullUnicode be false.</span>
-        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;u&#39;</span>);
+        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 11. Let matchSucceeded be false.</span>
         <span class="comment">// 12. Repeat, while matchSucceeded is false,</span>
@@ -2602,19 +2550,16 @@
 
             <span class="comment">// b. Let r be matcher(S, lastIndex).</span>
             <span class="comment">// Check if last_index is a valid utf8 index into input.</span>
-            <span class="kw">let</span> <span class="ident">last_byte_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String::from_utf16</span>(
-                <span class="kw-2">&amp;</span><span class="ident">input</span>
-                    .<span class="ident">encode_utf16</span>()
-                    .<span class="ident">take</span>(<span class="ident">last_index</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-            ) {
+            <span class="comment">// TODO: avoid converting to String</span>
+            <span class="kw">let</span> <span class="ident">last_byte_index</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">String::from_utf16</span>(<span class="kw-2">&amp;</span><span class="ident">input</span>[..<span class="ident">last_index</span> <span class="kw">as</span> <span class="ident">usize</span>]) {
                 <span class="prelude-val">Ok</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">len</span>(),
                 <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Failed to get byte index from utf16 encoded string&quot;</span>)
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
             };
-            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">matcher</span>.<span class="ident">find_from</span>(<span class="ident">input</span>, <span class="ident">last_byte_index</span>).<span class="ident">next</span>();
+            <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">matcher</span>
+                .<span class="ident">find_from</span>(<span class="ident">input</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_str</span>(), <span class="ident">last_byte_index</span>)
+                .<span class="ident">next</span>();
 
             <span class="kw">match</span> <span class="ident">r</span> {
                 <span class="comment">// c. If r is failure, then</span>
@@ -2659,20 +2604,27 @@
 
         <span class="comment">// 13. Let e be r&#39;s endIndex value.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">end</span>();
+        <span class="kw">let</span> <span class="ident">lossy_input</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">to_std_string_escaped</span>();
 
         <span class="comment">// 14. If fullUnicode is true, then</span>
-        <span class="kw">if</span> <span class="ident">unicode</span> {
+        <span class="comment">// TODO: disabled for now until we have UTF-16 support</span>
+        <span class="kw">if</span> <span class="bool-val">false</span> {
             <span class="comment">// e is an index into the Input character list, derived from S, matched by matcher.</span>
             <span class="comment">// Let eUTF be the smallest index into S that corresponds to the character at element e of Input.</span>
             <span class="comment">// If e is greater than or equal to the number of elements in Input, then eUTF is the number of code units in S.</span>
             <span class="comment">// b. Set e to eUTF.</span>
-            <span class="ident">e</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">split_at</span>(<span class="ident">e</span>).<span class="number">0</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+            <span class="ident">e</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(..<span class="ident">e</span>).<span class="ident">map_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">len</span>(), <span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span><span class="ident">::len</span>);
         }
 
         <span class="comment">// 15. If global is true or sticky is true, then</span>
         <span class="kw">if</span> <span class="ident">global</span> <span class="op">|</span><span class="op">|</span> <span class="ident">sticky</span> {
             <span class="comment">// a. Perform ? Set(R, &quot;lastIndex&quot;, 𝔽(e), true).</span>
-            <span class="ident">this</span>.<span class="ident">set</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">e</span>, <span class="bool-val">true</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="ident">this</span>.<span class="ident">set</span>(
+                <span class="string">&quot;lastIndex&quot;</span>,
+                <span class="ident">lossy_input</span>[..<span class="ident">e</span>].<span class="ident">encode_utf16</span>().<span class="ident">count</span>(),
+                <span class="bool-val">true</span>,
+                <span class="ident">context</span>,
+            )<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 16. Let n be the number of elements in r&#39;s captures List. (This is the same value as 22.2.2.1&#39;s NcapturingParens.)</span>
@@ -2693,11 +2645,7 @@
             .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
 
         <span class="comment">// 22. Let matchedSubstr be the substring of S from lastIndex to e.</span>
-        <span class="kw">let</span> <span class="ident">matched_substr</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">match_value</span>.<span class="ident">range</span>()) {
-            <span class="ident">s</span>
-        } <span class="kw">else</span> {
-            <span class="string">&quot;&quot;</span>
-        };
+        <span class="kw">let</span> <span class="ident">matched_substr</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">lossy_input</span>[<span class="ident">last_index</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="ident">e</span>]);
 
         <span class="comment">// 23. Perform ! CreateDataPropertyOrThrow(A, &quot;0&quot;, matchedSubstr).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="number">0</span>, <span class="ident">matched_substr</span>, <span class="ident">context</span>)
@@ -2708,7 +2656,7 @@
         <span class="kw">let</span> <span class="ident">named_groups</span> <span class="op">=</span> <span class="ident">match_value</span>.<span class="ident">named_groups</span>();
         <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">named_groups</span>.<span class="ident">clone</span>().<span class="ident">count</span>() <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// a. Let groups be ! OrdinaryObjectCreate(null).</span>
-            <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">JsValue::from</span>(<span class="ident">JsObject::empty</span>());
+            <span class="kw">let</span> <span class="ident">groups</span> <span class="op">=</span> <span class="ident">JsObject::empty</span>();
 
             <span class="comment">// Perform 27.f here</span>
             <span class="comment">// f. If the ith capture of R was defined with a GroupName, then</span>
@@ -2716,19 +2664,15 @@
             <span class="comment">// ii. Perform ! CreateDataPropertyOrThrow(groups, s, capturedValue).</span>
             <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">range</span>) <span class="kw">in</span> <span class="ident">named_groups</span> {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">range</span>) <span class="op">=</span> <span class="ident">range</span> {
-                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">range</span>.<span class="ident">clone</span>()) {
-                        <span class="ident">s</span>
-                    } <span class="kw">else</span> {
-                        <span class="string">&quot;&quot;</span>
-                    };
+                    <span class="comment">// TODO: Full UTF-16 regex support</span>
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">lossy_input</span>[<span class="ident">range</span>.<span class="ident">clone</span>()]);
 
                     <span class="ident">groups</span>
-                        .<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
                         .<span class="ident">create_data_property_or_throw</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>)
                         .<span class="ident">expect</span>(<span class="string">&quot;this CreateDataPropertyOrThrow call must not fail&quot;</span>);
                 }
             }
-            <span class="ident">groups</span>
+            <span class="ident">groups</span>.<span class="ident">into</span>()
         } <span class="kw">else</span> {
             <span class="comment">// a. Let groups be undefined.</span>
             <span class="ident">JsValue::undefined</span>()
@@ -2748,13 +2692,8 @@
                 <span class="prelude-val">None</span> =&gt; <span class="ident">JsValue::undefined</span>(),
                 <span class="comment">// c. Else if fullUnicode is true, then</span>
                 <span class="comment">// d. Else,</span>
-                <span class="prelude-val">Some</span>(<span class="ident">range</span>) =&gt; {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">get</span>(<span class="ident">range</span>) {
-                        <span class="ident">s</span>.<span class="ident">into</span>()
-                    } <span class="kw">else</span> {
-                        <span class="string">&quot;&quot;</span>.<span class="ident">into</span>()
-                    }
-                }
+                <span class="comment">// TODO: Full UTF-16 regex support</span>
+                <span class="prelude-val">Some</span>(<span class="ident">range</span>) =&gt; <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">lossy_input</span>[<span class="ident">range</span>]).<span class="ident">into</span>(),
             };
 
             <span class="comment">// e. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(i)), capturedValue).</span>
@@ -2791,11 +2730,7 @@
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
-        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let global be ! ToBoolean(? Get(rx, &quot;global&quot;)).</span>
         <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">get</span>(<span class="string">&quot;global&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
@@ -2898,7 +2833,7 @@
                 <span class="ident">this</span>.<span class="ident">display</span>()
             ));
         };
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;/{body}/{flags}&quot;</span>).<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="macro">utf16!</span>(<span class="string">&quot;/&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">flags</span>).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@matchAll ]( string )`</span>
@@ -2944,11 +2879,11 @@
 
         <span class="comment">// 9. If flags contains &quot;g&quot;, let global be true.</span>
         <span class="comment">// 10. Else, let global be false.</span>
-        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;g&#39;</span>);
+        <span class="kw">let</span> <span class="ident">global</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 11. If flags contains &quot;u&quot;, let fullUnicode be true.</span>
         <span class="comment">// 12. Else, let fullUnicode be false.</span>
-        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;u&#39;</span>);
+        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 13. Return ! CreateRegExpStringIterator(matcher, S, global, fullUnicode).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">RegExpStringIterator::create_regexp_string_iterator</span>(
@@ -2988,14 +2923,10 @@
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
-        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let lengthS be the number of code unit elements in S.</span>
-        <span class="kw">let</span> <span class="ident">length_arg_str</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+        <span class="kw">let</span> <span class="ident">length_arg_str</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">len</span>();
 
         <span class="comment">// 5. Let functionalReplace be IsCallable(replaceValue).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">clone</span>();
@@ -3064,7 +2995,7 @@
         }
 
         <span class="comment">// 12. Let accumulatedResult be the empty String.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulated_result</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accumulated_result</span> <span class="op">=</span> <span class="macro">vec!</span>[];
 
         <span class="comment">// 13. Let nextSourcePosition be 0.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">next_source_position</span> <span class="op">=</span> <span class="number">0</span>;
@@ -3081,7 +3012,7 @@
             <span class="kw">let</span> <span class="ident">matched</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get</span>(<span class="string">&quot;0&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// d. Let matchLength be the number of code units in matched.</span>
-            <span class="kw">let</span> <span class="ident">match_length</span> <span class="op">=</span> <span class="ident">matched</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>();
+            <span class="kw">let</span> <span class="ident">match_length</span> <span class="op">=</span> <span class="ident">matched</span>.<span class="ident">len</span>();
 
             <span class="comment">// e. Let position be ? ToIntegerOrInfinity(? Get(result, &quot;index&quot;)).</span>
             <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">result</span>
@@ -3090,19 +3021,7 @@
 
             <span class="comment">// f. Set position to the result of clamping position between 0 and lengthS.</span>
             <span class="comment">//position = position.</span>
-            <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">position</span> {
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
-                    <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                        <span class="number">0</span>
-                    } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span> <span class="op">&gt;</span> <span class="ident">length_arg_str</span> {
-                        <span class="ident">length_arg_str</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">i</span> <span class="kw">as</span> <span class="ident">usize</span>
-                    }
-                }
-                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">length_arg_str</span>,
-                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="number">0</span>,
-            };
+            <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">position</span>.<span class="ident">clamp_finite</span>(<span class="number">0</span>, <span class="ident">length_arg_str</span> <span class="kw">as</span> <span class="ident">i64</span>) <span class="kw">as</span> <span class="ident">usize</span>;
 
             <span class="comment">// h. Let captures be a new empty List.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -3111,7 +3030,7 @@
             <span class="comment">// i. Repeat, while n ≤ nCaptures,</span>
             <span class="kw">for</span> <span class="ident">n</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">n_captures</span> {
                 <span class="comment">// i. Let capN be ? Get(result, ! ToString(𝔽(n))).</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cap_n</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get</span>(<span class="ident">n</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">cap_n</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get</span>(<span class="ident">n</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                 <span class="comment">// ii. If capN is not undefined, then</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">cap_n</span>.<span class="ident">is_undefined</span>() {
@@ -3163,8 +3082,8 @@
 
                 <span class="comment">// ii. Let replacement be ? GetSubstitution(matched, S, position, captures, namedCaptures, replaceValue).</span>
                 <span class="ident">replacement</span> <span class="op">=</span> <span class="ident">string::get_substitution</span>(
-                    <span class="ident">matched</span>.<span class="ident">as_str</span>(),
-                    <span class="ident">arg_str</span>.<span class="ident">as_str</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">matched</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">arg_str</span>,
                     <span class="ident">position</span>,
                     <span class="kw-2">&amp;</span><span class="ident">captures</span>,
                     <span class="kw-2">&amp;</span><span class="ident">named_captures</span>,
@@ -3181,13 +3100,8 @@
                 <span class="comment">//    In such cases, the corresponding substitution is ignored.</span>
                 <span class="comment">// ii. Set accumulatedResult to the string-concatenation of accumulatedResult,</span>
                 <span class="comment">//     the substring of S from nextSourcePosition to position, and replacement.</span>
-                <span class="ident">accumulated_result</span> <span class="op">=</span> <span class="macro">format!</span>(
-                    <span class="string">&quot;{accumulated_result}{}{replacement}&quot;</span>,
-                    <span class="ident">arg_str</span>
-                        .<span class="ident">get</span>(<span class="ident">next_source_position</span>..<span class="ident">position</span>)
-                        .<span class="ident">expect</span>(<span class="string">&quot;index of a regexp match cannot be greater than the input string&quot;</span>),
-                )
-                .<span class="ident">into</span>();
+                <span class="ident">accumulated_result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">next_source_position</span>..<span class="ident">position</span>]);
+                <span class="ident">accumulated_result</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">replacement</span>);
 
                 <span class="comment">// iii. Set nextSourcePosition to position + matchLength.</span>
                 <span class="ident">next_source_position</span> <span class="op">=</span> <span class="ident">position</span> <span class="op">+</span> <span class="ident">match_length</span>;
@@ -3196,18 +3110,11 @@
 
         <span class="comment">// 15. If nextSourcePosition ≥ lengthS, return accumulatedResult.</span>
         <span class="kw">if</span> <span class="ident">next_source_position</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">length_arg_str</span> {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">accumulated_result</span>.<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">accumulated_result</span>).<span class="ident">into</span>());
         }
 
         <span class="comment">// 16. Return the string-concatenation of accumulatedResult and the substring of S from nextSourcePosition.</span>
-        <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(
-            <span class="string">&quot;{}{}&quot;</span>,
-            <span class="ident">accumulated_result</span>,
-            <span class="ident">arg_str</span>
-                .<span class="ident">get</span>(<span class="ident">next_source_position</span>..)
-                .<span class="ident">expect</span>(<span class="string">&quot;next_source_position cannot be greater than the input string&quot;</span>)
-        )
-        .<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">accumulated_result</span>[..], <span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">next_source_position</span>..]).<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `RegExp.prototype[ @@search ]( string )`</span>
@@ -3236,11 +3143,7 @@
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
-        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let previousLastIndex be ? Get(rx, &quot;lastIndex&quot;).</span>
         <span class="kw">let</span> <span class="ident">previous_last_index</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">get</span>(<span class="string">&quot;lastIndex&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3297,11 +3200,7 @@
         };
 
         <span class="comment">// 3. Let S be ? ToString(string).</span>
-        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>
-            .<span class="ident">get</span>(<span class="number">0</span>)
-            .<span class="ident">cloned</span>()
-            .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">arg_str</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let C be ? SpeciesConstructor(rx, %RegExp%).</span>
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="ident">rx</span>.<span class="ident">species_constructor</span>(<span class="ident">StandardConstructors::regexp</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3311,14 +3210,14 @@
 
         <span class="comment">// 6. If flags contains &quot;u&quot;, let unicodeMatching be true.</span>
         <span class="comment">// 7. Else, let unicodeMatching be false.</span>
-        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;u&#39;</span>);
+        <span class="kw">let</span> <span class="ident">unicode</span> <span class="op">=</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;u&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>));
 
         <span class="comment">// 8. If flags contains &quot;y&quot;, let newFlags be flags.</span>
         <span class="comment">// 9. Else, let newFlags be the string-concatenation of flags and &quot;y&quot;.</span>
-        <span class="kw">let</span> <span class="ident">new_flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="string">&#39;y&#39;</span>) {
-            <span class="ident">flags</span>.<span class="ident">to_string</span>()
+        <span class="kw">let</span> <span class="ident">new_flags</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;y&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>)) {
+            <span class="ident">flags</span>
         } <span class="kw">else</span> {
-            <span class="macro">format!</span>(<span class="string">&quot;{flags}y&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">flags</span>, <span class="macro">utf16!</span>(<span class="string">&quot;y&quot;</span>))
         };
 
         <span class="comment">// 10. Let splitter be ? Construct(C, « rx, newFlags »).</span>
@@ -3348,7 +3247,7 @@
         }
 
         <span class="comment">// 15. Let size be the length of S.</span>
-        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">arg_str</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
         <span class="comment">// 16. If size is 0, then</span>
         <span class="kw">if</span> <span class="ident">size</span> <span class="op">==</span> <span class="number">0</span> {
@@ -3396,13 +3295,7 @@
                     <span class="ident">q</span> <span class="op">=</span> <span class="ident">advance_string_index</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>, <span class="ident">q</span>, <span class="ident">unicode</span>);
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. Let T be the substring of S from p to q.</span>
-                    <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(
-                        <span class="kw-2">&amp;</span><span class="ident">arg_str</span>
-                            .<span class="ident">encode_utf16</span>()
-                            .<span class="ident">skip</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                            .<span class="ident">take</span>((<span class="ident">q</span> <span class="op">-</span> <span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span>)
-                            .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-                    );
+                    <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="ident">q</span> <span class="kw">as</span> <span class="ident">usize</span>]);
 
                     <span class="comment">// 2. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
                     <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
@@ -3423,17 +3316,13 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">isize</span>;
 
                     <span class="comment">// 7. Set numberOfCaptures to max(numberOfCaptures - 1, 0).</span>
-                    <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">number_of_captures</span> <span class="op">==</span> <span class="number">0</span> {
-                        <span class="number">0</span>
-                    } <span class="kw">else</span> {
-                        <span class="ident">std::cmp::max</span>(<span class="ident">number_of_captures</span> <span class="op">-</span> <span class="number">1</span>, <span class="number">0</span>)
-                    };
+                    <span class="ident">number_of_captures</span> <span class="op">=</span> <span class="ident">std::cmp::max</span>(<span class="ident">number_of_captures</span> <span class="op">-</span> <span class="number">1</span>, <span class="number">0</span>);
 
                     <span class="comment">// 8. Let i be 1.</span>
                     <span class="comment">// 9. Repeat, while i ≤ numberOfCaptures,</span>
                     <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">1</span>..<span class="op">=</span><span class="ident">number_of_captures</span> {
                         <span class="comment">// a. Let nextCapture be ? Get(z, ! ToString(𝔽(i))).</span>
-                        <span class="kw">let</span> <span class="ident">next_capture</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get</span>(<span class="ident">i</span>.<span class="ident">to_string</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">next_capture</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">get</span>(<span class="ident">i</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                         <span class="comment">// b. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), nextCapture).</span>
                         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">next_capture</span>, <span class="ident">context</span>)
@@ -3457,13 +3346,7 @@
         }
 
         <span class="comment">// 20. Let T be the substring of S from p to size.</span>
-        <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(
-            <span class="kw-2">&amp;</span><span class="ident">arg_str</span>
-                .<span class="ident">encode_utf16</span>()
-                .<span class="ident">skip</span>(<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">take</span>((<span class="ident">size</span> <span class="op">-</span> <span class="ident">p</span>) <span class="kw">as</span> <span class="ident">usize</span>)
-                .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
-        );
+        <span class="kw">let</span> <span class="ident">arg_str_substring</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">arg_str</span>[<span class="ident">p</span> <span class="kw">as</span> <span class="ident">usize</span>..<span class="ident">size</span> <span class="kw">as</span> <span class="ident">usize</span>]);
 
         <span class="comment">// 21. Perform ! CreateDataPropertyOrThrow(A, ! ToString(𝔽(lengthA)), T).</span>
         <span class="ident">a</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">length_a</span>, <span class="ident">arg_str_substring</span>, <span class="ident">context</span>)
@@ -3491,7 +3374,7 @@
     }
 
     <span class="comment">// 3. Let length be the number of code units in S.</span>
-    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>() <span class="kw">as</span> <span class="ident">u64</span>;
+    <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
 
     <span class="comment">// 4. If index + 1 ≥ length, return index + 1.</span>
     <span class="kw">if</span> <span class="ident">index</span> <span class="op">+</span> <span class="number">1</span> <span class="op">&gt;</span> <span class="ident">length</span> {
@@ -3499,10 +3382,9 @@
     }
 
     <span class="comment">// 5. Let cp be ! CodePointAt(S, index).</span>
-    <span class="kw">let</span> <span class="ident">cp</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builtins::string::code_point_at</span>(<span class="ident">s</span>, <span class="ident">index</span>);
+    <span class="kw">let</span> <span class="ident">code_point</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">code_point_at</span>(<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>);
 
-    <span class="comment">// 6. Return index + cp.[[CodeUnitCount]].</span>
-    <span class="ident">index</span> <span class="op">+</span> <span class="ident">u64::from</span>(<span class="ident">cp</span>.<span class="ident">code_unit_count</span>)
+    <span class="ident">index</span> <span class="op">+</span> <span class="ident">code_point</span>.<span class="ident">code_unit_count</span>() <span class="kw">as</span> <span class="ident">u64</span>
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

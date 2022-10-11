@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["RawInterner","Raw string interner, generic by a char type."]]};

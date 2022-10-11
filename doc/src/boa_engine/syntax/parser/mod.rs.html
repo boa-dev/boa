@@ -408,6 +408,11 @@
 <span id="406">406</span>
 <span id="407">407</span>
 <span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -422,6 +427,7 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">string::utf16</span>,
     <span class="ident">syntax</span>::{
         <span class="ident">ast</span>::{
             <span class="ident">node</span>::{<span class="ident">ContainsSymbol</span>, <span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
@@ -433,7 +439,7 @@
             <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionStatementList</span>},
         },
     },
-    <span class="ident">Context</span>,
+    <span class="ident">Context</span>, <span class="ident">JsString</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
@@ -678,7 +684,11 @@
                 <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                     <span class="comment">// Set the strict mode</span>
                     <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">string</span>)
-                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">interner_mut</span>().<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">string</span>) <span class="op">==</span> <span class="string">&quot;use strict&quot;</span> =&gt;
+                        <span class="kw">if</span> <span class="ident">context</span>.<span class="ident">interner_mut</span>().<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">string</span>).<span class="ident">join</span>(
+                            <span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;use strict&quot;</span>,
+                            <span class="op">|</span><span class="ident">g</span><span class="op">|</span> <span class="ident">g</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;use strict&quot;</span>),
+                            <span class="bool-val">true</span>,
+                        ) =&gt;
                     {
                         <span class="ident">cursor</span>.<span class="ident">set_strict_mode</span>(<span class="bool-val">true</span>);
                         <span class="ident">strict</span> <span class="op">=</span> <span class="bool-val">true</span>;
@@ -726,7 +736,7 @@
                             .<span class="ident">realm</span>
                             .<span class="ident">global_property_map</span>
                             .<span class="ident">string_property_map</span>()
-                            .<span class="ident">get</span>(<span class="ident">name_str</span>);
+                            .<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name_str</span>.<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>));
                         <span class="kw">let</span> <span class="ident">non_configurable_binding_exists</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">desc</span> {
                             <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">desc</span>.<span class="ident">configurable</span>(), <span class="prelude-val">Some</span>(<span class="bool-val">true</span>)),
                             <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,

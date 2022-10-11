@@ -452,8 +452,12 @@
 <span id="450">450</span>
 <span id="451">451</span>
 <span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object node.</span>
-
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::string::ToStringEscaped</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">node</span>::{
         <span class="ident">declaration::block_to_string</span>, <span class="ident">join_nodes</span>, <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>,
@@ -874,7 +878,11 @@
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PropertyName</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PropertyName::Literal</span>(<span class="ident">key</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">key</span>).<span class="ident">to_owned</span>(),
+            <span class="ident">PropertyName::Literal</span>(<span class="ident">key</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">key</span>).<span class="ident">join</span>(
+                <span class="ident">String::from</span>,
+                <span class="ident">ToStringEscaped::to_string_escaped</span>,
+                <span class="bool-val">true</span>,
+            ),
             <span class="ident">PropertyName::Computed</span>(<span class="ident">key</span>) =&gt; <span class="ident">key</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
         }
     }

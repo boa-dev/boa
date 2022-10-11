@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["COMMON_STRINGS","List of commonly used strings in Javascript code."],["COMMON_STRINGS_CACHE","Map from a string inside [`COMMON_STRINGS`] to its corresponding static [`JsString`]."],["MAX_COMMON_STRING_LENGTH","The maximum length of a string within [`COMMON_STRINGS`]."]]};

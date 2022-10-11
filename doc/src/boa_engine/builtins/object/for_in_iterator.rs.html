@@ -148,10 +148,6 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>},
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
@@ -250,11 +246,7 @@
                     {
                         <span class="ident">iterator</span>.<span class="ident">visited_keys</span>.<span class="ident">insert</span>(<span class="ident">r</span>.<span class="ident">clone</span>());
                         <span class="kw">if</span> <span class="ident">desc</span>.<span class="ident">expect_enumerable</span>() {
-                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
-                                <span class="ident">JsValue::new</span>(<span class="ident">r</span>.<span class="ident">to_string</span>()),
-                                <span class="bool-val">false</span>,
-                                <span class="ident">context</span>,
-                            ));
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(<span class="ident">JsValue::new</span>(<span class="ident">r</span>), <span class="bool-val">false</span>, <span class="ident">context</span>));
                         }
                     }
                 }

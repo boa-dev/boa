@@ -98,7 +98,7 @@
     <span class="kw">let</span> <span class="ident">libfile</span> <span class="op">=</span> <span class="ident">arg</span>
         .<span class="ident">to_string</span>(<span class="ident">ctx</span>)
         .<span class="ident">expect</span>(<span class="string">&quot;Failed to convert to string&quot;</span>)
-        .<span class="ident">to_string</span>();
+        .<span class="ident">to_std_string_escaped</span>();
 
     <span class="comment">// Read the module source file</span>
     <span class="macro">println!</span>(<span class="string">&quot;Loading: {}&quot;</span>, <span class="ident">libfile</span>);

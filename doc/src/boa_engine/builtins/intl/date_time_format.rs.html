@@ -236,6 +236,7 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
+<span id="237">237</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl.DateTimeFormat` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Intl.DateTimeFormat` is a built-in object that has properties and methods for date and time i18n.</span>
@@ -247,6 +248,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>,
         <span class="ident">ObjectData</span>,
@@ -322,24 +324,24 @@
             <span class="ident">prototype</span>,
             <span class="ident">ObjectData::date_time_format</span>(<span class="ident">Box::new</span>(<span class="self">Self</span> {
                 <span class="ident">initialized_date_time_format</span>: <span class="bool-val">true</span>,
-                <span class="ident">locale</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;en-US&quot;</span>),
-                <span class="ident">calendar</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;gregory&quot;</span>),
-                <span class="ident">numbering_system</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;arab&quot;</span>),
-                <span class="ident">time_zone</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;UTC&quot;</span>),
-                <span class="ident">weekday</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">era</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">year</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">month</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">day</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">day_period</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;narrow&quot;</span>),
-                <span class="ident">hour</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">minute</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">second</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;numeric&quot;</span>),
-                <span class="ident">fractional_second_digits</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">time_zone_name</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">hour_cycle</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;h24&quot;</span>),
-                <span class="ident">pattern</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
-                <span class="ident">bound_format</span>: <span class="ident">JsString::from</span>(<span class="string">&quot;undefined&quot;</span>),
+                <span class="ident">locale</span>: <span class="macro">js_string!</span>(<span class="string">&quot;en-US&quot;</span>),
+                <span class="ident">calendar</span>: <span class="macro">js_string!</span>(<span class="string">&quot;gregory&quot;</span>),
+                <span class="ident">numbering_system</span>: <span class="macro">js_string!</span>(<span class="string">&quot;arab&quot;</span>),
+                <span class="ident">time_zone</span>: <span class="macro">js_string!</span>(<span class="string">&quot;UTC&quot;</span>),
+                <span class="ident">weekday</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                <span class="ident">era</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                <span class="ident">year</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="ident">month</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                <span class="ident">day</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="ident">day_period</span>: <span class="macro">js_string!</span>(<span class="string">&quot;narrow&quot;</span>),
+                <span class="ident">hour</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="ident">minute</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="ident">second</span>: <span class="macro">js_string!</span>(<span class="string">&quot;numeric&quot;</span>),
+                <span class="ident">fractional_second_digits</span>: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">time_zone_name</span>: <span class="macro">js_string!</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">hour_cycle</span>: <span class="macro">js_string!</span>(<span class="string">&quot;h24&quot;</span>),
+                <span class="ident">pattern</span>: <span class="macro">js_string!</span>(<span class="string">&quot;{hour}:{minute}&quot;</span>),
+                <span class="ident">bound_format</span>: <span class="macro">js_string!</span>(<span class="string">&quot;undefined&quot;</span>),
             })),
         );
 

@@ -239,7 +239,7 @@
                 <span class="kw">_</span> =&gt; <span class="ident">TokenKind::Keyword</span>((<span class="ident">keyword</span>, <span class="ident">contains_escaped_chars</span>)),
             }
         } <span class="kw">else</span> {
-            <span class="ident">TokenKind::identifier</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">identifier_name</span>))
+            <span class="ident">TokenKind::identifier</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern</span>(<span class="ident">identifier_name</span>.<span class="ident">as_str</span>()))
         };
 
         <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(<span class="ident">token_kind</span>, <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>())))

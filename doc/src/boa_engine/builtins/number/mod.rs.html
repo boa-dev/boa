@@ -1190,6 +1190,7 @@
 <span id="1188">1188</span>
 <span id="1189">1189</span>
 <span id="1190">1190</span>
+<span id="1191">1191</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Number` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Number` JavaScript object is a wrapper object allowing you to work with numerical values.</span>
@@ -1213,6 +1214,8 @@
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
     },
     <span class="ident">property::Attribute</span>,
+    <span class="ident">string::utf16</span>,
+    <span class="ident">string::Utf16Trim</span>,
     <span class="ident">value</span>::{<span class="ident">AbstractRelation</span>, <span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
@@ -1322,7 +1325,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">MAX_SAFE_INTEGER</span>: <span class="ident">f64</span> <span class="op">=</span> <span class="number">9_007_199_254_740_991_f64</span>;
 
-    <span class="doccomment">/// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).</span>
+    <span class="doccomment">/// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(2^53 - 1)`).</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -1953,12 +1956,12 @@
             <span class="kw">let</span> <span class="ident">input_string</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="comment">// 2. Let S be ! TrimString(inputString, start).</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_s</span> <span class="op">=</span> <span class="ident">input_string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>);
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_s</span> <span class="op">=</span> <span class="ident">input_string</span>.<span class="ident">trim_start</span>();
 
             <span class="comment">// 3. Let sign be 1.</span>
             <span class="comment">// 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),</span>
             <span class="comment">//    set sign to -1.</span>
-            <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">var_s</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="string">&#39;\u{002D}&#39;</span>) {
+            <span class="kw">let</span> <span class="ident">sign</span> <span class="op">=</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">var_s</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="macro">utf16!</span>(<span class="string">&quot;-&quot;</span>)) {
                 <span class="op">-</span><span class="number">1</span>
             } <span class="kw">else</span> {
                 <span class="number">1</span>
@@ -1966,10 +1969,10 @@
 
             <span class="comment">// 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or</span>
             <span class="comment">//    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">var_s</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">var_s</span> <span class="op">=</span> <span class="ident">var_s</span>
-                    .<span class="ident">strip_prefix</span>(<span class="kw-2">&amp;</span>[<span class="string">&#39;\u{002B}&#39;</span>, <span class="string">&#39;\u{002D}&#39;</span>][..])
-                    .<span class="ident">unwrap_or</span>(<span class="ident">var_s</span>);
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">var_s</span>.<span class="ident">is_empty</span>()
+                <span class="op">&amp;&amp;</span> (<span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="macro">utf16!</span>(<span class="string">&quot;+&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="macro">utf16!</span>(<span class="string">&quot;-&quot;</span>)))
+            {
+                <span class="ident">var_s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var_s</span>[<span class="number">1</span>..];
             }
 
             <span class="comment">// 6. Let R be ℝ(? ToInt32(radix)).</span>
@@ -2002,23 +2005,21 @@
             <span class="comment">//         ii. Set R to 16.</span>
             <span class="kw">if</span> <span class="ident">strip_prefix</span>
                 <span class="op">&amp;&amp;</span> <span class="ident">var_s</span>.<span class="ident">len</span>() <span class="op">&gt;</span><span class="op">=</span> <span class="number">2</span>
-                <span class="op">&amp;&amp;</span> (<span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0x&quot;</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="string">&quot;0X&quot;</span>))
+                <span class="op">&amp;&amp;</span> (<span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="macro">utf16!</span>(<span class="string">&quot;0x&quot;</span>)) <span class="op">|</span><span class="op">|</span> <span class="ident">var_s</span>.<span class="ident">starts_with</span>(<span class="macro">utf16!</span>(<span class="string">&quot;0X&quot;</span>)))
             {
-                <span class="ident">var_s</span> <span class="op">=</span> <span class="ident">var_s</span>.<span class="ident">split_at</span>(<span class="number">2</span>).<span class="number">1</span>;
+                <span class="ident">var_s</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">var_s</span>[<span class="number">2</span>..];
 
                 <span class="ident">var_r</span> <span class="op">=</span> <span class="number">16</span>;
             }
 
             <span class="comment">// 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the</span>
             <span class="comment">//     first such code unit; otherwise, let end be the length of S.</span>
-            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">var_s</span>.<span class="ident">find</span>(<span class="op">|</span><span class="ident">c</span>: <span class="ident">char</span><span class="op">|</span> <span class="op">!</span><span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>)) {
-                <span class="ident">index</span>
-            } <span class="kw">else</span> {
-                <span class="ident">var_s</span>.<span class="ident">len</span>()
-            };
+            <span class="kw">let</span> <span class="ident">end</span> <span class="op">=</span> <span class="ident">char::decode_utf16</span>(<span class="ident">var_s</span>.<span class="ident">iter</span>().<span class="ident">copied</span>())
+                .<span class="ident">position</span>(<span class="op">|</span><span class="ident">code</span><span class="op">|</span> <span class="op">!</span><span class="ident">code</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">c</span><span class="op">|</span> <span class="ident">c</span>.<span class="ident">is_digit</span>(<span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>)).<span class="ident">unwrap_or_default</span>())
+                .<span class="ident">unwrap_or</span>(<span class="ident">var_s</span>.<span class="ident">len</span>());
 
             <span class="comment">// 12. Let Z be the substring of S from 0 to end.</span>
-            <span class="kw">let</span> <span class="ident">var_z</span> <span class="op">=</span> <span class="ident">var_s</span>.<span class="ident">split_at</span>(<span class="ident">end</span>).<span class="number">0</span>;
+            <span class="kw">let</span> <span class="ident">var_z</span> <span class="op">=</span> <span class="ident">String::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">var_s</span>[..<span class="ident">end</span>]);
 
             <span class="comment">// 13. If Z is empty, return NaN.</span>
             <span class="kw">if</span> <span class="ident">var_z</span>.<span class="ident">is_empty</span>() {
@@ -2031,8 +2032,8 @@
             <span class="comment">//     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then</span>
             <span class="comment">//     mathInt may be an implementation-approximated value representing the integer value that is</span>
             <span class="comment">//     represented by Z in radix-R notation.)</span>
-            <span class="kw">let</span> <span class="ident">math_int</span> <span class="op">=</span> <span class="ident">u64::from_str_radix</span>(<span class="ident">var_z</span>, <span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">map_or_else</span>(
-                <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">f64::from_str_radix</span>(<span class="ident">var_z</span>, <span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid_float_conversion&quot;</span>),
+            <span class="kw">let</span> <span class="ident">math_int</span> <span class="op">=</span> <span class="ident">u64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">var_z</span>, <span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">map_or_else</span>(
+                <span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">f64::from_str_radix</span>(<span class="kw-2">&amp;</span><span class="ident">var_z</span>, <span class="ident">var_r</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">expect</span>(<span class="string">&quot;invalid_float_conversion&quot;</span>),
                 <span class="op">|</span><span class="ident">i</span><span class="op">|</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f64</span>,
             );
 
@@ -2076,7 +2077,8 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">val</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="kw">let</span> <span class="ident">input_string</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            <span class="comment">// TODO: parse float with optimal utf16 algorithm</span>
+            <span class="kw">let</span> <span class="ident">input_string</span> <span class="op">=</span> <span class="ident">val</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_std_string_escaped</span>();
             <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">input_string</span>.<span class="ident">trim_start_matches</span>(<span class="ident">is_trimmable_whitespace</span>);
             <span class="kw">let</span> <span class="ident">s_prefix_lower</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">chars</span>().<span class="ident">take</span>(<span class="number">4</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>().<span class="ident">to_ascii_lowercase</span>();
 

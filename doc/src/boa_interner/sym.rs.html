@@ -172,7 +172,34 @@
 <span id="170">170</span>
 <span id="171">171</span>
 <span id="172">172</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
+<span id="176">176</span>
+<span id="177">177</span>
+<span id="178">178</span>
+<span id="179">179</span>
+<span id="180">180</span>
+<span id="181">181</span>
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
+<span class="kw">use</span> <span class="ident">indexmap::IndexSet</span>;
+<span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
+<span class="kw">use</span> <span class="ident">std::num::NonZeroUsize</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;serde&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -303,46 +330,67 @@
     }
 }
 
-<span class="doccomment">/// Ordered set of commonly used static strings.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// # Note</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// `COMMON_STRINGS` and the constants defined in [`Sym`] must always</span>
-<span class="doccomment">/// be in sync.</span>
-<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static</span> <span class="ident">COMMON_STRINGS</span>: <span class="ident">phf::OrderedSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> {
-    <span class="kw">const</span> <span class="ident">COMMON_STRINGS</span>: <span class="ident">phf::OrderedSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">phf::phf_ordered_set!</span> {
-        <span class="string">&quot;&quot;</span>,
-        <span class="string">&quot;arguments&quot;</span>,
-        <span class="string">&quot;await&quot;</span>,
-        <span class="string">&quot;yield&quot;</span>,
-        <span class="string">&quot;eval&quot;</span>,
-        <span class="string">&quot;default&quot;</span>,
-        <span class="string">&quot;null&quot;</span>,
-        <span class="string">&quot;RegExp&quot;</span>,
-        <span class="string">&quot;get&quot;</span>,
-        <span class="string">&quot;set&quot;</span>,
-        <span class="string">&quot;&lt;main&gt;&quot;</span>,
-        <span class="string">&quot;raw&quot;</span>,
-        <span class="string">&quot;static&quot;</span>,
-        <span class="string">&quot;prototype&quot;</span>,
-        <span class="string">&quot;constructor&quot;</span>,
-        <span class="string">&quot;implements&quot;</span>,
-        <span class="string">&quot;interface&quot;</span>,
-        <span class="string">&quot;let&quot;</span>,
-        <span class="string">&quot;package&quot;</span>,
-        <span class="string">&quot;private&quot;</span>,
-        <span class="string">&quot;protected&quot;</span>,
-        <span class="string">&quot;public&quot;</span>,
-        <span class="string">&quot;anonymous&quot;</span>,
-        <span class="string">&quot;true&quot;</span>,
-        <span class="string">&quot;false&quot;</span>,
-        <span class="string">&quot;async&quot;</span>,
-        <span class="string">&quot;of&quot;</span>,
-        <span class="string">&quot;target&quot;</span>,
+<span class="macro">macro_rules!</span> <span class="ident">create_static_strings</span> {
+    ( $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>:<span class="ident">literal</span> ),<span class="op">+</span> ) =&gt; {
+        <span class="doccomment">/// Ordered set of commonly used static `UTF-8` strings.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Note</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants</span>
+        <span class="doccomment">/// defined in [`Sym`] must always be in sync.</span>
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static</span> <span class="ident">COMMON_STRINGS_UTF8</span>: <span class="ident">phf::OrderedSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> {
+            <span class="kw">const</span> <span class="ident">COMMON_STRINGS</span>: <span class="ident">phf::OrderedSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">=</span> <span class="macro">phf::phf_ordered_set!</span> {
+                $( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span> ),<span class="op">+</span>
+            };
+            <span class="comment">// A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`</span>
+            <span class="macro">sa::const_assert!</span>(<span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">usize::MAX</span>);
+            <span class="ident">COMMON_STRINGS</span>
+        };
+
+        <span class="doccomment">/// Ordered set of commonly used static `UTF-16` strings.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// # Note</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// `COMMON_STRINGS_UTF8`, `COMMON_STRINGS_UTF16` and the constants</span>
+        <span class="doccomment">/// defined in [`Sym`] must always be in sync.</span>
+        <span class="comment">// FIXME: use phf when const expressions are allowed. https://github.com/rust-phf/rust-phf/issues/188</span>
+        <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">static</span> <span class="ident">COMMON_STRINGS_UTF16</span>: <span class="ident">Lazy</span><span class="op">&lt;</span><span class="ident">IndexSet</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> [<span class="ident">u16</span>]<span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Lazy::new</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">IndexSet::with_capacity</span>(<span class="ident">COMMON_STRINGS_UTF8</span>.<span class="ident">len</span>());
+            $( <span class="ident">set</span>.<span class="ident">insert</span>(<span class="macro">utf16!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">s</span>)); )<span class="op">+</span>
+            <span class="ident">set</span>
+        });
     };
-    <span class="comment">// A `COMMON_STRINGS` of size `usize::MAX` would cause an overflow on our `Interner`</span>
-    <span class="macro">sa::const_assert!</span>(<span class="ident">COMMON_STRINGS</span>.<span class="ident">len</span>() <span class="op">&lt;</span> <span class="ident">usize::MAX</span>);
-    <span class="ident">COMMON_STRINGS</span>
-};
+}
+
+<span class="macro">create_static_strings!</span> {
+    <span class="string">&quot;&quot;</span>,
+    <span class="string">&quot;arguments&quot;</span>,
+    <span class="string">&quot;await&quot;</span>,
+    <span class="string">&quot;yield&quot;</span>,
+    <span class="string">&quot;eval&quot;</span>,
+    <span class="string">&quot;default&quot;</span>,
+    <span class="string">&quot;null&quot;</span>,
+    <span class="string">&quot;RegExp&quot;</span>,
+    <span class="string">&quot;get&quot;</span>,
+    <span class="string">&quot;set&quot;</span>,
+    <span class="string">&quot;&lt;main&gt;&quot;</span>,
+    <span class="string">&quot;raw&quot;</span>,
+    <span class="string">&quot;static&quot;</span>,
+    <span class="string">&quot;prototype&quot;</span>,
+    <span class="string">&quot;constructor&quot;</span>,
+    <span class="string">&quot;implements&quot;</span>,
+    <span class="string">&quot;interface&quot;</span>,
+    <span class="string">&quot;let&quot;</span>,
+    <span class="string">&quot;package&quot;</span>,
+    <span class="string">&quot;private&quot;</span>,
+    <span class="string">&quot;protected&quot;</span>,
+    <span class="string">&quot;public&quot;</span>,
+    <span class="string">&quot;anonymous&quot;</span>,
+    <span class="string">&quot;true&quot;</span>,
+    <span class="string">&quot;false&quot;</span>,
+    <span class="string">&quot;async&quot;</span>,
+    <span class="string">&quot;of&quot;</span>,
+    <span class="string">&quot;target&quot;</span>
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="boa_interner" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

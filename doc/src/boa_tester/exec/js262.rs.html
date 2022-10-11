@@ -192,12 +192,12 @@
 <span class="doccomment">/// Accepts a string value as its first argument and executes it as an ECMAScript script.</span>
 <span class="kw">fn</span> <span class="ident">eval_script</span>(<span class="ident">_this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source_text</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>).<span class="ident">and_then</span>(<span class="ident">JsValue::as_string</span>) {
-        <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>()) {
+        <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse</span>(<span class="ident">source_text</span>.<span class="ident">to_std_string_escaped</span>()) {
             <span class="comment">// TODO: check strict</span>
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught Syntax Error: {e}&quot;</span>)),
             <span class="comment">// Calling eval here parses the code a second time.</span>
             <span class="comment">// TODO: We can fix this after we have have defined the public api for the vm executer.</span>
-            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">source_text</span>.<span class="ident">as_str</span>()),
+            <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">eval</span>(<span class="ident">source_text</span>.<span class="ident">to_std_string_escaped</span>()),
         }
     } <span class="kw">else</span> {
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>())

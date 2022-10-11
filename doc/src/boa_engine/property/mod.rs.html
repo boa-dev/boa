@@ -698,7 +698,7 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/defineProperty</span>
 <span class="doccomment">//! [section]: https://tc39.es/ecma262/#sec-property-attributes</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">js_string</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
@@ -1181,7 +1181,7 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">string</span>: <span class="ident">JsString</span>) -&gt; <span class="self">Self</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_std_string</span>().<span class="ident">ok</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">parse</span>().<span class="ident">ok</span>()) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>)
@@ -1217,7 +1217,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">parse</span>() {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>.<span class="ident">into</span>())
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>.<span class="ident">as_ref</span>().<span class="ident">into</span>())
         }
     }
 }
@@ -1233,8 +1233,8 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">fmt</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">f</span>: <span class="kw-2">&amp;mut</span> <span class="ident">fmt::Formatter</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">fmt::Result</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">fmt</span>(<span class="ident">f</span>),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw-2">ref</span> <span class="ident">symbol</span>) =&gt; <span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">to_std_string_escaped</span>().<span class="ident">fmt</span>(<span class="ident">f</span>),
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">index</span>.<span class="ident">fmt</span>(<span class="ident">f</span>),
         }
     }
@@ -1291,7 +1291,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
         }
     }
 }
@@ -1301,7 +1301,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
         }
     }
 }
@@ -1311,7 +1311,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
         }
     }
 }
@@ -1321,7 +1321,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
         }
     }
 }
@@ -1331,7 +1331,7 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">index</span>) <span class="op">=</span> <span class="ident">u32::try_from</span>(<span class="ident">value</span>) {
             <span class="ident"><span class="self">Self</span>::Index</span>(<span class="ident">index</span>)
         } <span class="kw">else</span> {
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">JsString::from</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="macro">js_string!</span>(<span class="ident">value</span>.<span class="ident">to_string</span>()))
         }
     }
 }
@@ -1347,8 +1347,8 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="op">&amp;&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyKey</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span>[<span class="ident">u16</span>]) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="ident">string</span> <span class="op">==</span> <span class="ident">other</span>,
             <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,

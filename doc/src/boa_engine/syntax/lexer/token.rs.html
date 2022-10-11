@@ -472,7 +472,7 @@
         <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::BooleanLiteral</span>(<span class="ident">val</span>) =&gt; <span class="ident">val</span>.<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::EOF</span> =&gt; <span class="string">&quot;end of file&quot;</span>.<span class="ident">to_owned</span>(),
-            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>).<span class="ident">to_owned</span>(),
+            <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>).<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::PrivateIdentifier</span>(<span class="ident">ident</span>) =&gt; <span class="macro">format!</span>(<span class="string">&quot;#{}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ident</span>)),
             <span class="ident"><span class="self">Self</span>::Keyword</span>((<span class="ident">word</span>, <span class="kw">_</span>)) =&gt; <span class="ident">word</span>.<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::NullLiteral</span> =&gt; <span class="string">&quot;null&quot;</span>.<span class="ident">to_owned</span>(),
@@ -480,9 +480,9 @@
             <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">Numeric::Integer</span>(<span class="ident">num</span>)) =&gt; <span class="ident">num</span>.<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::NumericLiteral</span>(<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">num</span>)) =&gt; <span class="macro">format!</span>(<span class="string">&quot;{num}n&quot;</span>),
             <span class="ident"><span class="self">Self</span>::Punctuator</span>(<span class="ident">punc</span>) =&gt; <span class="ident">punc</span>.<span class="ident">to_string</span>(),
-            <span class="ident"><span class="self">Self</span>::StringLiteral</span>(<span class="ident">lit</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">lit</span>).<span class="ident">to_owned</span>(),
+            <span class="ident"><span class="self">Self</span>::StringLiteral</span>(<span class="ident">lit</span>) =&gt; <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">lit</span>).<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::TemplateNoSubstitution</span>(<span class="ident">ts</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::TemplateMiddle</span>(<span class="ident">ts</span>) =&gt; {
-                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ts</span>.<span class="ident">as_raw</span>()).<span class="ident">to_owned</span>()
+                <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">ts</span>.<span class="ident">as_raw</span>()).<span class="ident">to_string</span>()
             }
             <span class="ident"><span class="self">Self</span>::RegularExpressionLiteral</span>(<span class="ident">body</span>, <span class="ident">flags</span>) =&gt; {
                 <span class="macro">format!</span>(

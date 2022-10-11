@@ -387,7 +387,7 @@
             <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Value::Null</span>),
             <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;undefined to JSON&quot;</span>),
             <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">into</span>()),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">as_str</span>().<span class="ident">into</span>()),
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">into</span>()),
             <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rat</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">rat</span>.<span class="ident">into</span>()),
             <span class="kw-2">&amp;</span><span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">int</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">int</span>.<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">_bigint</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert bigint to JSON&quot;</span>),
@@ -410,7 +410,7 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">Map::new</span>();
                     <span class="kw">for</span> (<span class="ident">key</span>, <span class="ident">property</span>) <span class="kw">in</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">properties</span>().<span class="ident">iter</span>() {
                         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">key</span> {
-                            <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">as_str</span>().<span class="ident">to_owned</span>(),
+                            <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>(),
                             <span class="ident">PropertyKey::Index</span>(<span class="ident">i</span>) =&gt; <span class="ident">i</span>.<span class="ident">to_string</span>(),
                             <span class="ident">PropertyKey::Symbol</span>(<span class="ident">_sym</span>) =&gt; {
                                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert Symbol to JSON&quot;</span>)

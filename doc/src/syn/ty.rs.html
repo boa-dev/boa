@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.100/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/syn-1.0.102/src/ty.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>ty.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../syn/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../syn/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -1272,6 +1272,18 @@
 <span id="1272">1272</span>
 <span id="1273">1273</span>
 <span id="1274">1274</span>
+<span id="1275">1275</span>
+<span id="1276">1276</span>
+<span id="1277">1277</span>
+<span id="1278">1278</span>
+<span id="1279">1279</span>
+<span id="1280">1280</span>
+<span id="1281">1281</span>
+<span id="1282">1282</span>
+<span id="1283">1283</span>
+<span id="1284">1284</span>
+<span id="1285">1285</span>
+<span id="1286">1286</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::punctuated::Punctuated</span>;
 <span class="kw">use</span> <span class="ident">proc_macro2::TokenStream</span>;
@@ -1617,7 +1629,8 @@
     <span class="kw">impl</span> <span class="ident">Parse</span> <span class="kw">for</span> <span class="ident">Type</span> {
         <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_plus</span> <span class="op">=</span> <span class="bool-val">true</span>;
-            <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
+            <span class="kw">let</span> <span class="ident">allow_group_generic</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>, <span class="ident">allow_group_generic</span>)
         }
     }
 
@@ -1630,11 +1643,16 @@
         <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">doc_cfg</span>, <span class="ident">doc</span>(<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;parsing&quot;</span>)))]</span>
         <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">without_plus</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">allow_plus</span> <span class="op">=</span> <span class="bool-val">false</span>;
-            <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)
+            <span class="kw">let</span> <span class="ident">allow_group_generic</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>, <span class="ident">allow_group_generic</span>)
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">ambig_ty</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_plus</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">ambig_ty</span>(
+        <span class="ident">input</span>: <span class="ident">ParseStream</span>,
+        <span class="ident">allow_plus</span>: <span class="ident">bool</span>,
+        <span class="ident">allow_group_generic</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Type</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">begin</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">fork</span>();
 
         <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="ident">token::Group</span>) {
@@ -1655,7 +1673,9 @@
                         <span class="ident">path</span>: <span class="ident">Path::parse_helper</span>(<span class="ident">input</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
                     }));
                 }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) {
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>]) <span class="op">&amp;&amp;</span> <span class="ident">allow_group_generic</span>
+                <span class="op">|</span><span class="op">|</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[::]) <span class="op">&amp;&amp;</span> <span class="ident">input</span>.<span class="ident">peek3</span>(<span class="macro">Token!</span>[<span class="op">&lt;</span>])
+            {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Type::Path</span>(<span class="kw-2">mut</span> <span class="ident">ty</span>) <span class="op">=</span> <span class="kw-2">*</span><span class="ident">group</span>.<span class="ident">elem</span> {
                     <span class="kw">let</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">ty</span>.<span class="ident">path</span>.<span class="ident">segments</span>.<span class="ident">last_mut</span>().<span class="ident">unwrap</span>().<span class="ident">arguments</span>;
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PathArguments::None</span> <span class="op">=</span> <span class="ident">arguments</span> {
@@ -2137,7 +2157,8 @@
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse</span>(<span class="ident">input</span>: <span class="ident">ParseStream</span>, <span class="ident">allow_plus</span>: <span class="ident">bool</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
             <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">peek</span>(<span class="macro">Token!</span>[-&gt;]) {
                 <span class="kw">let</span> <span class="ident">arrow</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">parse</span>()<span class="question-mark">?</span>;
-                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">allow_group_generic</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                <span class="kw">let</span> <span class="ident">ty</span> <span class="op">=</span> <span class="ident">ambig_ty</span>(<span class="ident">input</span>, <span class="ident">allow_plus</span>, <span class="ident">allow_group_generic</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">ReturnType::Type</span>(<span class="ident">arrow</span>, <span class="ident">Box::new</span>(<span class="ident">ty</span>)))
             } <span class="kw">else</span> {
                 <span class="prelude-val">Ok</span>(<span class="ident">ReturnType::Default</span>)
@@ -2260,7 +2281,10 @@
             <span class="kw">let</span> <span class="ident">content</span>;
             <span class="prelude-val">Ok</span>(<span class="ident">TypeParen</span> {
                 <span class="ident">paren_token</span>: <span class="macro">parenthesized!</span>(<span class="ident">content</span> <span class="kw">in</span> <span class="ident">input</span>),
-                <span class="ident">elem</span>: <span class="ident">Box::new</span>(<span class="ident">ambig_ty</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="ident">allow_plus</span>)<span class="question-mark">?</span>),
+                <span class="ident">elem</span>: <span class="ident">Box::new</span>({
+                    <span class="kw">let</span> <span class="ident">allow_group_generic</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                    <span class="ident">ambig_ty</span>(<span class="kw-2">&amp;</span><span class="ident">content</span>, <span class="ident">allow_plus</span>, <span class="ident">allow_group_generic</span>)<span class="question-mark">?</span>
+                }),
             })
         }
     }

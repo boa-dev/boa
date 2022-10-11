@@ -739,6 +739,133 @@
 <span id="737">737</span>
 <span id="738">738</span>
 <span id="739">739</span>
+<span id="740">740</span>
+<span id="741">741</span>
+<span id="742">742</span>
+<span id="743">743</span>
+<span id="744">744</span>
+<span id="745">745</span>
+<span id="746">746</span>
+<span id="747">747</span>
+<span id="748">748</span>
+<span id="749">749</span>
+<span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
+<span id="772">772</span>
+<span id="773">773</span>
+<span id="774">774</span>
+<span id="775">775</span>
+<span id="776">776</span>
+<span id="777">777</span>
+<span id="778">778</span>
+<span id="779">779</span>
+<span id="780">780</span>
+<span id="781">781</span>
+<span id="782">782</span>
+<span id="783">783</span>
+<span id="784">784</span>
+<span id="785">785</span>
+<span id="786">786</span>
+<span id="787">787</span>
+<span id="788">788</span>
+<span id="789">789</span>
+<span id="790">790</span>
+<span id="791">791</span>
+<span id="792">792</span>
+<span id="793">793</span>
+<span id="794">794</span>
+<span id="795">795</span>
+<span id="796">796</span>
+<span id="797">797</span>
+<span id="798">798</span>
+<span id="799">799</span>
+<span id="800">800</span>
+<span id="801">801</span>
+<span id="802">802</span>
+<span id="803">803</span>
+<span id="804">804</span>
+<span id="805">805</span>
+<span id="806">806</span>
+<span id="807">807</span>
+<span id="808">808</span>
+<span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
+<span id="813">813</span>
+<span id="814">814</span>
+<span id="815">815</span>
+<span id="816">816</span>
+<span id="817">817</span>
+<span id="818">818</span>
+<span id="819">819</span>
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+<span id="823">823</span>
+<span id="824">824</span>
+<span id="825">825</span>
+<span id="826">826</span>
+<span id="827">827</span>
+<span id="828">828</span>
+<span id="829">829</span>
+<span id="830">830</span>
+<span id="831">831</span>
+<span id="832">832</span>
+<span id="833">833</span>
+<span id="834">834</span>
+<span id="835">835</span>
+<span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
+<span id="840">840</span>
+<span id="841">841</span>
+<span id="842">842</span>
+<span id="843">843</span>
+<span id="844">844</span>
+<span id="845">845</span>
+<span id="846">846</span>
+<span id="847">847</span>
+<span id="848">848</span>
+<span id="849">849</span>
+<span id="850">850</span>
+<span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -755,23 +882,121 @@
 <span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{
+    <span class="ident">borrow::Cow</span>,
+    <span class="ident">iter</span>::{<span class="ident">once</span>, <span class="ident">FusedIterator</span>},
+};
+
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{
-        <span class="ident">string</span>::{<span class="ident">is_leading_surrogate</span>, <span class="ident">is_trailing_surrogate</span>},
-        <span class="ident">BuiltIn</span>,
-    },
+    <span class="ident">builtins::BuiltIn</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>, <span class="ident">RecursionLimiter</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
+    <span class="ident">string</span>::{<span class="ident">utf16</span>, <span class="ident">CodePoint</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
-<span class="kw">use</span> <span class="ident">serde_json</span>::{<span class="self">self</span>, <span class="ident">Value</span> <span class="kw">as</span> <span class="ident">JSONValue</span>};
 <span class="kw">use</span> <span class="ident">tap</span>::{<span class="ident">Conv</span>, <span class="ident">Pipe</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
+
+<span class="comment">// `Intersperse` impl taken from `itertools`</span>
+<span class="attribute">#[<span class="ident">must_use</span> <span class="op">=</span> <span class="string">&quot;iterator adaptors are lazy and do nothing unless consumed&quot;</span>]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">struct</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+{
+    <span class="ident">element</span>: <span class="ident">I::Item</span>,
+    <span class="ident">iter</span>: <span class="ident">std::iter::Fuse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>,
+    <span class="ident">peek</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">I::Item</span><span class="op">&gt;</span>,
+}
+
+<span class="kw">fn</span> <span class="ident">intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>(<span class="ident">iter</span>: <span class="ident">I</span>, <span class="ident">element</span>: <span class="ident">I::Item</span>) -&gt; <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">iter</span> <span class="op">=</span> <span class="ident">iter</span>.<span class="ident">fuse</span>();
+    <span class="ident">Intersperse</span> {
+        <span class="ident">peek</span>: <span class="ident">iter</span>.<span class="ident">next</span>(),
+        <span class="ident">iter</span>,
+        <span class="ident">element</span>,
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">Iterator</span> <span class="kw">for</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+    <span class="ident">I::Item</span>: <span class="ident">Clone</span>,
+{
+    <span class="kw">type</span> <span class="ident">Item</span> <span class="op">=</span> <span class="ident">I::Item</span>;
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">next</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Item</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
+            <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>()
+        } <span class="kw">else</span> {
+            <span class="self">self</span>.<span class="ident">peek</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>();
+            <span class="kw">if</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>() {
+                <span class="prelude-val">Some</span>(<span class="self">self</span>.<span class="ident">element</span>.<span class="ident">clone</span>())
+            } <span class="kw">else</span> {
+                <span class="prelude-val">None</span>
+            }
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">size_hint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>) {
+        <span class="kw">type</span> <span class="ident">SizeHint</span> <span class="op">=</span> (<span class="ident">usize</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span>);
+        <span class="kw">fn</span> <span class="ident">add</span>(<span class="ident">a</span>: <span class="ident">SizeHint</span>, <span class="ident">b</span>: <span class="ident">SizeHint</span>) -&gt; <span class="ident">SizeHint</span> {
+            <span class="kw">let</span> <span class="ident">min</span> <span class="op">=</span> <span class="ident">a</span>.<span class="number">0</span>.<span class="ident">saturating_add</span>(<span class="ident">b</span>.<span class="number">0</span>);
+            <span class="kw">let</span> <span class="ident">max</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">a</span>.<span class="number">1</span>, <span class="ident">b</span>.<span class="number">1</span>) {
+                (<span class="prelude-val">Some</span>(<span class="ident">x</span>), <span class="prelude-val">Some</span>(<span class="ident">y</span>)) =&gt; <span class="ident">x</span>.<span class="ident">checked_add</span>(<span class="ident">y</span>),
+                <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+            };
+
+            (<span class="ident">min</span>, <span class="ident">max</span>)
+        }
+
+        <span class="kw">fn</span> <span class="ident">add_scalar</span>(<span class="ident">sh</span>: <span class="ident">SizeHint</span>, <span class="ident">x</span>: <span class="ident">usize</span>) -&gt; <span class="ident">SizeHint</span> {
+            <span class="kw">let</span> (<span class="kw-2">mut</span> <span class="ident">low</span>, <span class="kw-2">mut</span> <span class="ident">hi</span>) <span class="op">=</span> <span class="ident">sh</span>;
+            <span class="ident">low</span> <span class="op">=</span> <span class="ident">low</span>.<span class="ident">saturating_add</span>(<span class="ident">x</span>);
+            <span class="ident">hi</span> <span class="op">=</span> <span class="ident">hi</span>.<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">elt</span><span class="op">|</span> <span class="ident">elt</span>.<span class="ident">checked_add</span>(<span class="ident">x</span>));
+            (<span class="ident">low</span>, <span class="ident">hi</span>)
+        }
+        <span class="comment">// 2 * SH + { 1 or 0 }</span>
+        <span class="kw">let</span> <span class="ident">has_peek</span> <span class="op">=</span> <span class="ident">usize::from</span>(<span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">is_some</span>());
+        <span class="kw">let</span> <span class="ident">sh</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">size_hint</span>();
+        <span class="ident">add_scalar</span>(<span class="ident">add</span>(<span class="ident">sh</span>, <span class="ident">sh</span>), <span class="ident">has_peek</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">fold</span><span class="op">&lt;</span><span class="ident">B</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">init</span>: <span class="ident">B</span>, <span class="kw-2">mut</span> <span class="ident">f</span>: <span class="ident">F</span>) -&gt; <span class="ident">B</span>
+    <span class="kw">where</span>
+        <span class="self">Self</span>: <span class="ident">Sized</span>,
+        <span class="ident">F</span>: <span class="ident">FnMut</span>(<span class="ident">B</span>, <span class="ident"><span class="self">Self</span>::Item</span>) -&gt; <span class="ident">B</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">init</span>;
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek</span>.<span class="ident">take</span>() {
+            <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>);
+        }
+
+        <span class="kw">let</span> <span class="ident">element</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">element</span>;
+
+        <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">fold</span>(<span class="ident">accum</span>, <span class="op">|</span><span class="ident">accum</span>, <span class="ident">x</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">accum</span> <span class="op">=</span> <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">element</span>.<span class="ident">clone</span>());
+            <span class="ident">f</span>(<span class="ident">accum</span>, <span class="ident">x</span>)
+        })
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="ident">FusedIterator</span> <span class="kw">for</span> <span class="ident">Intersperse</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">I</span>: <span class="ident">Iterator</span>,
+    <span class="ident">I::Item</span>: <span class="ident">Clone</span>,
+{
+}
 
 <span class="doccomment">/// JavaScript `JSON` global object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>, <span class="ident">Hash</span>)]</span>
@@ -815,16 +1040,19 @@
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">cloned</span>()
             .<span class="ident">unwrap_or_default</span>()
-            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+            .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+            .<span class="ident">to_std_string</span>()
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.</span>
         <span class="comment">//    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">JSONValue</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">json_string</span>) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">json_string</span>) {
             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>());
         }
 
         <span class="comment">// 3. Let scriptString be the string-concatenation of &quot;(&quot;, jsonString, and &quot;);&quot;.</span>
-        <span class="kw">let</span> <span class="ident">script_string</span> <span class="op">=</span> <span class="ident">JsString::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;(&quot;</span>, <span class="ident">json_string</span>.<span class="ident">as_str</span>(), <span class="string">&quot;);&quot;</span>]);
+        <span class="comment">// TODO: fix script read for eval</span>
+        <span class="kw">let</span> <span class="ident">script_string</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({json_string});&quot;</span>);
 
         <span class="comment">// 4. Let script be ParseText(! StringToCodePoints(scriptString), Script).</span>
         <span class="comment">// 5. NOTE: The early error rules defined in 13.2.5.1 have special handling for the above invocation of ParseText.</span>
@@ -910,7 +1138,8 @@
                     <span class="comment">// This is safe, because EnumerableOwnPropertyNames with &#39;key&#39; type only returns strings.</span>
                     <span class="kw">let</span> <span class="ident">p</span> <span class="op">=</span> <span class="ident">p</span>
                         .<span class="ident">as_string</span>()
-                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>);
+                        .<span class="ident">expect</span>(<span class="string">&quot;EnumerableOwnPropertyNames only returns strings&quot;</span>)
+                        .<span class="ident">clone</span>();
 
                     <span class="comment">// 1. Let newElement be ? InternalizeJSONProperty(val, P, reviver).</span>
                     <span class="kw">let</span> <span class="ident">new_element</span> <span class="op">=</span>
@@ -919,12 +1148,12 @@
                     <span class="comment">// 2. If newElement is undefined, then</span>
                     <span class="kw">if</span> <span class="ident">new_element</span>.<span class="ident">is_undefined</span>() {
                         <span class="comment">// a. Perform ? val.[[Delete]](P).</span>
-                        <span class="ident">obj</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">obj</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">p</span>.<span class="ident">into</span>(), <span class="ident">context</span>)<span class="question-mark">?</span>;
                     }
                     <span class="comment">// 3. Else,</span>
                     <span class="kw">else</span> {
                         <span class="comment">// a. Perform ? CreateDataProperty(val, P, newElement).</span>
-                        <span class="ident">obj</span>.<span class="ident">create_data_property</span>(<span class="ident">p</span>.<span class="ident">as_str</span>(), <span class="ident">new_element</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+                        <span class="ident">obj</span>.<span class="ident">create_data_property</span>(<span class="ident">p</span>, <span class="ident">new_element</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
                     }
                 }
             }
@@ -959,7 +1188,7 @@
         <span class="kw">let</span> <span class="ident">stack</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
         <span class="comment">// 2. Let indent be the empty String.</span>
-        <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>();
 
         <span class="comment">// 3. Let PropertyList and ReplacerFunction be undefined.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_list</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -1046,9 +1275,9 @@
                 .<span class="ident">to_integer_or_infinity</span>(<span class="ident">context</span>)
                 .<span class="ident">expect</span>(<span class="string">&quot;ToIntegerOrInfinity cannot fail on number&quot;</span>)
             {
-                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;          &quot;</span>),
-                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
-                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">1</span> =&gt; <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>),
+                <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; <span class="macro">js_string!</span>(<span class="string">&quot;          &quot;</span>),
+                <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; <span class="macro">js_string!</span>(),
+                <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">1</span> =&gt; <span class="macro">js_string!</span>(),
                 <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">String::new</span>();
                     <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="number">10</span>, <span class="ident">i</span>);
@@ -1061,11 +1290,11 @@
         <span class="comment">// 7. Else if Type(space) is String, then</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">space</span>.<span class="ident">as_string</span>() {
             <span class="comment">// a. If the length of space is 10 or less, let gap be space; otherwise let gap be the substring of space from 0 to 10.</span>
-            <span class="ident">String::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>.<span class="ident">encode_utf16</span>().<span class="ident">take</span>(<span class="number">10</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">u16</span><span class="op">&gt;</span><span class="op">&gt;</span>()).<span class="ident">into</span>()
+            <span class="macro">js_string!</span>(<span class="ident">s</span>.<span class="ident">get</span>(..<span class="number">10</span>).<span class="ident">unwrap_or</span>(<span class="ident">s</span>))
         <span class="comment">// 8. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// a. Let gap be the empty String.</span>
-            <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>)
+            <span class="macro">js_string!</span>()
         };
 
         <span class="comment">// 9. Let wrapper be ! OrdinaryObjectCreate(%Object.prototype%).</span>
@@ -1087,7 +1316,7 @@
 
         <span class="comment">// 12. Return ? SerializeJSONProperty(state, the empty String, wrapper).</span>
         <span class="prelude-val">Ok</span>(
-            <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
+            <span class="ident"><span class="self">Self</span>::serialize_json_property</span>(<span class="kw-2">&amp;mut</span> <span class="ident">state</span>, <span class="macro">js_string!</span>(), <span class="kw-2">&amp;</span><span class="ident">wrapper</span>, <span class="ident">context</span>)<span class="question-mark">?</span>
                 .<span class="ident">map</span>(<span class="ident">Into::into</span>)
                 .<span class="ident">unwrap_or_default</span>(),
         )
@@ -1154,13 +1383,13 @@
 
         <span class="comment">// 5. If value is null, return &quot;null&quot;.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
         }
 
         <span class="comment">// 6. If value is true, return &quot;true&quot;.</span>
         <span class="comment">// 7. If value is false, return &quot;false&quot;.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_boolean</span>() {
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="kw">if</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="kw">if</span> <span class="ident">value</span>.<span class="ident">to_boolean</span>() {
                 <span class="string">&quot;true&quot;</span>
             } <span class="kw">else</span> {
                 <span class="string">&quot;false&quot;</span>
@@ -1184,7 +1413,7 @@
             }
 
             <span class="comment">// b. Return &quot;null&quot;.</span>
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;null&quot;</span>)));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;null&quot;</span>)));
         }
 
         <span class="comment">// 10. If Type(value) is BigInt, throw a TypeError exception.</span>
@@ -1217,45 +1446,50 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-quotejsonstring</span>
     <span class="kw">fn</span> <span class="ident">quote_json_string</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">JsString</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> [<span class="number">0</span>; <span class="number">2</span>];
         <span class="comment">// 1. Let product be the String value consisting solely of the code unit 0x0022 (QUOTATION MARK).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">product</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&#39;&quot;&#39;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">product</span> <span class="op">=</span> <span class="macro">vec!</span>[<span class="string">&#39;&quot;&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>];
 
         <span class="comment">// 2. For each code point C of ! StringToCodePoints(value), do</span>
-        <span class="kw">for</span> <span class="ident">code_point</span> <span class="kw">in</span> <span class="ident">value</span>.<span class="ident">encode_utf16</span>() {
+        <span class="kw">for</span> <span class="ident">code_point</span> <span class="kw">in</span> <span class="ident">value</span>.<span class="ident">code_points</span>() {
             <span class="kw">match</span> <span class="ident">code_point</span> {
                 <span class="comment">// a. If C is listed in the “Code Point” column of Table 73, then</span>
-                <span class="comment">// i. Set product to the string-concatenation of product and the escape sequence for C as specified in the “Escape Sequence” column of the corresponding row.</span>
-                <span class="number">0x8</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\b&quot;</span>),
-                <span class="number">0x9</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\t&quot;</span>),
-                <span class="number">0xA</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\n&quot;</span>),
-                <span class="number">0xC</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\f&quot;</span>),
-                <span class="number">0xD</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\r&quot;</span>),
-                <span class="number">0x22</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\&quot;&quot;</span>),
-                <span class="number">0x5C</span> =&gt; <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="string">&quot;\\\\&quot;</span>),
-                <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or if C has the same numeric value as a leading surrogate or trailing surrogate, then</span>
-                <span class="ident">code_point</span>
-                    <span class="kw">if</span> <span class="ident">is_leading_surrogate</span>(<span class="ident">code_point</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">is_trailing_surrogate</span>(<span class="ident">code_point</span>) =&gt;
-                {
-                    <span class="comment">// i. Let unit be the code unit whose numeric value is that of C.</span>
-                    <span class="comment">// ii. Set product to the string-concatenation of product and UnicodeEscape(unit).</span>
-                    <span class="ident">product</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;\\\\uAA{code_point:x}&quot;</span>));
+                <span class="comment">// i. Set product to the string-concatenation of product and the</span>
+                <span class="comment">// escape sequence for C as specified in the “Escape Sequence”</span>
+                <span class="comment">// column of the corresponding row.</span>
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0008}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\b&quot;</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0009}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\t&quot;</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000A}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\n&quot;</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000C}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\f&quot;</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{000D}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\r&quot;</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{0022}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r#&quot;\&quot;&quot;#</span>)),
+                <span class="ident">CodePoint::Unicode</span>(<span class="string">&#39;\u{005C}&#39;</span>) =&gt; <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="macro">utf16!</span>(<span class="string">r&quot;\\&quot;</span>)),
+                <span class="comment">// b. Else if C has a numeric value less than 0x0020 (SPACE), or</span>
+                <span class="comment">// if C has the same numeric value as a leading surrogate or</span>
+                <span class="comment">// trailing surrogate, then</span>
+                <span class="comment">//     i. Let unit be the code unit whose numeric value is that</span>
+                <span class="comment">//     of C.</span>
+                <span class="comment">//     ii. Set product to the string-concatenation of product</span>
+                <span class="comment">//     and UnicodeEscape(unit).</span>
+                <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) <span class="kw">if</span> <span class="ident">c</span> <span class="op">&lt;</span> <span class="string">&#39;\u{0020}&#39;</span> =&gt; {
+                    <span class="ident">product</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;\\u{:04x}&quot;</span>, <span class="ident">c</span> <span class="kw">as</span> <span class="ident">u32</span>).<span class="ident">encode_utf16</span>());
+                }
+                <span class="ident">CodePoint::UnpairedSurrogate</span>(<span class="ident">surr</span>) =&gt; {
+                    <span class="ident">product</span>.<span class="ident">extend</span>(<span class="macro">format!</span>(<span class="string">&quot;\\u{surr:04x}&quot;</span>).<span class="ident">encode_utf16</span>());
                 }
                 <span class="comment">// c. Else,</span>
-                <span class="ident">code_point</span> =&gt; {
+                <span class="ident">CodePoint::Unicode</span>(<span class="ident">c</span>) =&gt; {
                     <span class="comment">// i. Set product to the string-concatenation of product and ! UTF16EncodeCodePoint(C).</span>
-                    <span class="ident">product</span>.<span class="ident">push</span>(
-                        <span class="ident">char::from_u32</span>(<span class="ident">u32::from</span>(<span class="ident">code_point</span>))
-                            .<span class="ident">expect</span>(<span class="string">&quot;char from code point cannot fail here&quot;</span>),
-                    );
+                    <span class="ident">product</span>.<span class="ident">extend_from_slice</span>(<span class="ident">c</span>.<span class="ident">encode_utf16</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
                 }
             }
         }
 
         <span class="comment">// 3. Set product to the string-concatenation of product and the code unit 0x0022 (QUOTATION MARK).</span>
-        <span class="ident">product</span>.<span class="ident">push</span>(<span class="string">&#39;&quot;&#39;</span>);
+        <span class="ident">product</span>.<span class="ident">push</span>(<span class="string">&#39;&quot;&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
 
         <span class="comment">// 4. Return product.</span>
-        <span class="ident">product</span>.<span class="ident">into</span>()
+        <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">product</span>[..])
     }
 
     <span class="doccomment">/// `25.5.2.4 SerializeJSONObject ( state, value )`</span>
@@ -1282,7 +1516,7 @@
         <span class="kw">let</span> <span class="ident">stepback</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">clone</span>();
 
         <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="ident">JsString::concat</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
+        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
 
         <span class="comment">// 5. If state.[[PropertyList]] is not undefined, then</span>
         <span class="kw">let</span> <span class="ident">k</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">property_list</span> {
@@ -1312,19 +1546,19 @@
             <span class="comment">// b. If strP is not undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
                 <span class="comment">// i. Let member be QuoteJSONString(P).</span>
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">member</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::quote_json_string</span>(<span class="ident">p</span>).<span class="ident">to_vec</span>();
+
                 <span class="comment">// ii. Set member to the string-concatenation of member and &quot;:&quot;.</span>
+                <span class="ident">member</span>.<span class="ident">push</span>(<span class="string">&#39;:&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+
                 <span class="comment">// iii. If state.[[Gap]] is not the empty String, then</span>
-                <span class="comment">// 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).</span>
+                <span class="kw">if</span> <span class="op">!</span><span class="ident">state</span>.<span class="ident">gap</span>.<span class="ident">is_empty</span>() {
+                    <span class="comment">// 1. Set member to the string-concatenation of member and the code unit 0x0020 (SPACE).</span>
+                    <span class="ident">member</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span> <span class="kw">as</span> <span class="ident">u16</span>);
+                }
+
                 <span class="comment">// iv. Set member to the string-concatenation of member and strP.</span>
-                <span class="kw">let</span> <span class="ident">member</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">state</span>.<span class="ident">gap</span>.<span class="ident">is_empty</span>() {
-                    <span class="macro">format!</span>(<span class="string">&quot;{}:{}&quot;</span>, <span class="ident"><span class="self">Self</span>::quote_json_string</span>(<span class="ident">p</span>).<span class="ident">as_str</span>(), <span class="ident">str_p</span>.<span class="ident">as_str</span>())
-                } <span class="kw">else</span> {
-                    <span class="macro">format!</span>(
-                        <span class="string">&quot;{}: {}&quot;</span>,
-                        <span class="ident"><span class="self">Self</span>::quote_json_string</span>(<span class="ident">p</span>).<span class="ident">as_str</span>(),
-                        <span class="ident">str_p</span>.<span class="ident">as_str</span>()
-                    )
-                };
+                <span class="ident">member</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">str_p</span>);
 
                 <span class="comment">// v. Append member to partial.</span>
                 <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">member</span>);
@@ -1334,7 +1568,7 @@
         <span class="comment">// 9. If partial is empty, then</span>
         <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// a. Let final be &quot;{}&quot;.</span>
-            <span class="ident">JsString::new</span>(<span class="string">&quot;{}&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;{}&quot;</span>)
         <span class="comment">// 10. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// a. If state.[[Gap]] is the empty String, then</span>
@@ -1343,23 +1577,34 @@
                 <span class="comment">//    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).</span>
                 <span class="comment">//    A comma is not inserted either before the first String or after the last String.</span>
                 <span class="comment">// ii. Let final be the string-concatenation of &quot;{&quot;, properties, and &quot;}&quot;.</span>
-                <span class="macro">format!</span>(<span class="string">&quot;{{{}}}&quot;</span>, <span class="ident">partial</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>)).<span class="ident">into</span>()
+                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;{&quot;</span>))
+                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Vec::as_slice</span>), <span class="ident">separator</span>))
+                    .<span class="ident">chain</span>(<span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)))
+                    .<span class="ident">flatten</span>()
+                    .<span class="ident">copied</span>()
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
             <span class="comment">// b. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
                 <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,\n{}&quot;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).<span class="ident">to_vec</span>();
+                <span class="ident">separator</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>);
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
                 <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
                 <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
-                <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">partial</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
-                <span class="comment">// iii. Let final be the string-concatenation of &quot;{&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.</span>
-                <span class="macro">format!</span>(
-                    <span class="string">&quot;{{\n{}{properties}\n{}}}&quot;</span>,
-                    <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>(),
-                    <span class="ident">stepback</span>.<span class="ident">as_str</span>()
-                )
-                .<span class="ident">into</span>()
+                <span class="comment">// iii. Let final be the string-concatenation of &quot;{&quot;, the code</span>
+                <span class="comment">//      unit 0x000A (LINE FEED), state.[[Indent]], properties,</span>
+                <span class="comment">//      the code unit 0x000A (LINE FEED), stepback, and &quot;}&quot;.</span>
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> [<span class="macro">utf16!</span>(<span class="string">&quot;{\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>[..]]
+                    .<span class="ident">into_iter</span>()
+                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Vec::as_slice</span>), <span class="kw-2">&amp;</span><span class="ident">separator</span>))
+                    .<span class="ident">chain</span>([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">stepback</span>[..], <span class="macro">utf16!</span>(<span class="string">&quot;}&quot;</span>)].<span class="ident">into_iter</span>())
+                    .<span class="ident">flatten</span>()
+                    .<span class="ident">copied</span>()
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
             }
         };
 
@@ -1397,7 +1642,7 @@
         <span class="kw">let</span> <span class="ident">stepback</span> <span class="op">=</span> <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">clone</span>();
 
         <span class="comment">// 4. Set state.[[Indent]] to the string-concatenation of state.[[Indent]] and state.[[Gap]].</span>
-        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="ident">JsString::concat</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
+        <span class="ident">state</span>.<span class="ident">indent</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>, <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">gap</span>);
 
         <span class="comment">// 5. Let partial be a new empty List.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">partial</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -1417,11 +1662,11 @@
             <span class="comment">// b. If strP is undefined, then</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">str_p</span>) <span class="op">=</span> <span class="ident">str_p</span> {
                 <span class="comment">// i. Append strP to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">str_p</span>);
+                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">Cow::Owned</span>(<span class="ident">str_p</span>.<span class="ident">to_vec</span>()));
             <span class="comment">// c. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Append &quot;null&quot; to partial.</span>
-                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="string">&quot;null&quot;</span>.<span class="ident">into</span>());
+                <span class="ident">partial</span>.<span class="ident">push</span>(<span class="ident">Cow::Borrowed</span>(<span class="macro">utf16!</span>(<span class="string">&quot;null&quot;</span>)));
             }
 
             <span class="comment">// d. Set index to index + 1.</span>
@@ -1431,7 +1676,7 @@
         <span class="comment">// 9. If partial is empty, then</span>
         <span class="kw">let</span> <span class="ident">r#final</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">partial</span>.<span class="ident">is_empty</span>() {
             <span class="comment">// a. Let final be &quot;[]&quot;.</span>
-            <span class="ident">JsString::from</span>(<span class="string">&quot;[]&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;[]&quot;</span>)
         <span class="comment">// 10. Else,</span>
         } <span class="kw">else</span> {
             <span class="comment">// a. If state.[[Gap]] is the empty String, then</span>
@@ -1440,23 +1685,32 @@
                 <span class="comment">//    with each adjacent pair of Strings separated with the code unit 0x002C (COMMA).</span>
                 <span class="comment">//    A comma is not inserted either before the first String or after the last String.</span>
                 <span class="comment">// ii. Let final be the string-concatenation of &quot;[&quot;, properties, and &quot;]&quot;.</span>
-                <span class="macro">format!</span>(<span class="string">&quot;[{}]&quot;</span>, <span class="ident">partial</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>)).<span class="ident">into</span>()
+                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>);
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>))
+                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Cow::as_ref</span>), <span class="ident">separator</span>))
+                    .<span class="ident">chain</span>(<span class="ident">once</span>(<span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)))
+                    .<span class="ident">flatten</span>()
+                    .<span class="ident">copied</span>()
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
             <span class="comment">// b. Else,</span>
             } <span class="kw">else</span> {
                 <span class="comment">// i. Let separator be the string-concatenation of the code unit 0x002C (COMMA),</span>
                 <span class="comment">//    the code unit 0x000A (LINE FEED), and state.[[Indent]].</span>
-                <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;,\n{}&quot;</span>, <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>());
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">separator</span> <span class="op">=</span> <span class="macro">utf16!</span>(<span class="string">&quot;,\n&quot;</span>).<span class="ident">to_vec</span>();
+                <span class="ident">separator</span>.<span class="ident">extend_from_slice</span>(<span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>);
                 <span class="comment">// ii. Let properties be the String value formed by concatenating all the element Strings of partial</span>
                 <span class="comment">//     with each adjacent pair of Strings separated with separator.</span>
                 <span class="comment">//     The separator String is not inserted either before the first String or after the last String.</span>
-                <span class="kw">let</span> <span class="ident">properties</span> <span class="op">=</span> <span class="ident">partial</span>.<span class="ident">join</span>(<span class="kw-2">&amp;</span><span class="ident">separator</span>);
                 <span class="comment">// iii. Let final be the string-concatenation of &quot;[&quot;, the code unit 0x000A (LINE FEED), state.[[Indent]], properties, the code unit 0x000A (LINE FEED), stepback, and &quot;]&quot;.</span>
-                <span class="macro">format!</span>(
-                    <span class="string">&quot;[\n{}{properties}\n{}]&quot;</span>,
-                    <span class="ident">state</span>.<span class="ident">indent</span>.<span class="ident">as_str</span>(),
-                    <span class="ident">stepback</span>.<span class="ident">as_str</span>()
-                )
-                .<span class="ident">into</span>()
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> [<span class="macro">utf16!</span>(<span class="string">&quot;[\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">state</span>.<span class="ident">indent</span>[..]]
+                    .<span class="ident">into_iter</span>()
+                    .<span class="ident">chain</span>(<span class="ident">intersperse</span>(<span class="ident">partial</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">Cow::as_ref</span>), <span class="kw-2">&amp;</span><span class="ident">separator</span>))
+                    .<span class="ident">chain</span>([<span class="macro">utf16!</span>(<span class="string">&quot;\n&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">stepback</span>[..], <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)].<span class="ident">into_iter</span>())
+                    .<span class="ident">flatten</span>()
+                    .<span class="ident">copied</span>()
+                    .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
+                <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>[..])
             }
         };
 

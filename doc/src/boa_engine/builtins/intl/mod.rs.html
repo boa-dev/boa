@@ -836,6 +836,9 @@
 <span id="834">834</span>
 <span id="835">835</span>
 <span id="836">836</span>
+<span id="837">837</span>
+<span id="838">838</span>
+<span id="839">839</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Intl` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! `Intl` is a built-in object that has properties and methods for i18n. It&#39;s not a function object.</span>
@@ -851,7 +854,7 @@
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">date_time_format</span>;
@@ -927,8 +930,8 @@
 <span class="doccomment">/// This is a return value for `lookup_matcher` and `best_fit_matcher` subroutines.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">MatcherRecord</span> {
-    <span class="ident">locale</span>: <span class="ident">JsString</span>,
-    <span class="ident">extension</span>: <span class="ident">JsString</span>,
+    <span class="ident">locale</span>: <span class="ident">String</span>,
+    <span class="ident">extension</span>: <span class="ident">String</span>,
 }
 
 <span class="doccomment">/// Abstract operation `DefaultLocale ( )`</span>
@@ -959,9 +962,9 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-bestavailablelocale</span>
-<span class="kw">fn</span> <span class="ident">best_available_locale</span>(<span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>], <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">best_available_locale</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="ident">available_locales</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> [<span class="kw-2">&amp;</span><span class="lifetime">&#39;_</span> <span class="ident">str</span>], <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">str</span><span class="op">&gt;</span> {
     <span class="comment">// 1. Let candidate be locale.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">clone</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">locale</span>;
     <span class="comment">// 2. Repeat</span>
     <span class="kw">loop</span> {
         <span class="comment">// a. If availableLocales contains an element equal to candidate, return candidate.</span>
@@ -982,7 +985,7 @@
                     <span class="ident">ind</span>
                 };
                 <span class="comment">// d. Let candidate be the substring of candidate from position 0, inclusive, to position pos, exclusive.</span>
-                <span class="ident">candidate</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="kw-2">&amp;</span><span class="ident">candidate</span>[..<span class="ident">trim_ind</span>]);
+                <span class="ident">candidate</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">candidate</span>[..<span class="ident">trim_ind</span>];
             }
             <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         }
@@ -1000,8 +1003,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-lookupmatcher</span>
 <span class="kw">fn</span> <span class="ident">lookup_matcher</span>(
-    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
-    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
+    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
+    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     <span class="ident">canonicalizer</span>: <span class="kw-2">&amp;</span><span class="ident">LocaleCanonicalizer</span>,
 ) -&gt; <span class="ident">MatcherRecord</span> {
     <span class="comment">// 1. Let result be a new Record.</span>
@@ -1009,9 +1012,8 @@
     <span class="kw">for</span> <span class="ident">locale_str</span> <span class="kw">in</span> <span class="ident">requested_locales</span> {
         <span class="comment">// a. Let noExtensionsLocale be the String value that is locale with any Unicode locale</span>
         <span class="comment">//    extension sequences removed.</span>
-        <span class="kw">let</span> <span class="ident">parsed_locale</span> <span class="op">=</span>
-            <span class="ident">Locale::from_bytes</span>(<span class="ident">locale_str</span>.<span class="ident">as_bytes</span>()).<span class="ident">expect</span>(<span class="string">&quot;Locale parsing failed&quot;</span>);
-        <span class="kw">let</span> <span class="ident">no_extensions_locale</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="ident">parsed_locale</span>.<span class="ident">id</span>.<span class="ident">to_string</span>());
+        <span class="kw">let</span> <span class="ident">locale</span>: <span class="ident">Locale</span> <span class="op">=</span> <span class="ident">locale_str</span>.<span class="ident">parse</span>().<span class="ident">expect</span>(<span class="string">&quot;Locale parsing failed&quot;</span>);
+        <span class="kw">let</span> <span class="ident">no_extensions_locale</span> <span class="op">=</span> <span class="ident">locale</span>.<span class="ident">id</span>.<span class="ident">to_string</span>();
 
         <span class="comment">// b. Let availableLocale be ! BestAvailableLocale(availableLocales, noExtensionsLocale).</span>
         <span class="kw">let</span> <span class="ident">available_locale</span> <span class="op">=</span> <span class="ident">best_available_locale</span>(<span class="ident">available_locales</span>, <span class="kw-2">&amp;</span><span class="ident">no_extensions_locale</span>);
@@ -1022,17 +1024,17 @@
             <span class="comment">// Assignment deferred. See return statement below.</span>
             <span class="comment">// ii. If locale and noExtensionsLocale are not the same String value, then</span>
             <span class="kw">let</span> <span class="ident">maybe_ext</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">locale_str</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="ident">no_extensions_locale</span>) {
-                <span class="ident">JsString::empty</span>()
+                <span class="string">&quot;&quot;</span>.<span class="ident">into</span>()
             } <span class="kw">else</span> {
                 <span class="comment">// 1. Let extension be the String value consisting of the substring of the Unicode</span>
                 <span class="comment">//    locale extension sequence within locale.</span>
                 <span class="comment">// 2. Set result.[[extension]] to extension.</span>
-                <span class="ident">JsString::new</span>(<span class="ident">parsed_locale</span>.<span class="ident">extensions</span>.<span class="ident">to_string</span>())
+                <span class="ident">locale</span>.<span class="ident">extensions</span>.<span class="ident">to_string</span>()
             };
 
             <span class="comment">// iii. Return result.</span>
             <span class="kw">return</span> <span class="ident">MatcherRecord</span> {
-                <span class="ident">locale</span>: <span class="ident">available_locale</span>,
+                <span class="ident">locale</span>: <span class="ident">available_locale</span>.<span class="ident">into</span>(),
                 <span class="ident">extension</span>: <span class="ident">maybe_ext</span>,
             };
         }
@@ -1042,8 +1044,8 @@
     <span class="comment">// 4. Set result.[[locale]] to defLocale.</span>
     <span class="comment">// 5. Return result.</span>
     <span class="ident">MatcherRecord</span> {
-        <span class="ident">locale</span>: <span class="ident">default_locale</span>(<span class="ident">canonicalizer</span>).<span class="ident">to_string</span>().<span class="ident">into</span>(),
-        <span class="ident">extension</span>: <span class="ident">JsString::empty</span>(),
+        <span class="ident">locale</span>: <span class="ident">default_locale</span>(<span class="ident">canonicalizer</span>).<span class="ident">to_string</span>(),
+        <span class="ident">extension</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
     }
 }
 
@@ -1060,8 +1062,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-bestfitmatcher</span>
 <span class="kw">fn</span> <span class="ident">best_fit_matcher</span>(
-    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
-    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
+    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
+    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     <span class="ident">canonicalizer</span>: <span class="kw-2">&amp;</span><span class="ident">LocaleCanonicalizer</span>,
 ) -&gt; <span class="ident">MatcherRecord</span> {
     <span class="ident">lookup_matcher</span>(<span class="ident">available_locales</span>, <span class="ident">requested_locales</span>, <span class="ident">canonicalizer</span>)
@@ -1070,8 +1072,8 @@
 <span class="doccomment">/// `Keyword` structure is a pair of keyword key and keyword value.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">Keyword</span> {
-    <span class="ident">key</span>: <span class="ident">JsString</span>,
-    <span class="ident">value</span>: <span class="ident">JsString</span>,
+    <span class="ident">key</span>: <span class="ident">String</span>,
+    <span class="ident">value</span>: <span class="ident">String</span>,
 }
 
 <span class="doccomment">/// `UniExtRecord` structure represents unicode extension records.</span>
@@ -1084,7 +1086,7 @@
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">UniExtRecord</span> {
-    <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>, <span class="comment">// never read at this point</span>
+    <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span>, <span class="comment">// never read at this point</span>
     <span class="ident">keywords</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span>,
 }
 
@@ -1097,12 +1099,12 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-unicode-extension-components</span>
-<span class="kw">fn</span> <span class="ident">unicode_extension_components</span>(<span class="ident">extension</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">UniExtRecord</span> {
+<span class="kw">fn</span> <span class="ident">unicode_extension_components</span>(<span class="ident">extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">UniExtRecord</span> {
     <span class="comment">// 1. Let attributes be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attributes</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">attributes</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="comment">// 2. Let keywords be a new empty List.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keywords</span> <span class="op">=</span> <span class="ident">Vec</span>::<span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span><span class="ident">::new</span>();
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keywords</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
     <span class="comment">// 3. Let keyword be undefined.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">keyword</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
@@ -1116,24 +1118,24 @@
     <span class="comment">// 6. Repeat, while k &lt; size,</span>
     <span class="kw">while</span> <span class="ident">k</span> <span class="op">&lt;</span> <span class="ident">size</span> {
         <span class="comment">// a. Let e be ! StringIndexOf(extension, &quot;-&quot;, k).</span>
-        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">extension</span>.<span class="ident">index_of</span>(<span class="kw-2">&amp;</span><span class="ident">JsString::new</span>(<span class="string">&quot;-&quot;</span>), <span class="ident">k</span>);
+        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">extension</span>[<span class="ident">k</span>..].<span class="ident">find</span>(<span class="string">&#39;-&#39;</span>);
 
         <span class="comment">// b. If e = -1, let len be size - k; else let len be e - k.</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">e</span> {
-            <span class="prelude-val">Some</span>(<span class="ident">pos</span>) =&gt; <span class="ident">pos</span> <span class="op">-</span> <span class="ident">k</span>,
+            <span class="prelude-val">Some</span>(<span class="ident">pos</span>) =&gt; <span class="ident">pos</span>,
             <span class="prelude-val">None</span> =&gt; <span class="ident">size</span> <span class="op">-</span> <span class="ident">k</span>,
         };
 
         <span class="comment">// c. Let subtag be the String value equal to the substring of extension consisting of the</span>
         <span class="comment">// code units at indices k (inclusive) through k + len (exclusive).</span>
-        <span class="kw">let</span> <span class="ident">subtag</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="kw-2">&amp;</span><span class="ident">extension</span>[<span class="ident">k</span>..<span class="ident">k</span> <span class="op">+</span> <span class="ident">len</span>]);
+        <span class="kw">let</span> <span class="ident">subtag</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">extension</span>[<span class="ident">k</span>..<span class="ident">k</span> <span class="op">+</span> <span class="ident">len</span>];
 
         <span class="comment">// d. If keyword is undefined and len ≠ 2, then</span>
         <span class="kw">if</span> <span class="ident">keyword</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="ident">len</span> <span class="op">!</span><span class="op">=</span> <span class="number">2</span> {
             <span class="comment">// i. If subtag is not an element of attributes, then</span>
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">attributes</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">subtag</span>) {
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">attributes</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">subtag</span>) {
                 <span class="comment">// 1. Append subtag to attributes.</span>
-                <span class="ident">attributes</span>.<span class="ident">push</span>(<span class="ident">subtag</span>);
+                <span class="ident">attributes</span>.<span class="ident">push</span>(<span class="ident">subtag</span>.<span class="ident">to_string</span>());
             }
         <span class="comment">// e. Else if len = 2, then</span>
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">2</span> {
@@ -1149,8 +1151,8 @@
 
             <span class="comment">// ii. Set keyword to the Record { [[Key]]: subtag, [[Value]]: &quot;&quot; }.</span>
             <span class="ident">keyword</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Keyword</span> {
-                <span class="ident">key</span>: <span class="ident">subtag</span>,
-                <span class="ident">value</span>: <span class="ident">JsString::empty</span>(),
+                <span class="ident">key</span>: <span class="ident">subtag</span>.<span class="ident">into</span>(),
+                <span class="ident">value</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
             });
         <span class="comment">// f. Else,</span>
         } <span class="kw">else</span> {
@@ -1160,9 +1162,9 @@
             <span class="comment">//      1. Set keyword.[[Value]] to the string-concatenation of keyword.[[Value]], &quot;-&quot;, and subtag.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">keyword_val</span>) <span class="op">=</span> <span class="ident">keyword</span> {
                 <span class="kw">let</span> <span class="ident">new_keyword_val</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">keyword_val</span>.<span class="ident">value</span>.<span class="ident">is_empty</span>() {
-                    <span class="ident">subtag</span>
+                    <span class="ident">subtag</span>.<span class="ident">into</span>()
                 } <span class="kw">else</span> {
-                    <span class="ident">JsString::new</span>(<span class="macro">format!</span>(<span class="string">&quot;{}-{subtag}&quot;</span>, <span class="ident">keyword_val</span>.<span class="ident">value</span>))
+                    <span class="macro">format!</span>(<span class="string">&quot;{}-{subtag}&quot;</span>, <span class="ident">keyword_val</span>.<span class="ident">value</span>)
                 };
 
                 <span class="ident">keyword</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">Keyword</span> {
@@ -1207,7 +1209,7 @@
     <span class="ident">locale</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">extension</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">canonicalizer</span>: <span class="kw-2">&amp;</span><span class="ident">LocaleCanonicalizer</span>,
-) -&gt; <span class="ident">JsString</span> {
+) -&gt; <span class="ident">String</span> {
     <span class="comment">// TODO 1. Assert: locale does not contain a substring that is a Unicode locale extension sequence.</span>
     <span class="comment">// TODO 2. Assert: extension is a Unicode locale extension sequence.</span>
     <span class="comment">// TODO 3. Assert: tag matches the unicode_locale_id production.</span>
@@ -1242,7 +1244,7 @@
 
     <span class="comment">// 8. Return ! CanonicalizeUnicodeLocaleId(locale).</span>
     <span class="ident">canonicalize_unicode_locale_id</span>(<span class="kw-2">&amp;mut</span> <span class="ident">new_locale</span>, <span class="ident">canonicalizer</span>);
-    <span class="ident">new_locale</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()
+    <span class="ident">new_locale</span>.<span class="ident">to_string</span>()
 }
 
 <span class="doccomment">/// Abstract operation `CanonicalizeLocaleList ( locales )`</span>
@@ -1304,11 +1306,15 @@
             <span class="comment">// 1. Let tag be kValue.[[Locale]].</span>
             <span class="comment">// iv. Else,</span>
             <span class="comment">// 1. Let tag be ? ToString(kValue).</span>
-            <span class="kw">let</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">k_value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// v. If IsStructurallyValidLanguageTag(tag) is false, throw a RangeError exception.</span>
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">tag</span>.<span class="ident">parse</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;locale is not a structurally valid language tag&quot;</span>)
-            })<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">tag</span> <span class="op">=</span> <span class="ident">k_value</span>
+                .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
+                .<span class="ident">to_std_string</span>()
+                .<span class="ident">ok</span>()
+                .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">tag</span><span class="op">|</span> <span class="ident">tag</span>.<span class="ident">parse</span>().<span class="ident">ok</span>())
+                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;locale is not a structurally valid language tag&quot;</span>)
+                })<span class="question-mark">?</span>;
 
             <span class="comment">// vi. Let canonicalizedTag be CanonicalizeUnicodeLocaleId(tag).</span>
             <span class="ident">canonicalize_unicode_locale_id</span>(<span class="kw-2">&amp;mut</span> <span class="ident">tag</span>, <span class="ident">context</span>.<span class="ident">icu</span>().<span class="ident">locale_canonicalizer</span>());
@@ -1327,15 +1333,15 @@
 <span class="doccomment">/// It is an alias for a map where key is a string and value is another map.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Value of that inner map is a vector of strings representing locale parameters.</span>
-<span class="kw">type</span> <span class="ident">LocaleDataRecord</span> <span class="op">=</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+<span class="kw">type</span> <span class="ident">LocaleDataRecord</span> <span class="op">=</span> <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
 <span class="doccomment">/// `DateTimeFormatRecord` type aggregates `locale_matcher` selector and `properties` map.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// It is used as a type of `options` parameter in `resolve_locale` subroutine.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">DateTimeFormatRecord</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">locale_matcher</span>: <span class="ident">JsString</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">locale_matcher</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>,
 }
 
 <span class="doccomment">/// `ResolveLocaleRecord` type consists of unicode `locale` string, `data_locale` string and `properties` map.</span>
@@ -1343,9 +1349,9 @@
 <span class="doccomment">/// This is a return value for `resolve_locale` subroutine.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ResolveLocaleRecord</span> {
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">locale</span>: <span class="ident">JsString</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">JsString</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">data_locale</span>: <span class="ident">JsString</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">locale</span>: <span class="ident">String</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">properties</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">JsValue</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="ident">data_locale</span>: <span class="ident">String</span>,
 }
 
 <span class="doccomment">/// Abstract operation `ResolveLocale ( availableLocales, requestedLocales, options, relevantExtensionKeys, localeData )`</span>
@@ -1361,10 +1367,10 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma402/#sec-resolvelocale</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">dead_code</span>)]</span>
 <span class="kw">fn</span> <span class="ident">resolve_locale</span>(
-    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
-    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
+    <span class="ident">available_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
+    <span class="ident">requested_locales</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">DateTimeFormatRecord</span>,
-    <span class="ident">relevant_extension_keys</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
+    <span class="ident">relevant_extension_keys</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     <span class="ident">locale_data</span>: <span class="kw-2">&amp;</span><span class="ident">LocaleDataRecord</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">ResolveLocaleRecord</span> {
@@ -1374,7 +1380,7 @@
     <span class="comment">//    a. Let r be ! LookupMatcher(availableLocales, requestedLocales).</span>
     <span class="comment">// 3. Else,</span>
     <span class="comment">//    a. Let r be ! BestFitMatcher(availableLocales, requestedLocales).</span>
-    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">matcher</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="ident">JsString::new</span>(<span class="string">&quot;lookup&quot;</span>)) {
+    <span class="kw">let</span> <span class="ident">r</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">matcher</span> <span class="op">==</span> <span class="string">&quot;lookup&quot;</span> {
         <span class="ident">lookup_matcher</span>(
             <span class="ident">available_locales</span>,
             <span class="ident">requested_locales</span>,
@@ -1393,9 +1399,9 @@
 
     <span class="comment">// 5. Let result be a new Record.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">ResolveLocaleRecord</span> {
-        <span class="ident">locale</span>: <span class="ident">JsString::empty</span>(),
+        <span class="ident">locale</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
         <span class="ident">properties</span>: <span class="ident">FxHashMap::default</span>(),
-        <span class="ident">data_locale</span>: <span class="ident">JsString::empty</span>(),
+        <span class="ident">data_locale</span>: <span class="string">&quot;&quot;</span>.<span class="ident">into</span>(),
     };
 
     <span class="comment">// 6. Set result.[[dataLocale]] to foundLocale.</span>
@@ -1412,10 +1418,10 @@
     };
 
     <span class="comment">// 8. Let supportedExtension be &quot;-u&quot;.</span>
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_extension</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;-u&quot;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_extension</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;-u&quot;</span>);
 
     <span class="comment">// 9. For each element key of relevantExtensionKeys, do</span>
-    <span class="kw">for</span> <span class="ident">key</span> <span class="kw">in</span> <span class="ident">relevant_extension_keys</span> {
+    <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">key</span> <span class="kw">in</span> <span class="ident">relevant_extension_keys</span> {
         <span class="comment">// a. Let foundLocaleData be localeData.[[&lt;foundLocale&gt;]].</span>
         <span class="comment">// TODO b. Assert: Type(foundLocaleData) is Record.</span>
         <span class="kw">let</span> <span class="ident">found_locale_data</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">locale_data</span>.<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">found_locale</span>) {
@@ -1433,12 +1439,12 @@
         <span class="comment">// e. Let value be keyLocaleData[0].</span>
         <span class="comment">// TODO f. Assert: Type(value) is either String or Null.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">key_locale_data</span>.<span class="ident">get</span>(<span class="number">0</span>) {
-            <span class="prelude-val">Some</span>(<span class="ident">first_elt</span>) =&gt; <span class="ident">JsValue::String</span>(<span class="ident">first_elt</span>.<span class="ident">clone</span>()),
+            <span class="prelude-val">Some</span>(<span class="ident">first_elt</span>) =&gt; <span class="ident">first_elt</span>.<span class="ident">clone</span>().<span class="ident">into</span>(),
             <span class="prelude-val">None</span> =&gt; <span class="ident">JsValue::null</span>(),
         };
 
         <span class="comment">// g. Let supportedExtensionAddition be &quot;&quot;.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="ident">JsString::empty</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>.<span class="ident">into</span>();
 
         <span class="comment">// h. If r has an [[extension]] field, then</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">r</span>.<span class="ident">extension</span>.<span class="ident">is_empty</span>() {
@@ -1452,20 +1458,19 @@
                 <span class="comment">// 3. If requestedValue is not the empty String, then</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">requested_value</span>.<span class="ident">is_empty</span>() {
                     <span class="comment">// a. If keyLocaleData contains requestedValue, then</span>
-                    <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">contains</span>(<span class="ident">requested_value</span>) {
+                    <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="ident">requested_value</span>) {
                         <span class="comment">// i. Let value be requestedValue.</span>
-                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">JsValue::String</span>(<span class="ident">JsString::new</span>(<span class="ident">requested_value</span>));
+                        <span class="ident">value</span> <span class="op">=</span> <span class="ident">requested_value</span>.<span class="ident">clone</span>().<span class="ident">into</span>();
                         <span class="comment">// ii. Let supportedExtensionAddition be the string-concatenation</span>
                         <span class="comment">// of &quot;-&quot;, key, &quot;-&quot;, and value.</span>
-                        <span class="ident">supported_extension_addition</span> <span class="op">=</span>
-                            <span class="ident">JsString::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-&quot;</span>, <span class="ident">key</span>, <span class="string">&quot;-&quot;</span>, <span class="ident">requested_value</span>]);
+                        <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;-{key}-{requested_value}&quot;</span>);
                     }
                 <span class="comment">// 4. Else if keyLocaleData contains &quot;true&quot;, then</span>
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>)) {
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="string">&quot;true&quot;</span>) {
                     <span class="comment">// a. Let value be &quot;true&quot;.</span>
-                    <span class="ident">value</span> <span class="op">=</span> <span class="ident">JsValue::String</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>));
+                    <span class="ident">value</span> <span class="op">=</span> <span class="string">&quot;true&quot;</span>.<span class="ident">into</span>();
                     <span class="comment">// b. Let supportedExtensionAddition be the string-concatenation of &quot;-&quot; and key.</span>
-                    <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="ident">JsString::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;-&quot;</span>, <span class="ident">key</span>]);
+                    <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;-{key}&quot;</span>);
                 }
             }
         }
@@ -1497,7 +1502,7 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">options_val_str</span>) <span class="op">=</span> <span class="ident">options_value</span>.<span class="ident">as_string</span>() {
                     <span class="kw">if</span> <span class="ident">options_val_str</span>.<span class="ident">is_empty</span>() {
                         <span class="comment">// a. Let optionsValue be &quot;true&quot;.</span>
-                        <span class="ident">options_value</span> <span class="op">=</span> <span class="ident">JsValue::String</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;true&quot;</span>));
+                        <span class="ident">options_value</span> <span class="op">=</span> <span class="string">&quot;true&quot;</span>.<span class="ident">into</span>();
                     }
                 }
             }
@@ -1505,24 +1510,25 @@
             <span class="comment">// iv. If keyLocaleData contains optionsValue, then</span>
             <span class="kw">let</span> <span class="ident">options_val_str</span> <span class="op">=</span> <span class="ident">options_value</span>
                 .<span class="ident">to_string</span>(<span class="ident">context</span>)
-                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="ident">JsString::empty</span>());
-            <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">options_val_str</span>) {
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> <span class="string">&quot;&quot;</span>.<span class="ident">into</span>())
+                .<span class="ident">to_std_string_escaped</span>();
+            <span class="kw">if</span> <span class="ident">key_locale_data</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span> <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">options_val_str</span>) {
                 <span class="comment">// 1. If SameValue(optionsValue, value) is false, then</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">options_value</span>.<span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) {
                     <span class="comment">// a. Let value be optionsValue.</span>
                     <span class="ident">value</span> <span class="op">=</span> <span class="ident">options_value</span>;
 
                     <span class="comment">// b. Let supportedExtensionAddition be &quot;&quot;.</span>
-                    <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="ident">JsString::empty</span>();
+                    <span class="ident">supported_extension_addition</span> <span class="op">=</span> <span class="string">&quot;&quot;</span>.<span class="ident">into</span>();
                 }
             }
         }
 
         <span class="comment">// j. Set result.[[&lt;key&gt;]] to value.</span>
-        <span class="ident">result</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">clone</span>(), <span class="ident">value</span>);
+        <span class="ident">result</span>.<span class="ident">properties</span>.<span class="ident">insert</span>(<span class="ident">key</span>.<span class="ident">to_string</span>(), <span class="ident">value</span>);
 
         <span class="comment">// k. Append supportedExtensionAddition to supportedExtension.</span>
-        <span class="ident">supported_extension</span> <span class="op">=</span> <span class="ident">JsString::concat</span>(<span class="ident">supported_extension</span>, <span class="kw-2">&amp;</span><span class="ident">supported_extension_addition</span>);
+        <span class="ident">supported_extension</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">supported_extension_addition</span>);
     }
 
     <span class="comment">// 10. If the number of elements in supportedExtension is greater than 2, then</span>
@@ -1564,7 +1570,7 @@
     <span class="ident">options</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">property</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
     <span class="ident">r#type</span>: <span class="kw-2">&amp;</span><span class="ident">GetOptionType</span>,
-    <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsString</span>],
+    <span class="ident">values</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
     <span class="ident">fallback</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
@@ -1587,11 +1593,11 @@
     <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">r#type</span> {
         <span class="ident">GetOptionType::Boolean</span> =&gt; <span class="ident">JsValue::Boolean</span>(<span class="ident">value</span>.<span class="ident">to_boolean</span>()),
         <span class="ident">GetOptionType::String</span> =&gt; {
-            <span class="kw">let</span> <span class="ident">string_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">values</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">string_value</span>) {
+            <span class="kw">let</span> <span class="ident">string_value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">to_std_string_escaped</span>();
+            <span class="kw">if</span> <span class="op">!</span><span class="ident">values</span>.<span class="ident">is_empty</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">values</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">string_value</span>.<span class="ident">as_str</span>()) {
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;GetOption: values array does not contain value&quot;</span>);
             }
-            <span class="ident">JsValue::String</span>(<span class="ident">string_value</span>)
+            <span class="ident">JsValue::String</span>(<span class="ident">string_value</span>.<span class="ident">into</span>())
         }
     };
 

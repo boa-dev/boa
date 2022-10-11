@@ -149,6 +149,7 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `eval()` function evaluates JavaScript code represented as a string.</span>
@@ -229,9 +230,10 @@
         };
 
         <span class="comment">// Because of implementation details the following code differs from the spec.</span>
+        <span class="comment">// TODO: rework parser to take an iterator of `u32` unicode codepoints</span>
 
         <span class="comment">// Parse the script body and handle early errors (6 - 11)</span>
-        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse_eval</span>(<span class="ident">x</span>.<span class="ident">as_bytes</span>(), <span class="ident">direct</span>, <span class="ident">strict</span>) {
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse_eval</span>(<span class="ident">x</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_bytes</span>(), <span class="ident">direct</span>, <span class="ident">strict</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; <span class="ident">body</span>,
             <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()),
         };

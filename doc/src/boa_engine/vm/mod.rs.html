@@ -2823,6 +2823,50 @@
 <span id="2821">2821</span>
 <span id="2822">2822</span>
 <span id="2823">2823</span>
+<span id="2824">2824</span>
+<span id="2825">2825</span>
+<span id="2826">2826</span>
+<span id="2827">2827</span>
+<span id="2828">2828</span>
+<span id="2829">2829</span>
+<span id="2830">2830</span>
+<span id="2831">2831</span>
+<span id="2832">2832</span>
+<span id="2833">2833</span>
+<span id="2834">2834</span>
+<span id="2835">2835</span>
+<span id="2836">2836</span>
+<span id="2837">2837</span>
+<span id="2838">2838</span>
+<span id="2839">2839</span>
+<span id="2840">2840</span>
+<span id="2841">2841</span>
+<span id="2842">2842</span>
+<span id="2843">2843</span>
+<span id="2844">2844</span>
+<span id="2845">2845</span>
+<span id="2846">2846</span>
+<span id="2847">2847</span>
+<span id="2848">2848</span>
+<span id="2849">2849</span>
+<span id="2850">2850</span>
+<span id="2851">2851</span>
+<span id="2852">2852</span>
+<span id="2853">2853</span>
+<span id="2854">2854</span>
+<span id="2855">2855</span>
+<span id="2856">2856</span>
+<span id="2857">2857</span>
+<span id="2858">2858</span>
+<span id="2859">2859</span>
+<span id="2860">2860</span>
+<span id="2861">2861</span>
+<span id="2862">2862</span>
+<span id="2863">2863</span>
+<span id="2864">2864</span>
+<span id="2865">2865</span>
+<span id="2866">2866</span>
+<span id="2867">2867</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -3213,7 +3257,7 @@
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">rhs</span>.<span class="ident">is_object</span>() {
                     <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
                         <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got {}&quot;</span>,
-                        <span class="ident">rhs</span>.<span class="ident">type_of</span>()
+                        <span class="ident">rhs</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
                     ));
                 }
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
@@ -3306,7 +3350,7 @@
                     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">interner</span>()
                         .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
-                        .<span class="ident">into</span>();
+                        .<span class="ident">into_common</span>(<span class="bool-val">false</span>);
                     <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">entry</span>(<span class="ident">key</span>).<span class="ident">or_insert</span>(
                         <span class="ident">PropertyDescriptor::builder</span>()
                             .<span class="ident">value</span>(<span class="ident">JsValue::Undefined</span>)
@@ -3333,6 +3377,7 @@
                     <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>
                         .<span class="ident">interner</span>()
                         .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
+                        .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
                         .<span class="ident">into</span>();
                     <span class="ident"><span class="kw">crate</span>::object::internal_methods::global::global_set_no_receiver</span>(
                         <span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">value</span>, <span class="self">self</span>,
@@ -3380,7 +3425,7 @@
                         <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">JsString</span> <span class="op">=</span> <span class="self">self</span>
                             .<span class="ident">interner</span>()
                             .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
-                            .<span class="ident">into</span>();
+                            .<span class="ident">into_common</span>(<span class="bool-val">false</span>);
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
                             <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">kind</span>() {
                                 <span class="ident">DescriptorKind::Data</span> {
@@ -3393,12 +3438,17 @@
                                     <span class="self">self</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">get</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
                                 }
                                 <span class="kw">_</span> =&gt; {
-                                    <span class="kw">return</span> <span class="self">self</span>
-                                        .<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{key} is not defined&quot;</span>))
+                                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
+                                        <span class="string">&quot;{} is not defined&quot;</span>,
+                                        <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                    ))
                                 }
                             },
                             <span class="kw">_</span> =&gt; {
-                                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{key} is not defined&quot;</span>))
+                                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
+                                    <span class="string">&quot;{} is not defined&quot;</span>,
+                                    <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                ))
                             }
                         }
                     }
@@ -3409,9 +3459,11 @@
                 ) {
                     <span class="ident">value</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span>
-                        <span class="ident">JsString::from</span>(<span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>()));
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{name} is not initialized&quot;</span>));
+                    <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">interner</span>()
+                        .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
+                        .<span class="ident">to_string</span>();
+                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{name} is not initialized&quot;</span>,));
                 };
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
@@ -3431,7 +3483,7 @@
                         <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">JsString</span> <span class="op">=</span> <span class="self">self</span>
                             .<span class="ident">interner</span>()
                             .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
-                            .<span class="ident">into</span>();
+                            .<span class="ident">into_common</span>(<span class="bool-val">false</span>);
                         <span class="kw">match</span> <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>) {
                             <span class="prelude-val">Some</span>(<span class="ident">desc</span>) =&gt; <span class="kw">match</span> <span class="ident">desc</span>.<span class="ident">kind</span>() {
                                 <span class="ident">DescriptorKind::Data</span> {
@@ -3475,12 +3527,13 @@
                         <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">JsString</span> <span class="op">=</span> <span class="self">self</span>
                             .<span class="ident">interner</span>()
                             .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>())
-                            .<span class="ident">into</span>();
+                            .<span class="ident">into_common</span>(<span class="bool-val">false</span>);
                         <span class="kw">let</span> <span class="ident">exists</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
 
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">exists</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;assignment to undeclared variable {key}&quot;</span>
+                                <span class="string">&quot;assignment to undeclared variable {}&quot;</span>,
+                                <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
                             ));
                         }
 
@@ -3493,7 +3546,8 @@
 
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
                             <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;cannot set non-writable property: {key}&quot;</span>,
+                                <span class="string">&quot;cannot set non-writable property: {}&quot;</span>,
+                                <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
                             ));
                         }
                     }
@@ -3566,7 +3620,11 @@
                 };
 
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">get</span>(<span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
@@ -3612,7 +3670,11 @@
                 };
 
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span>: <span class="ident">PropertyKey</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
 
                 <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
             }
@@ -3626,7 +3688,10 @@
                     <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
                 };
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>);
                 <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
                     <span class="ident">name</span>.<span class="ident">into</span>(),
                     <span class="ident">PropertyDescriptor::builder</span>()
@@ -3657,7 +3722,7 @@
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>);
                 <span class="ident">object</span>.<span class="ident">__define_own_property__</span>(
-                    <span class="ident">name</span>.<span class="ident">into</span>(),
+                    <span class="ident">name</span>.<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>).<span class="ident">into</span>(),
                     <span class="ident">PropertyDescriptor::builder</span>()
                         .<span class="ident">value</span>(<span class="ident">value</span>)
                         .<span class="ident">writable</span>(<span class="bool-val">true</span>)
@@ -3735,7 +3800,11 @@
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -3765,7 +3834,11 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;method must be function object&quot;</span>)
                     .<span class="ident">set_home_object</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -3839,7 +3912,11 @@
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -3869,7 +3946,11 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;method must be function object&quot;</span>)
                     .<span class="ident">set_home_object</span>(<span class="ident">object</span>.<span class="ident">clone</span>());
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">name</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">get</span> <span class="op">=</span> <span class="ident">object</span>
                     .<span class="ident">__get_own_property__</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">as_ref</span>()
@@ -4172,7 +4253,11 @@
             <span class="ident">Opcode::DeletePropertyByName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
-                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">key</span>).<span class="ident">into</span>();
+                <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="self">self</span>
+                    .<span class="ident">interner</span>()
+                    .<span class="ident">resolve_expect</span>(<span class="ident">key</span>)
+                    .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
+                    .<span class="ident">into</span>();
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
@@ -5002,7 +5087,10 @@
                 }
                 <span class="ident">strings</span>.<span class="ident">reverse</span>();
                 <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">JsString::concat_array</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">strings</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="ident">JsString::as_str</span>).<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">strings</span>
+                        .<span class="ident">iter</span>()
+                        .<span class="ident">map</span>(<span class="ident">JsString::as_slice</span>)
+                        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u16</span>]<span class="op">&gt;</span><span class="op">&gt;</span>(),
                 );
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">s</span>);
             }

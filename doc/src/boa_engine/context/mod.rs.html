@@ -881,7 +881,7 @@
     <span class="ident">realm::Realm</span>,
     <span class="ident">syntax</span>::{<span class="ident">ast::node::StatementList</span>, <span class="ident">parser::ParseError</span>, <span class="ident">Parser</span>},
     <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">Vm</span>},
-    <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
@@ -1090,7 +1090,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::Error::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1109,7 +1109,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_error</span>(<span class="ident">message</span>))
     }
@@ -1118,7 +1118,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_range_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::RangeError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1137,7 +1137,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_range_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_range_error</span>(<span class="ident">message</span>))
     }
@@ -1146,7 +1146,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_type_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::TypeError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1165,7 +1165,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_type_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="ident">message</span>))
     }
@@ -1174,7 +1174,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_reference_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::ReferenceError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1193,7 +1193,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_reference_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_reference_error</span>(<span class="ident">message</span>))
     }
@@ -1202,7 +1202,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_syntax_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::SyntaxError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1221,7 +1221,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_syntax_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_syntax_error</span>(<span class="ident">message</span>))
     }
@@ -1229,7 +1229,7 @@
     <span class="doccomment">/// Constructs a `EvalError` with the specified message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_eval_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::EvalError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1247,7 +1247,7 @@
     <span class="doccomment">/// Constructs a `URIError` with the specified message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">construct_uri_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsValue</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="ident"><span class="kw">crate</span>::builtins::error::UriError::constructor</span>(
             <span class="kw-2">&amp;</span><span class="self">self</span>
@@ -1265,7 +1265,7 @@
     <span class="doccomment">/// Throws a `EvalError` with the specified message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_eval_error</span><span class="op">&lt;</span><span class="ident">M</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_eval_error</span>(<span class="ident">message</span>))
     }
@@ -1273,7 +1273,7 @@
     <span class="doccomment">/// Throws a `URIError` with the specified message.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">throw_uri_error</span><span class="op">&lt;</span><span class="ident">M</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">message</span>: <span class="ident">M</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">M</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     {
         <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_uri_error</span>(<span class="ident">message</span>))
     }

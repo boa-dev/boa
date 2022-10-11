@@ -266,13 +266,13 @@
             <span class="comment">//    a. Let n be ! StringToBigInt(y).</span>
             <span class="comment">//    b. If n is NaN, return false.</span>
             <span class="comment">//    c. Return the result of the comparison x == n.</span>
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">JsBigInt::from_string</span>(<span class="ident">b</span>) {
+            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">b</span>.<span class="ident">to_big_int</span>() {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">b</span>) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             },
 
             <span class="comment">// 7. If Type(x) is String and Type(y) is BigInt, return the result of the comparison y == x.</span>
-            (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">JsBigInt::from_string</span>(<span class="ident">a</span>) {
+            (<span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="kw">match</span> <span class="ident">a</span>.<span class="ident">to_big_int</span>() {
                 <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">a</span>) =&gt; <span class="ident">a</span> <span class="op">==</span> <span class="ident">b</span>,
                 <span class="prelude-val">None</span> =&gt; <span class="bool-val">false</span>,
             },

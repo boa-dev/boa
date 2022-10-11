@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["Json","JavaScript `JSON` global object."],["StateRecord",""]]};
+window.SIDEBAR_ITEMS = {"fn":[["intersperse",""]],"struct":[["Intersperse",""],["Json","JavaScript `JSON` global object."],["StateRecord",""]]};

@@ -1046,6 +1046,10 @@
 <span id="1044">1044</span>
 <span id="1045">1045</span>
 <span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -1064,12 +1068,14 @@
     <span class="ident">bytecompiler</span>::{<span class="ident">FunctionCompiler</span>, <span class="ident">FunctionKind</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments::DeclarativeEnvironmentStack</span>,
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>,
         <span class="ident">ObjectData</span>,
     },
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">PrivateElement</span>, <span class="ident">Ref</span>, <span class="ident">RefMut</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
+    <span class="ident">string::utf16</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">syntax</span>::{
         <span class="ident">ast::node</span>::{<span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
@@ -1084,7 +1090,6 @@
 <span class="kw">use</span> <span class="ident">dyn_clone::DynClone</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">any::Any</span>,
-    <span class="ident">borrow::Cow</span>,
     <span class="ident">fmt</span>,
     <span class="ident">ops</span>::{<span class="ident">Deref</span>, <span class="ident">DerefMut</span>},
 };
@@ -1546,16 +1551,15 @@
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">args</span>.<span class="ident">len</span>());
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
-                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                    <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">as_slice</span>().<span class="ident">to_owned</span>());
                 }
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">join</span>(<span class="string">&quot;,&quot;</span>);
-                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="string">&#39;)&#39;</span>);
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">join</span>(<span class="macro">utf16!</span>(<span class="string">&quot;,&quot;</span>));
+                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">u16::from</span>(<span class="string">b&#39;)&#39;</span>));
 
-                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">parameters</span>.<span class="ident">as_bytes</span>()).<span class="ident">parse_formal_parameters</span>(
-                    <span class="ident">context</span>.<span class="ident">interner_mut</span>(),
-                    <span class="ident">generator</span>,
-                    <span class="ident">r#async</span>,
-                ) {
+                <span class="comment">// TODO: make parser generic to u32 iterators</span>
+                <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">String::from_utf16_lossy</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>).<span class="ident">as_bytes</span>())
+                    .<span class="ident">parse_formal_parameters</span>(<span class="ident">context</span>.<span class="ident">interner_mut</span>(), <span class="ident">generator</span>, <span class="ident">r#async</span>)
+                {
                     <span class="prelude-val">Ok</span>(<span class="ident">parameters</span>) =&gt; <span class="ident">parameters</span>,
                     <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
@@ -1589,11 +1593,10 @@
 
             <span class="kw">let</span> <span class="ident">body_arg</span> <span class="op">=</span> <span class="ident">body_arg</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
-            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">body_arg</span>.<span class="ident">as_bytes</span>()).<span class="ident">parse_function_body</span>(
-                <span class="ident">context</span>.<span class="ident">interner_mut</span>(),
-                <span class="ident">generator</span>,
-                <span class="ident">r#async</span>,
-            ) {
+            <span class="comment">// TODO: make parser generic to u32 iterators</span>
+            <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">Parser::new</span>(<span class="ident">body_arg</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_bytes</span>())
+                .<span class="ident">parse_function_body</span>(<span class="ident">context</span>.<span class="ident">interner_mut</span>(), <span class="ident">generator</span>, <span class="ident">r#async</span>)
+            {
                 <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>) =&gt; <span class="ident">statement_list</span>,
                 <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                     <span class="kw">return</span> <span class="ident">context</span>
@@ -1815,12 +1818,10 @@
         <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="ident">target</span>.<span class="ident">get</span>(<span class="string">&quot;name&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 9. If Type(targetName) is not String, set targetName to the empty String.</span>
-        <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="ident">target_name</span>
-            .<span class="ident">as_string</span>()
-            .<span class="ident">map_or</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>), <span class="ident">Clone::clone</span>);
+        <span class="kw">let</span> <span class="ident">target_name</span> <span class="op">=</span> <span class="ident">target_name</span>.<span class="ident">as_string</span>().<span class="ident">map_or</span>(<span class="macro">js_string!</span>(), <span class="ident">Clone::clone</span>);
 
         <span class="comment">// 10. Perform SetFunctionName(F, targetName, &quot;bound&quot;).</span>
-        <span class="ident">set_function_name</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="kw-2">&amp;</span><span class="ident">target_name</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="string">&quot;bound&quot;</span>), <span class="ident">context</span>);
+        <span class="ident">set_function_name</span>(<span class="kw-2">&amp;</span><span class="ident">f</span>, <span class="kw-2">&amp;</span><span class="ident">target_name</span>.<span class="ident">into</span>(), <span class="prelude-val">Some</span>(<span class="macro">js_string!</span>(<span class="string">&quot;bound&quot;</span>)), <span class="ident">context</span>);
 
         <span class="comment">// 11. Return F.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">f</span>.<span class="ident">into</span>())
@@ -1880,16 +1881,23 @@
                     <span class="ident">constructor</span>: <span class="kw">_</span>,
                 },
                 <span class="prelude-val">Some</span>(<span class="ident">name</span>),
-            ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;function {name}() {{\n  [native Code]\n}}&quot;</span>).<span class="ident">into</span>()),
+            ) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(
+                <span class="macro">utf16!</span>(<span class="string">&quot;function &quot;</span>),
+                <span class="kw-2">&amp;</span><span class="ident">name</span>,
+                <span class="macro">utf16!</span>(<span class="string">&quot;() {{\n  [native Code]\n}}&quot;</span>)
+            )
+            .<span class="ident">into</span>()),
             (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) <span class="kw">if</span> <span class="ident">name</span>.<span class="ident">is_empty</span>() =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>.<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).<span class="ident">into</span>())
             }
-            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[Function: {name}]&quot;</span>).<span class="ident">into</span>()),
-            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>.<span class="ident">into</span>()),
+            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).<span class="ident">into</span>())
+            }
+            (<span class="ident">Function::Ordinary</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function (anonymous)]&quot;</span>).<span class="ident">into</span>()),
             (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">Some</span>(<span class="ident">name</span>)) =&gt; {
-                <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;[Function*: {}]&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>).<span class="ident">into</span>())
+                <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[Function*: &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>)).<span class="ident">into</span>())
             }
-            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>.<span class="ident">into</span>()),
+            (<span class="ident">Function::Generator</span> { .. }, <span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="string">&quot;[Function* (anonymous)]&quot;</span>).<span class="ident">into</span>()),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="string">&quot;TODO&quot;</span>.<span class="ident">into</span>()),
         }
     }
@@ -1978,7 +1986,7 @@
 <span class="kw">fn</span> <span class="ident">set_function_name</span>(
     <span class="ident">function</span>: <span class="kw-2">&amp;</span><span class="ident">JsObject</span>,
     <span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">PropertyKey</span>,
-    <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="ident">prefix</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>,
     <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
 ) {
     <span class="comment">// 1. Assert: F is an extensible object that does not have a &quot;name&quot; own property.</span>
@@ -1988,14 +1996,14 @@
             <span class="comment">// a. Let description be name&#39;s [[Description]] value.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">desc</span>) <span class="op">=</span> <span class="ident">sym</span>.<span class="ident">description</span>() {
                 <span class="comment">// c. Else, set name to the string-concatenation of &quot;[&quot;, description, and &quot;]&quot;.</span>
-                <span class="ident">Cow::Owned</span>(<span class="ident">JsString::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="string">&quot;[&quot;</span>, <span class="kw-2">&amp;</span><span class="ident">desc</span>, <span class="string">&quot;]&quot;</span>]))
+                <span class="macro">js_string!</span>(<span class="macro">utf16!</span>(<span class="string">&quot;[&quot;</span>), <span class="kw-2">&amp;</span><span class="ident">desc</span>, <span class="macro">utf16!</span>(<span class="string">&quot;]&quot;</span>))
             } <span class="kw">else</span> {
                 <span class="comment">// b. If description is undefined, set name to the empty String.</span>
-                <span class="ident">Cow::Owned</span>(<span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>))
+                <span class="macro">js_string!</span>()
             }
         }
-        <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">Cow::Borrowed</span>(<span class="ident">string</span>),
-        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="ident">Cow::Owned</span>(<span class="ident">JsString::new</span>(<span class="ident">index</span>.<span class="ident">to_string</span>())),
+        <span class="ident">PropertyKey::String</span>(<span class="ident">string</span>) =&gt; <span class="ident">string</span>.<span class="ident">clone</span>(),
+        <span class="ident">PropertyKey::Index</span>(<span class="ident">index</span>) =&gt; <span class="macro">js_string!</span>(<span class="macro">format!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">index</span>)),
     };
 
     <span class="comment">// 3. Else if name is a Private Name, then</span>
@@ -2008,7 +2016,7 @@
 
     <span class="comment">// 5. If prefix is present, then</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">prefix</span>) <span class="op">=</span> <span class="ident">prefix</span> {
-        <span class="ident">name</span> <span class="op">=</span> <span class="ident">Cow::Owned</span>(<span class="ident">JsString::concat_array</span>(<span class="kw-2">&amp;</span>[<span class="ident">prefix</span>, <span class="string">&quot; &quot;</span>, <span class="kw-2">&amp;</span><span class="ident">name</span>]));
+        <span class="ident">name</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">prefix</span>, <span class="macro">utf16!</span>(<span class="string">&quot; &quot;</span>), <span class="kw-2">&amp;</span><span class="ident">name</span>);
         <span class="comment">// b. If F has an [[InitialName]] internal slot, then</span>
         <span class="comment">// i. Optionally, set F.[[InitialName]] to name.</span>
         <span class="comment">// todo: implement [[InitialName]] for builtins</span>
@@ -2020,7 +2028,7 @@
         .<span class="ident">define_property_or_throw</span>(
             <span class="string">&quot;name&quot;</span>,
             <span class="ident">PropertyDescriptor::builder</span>()
-                .<span class="ident">value</span>(<span class="ident">name</span>.<span class="ident">into_owned</span>())
+                .<span class="ident">value</span>(<span class="ident">name</span>)
                 .<span class="ident">writable</span>(<span class="bool-val">false</span>)
                 .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                 .<span class="ident">configurable</span>(<span class="bool-val">true</span>),

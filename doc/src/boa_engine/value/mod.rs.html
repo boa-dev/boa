@@ -1097,6 +1097,7 @@
 <span id="1095">1095</span>
 <span id="1096">1096</span>
 <span id="1097">1097</span>
+<span id="1098">1098</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1109,6 +1110,7 @@
         <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
         <span class="ident">Number</span>,
     },
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
@@ -1124,7 +1126,6 @@
     <span class="ident">collections::HashSet</span>,
     <span class="ident">fmt</span>::{<span class="self">self</span>, <span class="ident">Display</span>},
     <span class="ident">ops::Sub</span>,
-    <span class="ident">str::FromStr</span>,
 };
 
 <span class="kw">mod</span> <span class="ident">conversions</span>;
@@ -1163,7 +1164,7 @@
     <span class="ident">Undefined</span>,
     <span class="doccomment">/// `boolean` - A `true` / `false` value, for if a certain criteria is met.</span>
     <span class="ident">Boolean</span>(<span class="ident">bool</span>),
-    <span class="doccomment">/// `String` - A UTF-8 string, such as `&quot;Hello, world&quot;`.</span>
+    <span class="doccomment">/// `String` - A UTF-16 string, such as `&quot;Hello, world&quot;`.</span>
     <span class="ident">String</span>(<span class="ident">JsString</span>),
     <span class="doccomment">/// `Number` - A 64-bit floating point number, such as `3.1415`</span>
     <span class="ident">Rational</span>(<span class="ident">f64</span>),
@@ -1505,11 +1506,12 @@
             <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>),
             <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>),
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">JsBigInt::from_string</span>(<span class="ident">string</span>) {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_big_int</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 } <span class="kw">else</span> {
                     <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;cannot convert string &#39;{string}&#39; to bigint primitive&quot;</span>,
+                        <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
+                        <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>()
                     ))
                 }
             }
@@ -1607,9 +1609,9 @@
                     <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::string</span>(<span class="ident">string</span>.<span class="ident">clone</span>()));
                 <span class="comment">// Make sure the correct length is set on our new string object</span>
                 <span class="ident">object</span>.<span class="ident">insert_property</span>(
-                    <span class="string">&quot;length&quot;</span>,
+                    <span class="macro">js_string!</span>(<span class="string">&quot;length&quot;</span>),
                     <span class="ident">PropertyDescriptor::builder</span>()
-                        .<span class="ident">value</span>(<span class="ident">string</span>.<span class="ident">encode_utf16</span>().<span class="ident">count</span>())
+                        .<span class="ident">value</span>(<span class="ident">string</span>.<span class="ident">len</span>())
                         .<span class="ident">writable</span>(<span class="bool-val">false</span>)
                         .<span class="ident">enumerable</span>(<span class="bool-val">false</span>)
                         .<span class="ident">configurable</span>(<span class="bool-val">false</span>),
@@ -1979,7 +1981,7 @@
             <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0.0</span>),
             <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">f64::NAN</span>),
             <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="kw">if</span> <span class="ident">b</span> { <span class="number">1.0</span> } <span class="kw">else</span> { <span class="number">0.0</span> }),
-            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">string_to_number</span>()),
+            <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">to_number</span>()),
             <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">number</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">number</span>),
             <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">integer</span>)),
             <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>),

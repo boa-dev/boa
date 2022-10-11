@@ -3476,6 +3476,7 @@
 <span id="3474">3474</span>
 <span id="3475">3475</span>
 <span id="3476">3476</span>
+<span id="3477">3477</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -3498,6 +3499,7 @@
         <span class="ident">Array</span>, <span class="ident">ArrayIterator</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>,
     },
     <span class="ident">context::intrinsics</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardConstructors</span>},
+    <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -3505,7 +3507,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value</span>::{<span class="ident">IntegerOrInfinity</span>, <span class="ident">JsValue</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">num_traits</span>::{<span class="ident">Signed</span>, <span class="ident">Zero</span>};
@@ -4960,21 +4962,21 @@
         <span class="comment">// 4. If separator is undefined, let sep be the single-element String &quot;,&quot;.</span>
         <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">sep</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">separator</span>.<span class="ident">is_undefined</span>() {
-            <span class="ident">JsString::new</span>(<span class="string">&quot;,&quot;</span>)
+            <span class="macro">js_string!</span>(<span class="string">&quot;,&quot;</span>)
         <span class="comment">// 5. Else, let sep be ? ToString(separator).</span>
         } <span class="kw">else</span> {
             <span class="ident">separator</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
         };
 
         <span class="comment">// 6. Let R be the empty String.</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="ident">JsString::new</span>(<span class="string">&quot;&quot;</span>);
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">r</span> <span class="op">=</span> <span class="macro">js_string!</span>();
 
         <span class="comment">// 7. Let k be 0.</span>
         <span class="comment">// 8. Repeat, while k &lt; len,</span>
         <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
             <span class="comment">// a. If k &gt; 0, set R to the string-concatenation of R and sep.</span>
             <span class="kw">if</span> <span class="ident">k</span> <span class="op">&gt;</span> <span class="number">0</span> {
-                <span class="ident">r</span> <span class="op">=</span> <span class="ident">JsString::concat</span>(<span class="ident">r</span>, <span class="ident">sep</span>.<span class="ident">clone</span>());
+                <span class="ident">r</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="ident">sep</span>);
             }
 
             <span class="comment">// b. Let element be ! Get(O, ! ToString(𝔽(k))).</span>
@@ -4983,7 +4985,7 @@
             <span class="comment">// c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).</span>
             <span class="comment">// d. Set R to the string-concatenation of R and next.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">element</span>.<span class="ident">is_undefined</span>() {
-                <span class="ident">r</span> <span class="op">=</span> <span class="ident">JsString::concat</span>(<span class="ident">r</span>, <span class="ident">element</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
+                <span class="ident">r</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="kw-2">&amp;</span><span class="ident">r</span>, <span class="kw-2">&amp;</span><span class="ident">element</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>);
             }
         }
 

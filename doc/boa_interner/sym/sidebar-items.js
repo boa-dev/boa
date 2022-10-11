@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"static":[["COMMON_STRINGS","Ordered set of commonly used static strings."]],"struct":[["Sym","The string symbol type for Boa."]]};
+window.SIDEBAR_ITEMS = {"macro":[["create_static_strings",""]],"static":[["COMMON_STRINGS_UTF16","Ordered set of commonly used static `UTF-16` strings."],["COMMON_STRINGS_UTF8","Ordered set of commonly used static `UTF-8` strings."]],"struct":[["Sym","The string symbol type for Boa."]]};
