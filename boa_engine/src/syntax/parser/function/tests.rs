@@ -42,10 +42,9 @@ fn check_basic() {
                 length: 1,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(
-                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                    None,
-                ),
+                Return::new(Some(
+                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                )),
             ))]
             .into(),
         ))
@@ -84,10 +83,9 @@ fn check_duplicates_strict_off() {
                 length: 2,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(
-                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                    None,
-                ),
+                Return::new(Some(
+                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                )),
             ))]
             .into(),
         ))
@@ -126,10 +124,9 @@ fn check_basic_semicolon_insertion() {
                 length: 1,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(
-                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                    None,
-                ),
+                Return::new(Some(
+                    Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                )),
             ))]
             .into(),
         ))
@@ -158,7 +155,7 @@ fn check_empty_return() {
                 length: 1,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None, None),
+                Return::new(None),
             ))]
             .into(),
         ))
@@ -187,7 +184,7 @@ fn check_empty_return_semicolon_insertion() {
                 length: 1,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None, None),
+                Return::new(None),
             ))]
             .into(),
         ))
@@ -331,17 +328,14 @@ fn check_arrow() {
                 length: 2,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(
-                    Some(
-                        Binary::new(
-                            ArithmeticOp::Add.into(),
-                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                        )
-                        .into(),
-                    ),
-                    None,
-                ),
+                Return::new(Some(
+                    Binary::new(
+                        ArithmeticOp::Add.into(),
+                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                    )
+                    .into(),
+                )),
             ))]
             .into(),
         )))
@@ -379,17 +373,14 @@ fn check_arrow_semicolon_insertion() {
                 length: 2,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(
-                    Some(
-                        Binary::new(
-                            ArithmeticOp::Add.into(),
-                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                        )
-                        .into(),
-                    ),
-                    None,
-                ),
+                Return::new(Some(
+                    Binary::new(
+                        ArithmeticOp::Add.into(),
+                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                    )
+                    .into(),
+                )),
             ))]
             .into(),
         )))
@@ -427,7 +418,7 @@ fn check_arrow_epty_return() {
                 length: 2,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None, None),
+                Return::new(None),
             ))]
             .into(),
         )))
@@ -465,7 +456,7 @@ fn check_arrow_empty_return_semicolon_insertion() {
                 length: 2,
             },
             vec![StatementListItem::Statement(Statement::Return(
-                Return::new(None, None),
+                Return::new(None),
             ))]
             .into(),
         )))
@@ -497,15 +488,10 @@ fn check_arrow_assignment() {
                             length: 1,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -543,15 +529,10 @@ fn check_arrow_assignment_nobrackets() {
                             length: 1,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -589,15 +570,10 @@ fn check_arrow_assignment_noparenthesis() {
                             length: 1,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -635,15 +611,10 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                             length: 1,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -690,15 +661,10 @@ fn check_arrow_assignment_2arg() {
                             length: 2,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -745,15 +711,10 @@ fn check_arrow_assignment_2arg_nobrackets() {
                             length: 2,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -807,15 +768,10 @@ fn check_arrow_assignment_3arg() {
                             length: 3,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )
@@ -869,15 +825,10 @@ fn check_arrow_assignment_3arg_nobrackets() {
                             length: 3,
                         },
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(
-                                Some(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("a", utf16!("a")),
-                                    )
+                            Return::new(Some(
+                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
                                     .into(),
-                                ),
-                                None,
-                            ),
+                            )),
                         ))]
                         .into(),
                     )

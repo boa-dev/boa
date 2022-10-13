@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     statement::{iteration::IterableLoopInitializer, Statement},
     ContainsSymbol,
 };
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -14,7 +14,6 @@ pub struct ForOfLoop {
     init: IterableLoopInitializer,
     iterable: Expression,
     body: Box<Statement>,
-    label: Option<Sym>,
     r#await: bool,
 }
 
@@ -30,7 +29,6 @@ impl ForOfLoop {
             init,
             iterable,
             body: body.into(),
-            label: None,
             r#await,
         }
     }
@@ -47,14 +45,6 @@ impl ForOfLoop {
         &self.body
     }
 
-    pub fn label(&self) -> Option<Sym> {
-        self.label
-    }
-
-    pub fn set_label(&mut self, label: Sym) {
-        self.label = Some(label);
-    }
-
     /// Returns true if this "for...of" loop is an "for await...of" loop.
     pub(crate) fn r#await(&self) -> bool {
         self.r#await
@@ -62,19 +52,12 @@ impl ForOfLoop {
 
     /// Converts the "for of" loop to a string with the given indentation.
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = if let Some(label) = self.label {
-            format!("{}: ", interner.resolve_expect(label))
-        } else {
-            String::new()
-        };
-        buf.push_str(&format!(
+        format!(
             "for ({} of {}) {}",
             self.init.to_interned_string(interner),
             self.iterable.to_interned_string(interner),
             self.body().to_indented_string(interner, indentation)
-        ));
-
-        buf
+        )
     }
 
     #[inline]
@@ -82,7 +65,6 @@ impl ForOfLoop {
         self.init.contains_arguments()
             || self.iterable.contains_arguments()
             || self.body.contains_arguments()
-            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
     }
 
     #[inline]

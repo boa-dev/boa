@@ -1,9 +1,5 @@
-use crate::syntax::ast::{
-    expression::{Expression, Identifier},
-    statement::Statement,
-    ContainsSymbol,
-};
-use boa_interner::{Interner, Sym, ToInternedString};
+use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
+use boa_interner::{Interner, ToInternedString};
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.
@@ -27,26 +23,20 @@ use boa_interner::{Interner, Sym, ToInternedString};
 #[derive(Clone, Debug, PartialEq)]
 pub struct Return {
     expr: Option<Expression>,
-    label: Option<Identifier>,
 }
 
 impl Return {
-    pub fn label(&self) -> Option<Identifier> {
-        self.label
-    }
-
     pub fn expr(&self) -> Option<&Expression> {
         self.expr.as_ref()
     }
 
     /// Creates a `Return` AST node.
-    pub fn new(expr: Option<Expression>, label: Option<Identifier>) -> Self {
-        Self { expr, label }
+    pub fn new(expr: Option<Expression>) -> Self {
+        Self { expr }
     }
 
     pub(crate) fn contains_arguments(&self) -> bool {
         matches!(self.expr, Some(ref expr) if expr.contains_arguments())
-            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
     }
 
     #[inline]

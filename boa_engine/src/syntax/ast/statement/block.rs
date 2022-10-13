@@ -3,7 +3,7 @@
 use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
 
 use super::Statement;
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 
 /// A `block` statement (or compound statement in other languages) is used to group zero or
 /// more statements.
@@ -25,7 +25,6 @@ use boa_interner::{Interner, Sym, ToInternedString};
 pub struct Block {
     #[cfg_attr(feature = "deser", serde(flatten))]
     statements: StatementList,
-    label: Option<Sym>,
 }
 
 impl Block {
@@ -49,20 +48,12 @@ impl Block {
         )
     }
 
-    pub fn label(&self) -> Option<Sym> {
-        self.label
-    }
-
-    pub fn set_label(&mut self, label: Sym) {
-        self.label = Some(label);
-    }
-
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.statements.contains_arguments()
-            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
     }
 
+    #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.statements.contains(symbol)
     }
@@ -75,7 +66,6 @@ where
     fn from(list: T) -> Self {
         Self {
             statements: list.into(),
-            label: None,
         }
     }
 }

@@ -114,8 +114,7 @@ fn hoisting() {
             Declaration::Function(Function::new(
                 Some(hello),
                 FormalParameterList::default(),
-                vec![Statement::Return(Return::new(Some(Literal::from(10).into()), None)).into()]
-                    .into(),
+                vec![Statement::Return(Return::new(Some(Literal::from(10).into()))).into()].into(),
             ))
             .into(),
             Statement::Var(VarDeclaration(

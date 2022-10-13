@@ -57,7 +57,7 @@ where
                 _ => {}
             }
 
-            return Ok(Return::new(None, None));
+            return Ok(Return::new(None));
         }
 
         let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -65,6 +65,6 @@ where
 
         cursor.expect_semicolon("return statement", interner)?;
 
-        Ok(Return::new(Some(expr), None))
+        Ok(Return::new(Some(expr)))
     }
 }

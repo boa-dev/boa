@@ -83,7 +83,7 @@ fn non_empty() {
                 Some(hello.into()),
                 FormalParameterList::default(),
                 vec![StatementListItem::Statement(Statement::Return(
-                    Return::new(Some(Literal::from(10).into()), None),
+                    Return::new(Some(Literal::from(10).into())),
                 ))]
                 .into(),
             ))
@@ -124,7 +124,7 @@ fn hoisting() {
                 Some(hello.into()),
                 FormalParameterList::default(),
                 vec![StatementListItem::Statement(Statement::Return(
-                    Return::new(Some(Literal::from(10).into()), None),
+                    Return::new(Some(Literal::from(10).into())),
                 ))]
                 .into(),
             ))

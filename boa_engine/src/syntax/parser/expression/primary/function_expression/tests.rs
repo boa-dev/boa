@@ -30,7 +30,7 @@ fn check_function_expression() {
                         Some(add.into()),
                         FormalParameterList::default(),
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(Literal::from(1).into()), None),
+                            Return::new(Some(Literal::from(1).into())),
                         ))]
                         .into(),
                     )
@@ -72,7 +72,7 @@ fn check_nested_function_expression() {
                                         Some(b.into()),
                                         FormalParameterList::default(),
                                         vec![StatementListItem::Statement(Statement::Return(
-                                            Return::new(Some(Literal::from(1).into()), None),
+                                            Return::new(Some(Literal::from(1).into())),
                                         ))]
                                         .into(),
                                     )
@@ -107,7 +107,7 @@ fn check_function_non_reserved_keyword() {
                         Function::new(
                             Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
-                            vec![StatementListItem::Statement(Statement::Return(Return::new(Some(Literal::from(1).into()), None)))].into(),
+                            vec![StatementListItem::Statement(Statement::Return(Return::new(Some(Literal::from(1).into()))))].into(),
                         )
                         .into(),
                     ),
