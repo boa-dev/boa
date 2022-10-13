@@ -149,8 +149,8 @@ impl JsRegExp {
         RegExp::get_flags(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be string")
-                .deref()
-                .to_owned()
+                .to_std_string()
+                .expect("flags must be a valid string")
         })
     }
 
@@ -171,8 +171,8 @@ impl JsRegExp {
         RegExp::get_source(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be string")
-                .deref()
-                .to_owned()
+                .to_std_string()
+                .expect("source must be a valid string")
         })
     }
 
@@ -237,8 +237,8 @@ impl JsRegExp {
         RegExp::to_string(&self.inner.clone().into(), &[], context).map(|v| {
             v.as_string()
                 .expect("value must be a string")
-                .deref()
-                .to_owned()
+                .to_std_string()
+                .expect("to_string value must be a valid string")
         })
     }
 }
