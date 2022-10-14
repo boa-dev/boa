@@ -23,7 +23,7 @@ impl Operation for GetFunction {
 pub(crate) struct GetFunctionAsync;
 
 impl Operation for GetFunctionAsync {
-    const NAME: &'static str = "GetFunctionAsyn";
+    const NAME: &'static str = "GetFunctionAsync";
     const INSTRUCTION: &'static str = "INST - GetFunctionAsync";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
