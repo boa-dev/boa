@@ -95,7 +95,12 @@ where
                 .parse(cursor, interner)?,
         };
 
-        let else_node = if let Some(token) = cursor.peek(0, interner)? {
+        // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
+        if then_node.is_labelled_function() {
+            return Err(ParseError::wrong_labelled_function_declaration(position));
+        }
+
+        let else_stmt = if let Some(token) = cursor.peek(0, interner)? {
             match token.kind() {
                 TokenKind::Keyword((Keyword::Else, true)) => {
                     return Err(ParseError::general(
@@ -108,7 +113,8 @@ where
 
                     let strict = cursor.strict_mode();
                     let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-                    match token.kind() {
+                    let position = token.span().start();
+                    let stmt = match token.kind() {
                         TokenKind::Keyword((Keyword::Function, _)) => {
                             // FunctionDeclarations in IfStatement Statement Clauses
                             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
@@ -118,28 +124,31 @@ where
                                 ));
                             }
 
-                            Some(
-                                // Source text matched by this production is processed as if each matching
-                                // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
-                                // StatementListItem of a BlockStatement occupying that position in the source text.
-                                Block::from(vec![StatementListItem::Declaration(
-                                    Declaration::Function(
-                                        FunctionDeclaration::new(
-                                            self.allow_yield,
-                                            self.allow_await,
-                                            false,
-                                        )
-                                        .parse(cursor, interner)?,
-                                    ),
-                                )])
-                                .into(),
-                            )
+                            // Source text matched by this production is processed as if each matching
+                            // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
+                            // StatementListItem of a BlockStatement occupying that position in the source text.
+                            Block::from(vec![StatementListItem::Declaration(
+                                Declaration::Function(
+                                    FunctionDeclaration::new(
+                                        self.allow_yield,
+                                        self.allow_await,
+                                        false,
+                                    )
+                                    .parse(cursor, interner)?,
+                                ),
+                            )])
+                            .into()
                         }
-                        _ => Some(
-                            Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                                .parse(cursor, interner)?,
-                        ),
+                        _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                            .parse(cursor, interner)?,
+                    };
+
+                    // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
+                    if stmt.is_labelled_function() {
+                        return Err(ParseError::wrong_labelled_function_declaration(position));
                     }
+
+                    Some(stmt)
                 }
                 _ => None,
             }
@@ -147,6 +156,6 @@ where
             None
         };
 
-        Ok(If::new(condition, then_node, else_node))
+        Ok(If::new(condition, then_node, else_stmt))
     }
 }

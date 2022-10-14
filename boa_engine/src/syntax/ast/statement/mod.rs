@@ -285,6 +285,17 @@ impl Statement {
             Self::Try(r#try) => r#try.contains(symbol),
         }
     }
+
+    #[inline]
+    pub(crate) fn is_labelled_function(&self) -> bool {
+        match self {
+            Self::Labelled(stmt) => match stmt.item() {
+                LabelledItem::Function(_) => true,
+                LabelledItem::Statement(stmt) => stmt.is_labelled_function(),
+            },
+            _ => false,
+        }
+    }
 }
 
 impl ToInternedString for Statement {

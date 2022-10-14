@@ -167,13 +167,21 @@ where
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
+                cursor.expect(Punctuator::CloseParen, "for in statement", interner)?;
+
                 let position = cursor
-                    .expect(Punctuator::CloseParen, "for in statement", interner)?
+                    .peek(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
                     .span()
-                    .end();
+                    .start();
 
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
+
+                // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
+                if body.is_labelled_function() {
+                    return Err(ParseError::wrong_labelled_function_declaration(position));
+                }
 
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
@@ -212,13 +220,21 @@ where
                 let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
+                cursor.expect(Punctuator::CloseParen, "for of statement", interner)?;
+
                 let position = cursor
-                    .expect(Punctuator::CloseParen, "for of statement", interner)?
+                    .peek(0, interner)?
+                    .ok_or(ParseError::AbruptEnd)?
                     .span()
-                    .end();
+                    .start();
 
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
+
+                // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
+                if body.is_labelled_function() {
+                    return Err(ParseError::wrong_labelled_function_declaration(position));
+                }
 
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
@@ -298,6 +314,11 @@ where
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
+
+        // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
+        if body.is_labelled_function() {
+            return Err(ParseError::wrong_labelled_function_declaration(position));
+        }
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of
         // LexicalDeclaration also occurs in the VarDeclaredNames of Statement.
