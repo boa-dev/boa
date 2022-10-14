@@ -2688,45 +2688,74 @@ impl<'b> ByteCompiler<'b> {
         has_identifier_argument
     }
 
-    pub(crate) fn create_decls_from_stmt_list_item(&mut self, node: &StatementListItem) -> bool {
-        match node {
-            StatementListItem::Declaration(Declaration::Lexical(decl)) => {
-                self.create_decls_from_lexical_decl(decl)
-            }
-            StatementListItem::Statement(Statement::Var(decl)) => {
-                self.create_decls_from_var_decl(decl)
-            }
-            StatementListItem::Declaration(Declaration::Class(decl)) => {
-                let ident = decl.name().expect("class declaration must have a name");
-                self.context.create_mutable_binding(ident, false);
-                false
-            }
-            StatementListItem::Declaration(Declaration::Function(decl)) => {
+    #[inline]
+    pub(crate) fn create_decls_from_decl(&mut self, declaration: &Declaration) -> bool {
+        match declaration {
+            Declaration::Lexical(decl) => self.create_decls_from_lexical_decl(decl),
+            Declaration::Function(decl) => {
                 let ident = decl.name().expect("function declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
                 ident == Sym::ARGUMENTS
             }
-            StatementListItem::Declaration(Declaration::Generator(decl)) => {
+            Declaration::Generator(decl) => {
                 let ident = decl.name().expect("generator declaration must have a name");
 
                 self.context.create_mutable_binding(ident, true);
                 ident == Sym::ARGUMENTS
             }
-            StatementListItem::Declaration(Declaration::AsyncFunction(decl)) => {
+            Declaration::AsyncFunction(decl) => {
                 let ident = decl
                     .name()
                     .expect("async function declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
                 ident == Sym::ARGUMENTS
             }
-            StatementListItem::Declaration(Declaration::AsyncGenerator(decl)) => {
+            Declaration::AsyncGenerator(decl) => {
                 let ident = decl
                     .name()
                     .expect("async generator declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
                 ident == Sym::ARGUMENTS
             }
+            Declaration::Class(decl) => {
+                let ident = decl.name().expect("class declaration must have a name");
+                self.context.create_mutable_binding(ident, false);
+                false
+            }
+        }
+    }
+
+    #[inline]
+    pub(crate) fn create_decls_from_stmt(&mut self, statement: &Statement) -> bool {
+        match statement {
+            Statement::Var(var) => self.create_decls_from_var_decl(var),
+            Statement::DoWhileLoop(do_while_loop) => {
+                if !matches!(do_while_loop.body(), Statement::Block(_)) {
+                    self.create_decls_from_stmt(do_while_loop.body());
+                }
+                false
+            }
+            Statement::ForInLoop(for_in_loop) => {
+                if !matches!(for_in_loop.body(), Statement::Block(_)) {
+                    self.create_decls_from_stmt(for_in_loop.body());
+                }
+                false
+            }
+            Statement::ForOfLoop(for_of_loop) => {
+                if !matches!(for_of_loop.body(), Statement::Block(_)) {
+                    self.create_decls_from_stmt(for_of_loop.body());
+                }
+                false
+            }
             _ => false,
+        }
+    }
+
+    #[inline]
+    pub(crate) fn create_decls_from_stmt_list_item(&mut self, item: &StatementListItem) -> bool {
+        match item {
+            StatementListItem::Declaration(decl) => self.create_decls_from_decl(decl),
+            StatementListItem::Statement(stmt) => self.create_decls_from_stmt(stmt),
         }
     }
 
