@@ -1,6 +1,5 @@
 use crate::{
     builtins::function::{ConstructorKind, Function},
-    object::{JsFunction, PrivateElement},
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
@@ -8,8 +7,8 @@ use crate::{
 pub(crate) mod field;
 pub(crate) mod private;
 
-pub(crate) use private::*;
 pub(crate) use field::*;
+pub(crate) use private::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassPrototype;
@@ -55,4 +54,3 @@ impl Operation for PushClassPrototype {
         }
     }
 }
-

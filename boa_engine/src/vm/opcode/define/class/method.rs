@@ -80,4 +80,3 @@ impl Operation for DefineClassMethodByValue {
         Ok(ShouldExit::False)
     }
 }
-

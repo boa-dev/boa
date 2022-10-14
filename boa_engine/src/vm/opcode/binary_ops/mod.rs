@@ -1,14 +1,13 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsResult,
 };
 
-pub(crate) mod macro_defined;
 pub(crate) mod logical;
+pub(crate) mod macro_defined;
 
-pub(crate) use macro_defined::*;
 pub(crate) use logical::*;
-
+pub(crate) use macro_defined::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct NotEq;
@@ -96,4 +95,3 @@ impl Operation for InstanceOf {
         Ok(ShouldExit::False)
     }
 }
-

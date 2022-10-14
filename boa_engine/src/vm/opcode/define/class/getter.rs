@@ -86,4 +86,3 @@ impl Operation for DefineClassGetterByValue {
         Ok(ShouldExit::False)
     }
 }
-

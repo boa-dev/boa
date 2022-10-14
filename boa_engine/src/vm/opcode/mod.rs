@@ -3,9 +3,9 @@ use crate::{vm::ShouldExit, Context, JsResult};
 
 // Operation modules
 pub(crate) mod await_stm;
+pub(crate) mod binary_ops;
 pub(crate) mod call;
 pub(crate) mod concat;
-pub(crate) mod to;
 pub(crate) mod copy;
 pub(crate) mod define;
 pub(crate) mod delete;
@@ -14,7 +14,9 @@ pub(crate) mod environment;
 pub(crate) mod generator;
 pub(crate) mod get;
 pub(crate) mod iteration;
+pub(crate) mod jump;
 pub(crate) mod new;
+pub(crate) mod nop;
 pub(crate) mod pop;
 pub(crate) mod promise;
 pub(crate) mod push;
@@ -25,19 +27,17 @@ pub(crate) mod set;
 pub(crate) mod swap;
 pub(crate) mod switch;
 pub(crate) mod throw;
+pub(crate) mod to;
 pub(crate) mod try_catch;
-pub(crate) mod value;
-pub(crate) mod jump;
-pub(crate) mod binary_ops;
 pub(crate) mod unary_ops;
-pub(crate) mod nop;
+pub(crate) mod value;
 pub(crate) mod void;
 
 // Operation structs
 pub(crate) use await_stm::*;
+pub(crate) use binary_ops::*;
 pub(crate) use call::*;
 pub(crate) use concat::*;
-pub(crate) use to::*;
 pub(crate) use copy::*;
 pub(crate) use define::*;
 pub(crate) use delete::*;
@@ -46,7 +46,9 @@ pub(crate) use environment::*;
 pub(crate) use generator::*;
 pub(crate) use get::*;
 pub(crate) use iteration::*;
+pub(crate) use jump::*;
 pub(crate) use new::*;
+pub(crate) use nop::*;
 pub(crate) use pop::*;
 pub(crate) use promise::*;
 pub(crate) use push::*;
@@ -57,12 +59,10 @@ pub(crate) use set::*;
 pub(crate) use swap::*;
 pub(crate) use switch::*;
 pub(crate) use throw::*;
+pub(crate) use to::*;
 pub(crate) use try_catch::*;
-pub(crate) use value::*;
-pub(crate) use jump::*;
-pub(crate) use binary_ops::*;
 pub(crate) use unary_ops::*;
-pub(crate) use nop::*;
+pub(crate) use value::*;
 pub(crate) use void::*;
 
 pub(crate) trait Operation {

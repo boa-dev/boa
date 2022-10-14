@@ -2,15 +2,15 @@ use crate::{
     builtins::Number,
     value::Numeric,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsBigInt, JsResult, 
+    Context, JsBigInt, JsResult,
 };
 use std::ops::Neg as StdNeg;
 
-pub(crate) mod increment;
 pub(crate) mod decrement;
+pub(crate) mod increment;
 
-pub(crate) use increment::*;
 pub(crate) use decrement::*;
+pub(crate) use increment::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct TypeOf;
@@ -25,7 +25,6 @@ impl Operation for TypeOf {
         Ok(ShouldExit::False)
     }
 }
-
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Pos;

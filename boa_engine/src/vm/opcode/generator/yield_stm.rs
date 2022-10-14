@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult
+    Context, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -14,4 +14,3 @@ impl Operation for Yield {
         Ok(ShouldExit::Yield)
     }
 }
-
