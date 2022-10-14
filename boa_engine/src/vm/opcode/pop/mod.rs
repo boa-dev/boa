@@ -3,10 +3,6 @@ use crate::{
     Context, JsResult,
 };
 
-pub(crate) mod if_thrown;
-
-pub(crate) use if_thrown::PopIfThrown;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Pop;
 
@@ -16,6 +12,23 @@ impl Operation for Pop {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let _val = context.vm.pop();
+        Ok(ShouldExit::False)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct PopIfThrown;
+
+impl Operation for PopIfThrown {
+    const NAME: &'static str = "PopIfThrown";
+    const INSTRUCTION: &'static str = "INST - PopIfThrown";
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+        let frame = context.vm.frame_mut();
+        if frame.thrown {
+            frame.thrown = false;
+            context.vm.pop();
+        }
         Ok(ShouldExit::False)
     }
 }

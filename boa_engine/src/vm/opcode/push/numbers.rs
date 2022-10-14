@@ -38,10 +38,9 @@ macro_rules! implement_push_numbers_no_conversion {
         }
     };
 }
-implement_push_numbers_with_conversion!(PushInt8, i8);
 
+implement_push_numbers_with_conversion!(PushInt8, i8);
 implement_push_numbers_with_conversion!(PushInt16, i16);
 
 implement_push_numbers_no_conversion!(PushInt32, i32);
-
 implement_push_numbers_no_conversion!(PushRational, f64);

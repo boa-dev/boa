@@ -11,18 +11,9 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Yield;
+pub(crate) mod yield_stm;
 
-impl Operation for Yield {
-    const NAME: &'static str = "Yield";
-    const INSTRUCTION: &'static str = "INST - Yield";
-
-    fn execute(_context: &mut Context) -> JsResult<ShouldExit> {
-        Ok(ShouldExit::Yield)
-    }
-}
-
+pub(crate) use yield_stm::*;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GeneratorNext;
 
