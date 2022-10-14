@@ -42,12 +42,8 @@ impl Operation for FinallyEnd {
                 }
                 Ok(ShouldExit::False)
             }
-            FinallyReturn::Ok => {
-                Ok(ShouldExit::True)
-            }
-            FinallyReturn::Err => {
-                Err(context.vm.pop())
-            }
+            FinallyReturn::Ok => Ok(ShouldExit::True),
+            FinallyReturn::Err => Err(context.vm.pop()),
         }
     }
 }

@@ -90,7 +90,7 @@ impl Operation for In {
         if !rhs.is_object() {
             return context.throw_type_error(format!(
                 "right-hand side of 'in' should be an object, got {}",
-                rhs.type_of()
+                rhs.type_of().to_std_string_escaped()
             ));
         }
         let key = lhs.to_property_key(context)?;

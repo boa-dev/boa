@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -21,7 +21,10 @@ impl Operation for DefineOwnPropertyByName {
             object.to_object(context)?
         };
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name);
+        let name = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false);
         object.__define_own_property__(
             name.into(),
             PropertyDescriptor::builder()

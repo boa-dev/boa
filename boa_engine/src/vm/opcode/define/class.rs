@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -30,7 +30,7 @@ impl Operation for DefineClassMethodByName {
         let name = context.vm.frame().code.names[index as usize];
         let name = context.interner().resolve_expect(name);
         object.__define_own_property__(
-            name.into(),
+            name.into_common::<JsString>(false).into(),
             PropertyDescriptor::builder()
                 .value(value)
                 .writable(true)
@@ -101,7 +101,11 @@ impl Operation for DefineClassGetterByName {
             .expect("method must be function object")
             .set_home_object(object.clone());
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name).into();
+        let name = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
         let set = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -180,7 +184,11 @@ impl Operation for DefineClassSetterByName {
             .expect("method must be function object")
             .set_home_object(object.clone());
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name).into();
+        let name = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
         let get = object
             .__get_own_property__(&name, context)?
             .as_ref()

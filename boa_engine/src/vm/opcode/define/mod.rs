@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 
 pub(crate) mod class;
@@ -25,7 +25,7 @@ impl Operation for DefVar {
             let key = context
                 .interner()
                 .resolve_expect(binding_locator.name())
-                .into();
+                .into_common(false);
             context.global_bindings_mut().entry(key).or_insert(
                 PropertyDescriptor::builder()
                     .value(JsValue::Undefined)
@@ -62,6 +62,7 @@ impl Operation for DefInitVar {
             let key = context
                 .interner()
                 .resolve_expect(binding_locator.name())
+                .into_common::<JsString>(false)
                 .into();
             crate::object::internal_methods::global::global_set_no_receiver(&key, value, context)?;
         } else {

@@ -25,12 +25,14 @@ impl Operation for SetName {
                 let key: JsString = context
                     .interner()
                     .resolve_expect(binding_locator.name())
-                    .into();
+                    .into_common(false);
                 let exists = context.global_bindings_mut().contains_key(&key);
 
                 if !exists && context.vm.frame().code.strict {
-                    return context
-                        .throw_reference_error(format!("assignment to undeclared variable {key}"));
+                    return context.throw_reference_error(format!(
+                        "assignment to undeclared variable {}",
+                        key.to_std_string_escaped()
+                    ));
                 }
 
                 let success = crate::object::internal_methods::global::global_set_no_receiver(
@@ -40,8 +42,10 @@ impl Operation for SetName {
                 )?;
 
                 if !success && context.vm.frame().code.strict {
-                    return context
-                        .throw_type_error(format!("cannot set non-writable property: {key}",));
+                    return context.throw_type_error(format!(
+                        "cannot set non-writable property: {}",
+                        key.to_std_string_escaped()
+                    ));
                 }
             }
         } else if !context.realm.environments.put_value_if_initialized(

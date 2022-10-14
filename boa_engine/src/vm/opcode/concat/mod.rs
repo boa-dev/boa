@@ -17,8 +17,12 @@ impl Operation for ConcatToString {
             strings.push(context.vm.pop().to_string(context)?);
         }
         strings.reverse();
-        let s =
-            JsString::concat_array(&strings.iter().map(JsString::as_str).collect::<Vec<&str>>());
+        let s = JsString::concat_array(
+            &strings
+                .iter()
+                .map(JsString::as_slice)
+                .collect::<Vec<&[u16]>>(),
+        );
         context.vm.push(s);
         Ok(ShouldExit::False)
     }

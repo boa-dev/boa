@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -13,7 +13,11 @@ impl Operation for DeletePropertyByName {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let key = context.vm.frame().code.names[index as usize];
-        let key = context.interner().resolve_expect(key).into();
+        let key = context
+            .interner()
+            .resolve_expect(key)
+            .into_common::<JsString>(false)
+            .into();
         let object = context.vm.pop();
         let result = object.to_object(context)?.__delete__(&key, context)?;
         if !result && context.vm.frame().code.strict {

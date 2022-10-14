@@ -1,7 +1,7 @@
 use crate::{
     property::{PropertyDescriptor, PropertyKey},
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -23,7 +23,11 @@ impl Operation for SetPropertyByName {
         };
 
         let name = context.vm.frame().code.names[index as usize];
-        let name: PropertyKey = context.interner().resolve_expect(name).into();
+        let name: PropertyKey = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
 
         object.set(name, value, context.vm.frame().code.strict, context)?;
         Ok(ShouldExit::False)
@@ -66,7 +70,11 @@ impl Operation for SetPropertyGetterByName {
         let value = context.vm.pop();
         let object = object.to_object(context)?;
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name).into();
+        let name = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
         let set = object
             .__get_own_property__(&name, context)?
             .as_ref()
@@ -131,7 +139,11 @@ impl Operation for SetPropertySetterByName {
         let value = context.vm.pop();
         let object = object.to_object(context)?;
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name).into();
+        let name = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
         let get = object
             .__get_own_property__(&name, context)?
             .as_ref()

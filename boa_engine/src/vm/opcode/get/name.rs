@@ -27,7 +27,7 @@ impl Operation for GetName {
                 let key: JsString = context
                     .interner()
                     .resolve_expect(binding_locator.name())
-                    .into();
+                    .into_common(false);
                 match context.global_bindings_mut().get(&key) {
                     Some(desc) => match desc.kind() {
                         DescriptorKind::Data {
@@ -37,9 +37,19 @@ impl Operation for GetName {
                             let get = get.clone();
                             context.call(&get, &context.global_object().clone().into(), &[])?
                         }
-                        _ => return context.throw_reference_error(format!("{key} is not defined")),
+                        _ => {
+                            return context.throw_reference_error(format!(
+                                "{} is not defined",
+                                key.to_std_string_escaped()
+                            ))
+                        }
                     },
-                    _ => return context.throw_reference_error(format!("{key} is not defined")),
+                    _ => {
+                        return context.throw_reference_error(format!(
+                            "{} is not defined",
+                            key.to_std_string_escaped()
+                        ))
+                    }
                 }
             }
         } else if let Some(value) = context.realm.environments.get_value_optional(
@@ -49,7 +59,10 @@ impl Operation for GetName {
         ) {
             value
         } else {
-            let name = JsString::from(context.interner().resolve_expect(binding_locator.name()));
+            let name = context
+                .interner()
+                .resolve_expect(binding_locator.name())
+                .to_string();
             return context.throw_reference_error(format!("{name} is not initialized"));
         };
 
@@ -80,7 +93,7 @@ impl Operation for GetNameOrUndefined {
                 let key: JsString = context
                     .interner()
                     .resolve_expect(binding_locator.name())
-                    .into();
+                    .into_common(false);
                 match context.global_bindings_mut().get(&key) {
                     Some(desc) => match desc.kind() {
                         DescriptorKind::Data {

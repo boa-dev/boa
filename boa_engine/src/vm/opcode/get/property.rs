@@ -1,7 +1,7 @@
 use crate::{
     property::PropertyKey,
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsResult, JsString,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -22,7 +22,11 @@ impl Operation for GetPropertyByName {
         };
 
         let name = context.vm.frame().code.names[index as usize];
-        let name: PropertyKey = context.interner().resolve_expect(name).into();
+        let name: PropertyKey = context
+            .interner()
+            .resolve_expect(name)
+            .into_common::<JsString>(false)
+            .into();
         let result = object.get(name, context)?;
 
         context.vm.push(result);
