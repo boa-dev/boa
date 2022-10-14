@@ -111,7 +111,7 @@ where
         }
 
         let mut var_declared_names = FxHashSet::default();
-        for node in statement_list.statements() {
+        for node in statement_list.statement_list().statements() {
             node.var_declared_names(&mut var_declared_names);
         }
         for (lex_name, _) in &lexically_declared_names {

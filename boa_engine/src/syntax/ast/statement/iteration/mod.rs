@@ -8,7 +8,7 @@ pub mod for_loop;
 pub mod for_of_loop;
 pub mod while_loop;
 
-use crate::syntax::ast::{expression::Identifier, pattern::Pattern};
+use crate::syntax::ast::{declaration::Binding, expression::Identifier, pattern::Pattern};
 
 pub use self::{
     do_while_loop::DoWhileLoop, for_in_loop::ForInLoop, for_loop::ForLoop, for_of_loop::ForOfLoop,
@@ -16,7 +16,7 @@ pub use self::{
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 
-use super::{declaration::Binding, ContainsSymbol};
+use super::ContainsSymbol;
 
 #[cfg(test)]
 mod tests;

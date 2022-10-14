@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         function::{AsyncGenerator, FormalParameterList},
-        statement::StatementList,
+        Declaration, StatementList,
     },
     parser::tests::check_parser,
 };
@@ -13,11 +13,11 @@ fn async_generator_function_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "async function* gen() {}",
-        vec![AsyncGenerator::new(
+        vec![Declaration::AsyncGenerator(AsyncGenerator::new(
             Some(interner.get_or_intern_static("gen", utf16!("gen")).into()),
             FormalParameterList::default(),
             StatementList::default(),
-        )
+        ))
         .into()],
         interner,
     );

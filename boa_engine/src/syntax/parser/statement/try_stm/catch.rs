@@ -1,8 +1,5 @@
 use crate::syntax::{
-    ast::{
-        statement::{self, declaration::Binding},
-        Keyword, Punctuator,
-    },
+    ast::{declaration::Binding, statement, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
@@ -113,7 +110,7 @@ where
             }
             Some(Binding::Pattern(pattern)) => {
                 let mut var_declared_names = FxHashSet::default();
-                for node in catch_block.statements() {
+                for node in catch_block.statement_list().statements() {
                     node.var_declared_names(&mut var_declared_names);
                 }
                 for ident in pattern.idents() {

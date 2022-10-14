@@ -3,6 +3,7 @@ mod function;
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
     syntax::ast::{
+        declaration::{Binding, LexicalDeclaration, VarDeclaration},
         expression::{
             access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField},
             literal::{self, TemplateElement},
@@ -19,12 +20,8 @@ use crate::{
         },
         pattern::{Pattern, PatternArrayElement, PatternObjectElement},
         property::{MethodDefinition, PropertyDefinition, PropertyName},
-        statement::{
-            declaration::{Binding, DeclarationList},
-            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
-            StatementList,
-        },
-        Expression, Statement,
+        statement::iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+        Declaration, Expression, Statement, StatementList, StatementListItem,
     },
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsResult, JsString, JsValue,
@@ -742,12 +739,12 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    pub fn compile_statement_list(&mut self, list: &[Statement], use_expr: bool) -> JsResult<()> {
-        if let Some((last, items)) = list.split_last() {
+    pub fn compile_statement_list(&mut self, list: &StatementList, use_expr: bool) -> JsResult<()> {
+        if let Some((last, items)) = list.statements().split_last() {
             for node in items {
-                self.compile_stmt(node, false)?;
+                self.compile_stmt_list_item(node, false)?;
             }
-            self.compile_stmt(last, use_expr)?;
+            self.compile_stmt_list_item(last, use_expr)?;
         }
         Ok(())
     }
@@ -756,20 +753,20 @@ impl<'b> ByteCompiler<'b> {
     #[inline]
     pub(crate) fn compile_statement_list_with_new_declarative(
         &mut self,
-        list: &[Statement],
+        list: &StatementList,
         use_expr: bool,
         strict: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(strict);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-        self.create_decls(list)?;
+        self.create_decls(list);
 
-        if let Some((last, items)) = list.split_last() {
+        if let Some((last, items)) = list.statements().split_last() {
             for node in items {
-                self.compile_stmt(node, false)?;
+                self.compile_stmt_list_item(node, false)?;
             }
-            self.compile_stmt(last, use_expr)?;
+            self.compile_stmt_list_item(last, use_expr)?;
         }
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
@@ -1444,22 +1441,70 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub fn compile_decl_list(&mut self, list: &DeclarationList) -> JsResult<()> {
-        let (init_op, empty_op) = match list {
-            DeclarationList::Var(_) => (BindingOpcode::InitVar, BindingOpcode::Var),
-            DeclarationList::Let(_) => (BindingOpcode::InitLet, BindingOpcode::Let),
-            DeclarationList::Const(decls) => {
-                for decl in &**decls {
-                    match decl.binding() {
+    pub fn compile_var_decl(&mut self, decl: &VarDeclaration) -> JsResult<()> {
+        for variable in decl.0.as_ref() {
+            match variable.binding() {
+                Binding::Identifier(ident) => {
+                    let ident = ident;
+                    if let Some(expr) = variable.init() {
+                        self.compile_expr(expr, true)?;
+                        self.emit_binding(BindingOpcode::InitVar, *ident);
+                    } else {
+                        self.emit_binding(BindingOpcode::Var, *ident);
+                    }
+                }
+                Binding::Pattern(pattern) => {
+                    if let Some(init) = variable.init() {
+                        self.compile_expr(init, true)?;
+                    } else {
+                        self.emit_opcode(Opcode::PushUndefined);
+                    };
+
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn compile_lexical_decl(&mut self, decl: &LexicalDeclaration) -> JsResult<()> {
+        match decl {
+            LexicalDeclaration::Let(decls) => {
+                for variable in decls.as_ref() {
+                    match variable.binding() {
                         Binding::Identifier(ident) => {
-                            let init = decl
+                            let ident = ident;
+                            if let Some(expr) = variable.init() {
+                                self.compile_expr(expr, true)?;
+                                self.emit_binding(BindingOpcode::InitLet, *ident);
+                            } else {
+                                self.emit_binding(BindingOpcode::Let, *ident);
+                            }
+                        }
+                        Binding::Pattern(pattern) => {
+                            if let Some(init) = variable.init() {
+                                self.compile_expr(init, true)?;
+                            } else {
+                                self.emit_opcode(Opcode::PushUndefined);
+                            };
+
+                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
+                        }
+                    }
+                }
+            }
+            LexicalDeclaration::Const(decls) => {
+                for variable in decls.as_ref() {
+                    match variable.binding() {
+                        Binding::Identifier(ident) => {
+                            let init = variable
                                 .init()
                                 .expect("const declaration must have initializer");
                             self.compile_expr(init, true)?;
                             self.emit_binding(BindingOpcode::InitConst, *ident);
                         }
                         Binding::Pattern(pattern) => {
-                            if let Some(init) = decl.init() {
+                            if let Some(init) = variable.init() {
                                 self.compile_expr(init, true)?;
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
@@ -1472,42 +1517,48 @@ impl<'b> ByteCompiler<'b> {
                 return Ok(());
             }
         };
-        for decl in list.as_ref() {
-            match decl.binding() {
-                Binding::Identifier(ident) => {
-                    let ident = ident;
-                    if let Some(expr) = decl.init() {
-                        self.compile_expr(expr, true)?;
-                        self.emit_binding(init_op, *ident);
-                    } else {
-                        self.emit_binding(empty_op, *ident);
-                    }
-                }
-                Binding::Pattern(pattern) => {
-                    if let Some(init) = decl.init() {
-                        self.compile_expr(init, true)?;
-                    } else {
-                        self.emit_opcode(Opcode::PushUndefined);
-                    };
-
-                    self.compile_declaration_pattern(pattern, init_op)?;
-                }
-            }
-        }
         Ok(())
+    }
+
+    #[inline]
+    pub fn compile_stmt_list_item(
+        &mut self,
+        item: &StatementListItem,
+        use_expr: bool,
+    ) -> JsResult<()> {
+        match item {
+            StatementListItem::Statement(stmt) => self.compile_stmt(stmt, use_expr),
+            StatementListItem::Declaration(decl) => self.compile_decl(decl),
+        }
+    }
+
+    #[inline]
+    pub fn compile_decl(&mut self, decl: &Declaration) -> JsResult<()> {
+        match decl {
+            Declaration::Function(function) => {
+                self.function(function.into(), NodeKind::Declaration, false)
+            }
+            Declaration::Generator(function) => {
+                self.function(function.into(), NodeKind::Declaration, false)
+            }
+            Declaration::AsyncFunction(function) => {
+                self.function(function.into(), NodeKind::Declaration, false)
+            }
+            Declaration::AsyncGenerator(function) => {
+                self.function(function.into(), NodeKind::Declaration, false)
+            }
+            Declaration::Class(class) => self.class(class, false),
+            Declaration::Lexical(lexical) => self.compile_lexical_decl(lexical),
+        }
     }
 
     #[inline]
     pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool) -> JsResult<()> {
         match node {
-            Statement::DeclarationList(list) => self.compile_decl_list(list)?,
+            Statement::Var(var) => self.compile_var_decl(var)?,
             Statement::If(node) => {
                 self.compile_expr(node.cond(), true)?;
                 let jelse = self.jump_if_false();
-
-                if !matches!(node.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(node.body())?;
-                }
 
                 self.compile_stmt(node.body(), false)?;
 
@@ -1518,9 +1569,6 @@ impl<'b> ByteCompiler<'b> {
                     Some(else_body) => {
                         let exit = self.jump();
                         self.patch_jump(jelse);
-                        if !matches!(else_body, Statement::Block(_)) {
-                            self.create_decls_from_stmt(else_body)?;
-                        }
                         self.compile_stmt(else_body, false)?;
                         self.patch_jump(exit);
                     }
@@ -1534,9 +1582,13 @@ impl<'b> ByteCompiler<'b> {
                 if let Some(init) = for_loop.init() {
                     match init {
                         ForLoopInitializer::Expression(expr) => self.compile_expr(expr, false)?,
-                        ForLoopInitializer::DeclarationList(list) => {
-                            self.create_decls_from_decl_list(list);
-                            self.compile_decl_list(list)?;
+                        ForLoopInitializer::Var(decl) => {
+                            self.create_decls_from_var_decl(decl);
+                            self.compile_var_decl(decl)?;
+                        }
+                        ForLoopInitializer::Lexical(decl) => {
+                            self.create_decls_from_lexical_decl(decl);
+                            self.compile_lexical_decl(decl)?;
                         }
                     }
                 }
@@ -1561,9 +1613,6 @@ impl<'b> ByteCompiler<'b> {
                 }
                 let exit = self.jump_if_false();
 
-                if !matches!(for_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_loop.body())?;
-                }
                 self.compile_stmt(for_loop.body(), false)?;
 
                 self.emit(Opcode::Jump, &[start_address]);
@@ -1976,8 +2025,8 @@ impl<'b> ByteCompiler<'b> {
                 self.context.push_compile_time_environment(false);
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-                self.create_decls(block.statements())?;
-                self.compile_statement_list(block.statements(), use_expr)?;
+                self.create_decls(block.statement_list());
+                self.compile_statement_list(block.statement_list(), use_expr)?;
                 let (num_bindings, compile_environment) =
                     self.context.pop_compile_time_environment();
                 let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -1999,7 +2048,7 @@ impl<'b> ByteCompiler<'b> {
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
                 for case in switch.cases() {
-                    self.create_decls(case.body().statements())?;
+                    self.create_decls(case.body());
                 }
                 self.emit_opcode(Opcode::LoopStart);
 
@@ -2017,13 +2066,13 @@ impl<'b> ByteCompiler<'b> {
 
                 for (label, case) in labels.into_iter().zip(switch.cases()) {
                     self.patch_jump(label);
-                    self.compile_statement_list(case.body().statements(), false)?;
+                    self.compile_statement_list(case.body(), false)?;
                 }
 
                 self.patch_jump(exit);
                 if let Some(body) = switch.default() {
-                    self.create_decls(body.statements())?;
-                    self.compile_statement_list(body.statements(), false)?;
+                    self.create_decls(body);
+                    self.compile_statement_list(body, false)?;
                 }
 
                 self.pop_switch_control_info();
@@ -2036,18 +2085,6 @@ impl<'b> ByteCompiler<'b> {
                 self.patch_jump_with_target(push_env.0, num_bindings as u32);
                 self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
                 self.emit_opcode(Opcode::PopEnvironment);
-            }
-            Statement::Function(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)?;
-            }
-            Statement::Generator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)?;
-            }
-            Statement::AsyncFunction(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)?;
-            }
-            Statement::AsyncGenerator(function) => {
-                self.function(function.into(), NodeKind::Declaration, false)?;
             }
             Statement::Return(ret) => {
                 if let Some(expr) = ret.expr() {
@@ -2065,8 +2102,8 @@ impl<'b> ByteCompiler<'b> {
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                self.create_decls(t.block().statements())?;
-                self.compile_statement_list(t.block().statements(), use_expr)?;
+                self.create_decls(t.block().statement_list());
+                self.compile_statement_list(t.block().statement_list(), use_expr)?;
 
                 let (num_bindings, compile_environment) =
                     self.context.pop_compile_time_environment();
@@ -2106,8 +2143,8 @@ impl<'b> ByteCompiler<'b> {
                         self.emit_opcode(Opcode::Pop);
                     }
 
-                    self.create_decls(catch.block().statements())?;
-                    self.compile_statement_list(catch.block().statements(), use_expr)?;
+                    self.create_decls(catch.block().statement_list());
+                    self.compile_statement_list(catch.block().statement_list(), use_expr)?;
 
                     let (num_bindings, compile_environment) =
                         self.context.pop_compile_time_environment();
@@ -2143,8 +2180,8 @@ impl<'b> ByteCompiler<'b> {
                     let push_env =
                         self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                    self.create_decls(finally.statements())?;
-                    self.compile_statement_list(finally.statements(), false)?;
+                    self.create_decls(finally.statement_list());
+                    self.compile_statement_list(finally.statement_list(), false)?;
 
                     let (num_bindings, compile_environment) =
                         self.context.pop_compile_time_environment();
@@ -2160,7 +2197,6 @@ impl<'b> ByteCompiler<'b> {
                     self.pop_try_control_info(None);
                 }
             }
-            Statement::Class(class) => self.class(class, false)?,
             Statement::Empty => {}
             Statement::Expression(expr) => self.compile_expr(expr, use_expr)?,
         }
@@ -2573,39 +2609,41 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub(crate) fn create_decls(&mut self, stmt_list: &[Statement]) -> JsResult<()> {
-        for node in stmt_list {
-            self.create_decls_from_stmt(node)?;
+    pub(crate) fn create_decls(&mut self, stmt_list: &StatementList) {
+        for node in stmt_list.statements() {
+            self.create_decls_from_stmt_list_item(node);
         }
-        Ok(())
     }
 
-    pub(crate) fn create_decls_from_decl_list(&mut self, list: &DeclarationList) -> bool {
+    pub(crate) fn create_decls_from_var_decl(&mut self, list: &VarDeclaration) -> bool {
         let mut has_identifier_argument = false;
-        match list {
-            DeclarationList::Var(list) => {
-                for decl in &**list {
-                    match decl.binding() {
-                        Binding::Identifier(ident) => {
-                            let ident = ident;
-                            if *ident == Sym::ARGUMENTS {
-                                has_identifier_argument = true;
-                            }
-                            self.context.create_mutable_binding(*ident, true);
+        for decl in list.0.as_ref() {
+            match decl.binding() {
+                Binding::Identifier(ident) => {
+                    let ident = ident;
+                    if *ident == Sym::ARGUMENTS {
+                        has_identifier_argument = true;
+                    }
+                    self.context.create_mutable_binding(*ident, true);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        if ident == Sym::ARGUMENTS {
+                            has_identifier_argument = true;
                         }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                if ident == Sym::ARGUMENTS {
-                                    has_identifier_argument = true;
-                                }
-                                self.context.create_mutable_binding(ident, true);
-                            }
-                        }
+                        self.context.create_mutable_binding(ident, true);
                     }
                 }
             }
-            DeclarationList::Let(list) => {
-                for decl in &**list {
+        }
+        has_identifier_argument
+    }
+
+    pub(crate) fn create_decls_from_lexical_decl(&mut self, list: &LexicalDeclaration) -> bool {
+        let mut has_identifier_argument = false;
+        match list {
+            LexicalDeclaration::Let(list) => {
+                for decl in list.as_ref() {
                     match decl.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident;
@@ -2625,8 +2663,8 @@ impl<'b> ByteCompiler<'b> {
                     }
                 }
             }
-            DeclarationList::Const(list) => {
-                for decl in &**list {
+            LexicalDeclaration::Const(list) => {
+                for decl in list.as_ref() {
                     match decl.binding() {
                         Binding::Identifier(ident) => {
                             let ident = ident;
@@ -2650,58 +2688,45 @@ impl<'b> ByteCompiler<'b> {
         has_identifier_argument
     }
 
-    pub(crate) fn create_decls_from_stmt(&mut self, node: &Statement) -> JsResult<bool> {
+    pub(crate) fn create_decls_from_stmt_list_item(&mut self, node: &StatementListItem) -> bool {
         match node {
-            Statement::DeclarationList(list) => Ok(self.create_decls_from_decl_list(list)),
-            Statement::Class(decl) => {
+            StatementListItem::Declaration(Declaration::Lexical(decl)) => {
+                self.create_decls_from_lexical_decl(decl)
+            }
+            StatementListItem::Statement(Statement::Var(decl)) => {
+                self.create_decls_from_var_decl(decl)
+            }
+            StatementListItem::Declaration(Declaration::Class(decl)) => {
                 let ident = decl.name().expect("class declaration must have a name");
                 self.context.create_mutable_binding(ident, false);
-                Ok(false)
+                false
             }
-            Statement::Function(decl) => {
+            StatementListItem::Declaration(Declaration::Function(decl)) => {
                 let ident = decl.name().expect("function declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
-                Ok(ident == Sym::ARGUMENTS)
+                ident == Sym::ARGUMENTS
             }
-            Statement::Generator(decl) => {
+            StatementListItem::Declaration(Declaration::Generator(decl)) => {
                 let ident = decl.name().expect("generator declaration must have a name");
 
                 self.context.create_mutable_binding(ident, true);
-                Ok(ident == Sym::ARGUMENTS)
+                ident == Sym::ARGUMENTS
             }
-            Statement::AsyncFunction(decl) => {
+            StatementListItem::Declaration(Declaration::AsyncFunction(decl)) => {
                 let ident = decl
                     .name()
                     .expect("async function declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
-                Ok(ident == Sym::ARGUMENTS)
+                ident == Sym::ARGUMENTS
             }
-            Statement::AsyncGenerator(decl) => {
+            StatementListItem::Declaration(Declaration::AsyncGenerator(decl)) => {
                 let ident = decl
                     .name()
                     .expect("async generator declaration must have a name");
                 self.context.create_mutable_binding(ident, true);
-                Ok(ident == Sym::ARGUMENTS)
+                ident == Sym::ARGUMENTS
             }
-            Statement::DoWhileLoop(do_while_loop) => {
-                if !matches!(do_while_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(do_while_loop.body())?;
-                }
-                Ok(false)
-            }
-            Statement::ForInLoop(for_in_loop) => {
-                if !matches!(for_in_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_in_loop.body())?;
-                }
-                Ok(false)
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                if !matches!(for_of_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_of_loop.body())?;
-                }
-                Ok(false)
-            }
-            _ => Ok(false),
+            _ => false,
         }
     }
 
@@ -2743,10 +2768,10 @@ impl<'b> ByteCompiler<'b> {
                     compiler.emit_opcode(Opcode::RestParameterInit);
                 }
 
-                match parameter.declaration().binding() {
+                match parameter.variable().binding() {
                     Binding::Identifier(ident) => {
                         compiler.context.create_mutable_binding(*ident, false);
-                        if let Some(init) = parameter.declaration().init() {
+                        if let Some(init) = parameter.variable().init() {
                             let skip =
                                 compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                             compiler.compile_expr(init, true)?;
@@ -2774,8 +2799,8 @@ impl<'b> ByteCompiler<'b> {
             } else {
                 None
             };
-            compiler.create_decls(expr.body().statements())?;
-            compiler.compile_statement_list(expr.body().statements(), false)?;
+            compiler.create_decls(expr.body());
+            compiler.compile_statement_list(expr.body(), false)?;
             if let Some(env_label) = env_label {
                 let (num_bindings, compile_environment) =
                     compiler.context.pop_compile_time_environment();
@@ -3069,8 +3094,8 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::Dup);
                     let mut compiler = ByteCompiler::new(Sym::EMPTY_STRING, true, self.context);
                     compiler.context.push_compile_time_environment(true);
-                    compiler.create_decls(statement_list.statements())?;
-                    compiler.compile_statement_list(statement_list.statements(), false)?;
+                    compiler.create_decls(statement_list);
+                    compiler.compile_statement_list(statement_list, false)?;
                     let (num_bindings, compile_environment) =
                         compiler.context.pop_compile_time_environment();
                     compiler

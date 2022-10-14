@@ -257,7 +257,7 @@ impl<R> TokenParser<R> for StatementList
 where
     R: Read,
 {
-    type Output = ast::statement::StatementList;
+    type Output = ast::StatementList;
 
     /// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
@@ -289,7 +289,7 @@ where
             while cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {}
         }
 
-        items.sort_by(ast::Statement::hoistable_order);
+        items.sort_by(ast::StatementListItem::hoistable_order);
 
         Ok(items.into())
     }
@@ -332,7 +332,7 @@ impl<R> TokenParser<R> for StatementListItem
 where
     R: Read,
 {
-    type Output = ast::Statement;
+    type Output = ast::StatementListItem;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
@@ -342,18 +342,24 @@ where
             TokenKind::Keyword((
                 Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Let,
                 _,
-            )) => Declaration::new(self.allow_yield, self.allow_await).parse(cursor, interner),
+            )) => Declaration::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)
+                .map(ast::StatementListItem::from),
             TokenKind::Keyword((Keyword::Async, _)) => {
                 match cursor.peek(1, interner)?.map(Token::kind) {
                     Some(TokenKind::Keyword((Keyword::Function, _))) => {
-                        Declaration::new(self.allow_yield, self.allow_await).parse(cursor, interner)
+                        Declaration::new(self.allow_yield, self.allow_await)
+                            .parse(cursor, interner)
+                            .map(ast::StatementListItem::from)
                     }
                     _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor, interner),
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from),
                 }
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor, interner),
+                .parse(cursor, interner)
+                .map(ast::StatementListItem::from),
         }
     }
 }

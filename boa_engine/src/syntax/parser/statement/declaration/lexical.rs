@@ -8,11 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::syntax::{
-    ast::{
-        pattern::Pattern,
-        statement::declaration::{Declaration, DeclarationList},
-        Keyword, Punctuator,
-    },
+    ast::{self, declaration::Variable, pattern::Pattern, Keyword, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
@@ -23,7 +19,7 @@ use crate::syntax::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
+use std::{convert::TryInto, io::Read};
 
 /// Parses a lexical declaration.
 ///
@@ -65,7 +61,7 @@ impl<R> TokenParser<R> for LexicalDeclaration
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = ast::declaration::LexicalDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalDeclaration", "Parsing");
@@ -143,7 +139,7 @@ impl<R> TokenParser<R> for BindingList
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = ast::declaration::LexicalDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingList", "Parsing");
@@ -208,10 +204,14 @@ where
             }
         }
 
+        let decls = decls
+            .try_into()
+            .expect("`LexicalBinding` must return at least one variable");
+
         if self.is_const {
-            Ok(DeclarationList::Const(decls.into()))
+            Ok(ast::declaration::LexicalDeclaration::Const(decls))
         } else {
-            Ok(DeclarationList::Let(decls.into()))
+            Ok(ast::declaration::LexicalDeclaration::Let(decls))
         }
     }
 }
@@ -248,7 +248,7 @@ impl<R> TokenParser<R> for LexicalBinding
 where
     R: Read,
 {
-    type Output = Declaration;
+    type Output = Variable;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalBinding", "Parsing");
@@ -288,7 +288,7 @@ where
                     )));
                 }
 
-                Ok(Declaration::from_pattern(declaration, init))
+                Ok(Variable::from_pattern(declaration, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
@@ -321,7 +321,7 @@ where
                     )));
                 }
 
-                Ok(Declaration::from_pattern(declaration, init))
+                Ok(Variable::from_pattern(declaration, init))
             }
             _ => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -351,7 +351,7 @@ where
                 } else {
                     None
                 };
-                Ok(Declaration::from_identifier(ident, init))
+                Ok(Variable::from_identifier(ident, init))
             }
         }
     }

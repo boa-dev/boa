@@ -3,7 +3,7 @@
 use crate::syntax::{
     ast::{
         expression::literal::{ArrayLiteral, Literal},
-        Expression,
+        Expression, Statement,
     },
     parser::tests::check_parser,
 };
@@ -15,7 +15,7 @@ use boa_macros::utf16;
 fn check_empty() {
     check_parser(
         "[]",
-        vec![Expression::from(ArrayLiteral::from(vec![])).into()],
+        vec![Statement::Expression(Expression::from(ArrayLiteral::from(vec![]))).into()],
         Interner::default(),
     );
 }
@@ -25,7 +25,7 @@ fn check_empty() {
 fn check_empty_slot() {
     check_parser(
         "[,]",
-        vec![Expression::from(ArrayLiteral::from(vec![None])).into()],
+        vec![Statement::Expression(Expression::from(ArrayLiteral::from(vec![None]))).into()],
         Interner::default(),
     );
 }
@@ -35,12 +35,14 @@ fn check_empty_slot() {
 fn check_numeric_array() {
     check_parser(
         "[1, 2, 3]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(2).into()),
-            Some(Literal::from(3).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(2).into()),
+                Some(Literal::from(3).into()),
+            ])))
+            .into(),
+        ],
         Interner::default(),
     );
 }
@@ -50,12 +52,14 @@ fn check_numeric_array() {
 fn check_numeric_array_trailing() {
     check_parser(
         "[1, 2, 3,]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(2).into()),
-            Some(Literal::from(3).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(2).into()),
+                Some(Literal::from(3).into()),
+            ])))
+            .into(),
+        ],
         Interner::default(),
     );
 }
@@ -65,13 +69,15 @@ fn check_numeric_array_trailing() {
 fn check_numeric_array_elision() {
     check_parser(
         "[1, 2, , 3]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(2).into()),
-            None,
-            Some(Literal::from(3).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(2).into()),
+                None,
+                Some(Literal::from(3).into()),
+            ])))
+            .into(),
+        ],
         Interner::default(),
     );
 }
@@ -81,14 +87,16 @@ fn check_numeric_array_elision() {
 fn check_numeric_array_repeated_elision() {
     check_parser(
         "[1, 2, ,, 3]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(2).into()),
-            None,
-            None,
-            Some(Literal::from(3).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(2).into()),
+                None,
+                None,
+                Some(Literal::from(3).into()),
+            ])))
+            .into(),
+        ],
         Interner::default(),
     );
 }
@@ -99,12 +107,14 @@ fn check_combined() {
     let mut interner = Interner::default();
     check_parser(
         "[1, \"a\", 2]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-            Some(Literal::from(2).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
+                Some(Literal::from(2).into()),
+            ])))
+            .into(),
+        ],
         interner,
     );
 }
@@ -114,12 +124,14 @@ fn check_combined() {
 fn check_combined_empty_str() {
     check_parser(
         "[1, \"\", 2]",
-        vec![Expression::from(ArrayLiteral::from(vec![
-            Some(Literal::from(1).into()),
-            Some(Literal::from(Sym::EMPTY_STRING).into()),
-            Some(Literal::from(2).into()),
-        ]))
-        .into()],
+        vec![
+            Statement::Expression(Expression::from(ArrayLiteral::from(vec![
+                Some(Literal::from(1).into()),
+                Some(Literal::from(Sym::EMPTY_STRING).into()),
+                Some(Literal::from(2).into()),
+            ])))
+            .into(),
+        ],
         Interner::default(),
     );
 }

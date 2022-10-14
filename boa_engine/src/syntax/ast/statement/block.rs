@@ -1,8 +1,8 @@
 //! Block AST node.
 
-use crate::syntax::ast::{expression::Identifier, ContainsSymbol};
+use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
 
-use super::{Statement, StatementList};
+use super::Statement;
 use boa_interner::{Interner, Sym, ToInternedString};
 
 /// A `block` statement (or compound statement in other languages) is used to group zero or
@@ -30,8 +30,8 @@ pub struct Block {
 
 impl Block {
     /// Gets the list of statements and declarations in this block.
-    pub(crate) fn statements(&self) -> &[Statement] {
-        self.statements.statements()
+    pub(crate) fn statement_list(&self) -> &StatementList {
+        &self.statements
     }
 
     /// Get the lexically declared names of the block.

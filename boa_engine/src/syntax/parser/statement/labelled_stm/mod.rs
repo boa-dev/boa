@@ -5,7 +5,7 @@ use crate::syntax::{
         cursor::Cursor,
         error::ParseError,
         expression::LabelIdentifier,
-        statement::{declaration::FunctionDeclaration, AllowAwait, AllowReturn, Statement},
+        statement::{AllowAwait, AllowReturn, Statement},
         AllowYield, ParseResult, TokenParser,
     },
 };
@@ -60,7 +60,9 @@ where
 
         let strict = cursor.strict_mode();
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-        let mut node = match next_token.kind() {
+        // TODO: create `ast::Statement::Labelled`
+
+        Ok(match next_token.kind() {
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
@@ -70,17 +72,18 @@ where
                     next_token.span().start()
                 ))
             }
-            TokenKind::Keyword((Keyword::Function, _)) => {
-                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                .parse(cursor, interner)?
-                .into()
+            // TODO: temporarily disable until we implement `LabelledStatement`
+            // TokenKind::Keyword((Keyword::Function, _)) => {
+            //     Declaration::Function(FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+            //     .parse(cursor, interner)?)
+            //     .into()
+            // }
+            _ => {
+                let mut stmt = Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?;
+                set_label_for_node(&mut stmt, name);
+                stmt
             }
-            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?
-        };
-
-        // TODO: create `ast::Statement::Labelled`
-        set_label_for_node(&mut node, name);
-        Ok(node)
+        })
     }
 }
 

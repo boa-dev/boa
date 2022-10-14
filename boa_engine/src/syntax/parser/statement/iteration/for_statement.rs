@@ -14,7 +14,6 @@ use crate::syntax::{
             array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
         },
         statement::{
-            declaration::DeclarationList,
             iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
             ForInLoop, ForLoop, ForOfLoop,
         },
@@ -176,11 +175,6 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
 
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let ast::Statement::Function(_) = body {
-                    return Err(ParseError::wrong_function_declaration_non_strict(position));
-                }
-
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
@@ -226,11 +220,6 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
 
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let ast::Statement::Function(_) = body {
-                    return Err(ParseError::wrong_function_declaration_non_strict(position));
-                }
-
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
@@ -263,8 +252,11 @@ where
             (init, _) => init,
         };
 
-        if let Some(ForLoopInitializer::DeclarationList(DeclarationList::Const(ref list))) = init {
-            for decl in &**list {
+        if let Some(ForLoopInitializer::Lexical(ast::declaration::LexicalDeclaration::Const(
+            ref list,
+        ))) = init
+        {
+            for decl in list.as_ref() {
                 if decl.init().is_none() {
                     return Err(ParseError::general(
                         "Expected initializer for const declaration",
@@ -306,11 +298,6 @@ where
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
-
-        // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-        if let ast::Statement::Function(_) = body {
-            return Err(ParseError::wrong_function_declaration_non_strict(position));
-        }
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of
         // LexicalDeclaration also occurs in the VarDeclaredNames of Statement.
@@ -381,7 +368,7 @@ fn initializer_to_iterable_loop_initializer(
                 position,
             ))),
         },
-        ForLoopInitializer::DeclarationList(list) => match list.as_ref() {
+        ForLoopInitializer::Lexical(decl) => match decl.variable_list().as_ref() {
             [declaration] => {
                 if declaration.init().is_some() {
                     return Err(ParseError::lex(LexError::Syntax(
@@ -390,17 +377,32 @@ fn initializer_to_iterable_loop_initializer(
                         position,
                     )));
                 }
-                Ok(match list {
-                    DeclarationList::Const(_) => {
+                Ok(match decl {
+                    ast::declaration::LexicalDeclaration::Const(_) => {
                         IterableLoopInitializer::Const(declaration.binding().clone())
                     }
-                    DeclarationList::Let(_) => {
+                    ast::declaration::LexicalDeclaration::Let(_) => {
                         IterableLoopInitializer::Let(declaration.binding().clone())
                     }
-                    DeclarationList::Var(_) => {
-                        IterableLoopInitializer::Var(declaration.binding().clone())
-                    }
                 })
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
+        ForLoopInitializer::Var(decl) => match decl.0.as_ref() {
+            [declaration] => {
+                // TODO: implement initializers in ForIn heads
+                // https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
+                if declaration.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(IterableLoopInitializer::Var(declaration.binding().clone()))
             }
             _ => Err(ParseError::lex(LexError::Syntax(
                 "only one variable can be declared in the head of a for-of loop".into(),

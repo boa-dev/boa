@@ -29,6 +29,7 @@ use self::{
 use crate::syntax::{
     ast::{
         self,
+        declaration::Variable,
         expression::{
             literal::Literal,
             operator::{
@@ -42,7 +43,6 @@ use crate::syntax::{
         },
         function::{FormalParameter, FormalParameterList},
         pattern::{Pattern, PatternArrayElement, PatternObjectElement},
-        statement::declaration::Declaration,
         Keyword, Punctuator, Span,
     },
     lexer::{token::Numeric, InputElement, Token, TokenKind},
@@ -445,17 +445,17 @@ where
                     )?;
                 }
                 InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Declaration::from_pattern(bindings.into(), None);
+                    let declaration = Variable::from_pattern(bindings.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
                 InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Declaration::from_pattern(bindings.into(), None);
+                    let declaration = Variable::from_pattern(bindings.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
                 InnerExpression::SpreadBinding(ident) => {
-                    let declaration = Declaration::from_identifier(ident, None);
+                    let declaration = Variable::from_identifier(ident, None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
@@ -506,7 +506,7 @@ fn expression_to_formal_parameters(
         }
         ast::Expression::Identifier(identifier) => {
             parameters.push(FormalParameter::new(
-                Declaration::from_identifier(*identifier, None),
+                Variable::from_identifier(*identifier, None),
                 false,
             ));
         }
@@ -517,14 +517,14 @@ fn expression_to_formal_parameters(
         ast::Expression::Assign(assign) => match assign.lhs() {
             AssignTarget::Identifier(ident) => {
                 parameters.push(FormalParameter::new(
-                    Declaration::from_identifier(*ident, Some(assign.rhs().clone())),
+                    Variable::from_identifier(*ident, Some(assign.rhs().clone())),
                     false,
                 ));
             }
             AssignTarget::Pattern(pattern) => match pattern {
                 Pattern::Object(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Declaration::from_pattern(
+                        Variable::from_pattern(
                             pattern.bindings().to_vec().into(),
                             Some(assign.rhs().clone()),
                         ),
@@ -533,7 +533,7 @@ fn expression_to_formal_parameters(
                 }
                 Pattern::Array(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Declaration::from_pattern(
+                        Variable::from_pattern(
                             pattern.bindings().to_vec().into(),
                             Some(assign.rhs().clone()),
                         ),
@@ -553,7 +553,7 @@ fn expression_to_formal_parameters(
 
             if let Some(pattern) = decl {
                 parameters.push(FormalParameter::new(
-                    Declaration::from_pattern(pattern.into(), None),
+                    Variable::from_pattern(pattern.into(), None),
                     false,
                 ));
             } else {
@@ -568,7 +568,7 @@ fn expression_to_formal_parameters(
 
             if let Some(pattern) = decl {
                 parameters.push(FormalParameter::new(
-                    Declaration::from_pattern(pattern.into(), None),
+                    Variable::from_pattern(pattern.into(), None),
                     false,
                 ));
             } else {

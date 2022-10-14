@@ -2,6 +2,7 @@ use crate::{
     string::utf16,
     syntax::{
         ast::{
+            declaration::{LexicalDeclaration, Variable},
             expression::{
                 operator::{binary::op::ArithmeticOp, Binary},
                 Identifier,
@@ -10,11 +11,9 @@ use crate::{
                 ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags,
                 Function,
             },
-            statement::{
-                declaration::{Declaration, DeclarationList},
-                Return, StatementList,
-            },
-            Expression,
+            statement::Return,
+            statement_list::StatementListItem,
+            Declaration, Expression, Statement, StatementList,
         },
         parser::tests::check_parser,
         Parser,
@@ -29,11 +28,11 @@ fn check_basic() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return a; }",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::from_identifier(
+                    Variable::from_identifier(
                         interner.get_or_intern_static("a", utf16!("a")).into(),
                         None,
                     ),
@@ -42,13 +41,14 @@ fn check_basic() {
                 flags: FormalParameterListFlags::default(),
                 length: 1,
             },
-            vec![Return::new(
-                Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                None,
-            )
-            .into()]
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(
+                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
+                    None,
+                ),
+            ))]
             .into(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -60,19 +60,19 @@ fn check_duplicates_strict_off() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a, a) { return a; }",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
@@ -83,13 +83,14 @@ fn check_duplicates_strict_off() {
                     .union(FormalParameterListFlags::HAS_DUPLICATES),
                 length: 2,
             },
-            vec![Return::new(
-                Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                None,
-            )
-            .into()]
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(
+                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
+                    None,
+                ),
+            ))]
             .into(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -111,11 +112,11 @@ fn check_basic_semicolon_insertion() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return a }",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::from_identifier(
+                    Variable::from_identifier(
                         interner.get_or_intern_static("a", utf16!("a")).into(),
                         None,
                     ),
@@ -124,13 +125,14 @@ fn check_basic_semicolon_insertion() {
                 flags: FormalParameterListFlags::default(),
                 length: 1,
             },
-            vec![Return::new(
-                Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
-                None,
-            )
-            .into()]
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(
+                    Some(Identifier::from(interner.get_or_intern_static("a", utf16!("a"))).into()),
+                    None,
+                ),
+            ))]
             .into(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -142,11 +144,11 @@ fn check_empty_return() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return; }",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::from_identifier(
+                    Variable::from_identifier(
                         interner.get_or_intern_static("a", utf16!("a")).into(),
                         None,
                     ),
@@ -155,8 +157,11 @@ fn check_empty_return() {
                 flags: FormalParameterListFlags::default(),
                 length: 1,
             },
-            vec![Return::new(None, None).into()].into(),
-        )
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(None, None),
+            ))]
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -168,11 +173,11 @@ fn check_empty_return_semicolon_insertion() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a) { return }",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::from_identifier(
+                    Variable::from_identifier(
                         interner.get_or_intern_static("a", utf16!("a")).into(),
                         None,
                     ),
@@ -181,8 +186,11 @@ fn check_empty_return_semicolon_insertion() {
                 flags: FormalParameterListFlags::default(),
                 length: 1,
             },
-            vec![Return::new(None, None).into()].into(),
-        )
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(None, None),
+            ))]
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -194,19 +202,19 @@ fn check_rest_operator() {
     let mut interner = Interner::default();
     check_parser(
         "function foo(a, ...b) {}",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
@@ -218,7 +226,7 @@ fn check_rest_operator() {
                 length: 1,
             },
             StatementList::default(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -230,11 +238,11 @@ fn check_arrow_only_rest() {
     let mut interner = Interner::default();
     check_parser(
         "(...a) => {}",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::from_identifier(
+                    Variable::from_identifier(
                         interner.get_or_intern_static("a", utf16!("a")).into(),
                         None,
                     ),
@@ -245,7 +253,7 @@ fn check_arrow_only_rest() {
                 length: 0,
             },
             StatementList::default(),
-        ))
+        )))
         .into()],
         interner,
     );
@@ -257,26 +265,26 @@ fn check_arrow_rest() {
     let mut interner = Interner::default();
     check_parser(
         "(a, b, ...c) => {}",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("c", utf16!("c")).into(),
                             None,
                         ),
@@ -288,7 +296,7 @@ fn check_arrow_rest() {
                 length: 2,
             },
             StatementList::default(),
-        ))
+        )))
         .into()],
         interner,
     );
@@ -300,19 +308,19 @@ fn check_arrow() {
     let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return a + b; }",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
@@ -322,20 +330,21 @@ fn check_arrow() {
                 flags: FormalParameterListFlags::default(),
                 length: 2,
             },
-            vec![Return::new(
-                Some(
-                    Binary::new(
-                        ArithmeticOp::Add.into(),
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                    )
-                    .into(),
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(
+                    Some(
+                        Binary::new(
+                            ArithmeticOp::Add.into(),
+                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                        )
+                        .into(),
+                    ),
+                    None,
                 ),
-                None,
-            )
-            .into()]
+            ))]
             .into(),
-        ))
+        )))
         .into()],
         interner,
     );
@@ -347,19 +356,19 @@ fn check_arrow_semicolon_insertion() {
     let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return a + b }",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
@@ -369,20 +378,21 @@ fn check_arrow_semicolon_insertion() {
                 flags: FormalParameterListFlags::default(),
                 length: 2,
             },
-            vec![Return::new(
-                Some(
-                    Binary::new(
-                        ArithmeticOp::Add.into(),
-                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                        Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-                    )
-                    .into(),
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(
+                    Some(
+                        Binary::new(
+                            ArithmeticOp::Add.into(),
+                            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                        )
+                        .into(),
+                    ),
+                    None,
                 ),
-                None,
-            )
-            .into()]
+            ))]
             .into(),
-        ))
+        )))
         .into()],
         interner,
     );
@@ -394,19 +404,19 @@ fn check_arrow_epty_return() {
     let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return; }",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
@@ -416,8 +426,11 @@ fn check_arrow_epty_return() {
                 flags: FormalParameterListFlags::default(),
                 length: 2,
             },
-            vec![Return::new(None, None).into()].into(),
-        ))
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(None, None),
+            ))]
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -429,19 +442,19 @@ fn check_arrow_empty_return_semicolon_insertion() {
     let mut interner = Interner::default();
     check_parser(
         "(a, b) => { return }",
-        vec![Expression::from(ArrowFunction::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("a", utf16!("a")).into(),
                             None,
                         ),
                         false,
                     ),
                     FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("b", utf16!("b")).into(),
                             None,
                         ),
@@ -451,8 +464,11 @@ fn check_arrow_empty_return_semicolon_insertion() {
                 flags: FormalParameterListFlags::default(),
                 length: 2,
             },
-            vec![Return::new(None, None).into()].into(),
-        ))
+            vec![StatementListItem::Statement(Statement::Return(
+                Return::new(None, None),
+            ))]
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -463,15 +479,15 @@ fn check_arrow_assignment() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a) => { return a };",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
-                                Declaration::from_identifier(
+                                Variable::from_identifier(
                                     interner.get_or_intern_static("a", utf16!("a")).into(),
                                     None,
                                 ),
@@ -480,21 +496,25 @@ fn check_arrow_assignment() {
                             flags: FormalParameterListFlags::default(),
                             length: 1,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -505,15 +525,15 @@ fn check_arrow_assignment_nobrackets() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a) => a;",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("foo", utf16!("foo")).into(),
                 Some(
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
-                                Declaration::from_identifier(
+                                Variable::from_identifier(
                                     interner.get_or_intern_static("a", utf16!("a")).into(),
                                     None,
                                 ),
@@ -522,21 +542,25 @@ fn check_arrow_assignment_nobrackets() {
                             flags: FormalParameterListFlags::default(),
                             length: 1,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -547,15 +571,15 @@ fn check_arrow_assignment_noparenthesis() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = a => { return a };",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("foo", utf16!("foo")).into(),
                 Some(
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
-                                Declaration::from_identifier(
+                                Variable::from_identifier(
                                     interner.get_or_intern_static("a", utf16!("a")).into(),
                                     None,
                                 ),
@@ -564,21 +588,25 @@ fn check_arrow_assignment_noparenthesis() {
                             flags: FormalParameterListFlags::default(),
                             length: 1,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -589,15 +617,15 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = a => a;",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
                         Some(interner.get_or_intern_static("foo", utf16!("foo")).into()),
                         FormalParameterList {
                             parameters: Box::new([FormalParameter::new(
-                                Declaration::from_identifier(
+                                Variable::from_identifier(
                                     interner.get_or_intern_static("a", utf16!("a")).into(),
                                     None,
                                 ),
@@ -606,21 +634,25 @@ fn check_arrow_assignment_noparenthesis_nobrackets() {
                             flags: FormalParameterListFlags::default(),
                             length: 1,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -631,8 +663,8 @@ fn check_arrow_assignment_2arg() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b) => { return a };",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
@@ -640,14 +672,14 @@ fn check_arrow_assignment_2arg() {
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("a", utf16!("a")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("b", utf16!("b")).into(),
                                         None,
                                     ),
@@ -657,21 +689,25 @@ fn check_arrow_assignment_2arg() {
                             flags: FormalParameterListFlags::default(),
                             length: 2,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -682,8 +718,8 @@ fn check_arrow_assignment_2arg_nobrackets() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b) => a;",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
@@ -691,14 +727,14 @@ fn check_arrow_assignment_2arg_nobrackets() {
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("a", utf16!("a")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("b", utf16!("b")).into(),
                                         None,
                                     ),
@@ -708,21 +744,25 @@ fn check_arrow_assignment_2arg_nobrackets() {
                             flags: FormalParameterListFlags::default(),
                             length: 2,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -733,8 +773,8 @@ fn check_arrow_assignment_3arg() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b, c) => { return a };",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
@@ -742,21 +782,21 @@ fn check_arrow_assignment_3arg() {
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("a", utf16!("a")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("b", utf16!("b")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("c", utf16!("c")).into(),
                                         None,
                                     ),
@@ -766,21 +806,25 @@ fn check_arrow_assignment_3arg() {
                             flags: FormalParameterListFlags::default(),
                             length: 3,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -791,8 +835,8 @@ fn check_arrow_assignment_3arg_nobrackets() {
     let mut interner = Interner::default();
     check_parser(
         "let foo = (a, b, c) => a;",
-        vec![DeclarationList::Let(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
                 Identifier::new(interner.get_or_intern_static("foo", utf16!("foo"))),
                 Some(
                     ArrowFunction::new(
@@ -800,21 +844,21 @@ fn check_arrow_assignment_3arg_nobrackets() {
                         FormalParameterList {
                             parameters: Box::new([
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("a", utf16!("a")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("b", utf16!("b")).into(),
                                         None,
                                     ),
                                     false,
                                 ),
                                 FormalParameter::new(
-                                    Declaration::from_identifier(
+                                    Variable::from_identifier(
                                         interner.get_or_intern_static("c", utf16!("c")).into(),
                                         None,
                                     ),
@@ -824,21 +868,25 @@ fn check_arrow_assignment_3arg_nobrackets() {
                             flags: FormalParameterListFlags::default(),
                             length: 3,
                         },
-                        vec![Return::new(
-                            Some(
-                                Identifier::new(interner.get_or_intern_static("a", utf16!("a")))
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(
+                                Some(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("a", utf16!("a")),
+                                    )
                                     .into(),
+                                ),
+                                None,
                             ),
-                            None,
-                        )
-                        .into()]
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

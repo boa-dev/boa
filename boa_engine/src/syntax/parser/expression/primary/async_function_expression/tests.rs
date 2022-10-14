@@ -1,11 +1,11 @@
 use crate::syntax::{
     ast::{
+        declaration::{Declaration, LexicalDeclaration, Variable},
         expression::literal::Literal,
         function::{AsyncFunction, FormalParameterList},
-        statement::{
-            declaration::{Declaration, DeclarationList},
-            Return,
-        },
+        statement::Return,
+        statement_list::StatementListItem,
+        Statement,
     },
     parser::tests::check_parser,
 };
@@ -22,20 +22,24 @@ fn check_async_expression() {
             return 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 add.into(),
                 Some(
                     AsyncFunction::new(
                         Some(add.into()),
                         FormalParameterList::default(),
-                        vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::from(1).into()), None),
+                        ))]
+                        .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -53,38 +57,42 @@ fn check_nested_async_expression() {
             };
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 a.into(),
                 Some(
                     AsyncFunction::new(
                         Some(a.into()),
                         FormalParameterList::default(),
-                        vec![DeclarationList::Const(
-                            vec![Declaration::from_identifier(
+                        vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            vec![Variable::from_identifier(
                                 b.into(),
                                 Some(
                                     AsyncFunction::new(
                                         Some(b.into()),
                                         FormalParameterList::default(),
-                                        vec![
-                                            Return::new(Some(Literal::from(1).into()), None).into()
-                                        ]
+                                        vec![Statement::Return(Return::new(
+                                            Some(Literal::from(1).into()),
+                                            None,
+                                        ))
+                                        .into()]
                                         .into(),
                                     )
                                     .into(),
                                 ),
                             )]
-                            .into(),
-                        )
+                            .try_into()
+                            .unwrap(),
+                        ))
                         .into()]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

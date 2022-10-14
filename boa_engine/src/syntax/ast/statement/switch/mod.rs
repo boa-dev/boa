@@ -3,7 +3,7 @@
 use crate::syntax::ast::{expression::Expression, statement::Statement};
 use boa_interner::{Interner, ToInternedString};
 
-use crate::syntax::ast::statement::StatementList;
+use crate::syntax::ast::StatementList;
 
 use super::ContainsSymbol;
 

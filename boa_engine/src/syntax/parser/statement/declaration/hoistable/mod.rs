@@ -20,11 +20,10 @@ use self::{
     class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
-    ast::statement::StatementList,
     ast::{
         expression::Identifier,
         function::{function_contains_super, FormalParameterList},
-        Keyword, Position, Punctuator, Statement,
+        Declaration, Keyword, Position, Punctuator, StatementList,
     },
     lexer::TokenKind,
     parser::{
@@ -73,7 +72,7 @@ impl<R> TokenParser<R> for HoistableDeclaration
 where
     R: Read,
 {
-    type Output = Statement;
+    type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("HoistableDeclaration", "Parsing");
@@ -91,11 +90,11 @@ where
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
-                        .map(Statement::from)
+                        .map(Declaration::from)
                 } else {
                     FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
-                        .map(Statement::from)
+                        .map(Declaration::from)
                 }
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
@@ -107,17 +106,17 @@ where
                         self.is_default,
                     )
                     .parse(cursor, interner)
-                    .map(Statement::from)
+                    .map(Declaration::from)
                 } else {
                     AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
                         .parse(cursor, interner)
-                        .map(Statement::from)
+                        .map(Declaration::from)
                 }
             }
             TokenKind::Keyword((Keyword::Class, false)) => {
                 ClassDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
-                    .map(Statement::from)
+                    .map(Declaration::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }

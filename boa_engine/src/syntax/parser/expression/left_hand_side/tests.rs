@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         expression::{access::PropertyAccess, Call, Identifier},
-        Expression,
+        Expression, Statement,
     },
     parser::tests::check_parser,
 };
@@ -13,14 +13,14 @@ macro_rules! check_call_property_identifier {
         let mut interner = Interner::default();
         check_parser(
             format!("a().{}", $property).as_str(),
-            vec![Expression::from(PropertyAccess::new(
+            vec![Statement::Expression(Expression::from(PropertyAccess::new(
                 Call::new(
                     Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
                     Box::default(),
                 )
                 .into(),
                 interner.get_or_intern_static($property, utf16!($property)),
-            ))
+            )))
             .into()],
             interner,
         );
@@ -41,10 +41,10 @@ macro_rules! check_member_property_identifier {
         let mut interner = Interner::default();
         check_parser(
             format!("a.{}", $property).as_str(),
-            vec![Expression::from(PropertyAccess::new(
+            vec![Statement::Expression(Expression::from(PropertyAccess::new(
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
                 interner.get_or_intern_static($property, utf16!($property)),
-            ))
+            )))
             .into()],
             interner,
         );

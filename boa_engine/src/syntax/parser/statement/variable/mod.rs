@@ -2,8 +2,8 @@
 
 use crate::syntax::{
     ast::{
-        statement::declaration::{Declaration, DeclarationList},
-        Keyword, Punctuator,
+        declaration::{VarDeclaration, Variable},
+        Keyword, Punctuator, Statement,
     },
     lexer::TokenKind,
     parser::{
@@ -17,7 +17,7 @@ use crate::syntax::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::io::Read;
+use std::{convert::TryInto, io::Read};
 
 /// Variable statement parsing.
 ///
@@ -53,7 +53,7 @@ impl<R> TokenParser<R> for VariableStatement
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = Statement;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("VariableStatement", "Parsing");
@@ -64,7 +64,7 @@ where
 
         cursor.expect_semicolon("variable statement", interner)?;
 
-        Ok(decl_list)
+        Ok(decl_list.into())
     }
 }
 
@@ -107,7 +107,7 @@ impl<R> TokenParser<R> for VariableDeclarationList
 where
     R: Read,
 {
-    type Output = DeclarationList;
+    type Output = VarDeclaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let mut list = Vec::new();
@@ -123,7 +123,9 @@ where
             }
         }
 
-        Ok(DeclarationList::Var(list.into()))
+        Ok(VarDeclaration(list.try_into().expect(
+            "`VariableDeclaration` must parse at least one variable",
+        )))
     }
 }
 
@@ -160,7 +162,7 @@ impl<R> TokenParser<R> for VariableDeclaration
 where
     R: Read,
 {
-    type Output = Declaration;
+    type Output = Variable;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -188,7 +190,7 @@ where
                     None
                 };
 
-                Ok(Declaration::from_pattern(bindings.into(), init))
+                Ok(Variable::from_pattern(bindings.into(), init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
@@ -212,7 +214,7 @@ where
                     None
                 };
 
-                Ok(Declaration::from_pattern(bindings.into(), init))
+                Ok(Variable::from_pattern(bindings.into(), init))
             }
             _ => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -230,7 +232,7 @@ where
                 } else {
                     None
                 };
-                Ok(Declaration::from_identifier(ident, init))
+                Ok(Variable::from_identifier(ident, init))
             }
         }
     }

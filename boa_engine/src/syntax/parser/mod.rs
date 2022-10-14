@@ -30,8 +30,7 @@ pub use self::error::{ParseError, ParseResult};
 pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
 
 use super::ast::{
-    expression::Identifier, function::FormalParameterList, statement::StatementList,
-    ContainsSymbol, Position,
+    expression::Identifier, function::FormalParameterList, ContainsSymbol, Position, StatementList,
 };
 
 /// Trait implemented by parsers.

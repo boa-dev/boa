@@ -19,7 +19,7 @@ use crate::{
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{ast::statement::StatementList, parser::ParseError, Parser},
+    syntax::{ast::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsString, JsValue,
 };
@@ -681,8 +681,8 @@ impl Context {
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        compiler.create_decls(statement_list.statements())?;
-        compiler.compile_statement_list(statement_list.statements(), true)?;
+        compiler.create_decls(statement_list);
+        compiler.compile_statement_list(statement_list, true)?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -696,7 +696,7 @@ impl Context {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
         compiler.compile_statement_list_with_new_declarative(
-            statement_list.statements(),
+            statement_list,
             true,
             strict || statement_list.strict(),
         )?;

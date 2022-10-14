@@ -1,9 +1,9 @@
 //! Async Function Expression.
 
-use crate::syntax::ast::expression::Identifier;
-use crate::syntax::ast::join_nodes;
-use crate::syntax::ast::statement::StatementList;
-use crate::syntax::ast::{expression::Expression, Statement};
+use crate::syntax::ast::{
+    expression::{Expression, Identifier},
+    join_nodes, Declaration, StatementList,
+};
 use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;
@@ -89,7 +89,7 @@ impl From<AsyncFunction> for Expression {
     }
 }
 
-impl From<AsyncFunction> for Statement {
+impl From<AsyncFunction> for Declaration {
     fn from(f: AsyncFunction) -> Self {
         Self::AsyncFunction(f)
     }

@@ -1,5 +1,6 @@
 use crate::syntax::{
     ast::{
+        declaration::{LexicalDeclaration, Variable},
         expression::{
             literal::{Literal, ObjectLiteral},
             Identifier,
@@ -9,10 +10,7 @@ use crate::syntax::{
             FormalParameterListFlags, Function,
         },
         property::{MethodDefinition, PropertyDefinition, PropertyName},
-        statement::{
-            declaration::{Declaration, DeclarationList},
-            StatementList,
-        },
+        Declaration, StatementList,
     },
     parser::tests::{check_invalid, check_parser},
 };
@@ -41,13 +39,14 @@ fn check_object_literal() {
             b: false,
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -79,13 +78,14 @@ fn check_object_short_function() {
             b() {},
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -107,7 +107,7 @@ fn check_object_short_function_arguments() {
                 None,
                 FormalParameterList {
                     parameters: Box::new([FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("test", utf16!("test")).into(),
                             None,
                         ),
@@ -127,13 +127,14 @@ fn check_object_short_function_arguments() {
             b(test) {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -164,13 +165,14 @@ fn check_object_getter() {
             get b() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -191,7 +193,7 @@ fn check_object_setter() {
                 None,
                 FormalParameterList {
                     parameters: Box::new([FormalParameter::new(
-                        Declaration::from_identifier(
+                        Variable::from_identifier(
                             interner.get_or_intern_static("test", utf16!("test")).into(),
                             None,
                         ),
@@ -211,13 +213,14 @@ fn check_object_setter() {
             set b(test) {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -241,13 +244,14 @@ fn check_object_short_function_get() {
             get() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -271,13 +275,14 @@ fn check_object_short_function_set() {
             set() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -297,21 +302,23 @@ fn check_object_shorthand_property_names() {
             const x = { a };
         ",
         vec![
-            DeclarationList::Const(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
                     Some(Literal::from(true).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
                     interner.get_or_intern_static("x", utf16!("x")).into(),
                     Some(ObjectLiteral::from(object_properties).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -339,29 +346,32 @@ fn check_object_shorthand_multiple_properties() {
             const x = { a, b, };
         ",
         vec![
-            DeclarationList::Const(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
                     interner.get_or_intern_static("a", utf16!("a")).into(),
                     Some(Literal::from(true).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
                     interner.get_or_intern_static("b", utf16!("b")).into(),
                     Some(Literal::from(false).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
                     interner.get_or_intern_static("x", utf16!("x")).into(),
                     Some(ObjectLiteral::from(object_properties).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -385,13 +395,14 @@ fn check_object_spread() {
     check_parser(
         "const x = { a: 1, ...b };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -415,13 +426,14 @@ fn check_async_method() {
             async dive() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -447,13 +459,14 @@ fn check_async_generator_method() {
             async* vroom() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -499,13 +512,14 @@ fn check_async_ordinary_method() {
             async() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -525,13 +539,14 @@ fn check_async_property() {
             async: true
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 interner.get_or_intern_static("x", utf16!("x")).into(),
                 Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

@@ -1,11 +1,9 @@
 use crate::syntax::{
     ast::{
+        declaration::{LexicalDeclaration, Variable},
         expression::{access::PropertyAccess, literal::Literal, Call, Identifier},
-        statement::{
-            declaration::{Declaration, DeclarationList},
-            Break, Case, Switch,
-        },
-        Expression,
+        statement::{Break, Case, Switch},
+        Declaration, Expression, Statement,
     },
     parser::tests::{check_invalid, check_parser},
 };
@@ -159,56 +157,57 @@ fn check_separated_switch() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::from_identifier(
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
                     a.into(),
                     Some(Literal::from(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            Switch::new(
+            Statement::Switch(Switch::new(
                 Identifier::new(a).into(),
                 vec![
                     Case::new(
                         Literal::from(5).into(),
                         vec![
-                            Expression::from(Call::new(
+                            Statement::Expression(Expression::from(Call::new(
                                 PropertyAccess::new(Identifier::new(console).into(), log).into(),
                                 vec![Literal::from(5).into()].into(),
-                            ))
+                            )))
                             .into(),
-                            Break::new(None).into(),
+                            Statement::Break(Break::new(None)).into(),
                         ]
                         .into(),
                     ),
                     Case::new(
                         Literal::from(10).into(),
                         vec![
-                            Expression::from(Call::new(
+                            Statement::Expression(Expression::from(Call::new(
                                 PropertyAccess::new(Identifier::new(console).into(), log).into(),
                                 vec![Literal::from(10).into()].into(),
-                            ))
+                            )))
                             .into(),
-                            Break::new(None).into(),
+                            Statement::Break(Break::new(None)).into(),
                         ]
                         .into(),
                     ),
                 ]
                 .into(),
                 Some(
-                    vec![Expression::from(Call::new(
+                    vec![Statement::Expression(Expression::from(Call::new(
                         PropertyAccess::new(Identifier::new(console).into(), log).into(),
                         vec![Literal::from(
                             interner.get_or_intern_static("Default", utf16!("Default")),
                         )
                         .into()]
                         .into(),
-                    ))
+                    )))
                     .into()]
                     .into(),
                 ),
-            )
+            ))
             .into(),
         ],
         interner,

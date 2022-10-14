@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         function::{FormalParameterList, Function},
-        statement::StatementList,
+        Declaration, StatementList,
     },
     parser::tests::check_parser,
 };
@@ -14,7 +14,7 @@ fn function_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "function hello() {}",
-        vec![Function::new(
+        vec![Declaration::Function(Function::new(
             Some(
                 interner
                     .get_or_intern_static("hello", utf16!("hello"))
@@ -22,7 +22,7 @@ fn function_declaration() {
             ),
             FormalParameterList::default(),
             StatementList::default(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -33,7 +33,7 @@ fn function_declaration() {
 fn function_declaration_keywords() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
-            vec![Function::new(
+            vec![Declaration::Function(Function::new(
                 Some(
                     $interner
                         .get_or_intern_static($keyword, utf16!($keyword))
@@ -41,7 +41,7 @@ fn function_declaration_keywords() {
                 ),
                 FormalParameterList::default(),
                 StatementList::default(),
-            )
+            ))
             .into()]
         };
     }

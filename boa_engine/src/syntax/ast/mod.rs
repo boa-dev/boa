@@ -1,5 +1,6 @@
 //! The Javascript Abstract Syntax Tree.
 
+pub mod declaration;
 pub mod expression;
 pub mod function;
 pub mod keyword;
@@ -8,16 +9,18 @@ pub mod position;
 pub mod property;
 pub mod punctuator;
 pub mod statement;
+pub mod statement_list;
 
 use boa_interner::{Interner, ToInternedString};
 
-use self::statement::StatementList;
 pub use self::{
+    declaration::Declaration,
     expression::Expression,
     keyword::Keyword,
     position::{Position, Span},
     punctuator::Punctuator,
     statement::Statement,
+    statement_list::{StatementList, StatementListItem},
 };
 
 /// Represents the possible symbols that can be use the the `contains` function.

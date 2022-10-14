@@ -1,7 +1,9 @@
-use crate::syntax::ast::expression::{Expression, Identifier};
-use crate::syntax::ast::{block_to_string, join_nodes, Statement};
+use crate::syntax::ast::{
+    block_to_string,
+    expression::{Expression, Identifier},
+    join_nodes, Declaration, StatementList,
+};
 
-use crate::syntax::ast::statement::StatementList;
 use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;
@@ -79,7 +81,7 @@ impl From<Generator> for Expression {
     }
 }
 
-impl From<Generator> for Statement {
+impl From<Generator> for Declaration {
     fn from(f: Generator) -> Self {
         Self::Generator(f)
     }

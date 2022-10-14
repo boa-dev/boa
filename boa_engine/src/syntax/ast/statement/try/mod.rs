@@ -1,7 +1,11 @@
-use crate::syntax::ast::statement::{Block, Statement};
+use crate::syntax::ast::{
+    declaration::Binding,
+    statement::{Block, Statement},
+    statement_list::StatementListItem,
+};
 use boa_interner::{Interner, ToInternedString};
 
-use super::{declaration::Binding, ContainsSymbol};
+use super::ContainsSymbol;
 
 #[cfg(test)]
 mod tests;
@@ -133,14 +137,16 @@ impl Catch {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.block
+            .statement_list()
             .statements()
             .iter()
-            .any(Statement::contains_arguments)
+            .any(StatementListItem::contains_arguments)
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.block
+            .statement_list()
             .statements()
             .iter()
             .any(|stmt| stmt.contains(symbol))
@@ -183,14 +189,16 @@ impl Finally {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.block
+            .statement_list()
             .statements()
             .iter()
-            .any(Statement::contains_arguments)
+            .any(StatementListItem::contains_arguments)
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.block
+            .statement_list()
             .statements()
             .iter()
             .any(|stmt| stmt.contains(symbol))
@@ -205,13 +213,8 @@ impl Finally {
     }
 }
 
-impl<T> From<T> for Finally
-where
-    T: Into<Block>,
-{
-    fn from(block: T) -> Self {
-        Self {
-            block: block.into(),
-        }
+impl From<Block> for Finally {
+    fn from(block: Block) -> Self {
+        Self { block }
     }
 }

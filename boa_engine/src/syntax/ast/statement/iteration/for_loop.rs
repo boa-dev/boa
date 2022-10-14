@@ -1,9 +1,7 @@
 use crate::syntax::ast::{
+    declaration::{LexicalDeclaration, VarDeclaration, Variable},
     expression::Identifier,
-    statement::{
-        declaration::{Declaration, DeclarationList},
-        Statement,
-    },
+    statement::Statement,
     ContainsSymbol, Expression,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -179,7 +177,8 @@ impl InnerForLoop {
 #[derive(Clone, Debug, PartialEq)]
 pub enum ForLoopInitializer {
     Expression(Expression),
-    DeclarationList(DeclarationList),
+    Var(VarDeclaration),
+    Lexical(LexicalDeclaration),
 }
 
 impl ForLoopInitializer {
@@ -191,9 +190,12 @@ impl ForLoopInitializer {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-boundnames
     pub(crate) fn bound_names(&self) -> Vec<Identifier> {
         match self {
-            Self::DeclarationList(DeclarationList::Let(list) | DeclarationList::Const(list)) => {
-                list.iter().flat_map(Declaration::idents).collect()
-            }
+            ForLoopInitializer::Lexical(lex) => lex
+                .variable_list()
+                .as_ref()
+                .iter()
+                .flat_map(Variable::idents)
+                .collect(),
             _ => Vec::new(),
         }
     }
@@ -201,14 +203,16 @@ impl ForLoopInitializer {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            Self::DeclarationList(list) => list.contains_arguments(),
+            Self::Var(var) => var.contains_arguments(),
+            Self::Lexical(lex) => lex.contains_arguments(),
             Self::Expression(expr) => expr.contains_arguments(),
         }
     }
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
-            Self::DeclarationList(list) => list.contains(symbol),
+            Self::Var(var) => var.contains(symbol),
+            Self::Lexical(lex) => lex.contains(symbol),
             Self::Expression(expr) => expr.contains(symbol),
         }
     }
@@ -217,7 +221,8 @@ impl ForLoopInitializer {
 impl ToInternedString for ForLoopInitializer {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::DeclarationList(list) => list.to_interned_string(interner),
+            Self::Var(var) => var.to_interned_string(interner),
+            Self::Lexical(lex) => lex.to_interned_string(interner),
             Self::Expression(expr) => expr.to_interned_string(interner),
         }
     }
@@ -229,8 +234,14 @@ impl From<Expression> for ForLoopInitializer {
     }
 }
 
-impl From<DeclarationList> for ForLoopInitializer {
-    fn from(list: DeclarationList) -> Self {
-        ForLoopInitializer::DeclarationList(list)
+impl From<LexicalDeclaration> for ForLoopInitializer {
+    fn from(list: LexicalDeclaration) -> Self {
+        ForLoopInitializer::Lexical(list)
+    }
+}
+
+impl From<VarDeclaration> for ForLoopInitializer {
+    fn from(list: VarDeclaration) -> Self {
+        ForLoopInitializer::Var(list)
     }
 }

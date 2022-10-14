@@ -3,8 +3,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use super::{
     expression::{literal::Literal, Identifier},
     function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
-    statement::StatementList,
-    ContainsSymbol, Expression,
+    ContainsSymbol, Expression, StatementList,
 };
 
 /// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.

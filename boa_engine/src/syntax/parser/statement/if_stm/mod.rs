@@ -2,7 +2,11 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{self, statement::If, Keyword, Punctuator},
+    ast::{
+        statement::{Block, If},
+        statement_list::StatementListItem,
+        Declaration, Keyword, Punctuator,
+    },
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
@@ -17,7 +21,7 @@ use super::Statement;
 
 /// If statement parsing.
 ///
-/// An _If_ statement will have a condition, a block statemet, and an optional _else_ statement.
+/// An `if` statement will have a condition, a block statement, and an optional `else` statement.
 ///
 /// More information:
 ///  - [MDN documentation][mdn]
@@ -71,24 +75,24 @@ where
         let strict = cursor.strict_mode();
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
         let then_node = match token.kind() {
-            TokenKind::Keyword((Keyword::Function, _)) if !strict => {
+            TokenKind::Keyword((Keyword::Function, _)) => {
                 // FunctionDeclarations in IfStatement Statement Clauses
                 // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor, interner)?
-                    .into()
-            }
-            _ => {
-                let node = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                    .parse(cursor, interner)?;
-
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let ast::Statement::Function(_) = node {
+                if strict {
+                    // This production only applies when parsing non-strict code.
                     return Err(ParseError::wrong_function_declaration_non_strict(position));
                 }
-
-                node
+                // Source text matched by this production is processed as if each matching
+                // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
+                // StatementListItem of a BlockStatement occupying that position in the source text.
+                Block::from(vec![StatementListItem::Declaration(Declaration::Function(
+                    FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                        .parse(cursor, interner)?,
+                ))])
+                .into()
             }
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                .parse(cursor, interner)?,
         };
 
         let else_node = if let Some(token) = cursor.peek(0, interner)? {
@@ -105,32 +109,36 @@ where
                     let strict = cursor.strict_mode();
                     let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
                     match token.kind() {
-                        TokenKind::Keyword((Keyword::Function, _)) if !strict => {
+                        TokenKind::Keyword((Keyword::Function, _)) => {
                             // FunctionDeclarations in IfStatement Statement Clauses
                             // https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses
-                            Some(
-                                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-                                    .parse(cursor, interner)?
-                                    .into(),
-                            )
-                        }
-                        _ => {
-                            let node = Statement::new(
-                                self.allow_yield,
-                                self.allow_await,
-                                self.allow_return,
-                            )
-                            .parse(cursor, interner)?;
-
-                            // Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.
-                            if let ast::Statement::Function(_) = node {
+                            if strict {
                                 return Err(ParseError::wrong_function_declaration_non_strict(
                                     position,
                                 ));
                             }
 
-                            Some(node)
+                            Some(
+                                // Source text matched by this production is processed as if each matching
+                                // occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole
+                                // StatementListItem of a BlockStatement occupying that position in the source text.
+                                Block::from(vec![StatementListItem::Declaration(
+                                    Declaration::Function(
+                                        FunctionDeclaration::new(
+                                            self.allow_yield,
+                                            self.allow_await,
+                                            false,
+                                        )
+                                        .parse(cursor, interner)?,
+                                    ),
+                                )])
+                                .into(),
+                            )
                         }
+                        _ => Some(
+                            Statement::new(self.allow_yield, self.allow_await, self.allow_return)
+                                .parse(cursor, interner)?,
+                        ),
                     }
                 }
                 _ => None,

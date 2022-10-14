@@ -14,12 +14,11 @@ pub use parameters::{FormalParameter, FormalParameterList};
 
 pub(crate) use parameters::FormalParameterListFlags;
 
-use crate::syntax::ast::statement::StatementList;
-use crate::syntax::ast::{block_to_string, join_nodes};
+use crate::syntax::ast::{block_to_string, join_nodes, StatementList};
 use boa_interner::{Interner, ToInternedString};
 
 use super::expression::{Expression, Identifier};
-use super::{ContainsSymbol, Statement};
+use super::{ContainsSymbol, Declaration};
 
 /// The `function` expression defines a function with the specified parameters.
 ///
@@ -102,7 +101,7 @@ impl From<Function> for Expression {
     }
 }
 
-impl From<Function> for Statement {
+impl From<Function> for Declaration {
     fn from(f: Function) -> Self {
         Self::Function(f)
     }
@@ -114,8 +113,8 @@ pub(crate) fn function_contains_super(
     parameters: &FormalParameterList,
 ) -> bool {
     for param in parameters.parameters.iter() {
-        if param.declaration().contains(ContainsSymbol::SuperCall)
-            || param.declaration().contains(ContainsSymbol::SuperProperty)
+        if param.variable().contains(ContainsSymbol::SuperCall)
+            || param.variable().contains(ContainsSymbol::SuperProperty)
         {
             return true;
         }
@@ -137,7 +136,7 @@ pub(crate) fn function_contains_super(
 /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
 pub(crate) fn has_direct_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
     for param in parameters.parameters.iter() {
-        if param.declaration().contains(ContainsSymbol::SuperCall) {
+        if param.variable().contains(ContainsSymbol::SuperCall) {
             return true;
         }
     }

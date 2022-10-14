@@ -1,9 +1,10 @@
 use crate::syntax::{
     ast::{
+        declaration::{LexicalDeclaration, Variable},
         expression::{literal::Literal, Yield},
         function::{FormalParameterList, Generator},
-        statement::declaration::{Declaration, DeclarationList},
-        Expression,
+        statement_list::StatementListItem,
+        Declaration, Expression, Statement,
     },
     parser::tests::check_parser,
 };
@@ -19,24 +20,24 @@ fn check_generator_function_expression() {
             yield 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 gen.into(),
                 Some(
                     Generator::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
-                        vec![
-                            Expression::from(Yield::new(Some(Literal::from(1).into()), false))
-                                .into(),
-                        ]
+                        vec![StatementListItem::Statement(Statement::Expression(
+                            Expression::from(Yield::new(Some(Literal::from(1).into()), false)),
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -51,24 +52,24 @@ fn check_generator_function_delegate_yield_expression() {
             yield* 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 gen.into(),
                 Some(
                     Generator::new(
                         Some(gen.into()),
                         FormalParameterList::default(),
-                        vec![
-                            Expression::from(Yield::new(Some(Literal::from(1).into()), true))
-                                .into(),
-                        ]
+                        vec![StatementListItem::Statement(Statement::Expression(
+                            Expression::from(Yield::new(Some(Literal::from(1).into()), true)),
+                        ))]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

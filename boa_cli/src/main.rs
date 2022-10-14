@@ -59,7 +59,7 @@
     rustdoc::missing_doc_code_examples
 )]
 
-use boa_engine::{syntax::ast::statement::StatementList, Context};
+use boa_engine::{syntax::ast::StatementList, Context};
 use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};

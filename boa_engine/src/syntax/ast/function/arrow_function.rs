@@ -1,7 +1,7 @@
-use crate::syntax::ast::expression::Identifier;
-use crate::syntax::ast::join_nodes;
-use crate::syntax::ast::statement::StatementList;
-use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::syntax::ast::{
+    expression::{Expression, Identifier},
+    join_nodes, ContainsSymbol, StatementList,
+};
 use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;

@@ -3,7 +3,7 @@ use crate::syntax::{
         expression::literal::Literal,
         function::{Class, ClassElement, FormalParameterList, Function},
         property::{MethodDefinition, PropertyName},
-        statement::StatementList,
+        Declaration, StatementList,
     },
     parser::tests::check_parser,
 };
@@ -28,12 +28,12 @@ fn check_async_ordinary_method() {
             async() { }
          }
         ",
-        [Class::new(
+        [Declaration::Class(Class::new(
             Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -54,12 +54,12 @@ fn check_async_field_initialization() {
               = 1
          }
         ",
-        [Class::new(
+        [Declaration::Class(Class::new(
             Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),
-        )
+        ))
         .into()],
         interner,
     );
@@ -79,12 +79,12 @@ fn check_async_field() {
             async
          }
         ",
-        [Class::new(
+        [Declaration::Class(Class::new(
             Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
             elements.into(),
-        )
+        ))
         .into()],
         interner,
     );

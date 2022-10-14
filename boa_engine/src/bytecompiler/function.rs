@@ -1,10 +1,7 @@
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
-    syntax::ast::{
-        function::FormalParameterList,
-        statement::{declaration::Binding, StatementList},
-    },
+    syntax::ast::{declaration::Binding, function::FormalParameterList, StatementList},
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsResult,
 };
@@ -125,11 +122,11 @@ impl FunctionCompiler {
                 compiler.emit_opcode(Opcode::RestParameterInit);
             }
 
-            match parameter.declaration().binding() {
+            match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
                     compiler.context.create_mutable_binding(*ident, false);
                     // TODO: throw custom error if ident is in init
-                    if let Some(init) = parameter.declaration().init() {
+                    if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true)?;
                         compiler.patch_jump(skip);
@@ -141,7 +138,7 @@ impl FunctionCompiler {
                         compiler.context.create_mutable_binding(ident, false);
                     }
                     // TODO: throw custom error if ident is in init
-                    if let Some(init) = parameter.declaration().init() {
+                    if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
                         compiler.compile_expr(init, true)?;
                         compiler.patch_jump(skip);
@@ -171,8 +168,8 @@ impl FunctionCompiler {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_decls(body.statements())?;
-        compiler.compile_statement_list(body.statements(), false)?;
+        compiler.create_decls(body);
+        compiler.compile_statement_list(body, false)?;
 
         if let Some(env_label) = env_label {
             let (num_bindings, compile_environment) =

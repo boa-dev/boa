@@ -1,128 +1,186 @@
-//! Declaration nodes
+//! Variable related declarations.
+
+use std::convert::TryFrom;
+
 use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
-    statement::Statement,
-    ContainsSymbol,
+    ContainsSymbol, Statement,
 };
 use boa_interner::{Interner, ToInternedString};
 
+use super::Declaration;
+
+/// A [`var`][var] declaration list, also called [`VariableDeclarationList`][vardecl]
+/// in the spec.
+///
+/// The scope of a variable declared with `var` is its current execution context, which is either
+/// the enclosing function or, for variables declared outside any function, global. If you
+/// re-declare a JavaScript variable, it will not lose its value.
+///
+/// `var` declarations, wherever they occur, are processed before any code is executed. This is
+/// called <code>[hoisting]</code>.
+///
+/// [var]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
+/// [vardecl]: https://tc39.es/ecma262/#prod-VariableStatement
+/// [hoisting]: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum DeclarationList {
-    /// The `const` statements are block-scoped, much like variables defined using the `let`
-    /// keyword.
-    ///
-    /// This declaration creates a constant whose scope can be either global or local to the block
-    /// in which it is declared. Global constants do not become properties of the window object,
-    /// unlike var variables.
-    ///
-    /// An initializer for a constant is required. You must specify its value in the same statement
-    /// in which it's declared. (This makes sense, given that it can't be changed later.)
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
-    /// [identifier]: https://developer.mozilla.org/en-US/docs/Glossary/identifier
-    /// [expression]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_Operators#Expressions
-    Const(Box<[Declaration]>),
+pub struct VarDeclaration(pub VariableList);
 
-    /// The `let` statement declares a block scope local variable, optionally initializing it to a
-    /// value.
-    ///
-    ///
-    /// `let` allows you to declare variables that are limited to a scope of a block statement, or
-    /// expression on which it is used, unlike the `var` keyword, which defines a variable
-    /// globally, or locally to an entire function regardless of block scope.
-    ///
-    /// Just like const the `let` does not create properties of the window object when declared
-    /// globally (in the top-most scope).
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
-    Let(Box<[Declaration]>),
-
-    /// The `var` statement declares a variable, optionally initializing it to a value.
-    ///
-    /// var declarations, wherever they occur, are processed before any code is executed. This is
-    /// called hoisting, and is discussed further below.
-    ///
-    /// The scope of a variable declared with var is its current execution context, which is either
-    /// the enclosing function or, for variables declared outside any function, global. If you
-    /// re-declare a JavaScript variable, it will not lose its value.
-    ///
-    /// Assigning a value to an undeclared variable implicitly creates it as a global variable (it
-    /// becomes a property of the global object) when the assignment is executed.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference][spec]
-    ///  - [MDN documentation][mdn]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#prod-VariableStatement
-    /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
-    Var(Box<[Declaration]>),
-}
-
-impl DeclarationList {
+impl VarDeclaration {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.as_ref().iter().any(Declaration::contains_arguments)
+        self.0.as_ref().iter().any(Variable::contains_arguments)
     }
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.as_ref().iter().any(|decl| decl.contains(symbol))
+        self.0.as_ref().iter().any(|decl| decl.contains(symbol))
     }
 }
 
-impl AsRef<[Declaration]> for DeclarationList {
-    fn as_ref(&self) -> &[Declaration] {
-        use DeclarationList::{Const, Let, Var};
-        match self {
-            Var(list) | Const(list) | Let(list) => list,
-        }
+impl From<VarDeclaration> for Statement {
+    fn from(var: VarDeclaration) -> Self {
+        Statement::Var(var)
     }
 }
 
-impl ToInternedString for DeclarationList {
+impl ToInternedString for VarDeclaration {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        if self.as_ref().is_empty() {
-            String::new()
-        } else {
-            use DeclarationList::{Const, Let, Var};
-            format!(
-                "{} {}",
-                match &self {
-                    Let(_) => "let",
-                    Const(_) => "const",
-                    Var(_) => "var",
-                },
-                join_nodes(interner, self.as_ref())
-            )
+        format!("var {}", self.0.to_interned_string(interner))
+    }
+}
+
+/// A **[lexical declaration]** defines variables that are scoped to the lexical environment of
+/// the variable declaration.
+///
+/// [lexical declaration]: https://tc39.es/ecma262/#sec-let-and-const-declarations
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub enum LexicalDeclaration {
+    /// A <code>[const]</code> variable creates a constant whose scope can be either global or local
+    /// to the block in which it is declared.
+    ///
+    /// An initializer for a constant is required. You must specify its value in the same statement
+    /// in which it's declared. (This makes sense, given that it can't be changed later)
+    ///
+    /// [const]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const
+    Const(VariableList),
+
+    /// A <code>[let]</code> variable is limited to a scope of a block statement, or expression on
+    /// which it is used, unlike the `var` keyword, which defines a variable globally, or locally to
+    /// an entire function regardless of block scope.
+    ///
+    /// Just like const, `let` does not create properties of the window object when declared
+    /// globally (in the top-most scope).
+    ///
+    /// If a let declaration does not have an initializer, the variable is assigned the value `undefined`.
+    ///
+    /// [let]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let
+    Let(VariableList),
+}
+
+impl LexicalDeclaration {
+    /// Gets the inner variable list of the `LexicalDeclaration`
+    pub fn variable_list(&self) -> &VariableList {
+        match self {
+            LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) => list,
         }
     }
-}
 
-impl From<DeclarationList> for Statement {
-    fn from(list: DeclarationList) -> Self {
-        Statement::DeclarationList(list)
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.variable_list()
+            .as_ref()
+            .iter()
+            .any(Variable::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.variable_list()
+            .as_ref()
+            .iter()
+            .any(|decl| decl.contains(symbol))
     }
 }
 
-impl From<Declaration> for Box<[Declaration]> {
-    fn from(d: Declaration) -> Self {
-        Box::new([d])
+impl From<LexicalDeclaration> for Declaration {
+    fn from(lex: LexicalDeclaration) -> Self {
+        Declaration::Lexical(lex)
     }
 }
 
-/// Declaration represents a variable declaration of some kind.
+impl ToInternedString for LexicalDeclaration {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        format!(
+            "{} {}",
+            match &self {
+                LexicalDeclaration::Let(_) => "let",
+                LexicalDeclaration::Const(_) => "const",
+            },
+            self.variable_list().to_interned_string(interner)
+        )
+    }
+}
+
+/// List of variables in a variable declaration.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct VariableList {
+    list: Box<[Variable]>,
+}
+
+impl VariableList {
+    /// Creates a variable list if the provided list of [`Variable`] is not empty.
+    pub fn new(list: Box<[Variable]>) -> Option<Self> {
+        if list.is_empty() {
+            return None;
+        }
+
+        Some(VariableList { list })
+    }
+}
+
+impl AsRef<[Variable]> for VariableList {
+    fn as_ref(&self) -> &[Variable] {
+        &self.list
+    }
+}
+
+impl ToInternedString for VariableList {
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        join_nodes(interner, self.list.as_ref())
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct TryFromVariableListError(());
+
+impl std::fmt::Display for TryFromVariableListError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        "provided list of variables cannot be empty".fmt(f)
+    }
+}
+
+impl TryFrom<Box<[Variable]>> for VariableList {
+    type Error = TryFromVariableListError;
+
+    fn try_from(value: Box<[Variable]>) -> Result<Self, Self::Error> {
+        VariableList::new(value).ok_or(TryFromVariableListError(()))
+    }
+}
+
+impl TryFrom<Vec<Variable>> for VariableList {
+    type Error = TryFromVariableListError;
+
+    fn try_from(value: Vec<Variable>) -> Result<Self, Self::Error> {
+        VariableList::try_from(value.into_boxed_slice())
+    }
+}
+
+/// Variable represents a variable declaration of some kind.
 ///
 /// For `let` and `const` declarations this type represents a [`LexicalBinding`][spec1]
 ///
@@ -136,12 +194,12 @@ impl From<Declaration> for Box<[Declaration]> {
 /// [spec3]:  https://tc39.es/ecma262/#sec-declarations-and-the-variable-statement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct Declaration {
+pub struct Variable {
     binding: Binding,
     init: Option<Expression>,
 }
 
-impl ToInternedString for Declaration {
+impl ToInternedString for Variable {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = self.binding.to_interned_string(interner);
 
@@ -152,7 +210,7 @@ impl ToInternedString for Declaration {
     }
 }
 
-impl Declaration {
+impl Variable {
     /// Creates a new variable declaration from a `BindingIdentifier`.
     #[inline]
     pub(in crate::syntax) fn from_identifier(ident: Identifier, init: Option<Expression>) -> Self {

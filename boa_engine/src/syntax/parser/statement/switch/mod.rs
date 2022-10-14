@@ -2,7 +2,7 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{expression::Identifier, statement, statement::Switch, Keyword, Punctuator},
+    ast::{self, expression::Identifier, statement, statement::Switch, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
@@ -109,7 +109,7 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[statement::Case]>, Option<statement::StatementList>);
+    type Output = (Box<[statement::Case]>, Option<ast::StatementList>);
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "switch case block", interner)?;

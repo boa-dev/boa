@@ -9,7 +9,7 @@ use crate::syntax::{
             self, function_contains_super, has_direct_super, Class, FormalParameterList, Function,
         },
         property::{ClassElementName, MethodDefinition},
-        ContainsSymbol, Expression, Keyword, Punctuator, Statement,
+        ContainsSymbol, Declaration, Expression, Keyword, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -61,7 +61,7 @@ impl<R> TokenParser<R> for ClassDeclaration
 where
     R: Read,
 {
-    type Output = Statement;
+    type Output = Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Class, false), "class declaration", interner)?;
@@ -85,7 +85,7 @@ where
         };
         cursor.set_strict_mode(strict);
 
-        Ok(Statement::Class(
+        Ok(Declaration::Class(
             ClassTail::new(name, self.allow_yield, self.allow_await).parse(cursor, interner)?,
         ))
     }
@@ -625,7 +625,7 @@ where
                     .next_if(TokenKind::Punctuator(Punctuator::CloseBlock), interner)?
                     .is_some()
                 {
-                    ast::statement::StatementList::from(vec![])
+                    ast::StatementList::default()
                 } else {
                     let strict = cursor.strict_mode();
                     cursor.set_strict_mode(true);

@@ -25,7 +25,7 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::{ast::function::FormalParameterList, ast::statement::StatementList, Parser},
+    syntax::{ast::function::FormalParameterList, ast::StatementList, Parser},
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };

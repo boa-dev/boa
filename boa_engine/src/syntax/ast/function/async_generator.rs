@@ -1,7 +1,9 @@
 //! Async Generator Expression
-use crate::syntax::ast::expression::{Expression, Identifier};
-use crate::syntax::ast::statement::StatementList;
-use crate::syntax::ast::{block_to_string, join_nodes, Statement};
+use crate::syntax::ast::{
+    block_to_string,
+    expression::{Expression, Identifier},
+    join_nodes, Declaration, StatementList,
+};
 use boa_interner::{Interner, ToInternedString};
 
 use super::FormalParameterList;
@@ -76,7 +78,7 @@ impl From<AsyncGenerator> for Expression {
     }
 }
 
-impl From<AsyncGenerator> for Statement {
+impl From<AsyncGenerator> for Declaration {
     fn from(f: AsyncGenerator) -> Self {
         Self::AsyncGenerator(f)
     }

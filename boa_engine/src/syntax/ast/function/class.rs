@@ -7,8 +7,8 @@ use crate::{
         expression::{Expression, Identifier},
         join_nodes,
         property::{MethodDefinition, PropertyName},
-        statement::StatementList,
-        ContainsSymbol, Statement,
+        statement_list::StatementListItem,
+        ContainsSymbol, Declaration, StatementList,
     },
 };
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -374,7 +374,7 @@ impl From<Class> for Expression {
     }
 }
 
-impl From<Class> for Statement {
+impl From<Class> for Declaration {
     fn from(f: Class) -> Self {
         Self::Class(f)
     }
@@ -412,7 +412,7 @@ impl ClassElement {
             Self::StaticBlock(statement_list) => statement_list
                 .statements()
                 .iter()
-                .any(Statement::contains_arguments),
+                .any(StatementListItem::contains_arguments),
             _ => false,
         }
     }

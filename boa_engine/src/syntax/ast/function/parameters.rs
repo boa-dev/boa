@@ -1,8 +1,8 @@
 use crate::syntax::{
     ast::{
+        declaration::{Binding, Variable},
         expression::{Expression, Identifier},
         pattern::Pattern,
-        statement::declaration::{Binding, Declaration},
         ContainsSymbol, Position,
     },
     parser::ParseError,
@@ -105,7 +105,7 @@ impl FormalParameterList {
     pub(crate) fn contains_yield_expression(&self) -> bool {
         for parameter in self.parameters.iter() {
             if parameter
-                .declaration()
+                .variable()
                 .contains(ContainsSymbol::YieldExpression)
             {
                 return true;
@@ -118,7 +118,7 @@ impl FormalParameterList {
     pub(crate) fn contains_await_expression(&self) -> bool {
         for parameter in self.parameters.iter() {
             if parameter
-                .declaration()
+                .variable()
                 .contains(ContainsSymbol::AwaitExpression)
             {
                 return true;
@@ -251,25 +251,25 @@ impl Default for FormalParameterListFlags {
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct FormalParameter {
-    declaration: Declaration,
+    variable: Variable,
     is_rest_param: bool,
 }
 
 impl FormalParameter {
     /// Creates a new formal parameter.
-    pub(in crate::syntax) fn new<D>(declaration: D, is_rest_param: bool) -> Self
+    pub(in crate::syntax) fn new<D>(variable: D, is_rest_param: bool) -> Self
     where
-        D: Into<Declaration>,
+        D: Into<Variable>,
     {
         Self {
-            declaration: declaration.into(),
+            variable: variable.into(),
             is_rest_param,
         }
     }
 
     /// Gets the name of the formal parameter.
     pub fn names(&self) -> Vec<Identifier> {
-        match self.declaration.binding() {
+        match self.variable.binding() {
             Binding::Identifier(ident) => vec![*ident],
             Binding::Pattern(pattern) => match pattern {
                 Pattern::Object(object_pattern) => object_pattern.idents(),
@@ -279,14 +279,14 @@ impl FormalParameter {
         }
     }
 
-    /// Get the declaration of the formal parameter
-    pub fn declaration(&self) -> &Declaration {
-        &self.declaration
+    /// Get the variable of the formal parameter
+    pub fn variable(&self) -> &Variable {
+        &self.variable
     }
 
     /// Gets the initialization node of the formal parameter, if any.
     pub fn init(&self) -> Option<&Expression> {
-        self.declaration.init()
+        self.variable.init()
     }
 
     /// Gets wether the parameter is a rest parameter.
@@ -295,16 +295,16 @@ impl FormalParameter {
     }
 
     pub fn is_identifier(&self) -> bool {
-        matches!(&self.declaration.binding(), Binding::Identifier(_))
+        matches!(&self.variable.binding(), Binding::Identifier(_))
     }
 
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.declaration.contains_arguments()
+        self.variable.contains_arguments()
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.declaration.contains(symbol)
+        self.variable.contains(symbol)
     }
 }
 
@@ -315,7 +315,7 @@ impl ToInternedString for FormalParameter {
         } else {
             String::new()
         };
-        buf.push_str(&self.declaration.to_interned_string(interner));
+        buf.push_str(&self.variable.to_interned_string(interner));
         buf
     }
 }

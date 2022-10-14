@@ -19,7 +19,7 @@ use hoistable::HoistableDeclaration;
 pub(in crate::syntax::parser) use lexical::LexicalDeclaration;
 
 use crate::syntax::{
-    ast::{Keyword, Statement},
+    ast::{self, Keyword},
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
@@ -56,7 +56,7 @@ impl<R> TokenParser<R> for Declaration
 where
     R: Read,
 {
-    type Output = Statement;
+    type Output = ast::Declaration;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Declaration", "Parsing");

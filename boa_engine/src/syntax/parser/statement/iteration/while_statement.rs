@@ -1,8 +1,8 @@
 use crate::syntax::{
-    ast::{self, statement::WhileLoop, Keyword, Punctuator},
+    ast::{statement::WhileLoop, Keyword, Punctuator},
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
+        ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -59,18 +59,10 @@ where
         let cond = Expression::new(None, true, self.allow_yield, self.allow_await)
             .parse(cursor, interner)?;
 
-        let position = cursor
-            .expect(Punctuator::CloseParen, "while statement", interner)?
-            .span()
-            .end();
+        cursor.expect(Punctuator::CloseParen, "while statement", interner)?;
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
-
-        // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
-        if let ast::Statement::Function(_) = body {
-            return Err(ParseError::wrong_function_declaration_non_strict(position));
-        }
 
         Ok(WhileLoop::new(cond, body))
     }

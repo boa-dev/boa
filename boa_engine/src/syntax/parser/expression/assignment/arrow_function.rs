@@ -11,10 +11,11 @@ use super::AssignmentExpression;
 use crate::syntax::{
     ast::{
         self,
+        declaration::Variable,
         expression::Identifier,
         function::{FormalParameter, FormalParameterList, FormalParameterListFlags},
-        statement::{declaration::Declaration, Return, StatementList},
-        Expression, Punctuator,
+        statement::Return,
+        Expression, Punctuator, StatementList,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -102,7 +103,7 @@ where
                 (
                     FormalParameterList::new(
                         Box::new([FormalParameter::new(
-                            Declaration::from_identifier(param, None),
+                            Variable::from_identifier(param, None),
                             false,
                         )]),
                         flags,
@@ -188,11 +189,13 @@ where
                 cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
                 Ok(body)
             }
-            _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false)
-                    .parse(cursor, interner)?
-                    .into(),
-                None,
+            _ => Ok(StatementList::from(vec![ast::Statement::Return(
+                Return::new(
+                    ExpressionBody::new(self.allow_in, false)
+                        .parse(cursor, interner)?
+                        .into(),
+                    None,
+                ),
             )
             .into()])),
         }

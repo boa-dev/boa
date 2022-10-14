@@ -1,11 +1,13 @@
+use std::convert::TryInto;
+
 use crate::syntax::{
     ast::{
+        declaration::{LexicalDeclaration, Variable},
         expression::literal::Literal,
         function::{AsyncGenerator, FormalParameterList},
-        statement::{
-            declaration::{Declaration, DeclarationList},
-            Return,
-        },
+        statement::Return,
+        statement_list::StatementListItem,
+        Declaration, Statement,
     },
     parser::tests::check_parser,
 };
@@ -23,20 +25,24 @@ fn check_async_generator_expr() {
             return 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 add.into(),
                 Some(
                     AsyncGenerator::new(
                         Some(add.into()),
                         FormalParameterList::default(),
-                        vec![Return::new(Some(Literal::from(1).into()), None).into()].into(),
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::from(1).into()), None),
+                        ))]
+                        .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -54,38 +60,40 @@ fn check_nested_async_generator_expr() {
             };
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::from_identifier(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
                 a.into(),
                 Some(
                     AsyncGenerator::new(
                         Some(a.into()),
                         FormalParameterList::default(),
-                        vec![DeclarationList::Const(
-                            vec![Declaration::from_identifier(
+                        vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            vec![Variable::from_identifier(
                                 b.into(),
                                 Some(
                                     AsyncGenerator::new(
                                         Some(b.into()),
                                         FormalParameterList::default(),
-                                        vec![
-                                            Return::new(Some(Literal::from(1).into()), None).into()
-                                        ]
+                                        vec![StatementListItem::Statement(Statement::Return(
+                                            Return::new(Some(Literal::from(1).into()), None),
+                                        ))]
                                         .into(),
                                     )
                                     .into(),
                                 ),
                             )]
-                            .into(),
-                        )
+                            .try_into()
+                            .unwrap(),
+                        ))
                         .into()]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
