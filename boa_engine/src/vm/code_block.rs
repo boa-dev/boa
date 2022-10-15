@@ -13,6 +13,7 @@ use crate::{
     },
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
     },
@@ -20,7 +21,7 @@ use crate::{
     syntax::ast::node::FormalParameterList,
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -417,7 +418,7 @@ impl ToInternedString for CodeBlock {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: <{}> {}\n",
-                    value.type_of(),
+                    value.type_of().to_std_string_escaped(),
                     value.display()
                 ));
             }
@@ -476,7 +477,12 @@ pub(crate) fn create_function_object(
     let prototype = context.construct_object();
 
     let name_property = PropertyDescriptor::builder()
-        .value(context.interner().resolve_expect(code.name))
+        .value(
+            context
+                .interner()
+                .resolve_expect(code.name)
+                .into_common::<JsString>(false),
+        )
         .writable(false)
         .enumerable(false)
         .configurable(true)
@@ -528,7 +534,7 @@ pub(crate) fn create_function_object(
         .build();
 
     prototype
-        .define_property_or_throw("constructor", constructor_property, context)
+        .define_property_or_throw(js_string!("constructor"), constructor_property, context)
         .expect("failed to define the constructor property of the function");
 
     let prototype_property = PropertyDescriptor::builder()
@@ -539,14 +545,14 @@ pub(crate) fn create_function_object(
         .build();
 
     constructor
-        .define_property_or_throw("length", length_property, context)
+        .define_property_or_throw(js_string!("length"), length_property, context)
         .expect("failed to define the length property of the function");
     constructor
-        .define_property_or_throw("name", name_property, context)
+        .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the function");
     if !r#async {
         constructor
-            .define_property_or_throw("prototype", prototype_property, context)
+            .define_property_or_throw(js_string!("prototype"), prototype_property, context)
             .expect("failed to define the prototype property of the function");
     }
 
@@ -574,7 +580,12 @@ pub(crate) fn create_generator_function_object(
     };
 
     let name_property = PropertyDescriptor::builder()
-        .value(context.interner().resolve_expect(code.name))
+        .value(
+            context
+                .interner()
+                .resolve_expect(code.name)
+                .into_common::<JsString>(false),
+        )
         .writable(false)
         .enumerable(false)
         .configurable(true)
@@ -625,13 +636,13 @@ pub(crate) fn create_generator_function_object(
         .build();
 
     constructor
-        .define_property_or_throw("prototype", prototype_property, context)
+        .define_property_or_throw(js_string!("prototype"), prototype_property, context)
         .expect("failed to define the prototype property of the generator function");
     constructor
-        .define_property_or_throw("name", name_property, context)
+        .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the generator function");
     constructor
-        .define_property_or_throw("length", length_property, context)
+        .define_property_or_throw(js_string!("length"), length_property, context)
         .expect("failed to define the length property of the generator function");
 
     constructor

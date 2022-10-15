@@ -20,6 +20,7 @@ use crate::{
         Array, ArrayIterator, BuiltIn, JsArgs,
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -27,7 +28,7 @@ use crate::{
     property::{Attribute, PropertyNameKind},
     symbol::WellKnownSymbols,
     value::{IntegerOrInfinity, JsValue},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 use boa_profiler::Profiler;
 use num_traits::{Signed, Zero};
@@ -1482,21 +1483,21 @@ impl TypedArray {
         // 4. If separator is undefined, let sep be the single-element String ",".
         let separator = args.get_or_undefined(0);
         let sep = if separator.is_undefined() {
-            JsString::new(",")
+            js_string!(",")
         // 5. Else, let sep be ? ToString(separator).
         } else {
             separator.to_string(context)?
         };
 
         // 6. Let R be the empty String.
-        let mut r = JsString::new("");
+        let mut r = js_string!();
 
         // 7. Let k be 0.
         // 8. Repeat, while k < len,
         for k in 0..len {
             // a. If k > 0, set R to the string-concatenation of R and sep.
             if k > 0 {
-                r = JsString::concat(r, sep.clone());
+                r = js_string!(&r, &sep);
             }
 
             // b. Let element be ! Get(O, ! ToString(𝔽(k))).
@@ -1505,7 +1506,7 @@ impl TypedArray {
             // c. If element is undefined, let next be the empty String; otherwise, let next be ! ToString(element).
             // d. Set R to the string-concatenation of R and next.
             if !element.is_undefined() {
-                r = JsString::concat(r, element.to_string(context)?);
+                r = js_string!(&r, &element.to_string(context)?);
             }
         }
 

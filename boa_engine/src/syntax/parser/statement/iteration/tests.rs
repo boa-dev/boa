@@ -1,13 +1,16 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
-            DoWhileLoop, Identifier, UnaryOp, WhileLoop,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
+                DoWhileLoop, Identifier, UnaryOp, WhileLoop,
+            },
+            op::{self, AssignOp, CompOp},
+            Const,
         },
-        op::{self, AssignOp, CompOp},
-        Const,
+        parser::tests::{check_invalid, check_parser},
     },
-    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
 
@@ -22,7 +25,7 @@ fn check_do_while() {
         vec![DoWhileLoop::new(
             Block::from(vec![BinOp::new(
                 AssignOp::Add,
-                Identifier::new(interner.get_or_intern_static("a")),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
                 Const::from(1),
             )
             .into()]),
@@ -43,7 +46,7 @@ fn check_do_while_semicolon_insertion() {
         vec![
             DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("i"),
+                    interner.get_or_intern_static("i", utf16!("i")),
                     Some(Const::from(0).into()),
                 )]
                 .into(),
@@ -52,17 +55,21 @@ fn check_do_while_semicolon_insertion() {
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(
-                        Identifier::new(interner.get_or_intern_static("console")),
-                        interner.get_or_intern_static("log"),
+                        Identifier::new(
+                            interner.get_or_intern_static("console", utf16!("console")),
+                        ),
+                        interner.get_or_intern_static("log", utf16!("log")),
                     ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+                    vec![
+                        Const::from(interner.get_or_intern_static("hello", utf16!("hello"))).into(),
+                    ],
                 )
                 .into()]),
                 BinOp::new(
                     CompOp::LessThan,
                     UnaryOp::new(
                         op::UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i")),
+                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))),
                     ),
                     Const::from(10),
                 ),
@@ -70,10 +77,10 @@ fn check_do_while_semicolon_insertion() {
             .into(),
             Call::new(
                 GetConstField::new(
-                    Identifier::new(interner.get_or_intern_static("console")),
-                    interner.get_or_intern_static("log"),
+                    Identifier::new(interner.get_or_intern_static("console", utf16!("console"))),
+                    interner.get_or_intern_static("log", utf16!("log")),
                 ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
+                vec![Const::from(interner.get_or_intern_static("end", utf16!("end"))).into()],
             )
             .into(),
         ],
@@ -92,7 +99,7 @@ fn check_do_while_semicolon_insertion_no_space() {
         vec![
             DeclarationList::Var(
                 vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("i"),
+                    interner.get_or_intern_static("i", utf16!("i")),
                     Some(Const::from(0).into()),
                 )]
                 .into(),
@@ -101,17 +108,21 @@ fn check_do_while_semicolon_insertion_no_space() {
             DoWhileLoop::new(
                 Block::from(vec![Call::new(
                     GetConstField::new(
-                        Identifier::new(interner.get_or_intern_static("console")),
-                        interner.get_or_intern_static("log"),
+                        Identifier::new(
+                            interner.get_or_intern_static("console", utf16!("console")),
+                        ),
+                        interner.get_or_intern_static("log", utf16!("log")),
                     ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+                    vec![
+                        Const::from(interner.get_or_intern_static("hello", utf16!("hello"))).into(),
+                    ],
                 )
                 .into()]),
                 BinOp::new(
                     CompOp::LessThan,
                     UnaryOp::new(
                         op::UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i")),
+                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))),
                     ),
                     Const::from(10),
                 ),
@@ -119,10 +130,10 @@ fn check_do_while_semicolon_insertion_no_space() {
             .into(),
             Call::new(
                 GetConstField::new(
-                    Identifier::new(interner.get_or_intern_static("console")),
-                    interner.get_or_intern_static("log"),
+                    Identifier::new(interner.get_or_intern_static("console", utf16!("console"))),
+                    interner.get_or_intern_static("log", utf16!("log")),
                 ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
+                vec![Const::from(interner.get_or_intern_static("end", utf16!("end"))).into()],
             )
             .into(),
         ],

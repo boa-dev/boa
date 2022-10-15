@@ -108,7 +108,7 @@ impl JsValue {
             Self::Null => Ok(Value::Null),
             Self::Undefined => todo!("undefined to JSON"),
             &Self::Boolean(b) => Ok(b.into()),
-            Self::String(string) => Ok(string.as_str().into()),
+            Self::String(string) => Ok(string.to_std_string_escaped().into()),
             &Self::Rational(rat) => Ok(rat.into()),
             &Self::Integer(int) => Ok(int.into()),
             Self::BigInt(_bigint) => context.throw_type_error("cannot convert bigint to JSON"),
@@ -131,7 +131,7 @@ impl JsValue {
                     let mut map = Map::new();
                     for (key, property) in obj.borrow().properties().iter() {
                         let key = match &key {
-                            PropertyKey::String(string) => string.as_str().to_owned(),
+                            PropertyKey::String(string) => string.to_std_string_escaped(),
                             PropertyKey::Index(i) => i.to_string(),
                             PropertyKey::Symbol(_sym) => {
                                 return context.throw_type_error("cannot convert Symbol to JSON")

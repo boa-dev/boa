@@ -1,4 +1,5 @@
-//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.
+//! This module implements the Rust representation of a JavaScript object,
+//! see [`object::builtins`][builtins] for implementors.
 //!
 //! This module also provides helper objects for working with JavaScript objects.
 
@@ -48,6 +49,7 @@ use crate::{
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
+    js_string,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -1628,7 +1630,7 @@ impl<'context> FunctionBuilder<'context> {
                 function,
                 constructor: None,
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1646,7 +1648,7 @@ impl<'context> FunctionBuilder<'context> {
                 constructor: None,
                 captures: Captures::new(()),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1680,7 +1682,7 @@ impl<'context> FunctionBuilder<'context> {
                 constructor: None,
                 captures: Captures::new(captures),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1692,9 +1694,9 @@ impl<'context> FunctionBuilder<'context> {
     #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
-        N: AsRef<str>,
+        N: Into<JsString>,
     {
-        self.name = name.as_ref().into();
+        self.name = name.into();
         self
     }
 
@@ -1915,7 +1917,7 @@ impl<'context> ConstructorBuilder<'context> {
             object: JsObject::empty(),
             prototype: JsObject::empty(),
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,
@@ -1937,7 +1939,7 @@ impl<'context> ConstructorBuilder<'context> {
             has_prototype_property: true,
             prototype: standard_constructor.prototype,
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,

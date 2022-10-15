@@ -5,12 +5,14 @@ use super::JsArgs;
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
+    string::utf16,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    Context, JsResult, JsString,
+    Context, JsResult,
 };
 use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
@@ -393,10 +395,11 @@ impl Date {
         let tv = match this_time_value(value, context) {
             Ok(dt) => dt.0,
             _ => match value.to_primitive(context, PreferredType::Default)? {
-                JsValue::String(ref str) => match chrono::DateTime::parse_from_rfc3339(str) {
-                    Ok(dt) => Some(dt.naive_utc()),
-                    _ => None,
-                },
+                JsValue::String(ref str) => str
+                    .to_std_string()
+                    .ok()
+                    .and_then(|s| chrono::DateTime::parse_from_rfc3339(s.as_str()).ok())
+                    .map(|dt| dt.naive_utc()),
                 tv => {
                     let tv = tv.to_number(context)?;
                     if tv.is_nan() {
@@ -512,13 +515,15 @@ impl Date {
 
         let hint = args.get_or_undefined(0);
 
-        let try_first = match hint.as_string().map(JsString::as_str) {
+        let try_first = match hint.as_string() {
             // 3. If hint is "string" or "default", then
             // a. Let tryFirst be string.
-            Some("string" | "default") => PreferredType::String,
+            Some(string) if string == utf16!("string") || string == utf16!("default") => {
+                PreferredType::String
+            }
             // 4. Else if hint is "number", then
             // a. Let tryFirst be number.
-            Some("number") => PreferredType::Number,
+            Some(number) if number == utf16!("number") => PreferredType::Number,
             // 5. Else, throw a TypeError exception.
             _ => {
                 return context
@@ -1638,7 +1643,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
@@ -1740,7 +1745,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
@@ -1776,7 +1781,7 @@ impl Date {
                 .to_string()
                 .into())
         } else {
-            Ok(JsString::from("Invalid Date").into())
+            Ok(js_string!("Invalid Date").into())
         }
     }
 
@@ -1842,14 +1847,20 @@ impl Date {
         // This method is implementation-defined and discouraged, so we just require the same format as the string
         // constructor.
 
-        if args.is_empty() {
+        let date = if let Some(arg) = args.get(0) {
+            arg
+        } else {
             return Ok(JsValue::nan());
-        }
+        };
 
-        match DateTime::parse_from_rfc3339(&args[0].to_string(context)?) {
-            Ok(v) => Ok(JsValue::new(v.naive_utc().timestamp_millis() as f64)),
-            _ => Ok(JsValue::new(f64::NAN)),
-        }
+        let date = date.to_string(context)?;
+
+        Ok(JsValue::new(
+            date.to_std_string()
+                .ok()
+                .and_then(|s| DateTime::parse_from_rfc3339(s.as_str()).ok())
+                .map_or(f64::NAN, |v| v.naive_utc().timestamp_millis() as f64),
+        ))
     }
 
     /// `Date.UTC()`

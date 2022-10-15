@@ -1,7 +1,5 @@
 use crate::{
-    builtins::{
-        function::make_builtin_fn, iterable::create_iter_result_object, string::code_point_at,
-    },
+    builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -10,12 +8,10 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
 
-use super::CodePointInfo;
-
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct StringIterator {
     string: JsValue,
-    next_index: i32,
+    next_index: usize,
 }
 
 impl StringIterator {
@@ -53,7 +49,7 @@ impl StringIterator {
             ));
         }
         let native_string = string_iterator.string.to_string(context)?;
-        let len = native_string.encode_utf16().count() as i32;
+        let len = native_string.len();
         let position = string_iterator.next_index;
         if position >= len {
             string_iterator.string = JsValue::undefined();
@@ -63,12 +59,8 @@ impl StringIterator {
                 context,
             ));
         }
-        let CodePointInfo {
-            code_point: _,
-            code_unit_count,
-            is_unpaired_surrogate: _,
-        } = code_point_at(&native_string, position as u64);
-        string_iterator.next_index += i32::from(code_unit_count);
+        let code_point = native_string.code_point_at(position);
+        string_iterator.next_index += code_point.code_unit_count();
         let result_string = crate::builtins::string::String::substring(
             &string_iterator.string,
             &[position.into(), string_iterator.next_index.into()],

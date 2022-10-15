@@ -1,12 +1,15 @@
-use crate::syntax::{
-    ast::{
-        node::{
-            Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
-            Switch,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{
+                Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
+                Switch,
+            },
+            Const,
         },
-        Const,
+        parser::tests::{check_invalid, check_parser},
     },
-    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
 
@@ -110,7 +113,7 @@ fn check_switch_seperated_defaults() {
 
 /// Example of JS code <https://jsfiddle.net/zq6jx47h/4/>.
 #[test]
-fn check_seperated_switch() {
+fn check_separated_switch() {
     let s = r#"
         let a = 10;
 
@@ -150,9 +153,9 @@ fn check_seperated_switch() {
         "#;
 
     let mut interner = Interner::default();
-    let log = interner.get_or_intern_static("log");
-    let console = interner.get_or_intern_static("console");
-    let a = interner.get_or_intern_static("a");
+    let log = interner.get_or_intern_static("log", utf16!("log"));
+    let console = interner.get_or_intern_static("console", utf16!("console"));
+    let a = interner.get_or_intern_static("a", utf16!("a"));
 
     check_parser(
         s,
@@ -194,7 +197,7 @@ fn check_seperated_switch() {
                 Some(vec![Call::new(
                     GetConstField::new(Identifier::new(console), log),
                     vec![Node::from(Const::from(
-                        interner.get_or_intern_static("Default"),
+                        interner.get_or_intern_static("Default", utf16!("Default")),
                     ))],
                 )
                 .into()]),

@@ -1,5 +1,7 @@
 //! Template literal node.
 
+use crate::string::ToStringEscaped;
+
 use super::Node;
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -44,7 +46,12 @@ impl ToInternedString for TemplateLit {
 
         for elt in self.elements.iter() {
             match elt {
-                TemplateElement::String(s) => buf.push_str(interner.resolve_expect(*s)),
+                TemplateElement::String(s) => interner.resolve_expect(*s).join_with_context(
+                    |s, buf| buf.push_str(s),
+                    |js, buf| buf.push_str(&js.to_string_escaped()),
+                    &mut buf,
+                    true,
+                ),
                 TemplateElement::Expr(n) => {
                     buf.push_str(&format!("${{{}}}", n.to_interned_string(interner)));
                 }

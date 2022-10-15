@@ -184,7 +184,7 @@ impl FromStr for RegExpFlags {
 fn parse_regex_flags(s: &str, start: Position, interner: &mut Interner) -> Result<Sym, Error> {
     match RegExpFlags::from_str(s) {
         Err(message) => Err(Error::Syntax(message.into(), start)),
-        Ok(flags) => Ok(interner.get_or_intern(flags.to_string())),
+        Ok(flags) => Ok(interner.get_or_intern(flags.to_string().as_str())),
     }
 }
 

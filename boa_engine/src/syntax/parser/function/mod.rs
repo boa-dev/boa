@@ -10,17 +10,20 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::{
-        node::{self, FormalParameterList},
-        node::{declaration::Declaration, FormalParameterListFlags},
-        Punctuator,
-    },
-    lexer::{Error as LexError, InputElement, TokenKind},
-    parser::{
-        expression::{BindingIdentifier, Initializer},
-        statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+use crate::{
+    string::utf16,
+    syntax::{
+        ast::{
+            node::{self, FormalParameterList},
+            node::{declaration::Declaration, FormalParameterListFlags},
+            Punctuator,
+        },
+        lexer::{Error as LexError, InputElement, TokenKind},
+        parser::{
+            expression::{BindingIdentifier, Initializer},
+            statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
+            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        },
     },
 };
 use boa_interner::{Interner, Sym};
@@ -529,7 +532,11 @@ where
                     return Ok(Vec::new().into());
                 }
                 TokenKind::StringLiteral(string)
-                    if interner.resolve_expect(*string) == "use strict" =>
+                    if interner.resolve_expect(*string).join(
+                        |s| s == "use strict",
+                        |g| g == utf16!("use strict"),
+                        true,
+                    ) =>
                 {
                     cursor.set_strict_mode(true);
                     strict = true;

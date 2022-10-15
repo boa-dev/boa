@@ -67,13 +67,15 @@
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
+    // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
+    clippy::trait_duplication_in_bounds,
     // Ignore because `write!(string, ...)` instead of `string.push_str(&format!(...))` can fail.
     // We only use it in `ToInternedString` where performance is not an issue.
     clippy::format_push_string,
-    // TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).
-    clippy::trait_duplication_in_bounds,
     rustdoc::missing_doc_code_examples
 )]
+
+extern crate static_assertions as sa;
 
 pub mod bigint;
 pub mod builtins;
