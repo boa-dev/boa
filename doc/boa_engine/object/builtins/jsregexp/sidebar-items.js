@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["JsRegExp","`JsRegExp` provides a wrapper for Boa’s implementation of the JavaScript `RegExp` builtin object"]]};

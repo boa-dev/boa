@@ -1926,7 +1926,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpalloc</span>
-    <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">alloc</span>(<span class="ident">new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let obj be ? OrdinaryCreateFromConstructor(newTarget, &quot;%RegExp.prototype%&quot;, « [[RegExpMatcher]], [[OriginalSource]], [[OriginalFlags]] »).</span>
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::regexp</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -1954,7 +1954,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-regexpinitialize</span>
-    <span class="kw">fn</span> <span class="ident">initialize</span>(
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">initialize</span>(
         <span class="ident">obj</span>: <span class="ident">JsObject</span>,
         <span class="ident">pattern</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">flags</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,

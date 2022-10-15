@@ -23,6 +23,8 @@
 <span id="21">21</span>
 <span id="22">22</span>
 <span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains all the Rust representations of JavaScript objects.</span>
 
 <span class="kw">mod</span> <span class="ident">jsarray</span>;
@@ -32,6 +34,7 @@
 <span class="kw">mod</span> <span class="ident">jsmap</span>;
 <span class="kw">mod</span> <span class="ident">jsmap_iterator</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">jsproxy</span>;
+<span class="kw">mod</span> <span class="ident">jsregexp</span>;
 <span class="kw">mod</span> <span class="ident">jsset</span>;
 <span class="kw">mod</span> <span class="ident">jsset_iterator</span>;
 <span class="kw">mod</span> <span class="ident">jstypedarray</span>;
@@ -43,6 +46,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap_iterator</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsproxy</span>::{<span class="ident">JsProxy</span>, <span class="ident">JsRevocableProxy</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsregexp::JsRegExp</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsset</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsset_iterator</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jstypedarray</span>::<span class="kw-2">*</span>;
