@@ -552,6 +552,7 @@
 <span id="550">550</span>
 <span id="551">551</span>
 <span id="552">552</span>
+<span id="553">553</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the</span>
@@ -627,7 +628,7 @@
 };
 <span class="kw">use</span> <span class="ident">anyhow</span>::{<span class="ident">bail</span>, <span class="ident">Context</span>};
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
-<span class="kw">use</span> <span class="ident">clap::Parser</span>;
+<span class="kw">use</span> <span class="ident">clap</span>::{<span class="ident">ArgAction</span>, <span class="ident">Parser</span>, <span class="ident">ValueHint</span>};
 <span class="kw">use</span> <span class="ident">colored::Colorize</span>;
 <span class="kw">use</span> <span class="ident">fxhash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
@@ -748,41 +749,42 @@
 
 <span class="doccomment">/// Boa test262 tester</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Parser</span>)]</span>
-<span class="attribute">#[<span class="ident">clap</span>(<span class="ident">author</span>, <span class="ident">version</span>, <span class="ident">about</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;Boa test262 tester&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">command</span>(<span class="ident">author</span>, <span class="ident">version</span>, <span class="ident">about</span>, <span class="ident">name</span> <span class="op">=</span> <span class="string">&quot;Boa test262 tester&quot;</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Cli</span> {
     <span class="doccomment">/// Run the test suite.</span>
     <span class="ident">Run</span> {
         <span class="doccomment">/// Whether to show verbose output.</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">from_occurrences</span>))]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">action</span> <span class="op">=</span> <span class="ident">ArgAction::Count</span>)]</span>
         <span class="ident">verbose</span>: <span class="ident">u8</span>,
 
         <span class="doccomment">/// Path to the Test262 suite.</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">from_os_str</span>), <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;./test262&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;./test262&quot;</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::DirPath</span>)]</span>
         <span class="ident">test262_path</span>: <span class="ident">PathBuf</span>,
 
         <span class="doccomment">/// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. &quot;test/language/types/number&quot;</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">from_os_str</span>), <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>)]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;test&quot;</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::AnyPath</span>)]</span>
         <span class="ident">suite</span>: <span class="ident">PathBuf</span>,
 
         <span class="doccomment">/// Optional output folder for the full results information.</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">parse</span>(<span class="ident">from_os_str</span>))]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::DirPath</span>)]</span>
         <span class="ident">output</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PathBuf</span><span class="op">&gt;</span>,
 
         <span class="doccomment">/// Execute tests serially</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
         <span class="ident">disable_parallelism</span>: <span class="ident">bool</span>,
     },
+    <span class="doccomment">/// Compare two test suite results.</span>
     <span class="ident">Compare</span> {
         <span class="doccomment">/// Base results of the suite.</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">from_os_str</span>))]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::FilePath</span>)]</span>
         <span class="ident">base</span>: <span class="ident">PathBuf</span>,
 
         <span class="doccomment">/// New results to compare.</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">parse</span>(<span class="ident">from_os_str</span>))]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">value_hint</span> <span class="op">=</span> <span class="ident">ValueHint::FilePath</span>)]</span>
         <span class="ident">new</span>: <span class="ident">PathBuf</span>,
 
         <span class="doccomment">/// Whether to use markdown output</span>
-        <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
+        <span class="attribute">#[<span class="ident">arg</span>(<span class="ident">short</span>, <span class="ident">long</span>)]</span>
         <span class="ident">markdown</span>: <span class="ident">bool</span>,
     },
 }

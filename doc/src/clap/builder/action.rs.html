@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/builder/action.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/builder/action.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>action.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -344,12 +344,12 @@
 <span id="342">342</span>
 <span id="343">343</span>
 <span id="344">344</span>
-<span id="345">345</span>
 </pre><pre class="rust"><code><span class="doccomment">/// Behavior of arguments when they are encountered while parsing</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// ```rust</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;help&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```ignore&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;help&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
 <span class="doccomment">/// # use clap::Command;</span>
 <span class="doccomment">/// # use clap::Arg;</span>
 <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
@@ -373,6 +373,10 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArgAction</span> {
     <span class="doccomment">/// When encountered, store the associated value(s) in [`ArgMatches`][crate::ArgMatches]</span>
     <span class="doccomment">///</span>
+    <span class="doccomment">/// **NOTE:** If the argument has previously been seen, it will result in a</span>
+    <span class="doccomment">/// [`ArgumentConflict`][crate::error::ErrorKind::ArgumentConflict] unless</span>
+    <span class="doccomment">/// [`Command::args_override_self(true)`][crate::Command::args_override_self] is set.</span>
+    <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// ```rust</span>
@@ -387,7 +391,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),</span>
     <span class="doccomment">///     vec![&quot;value&quot;]</span>
@@ -410,57 +413,22 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;value1&quot;, &quot;--flag&quot;, &quot;value2&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_many::&lt;String&gt;(&quot;flag&quot;).unwrap_or_default().map(|v| v.as_str()).collect::&lt;Vec&lt;_&gt;&gt;(),</span>
     <span class="doccomment">///     vec![&quot;value1&quot;, &quot;value2&quot;]</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="ident">Append</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::Set`] or [`ArgAction::Append`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Builder: Instead of `arg.action(ArgAction::StoreValue)`,</span>
-    <span class="doccomment">/// - Use `arg.action(ArgAction::Set)` for single-occurrence arguments</span>
-    <span class="doccomment">/// - Use `arg.action(ArgAction::Append)` for multiple-occurrence arguments</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Derive: opt-in to the new behavior with `#[clap(action)]`</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgAction::Set` or `ArgAction::Append`
-
-Derive: opt-in to the new behavior with `#[clap(action)]`
-
-Builder: Instead of `arg.action(ArgAction::StoreValue)`,
-- Use `arg.action(ArgAction::Set)` for single-occurrence arguments
-- Use `arg.action(ArgAction::Append)` for multiple-occurrence arguments
-&quot;</span>
-        )
-    )]</span>
-    <span class="ident">StoreValue</span>,
-    <span class="doccomment">/// Deprecated, replaced with [`ArgAction::SetTrue`] or [`ArgAction::Count`]</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.2.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `ArgAction::SetTrue` or `ArgAction::Count`
-
-Derive: opt-in to the new behavior with `#[clap(action)]`
-
-Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
-- Use `arg.action(ArgAction::SetTrue)` if you just care if its set, then switch `matches.is_present` to `matches.get_flag`
-- Use `arg.action(ArgAction::Count)` if you care how many times its set, then switch `matches.occurrences_of` to `matches.get_count`
-&quot;</span>
-        )
-    )]</span>
-    <span class="ident">IncOccurrence</span>,
     <span class="doccomment">/// When encountered, act as if `&quot;true&quot;` was encountered on the command-line</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If no [`default_value`][super::Arg::default_value] is set, it will be `false`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// No value is allowed. To optionally accept a value, see</span>
     <span class="doccomment">/// [`Arg::default_missing_value`][super::Arg::default_missing_value]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **NOTE:** If the argument has previously been seen, it will result in a</span>
+    <span class="doccomment">/// [`ArgumentConflict`][crate::error::ErrorKind::ArgumentConflict] unless</span>
+    <span class="doccomment">/// [`Command::args_override_self(true)`][crate::Command::args_override_self] is set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -474,9 +442,8 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///             .action(clap::ArgAction::SetTrue)</span>
     <span class="doccomment">///     );</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
     <span class="doccomment">///     Some(true)</span>
@@ -484,10 +451,44 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
     <span class="doccomment">///     Some(false)</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// You can use [`TypedValueParser::map`][crate::builder::TypedValueParser::map] to have the</span>
+    <span class="doccomment">/// flag control an application-specific type:</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use clap::Command;</span>
+    <span class="doccomment">/// # use clap::Arg;</span>
+    <span class="doccomment">/// # use clap::builder::TypedValueParser as _;</span>
+    <span class="doccomment">/// # use clap::builder::BoolishValueParser;</span>
+    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
+    <span class="doccomment">///     .arg(</span>
+    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .action(clap::ArgAction::SetTrue)</span>
+    <span class="doccomment">///             .value_parser(</span>
+    <span class="doccomment">///                 BoolishValueParser::new()</span>
+    <span class="doccomment">///                 .map(|b| -&gt; usize {</span>
+    <span class="doccomment">///                     if b { 10 } else { 5 }</span>
+    <span class="doccomment">///                 })</span>
+    <span class="doccomment">///             )</span>
+    <span class="doccomment">///     );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();</span>
+    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),</span>
+    <span class="doccomment">///     Some(10)</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
+    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),</span>
+    <span class="doccomment">///     Some(5)</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="ident">SetTrue</span>,
@@ -497,6 +498,10 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///</span>
     <span class="doccomment">/// No value is allowed. To optionally accept a value, see</span>
     <span class="doccomment">/// [`Arg::default_missing_value`][super::Arg::default_missing_value]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// **NOTE:** If the argument has previously been seen, it will result in a</span>
+    <span class="doccomment">/// [`ArgumentConflict`][crate::error::ErrorKind::ArgumentConflict] unless</span>
+    <span class="doccomment">/// [`Command::args_override_self(true)`][crate::Command::args_override_self] is set.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -510,9 +515,8 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///             .action(clap::ArgAction::SetFalse)</span>
     <span class="doccomment">///     );</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
     <span class="doccomment">///     Some(false)</span>
@@ -520,7 +524,6 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;bool&gt;(&quot;flag&quot;).copied(),</span>
     <span class="doccomment">///     Some(true)</span>
@@ -548,7 +551,6 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;--flag&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_count(&quot;flag&quot;),</span>
     <span class="doccomment">///     2</span>
@@ -556,20 +558,20 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">///</span>
     <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
-    <span class="doccomment">/// assert_eq!(matches.occurrences_of(&quot;flag&quot;), 0);</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_count(&quot;flag&quot;),</span>
     <span class="doccomment">///     0</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">/// ```</span>
     <span class="ident">Count</span>,
-    <span class="doccomment">/// When encountered, display [`Command::print_help`][super::App::print_help]</span>
+    <span class="doccomment">/// When encountered, display [`Command::print_help`][super::Command::print_help]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the flag, [`Command::print_long_help`][super::App::print_long_help] may be shown</span>
+    <span class="doccomment">/// Depending on the flag, [`Command::print_long_help`][super::Command::print_long_help] may be shown</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// ```rust</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;help&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```ignore&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;help&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
     <span class="doccomment">/// # use clap::Command;</span>
     <span class="doccomment">/// # use clap::Arg;</span>
     <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
@@ -588,9 +590,9 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
     <span class="doccomment">/// assert_eq!(err.kind(), clap::error::ErrorKind::DisplayHelp);</span>
     <span class="doccomment">/// ```</span>
     <span class="ident">Help</span>,
-    <span class="doccomment">/// When encountered, display [`Command::version`][super::App::version]</span>
+    <span class="doccomment">/// When encountered, display [`Command::version`][super::Command::version]</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Depending on the flag, [`Command::long_version`][super::App::long_version] may be shown</span>
+    <span class="doccomment">/// Depending on the flag, [`Command::long_version`][super::Command::long_version] may be shown</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// # Examples</span>
     <span class="doccomment">///</span>
@@ -625,10 +627,6 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="bool-val">true</span>,
             <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="bool-val">true</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="bool-val">true</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="bool-val">false</span>,
             <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="bool-val">false</span>,
             <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="bool-val">false</span>,
             <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="bool-val">false</span>,
@@ -641,13 +639,21 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;false&quot;</span>)),
             <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;true&quot;</span>)),
             <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;0&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">default_missing_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">std::ffi::OsStr</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;true&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">std::ffi::OsStr::new</span>(<span class="string">&quot;false&quot;</span>)),
+            <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,
         }
@@ -657,10 +663,6 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">super</span>::ValueParser::bool</span>()),
             <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident"><span class="kw">super</span>::ValueParser::bool</span>()),
             <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="macro">crate::value_parser!</span>(<span class="ident">u8</span>).<span class="ident">into</span>()),
@@ -676,12 +678,8 @@ Builder: Instead of `arg.action(ArgAction::IncOccurrence)`,
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Set</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Append</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::StoreValue</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-            <span class="ident"><span class="self">Self</span>::IncOccurrence</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>()),
-            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span>()),
+            <span class="ident"><span class="self">Self</span>::SetTrue</span> =&gt; <span class="prelude-val">None</span>,
+            <span class="ident"><span class="self">Self</span>::SetFalse</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Count</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AnyValueId::of</span>::<span class="op">&lt;</span><span class="ident">CountType</span><span class="op">&gt;</span>()),
             <span class="ident"><span class="self">Self</span>::Help</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident"><span class="self">Self</span>::Version</span> =&gt; <span class="prelude-val">None</span>,

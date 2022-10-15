@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/builder/debug_asserts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug_asserts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/builder/debug_asserts.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>debug_asserts.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -851,13 +851,46 @@
 <span id="849">849</span>
 <span id="850">850</span>
 <span id="851">851</span>
+<span id="852">852</span>
+<span id="853">853</span>
+<span id="854">854</span>
+<span id="855">855</span>
+<span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
+<span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
+<span id="874">874</span>
+<span id="875">875</span>
+<span id="876">876</span>
+<span id="877">877</span>
+<span id="878">878</span>
+<span id="879">879</span>
+<span id="880">880</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cmp::Ordering</span>;
 
 <span class="kw">use</span> <span class="ident">clap_lex::RawOsStr</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder::arg::ArgProvider</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder::OsStr</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder::ValueRange</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::mkeymap::KeyType</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::FlatSet</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::util::Id</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ArgAction</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::INTERNAL_ERROR_MSG</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">Arg</span>, <span class="ident">Command</span>, <span class="ident">ValueHint</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">assert_app</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>) {
@@ -878,17 +911,7 @@
         <span class="comment">// Used `Command::mut_arg(&quot;version&quot;, ..) but did not provide any version information to display</span>
         <span class="kw">let</span> <span class="ident">version_needed</span> <span class="op">=</span> <span class="ident">cmd</span>
             .<span class="ident">get_arguments</span>()
-            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> {
-                <span class="kw">let</span> <span class="ident">action_set</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">x</span>.<span class="ident">get_action</span>(), <span class="ident">ArgAction::Version</span>);
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>))]</span>
-                <span class="kw">let</span> <span class="ident">provider_set</span> <span class="op">=</span> <span class="macro">matches!</span>(<span class="ident">x</span>.<span class="ident">provider</span>, <span class="ident">ArgProvider::GeneratedMutated</span>);
-                <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-                <span class="kw">let</span> <span class="ident">provider_set</span> <span class="op">=</span> <span class="macro">matches!</span>(
-                    <span class="ident">x</span>.<span class="ident">provider</span>,
-                    <span class="ident">ArgProvider::User</span> <span class="op">|</span> <span class="ident">ArgProvider::GeneratedMutated</span>
-                );
-                <span class="ident">action_set</span> <span class="op">&amp;&amp;</span> <span class="ident">provider_set</span>
-            })
+            .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">x</span>.<span class="ident">get_action</span>(), <span class="ident">ArgAction::Version</span>))
             .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_id</span>())
             .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
@@ -907,10 +930,7 @@
         }
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">sc</span>.<span class="ident">get_long_flag</span>().<span class="ident">as_ref</span>() {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">l</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>), <span class="string">&quot;Command {}: long_flag {:?} must not start with a `-`, that will be handled by the parser&quot;</span>, <span class="ident">sc</span>.<span class="ident">get_name</span>(), <span class="ident">l</span>);
-            }
+            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">l</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>), <span class="string">&quot;Command {}: long_flag {:?} must not start with a `-`, that will be handled by the parser&quot;</span>, <span class="ident">sc</span>.<span class="ident">get_name</span>(), <span class="ident">l</span>);
             <span class="ident">long_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Command</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">l</span>), <span class="ident">sc</span>.<span class="ident">get_name</span>()));
         }
 
@@ -926,61 +946,68 @@
             <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">is_multicall_set</span>(),
             <span class="string">&quot;Command {}: Arguments like {} cannot be set on a multicall command&quot;</span>,
             <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">arg</span>.<span class="ident">name</span>
+            <span class="ident">arg</span>.<span class="ident">get_id</span>()
         );
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">short</span>.<span class="ident">as_ref</span>() {
-            <span class="ident">short_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, <span class="ident">s</span>), <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>.<span class="ident">name</span>));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_short</span>() {
+            <span class="ident">short_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, <span class="ident">s</span>), <span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>()));
         }
 
         <span class="kw">for</span> (<span class="ident">short_alias</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">short_aliases</span> {
-            <span class="ident">short_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, <span class="ident">short_alias</span>), <span class="ident">arg</span>.<span class="ident">name</span>));
+            <span class="ident">short_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;-{}&quot;</span>, <span class="ident">short_alias</span>),
+                <span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>(),
+            ));
         }
 
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">long</span>.<span class="ident">as_ref</span>() {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">l</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>), <span class="string">&quot;Argument {}: long {:?} must not start with a `-`, that will be handled by the parser&quot;</span>, <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">l</span>);
-            }
-            <span class="ident">long_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">l</span>), <span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">arg</span>.<span class="ident">name</span>));
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_long</span>() {
+            <span class="macro">assert!</span>(<span class="op">!</span><span class="ident">l</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>), <span class="string">&quot;Argument {}: long {:?} must not start with a `-`, that will be handled by the parser&quot;</span>, <span class="ident">arg</span>.<span class="ident">get_id</span>(), <span class="ident">l</span>);
+            <span class="ident">long_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">l</span>), <span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>()));
         }
 
         <span class="kw">for</span> (<span class="ident">long_alias</span>, <span class="kw">_</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">aliases</span> {
-            <span class="ident">long_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(<span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">long_alias</span>), <span class="ident">arg</span>.<span class="ident">name</span>));
+            <span class="ident">long_flags</span>.<span class="ident">push</span>(<span class="ident">Flag::Arg</span>(
+                <span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">long_alias</span>),
+                <span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>(),
+            ));
         }
 
         <span class="comment">// Name conflicts</span>
-        <span class="macro">assert!</span>(
-            <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">arg</span>.<span class="ident">id</span>).<span class="ident">is_none</span>(),
-            <span class="string">&quot;Command {}: Argument names must be unique, but &#39;{}&#39; is in use by more than one argument or group&quot;</span>,
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">arg</span>.<span class="ident">get_id</span>()) {
+            <span class="macro">panic!</span>(
+            <span class="string">&quot;Command {}: Argument names must be unique, but &#39;{}&#39; is in use by more than one argument or group{}&quot;</span>,
             <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">arg</span>.<span class="ident">name</span>,
+            <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+            <span class="ident">duplicate_tip</span>(<span class="ident">cmd</span>, <span class="ident">first</span>, <span class="ident">second</span>),
         );
+        }
 
         <span class="comment">// Long conflicts</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">long</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">long</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>)) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_long</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_long</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">l</span>)) {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Command {}: Long option names must be unique for each argument, \
-                        but &#39;--{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;&quot;</span>,
+                            but &#39;--{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;{}&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                     <span class="ident">l</span>,
-                    <span class="ident">first</span>.<span class="ident">name</span>,
-                    <span class="ident">second</span>.<span class="ident">name</span>
+                    <span class="ident">first</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">second</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">duplicate_tip</span>(<span class="ident">cmd</span>, <span class="ident">first</span>, <span class="ident">second</span>)
                 )
             }
         }
 
         <span class="comment">// Short conflicts</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">short</span> {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">short</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>)) {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_short</span>() {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_short</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">s</span>)) {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Command {}: Short option names must be unique for each argument, \
-                        but &#39;-{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;&quot;</span>,
+                            but &#39;-{}&#39; is in use by both &#39;{}&#39; and &#39;{}&#39;{}&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                     <span class="ident">s</span>,
-                    <span class="ident">first</span>.<span class="ident">name</span>,
-                    <span class="ident">second</span>.<span class="ident">name</span>
+                    <span class="ident">first</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">second</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">duplicate_tip</span>(<span class="ident">cmd</span>, <span class="ident">first</span>, <span class="ident">second</span>),
                 )
             }
         }
@@ -988,16 +1015,16 @@
         <span class="comment">// Index conflicts</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">index</span> {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">first</span>, <span class="ident">second</span>)) <span class="op">=</span>
-                <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">is_positional</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">index</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>))
+                <span class="ident">cmd</span>.<span class="ident">two_args_of</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">is_positional</span>() <span class="op">&amp;&amp;</span> <span class="ident">x</span>.<span class="ident">get_index</span>() <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="ident">idx</span>))
             {
                 <span class="macro">panic!</span>(
                     <span class="string">&quot;Command {}: Argument &#39;{}&#39; has the same index as &#39;{}&#39; \
                     and they are both positional arguments\n\n\t \
-                    Use Arg::multiple_values(true) to allow one \
+                    Use `Arg::num_args(1..)` to allow one \
                     positional argument to take multiple values&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                    <span class="ident">first</span>.<span class="ident">name</span>,
-                    <span class="ident">second</span>.<span class="ident">name</span>
+                    <span class="ident">first</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">second</span>.<span class="ident">get_id</span>()
                 )
             }
         }
@@ -1006,82 +1033,70 @@
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">requires</span> {
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="number">1</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;requires*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;requires*&#39; for &#39;{}&#39; does not exist&quot;</span>,
                 <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>.<span class="number">1</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
             );
         }
 
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">r_ifs</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(
-                    <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
-                    <span class="string">&quot;Argument {}: `required` conflicts with `required_if_eq*`&quot;</span>,
-                    <span class="ident">arg</span>.<span class="ident">name</span>
-                );
-            }
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
+                <span class="string">&quot;Argument {}: `required` conflicts with `required_if_eq*`&quot;</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="number">0</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;required_if_eq*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;required_if_eq*&#39; for &#39;{}&#39; does not exist&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>.<span class="number">0</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
         }
 
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">r_ifs_all</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(
-                    <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
-                    <span class="string">&quot;Argument {}: `required` conflicts with `required_if_eq_all`&quot;</span>,
-                    <span class="ident">arg</span>.<span class="ident">name</span>
-                );
-            }
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
+                <span class="string">&quot;Argument {}: `required` conflicts with `required_if_eq_all`&quot;</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="kw-2">&amp;</span><span class="ident">req</span>.<span class="number">0</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;required_if_eq_all&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;required_if_eq_all&#39; for &#39;{}&#39; does not exist&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>.<span class="number">0</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
         }
 
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">r_unless</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(
-                    <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
-                    <span class="string">&quot;Argument {}: `required` conflicts with `required_unless*`&quot;</span>,
-                    <span class="ident">arg</span>.<span class="ident">name</span>
-                );
-            }
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
+                <span class="string">&quot;Argument {}: `required` conflicts with `required_unless*`&quot;</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="ident">req</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;required_unless*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;required_unless*&#39; for &#39;{}&#39; does not exist&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
             );
         }
 
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">r_unless_all</span> {
-            <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-            {
-                <span class="macro">assert!</span>(
-                    <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
-                    <span class="string">&quot;Argument {}: `required` conflicts with `required_unless*`&quot;</span>,
-                    <span class="ident">arg</span>.<span class="ident">name</span>
-                );
-            }
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_required_set</span>(),
+                <span class="string">&quot;Argument {}: `required` conflicts with `required_unless*`&quot;</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="ident">req</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;required_unless*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;required_unless*&#39; for &#39;{}&#39; does not exist&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
             );
         }
 
@@ -1089,25 +1104,36 @@
         <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">blacklist</span> {
             <span class="macro">assert!</span>(
                 <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="ident">req</span>),
-                <span class="string">&quot;Command {}: Argument or group &#39;{:?}&#39; specified in &#39;conflicts_with*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;conflicts_with*&#39; for &#39;{}&#39; does not exist&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
                 <span class="ident">req</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+            );
+        }
+
+        <span class="comment">// overrides</span>
+        <span class="kw">for</span> <span class="ident">req</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">arg</span>.<span class="ident">overrides</span> {
+            <span class="macro">assert!</span>(
+                <span class="ident">cmd</span>.<span class="ident">id_exists</span>(<span class="ident">req</span>),
+                <span class="string">&quot;Command {}: Argument or group &#39;{}&#39; specified in &#39;overrides_with*&#39; for &#39;{}&#39; does not exist&quot;</span>,
+                    <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+                <span class="ident">req</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
             );
         }
 
         <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_last_set</span>() {
             <span class="macro">assert!</span>(
-                <span class="ident">arg</span>.<span class="ident">long</span>.<span class="ident">is_none</span>(),
+                <span class="ident">arg</span>.<span class="ident">get_long</span>().<span class="ident">is_none</span>(),
                 <span class="string">&quot;Command {}: Flags or Options cannot have last(true) set. &#39;{}&#39; has both a long and last(true) set.&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
             <span class="macro">assert!</span>(
-                <span class="ident">arg</span>.<span class="ident">short</span>.<span class="ident">is_none</span>(),
+                <span class="ident">arg</span>.<span class="ident">get_short</span>().<span class="ident">is_none</span>(),
                 <span class="string">&quot;Command {}: Flags or Options cannot have last(true) set. &#39;{}&#39; has both a short and last(true) set.&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
         }
 
@@ -1115,15 +1141,7 @@
             <span class="op">!</span>(<span class="ident">arg</span>.<span class="ident">is_required_set</span>() <span class="op">&amp;&amp;</span> <span class="ident">arg</span>.<span class="ident">is_global_set</span>()),
             <span class="string">&quot;Command {}: Global arguments cannot be required.\n\n\t&#39;{}&#39; is marked as both global and required&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">arg</span>.<span class="ident">name</span>
-        );
-
-        <span class="comment">// validators</span>
-        <span class="macro">assert!</span>(
-            <span class="ident">arg</span>.<span class="ident">validator</span>.<span class="ident">is_none</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">arg</span>.<span class="ident">validator_os</span>.<span class="ident">is_none</span>(),
-            <span class="string">&quot;Command {}: Argument &#39;{}&#39; has both `validator` and `validator_os` set which is not allowed&quot;</span>,
-                    <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">arg</span>.<span class="ident">name</span>
+            <span class="ident">arg</span>.<span class="ident">get_id</span>()
         );
 
         <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">get_value_hint</span>() <span class="op">==</span> <span class="ident">ValueHint::CommandWithArguments</span> {
@@ -1131,42 +1149,50 @@
                 <span class="ident">arg</span>.<span class="ident">is_positional</span>(),
                 <span class="string">&quot;Command {}: Argument &#39;{}&#39; has hint CommandWithArguments and must be positional.&quot;</span>,
                 <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
 
             <span class="macro">assert!</span>(
-                <span class="ident">cmd</span>.<span class="ident">is_trailing_var_arg_set</span>(),
+                <span class="ident">arg</span>.<span class="ident">is_trailing_var_arg_set</span>(),
                 <span class="string">&quot;Command {}: Positional argument &#39;{}&#39; has hint CommandWithArguments, so Command must have TrailingVarArg set.&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             );
         }
     }
 
     <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="ident">cmd</span>.<span class="ident">get_groups</span>() {
+        <span class="kw">let</span> <span class="ident">derive_hint</span> <span class="op">=</span> <span class="kw">if</span> <span class="macro">cfg!</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>) {
+            <span class="string">&quot; (note: `Args` implicitly creates `ArgGroup`s; disable with `#[group(skip)]`&quot;</span>
+        } <span class="kw">else</span> {
+            <span class="string">&quot;&quot;</span>
+        };
+
         <span class="comment">// Name conflicts</span>
         <span class="macro">assert!</span>(
             <span class="ident">cmd</span>.<span class="ident">get_groups</span>().<span class="ident">filter</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">group</span>.<span class="ident">id</span>).<span class="ident">count</span>() <span class="op">&lt;</span> <span class="number">2</span>,
-            <span class="string">&quot;Command {}: Argument group name must be unique\n\n\t&#39;{}&#39; is already in use&quot;</span>,
+            <span class="string">&quot;Command {}: Argument group name must be unique\n\n\t&#39;{}&#39; is already in use{}&quot;</span>,
             <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">group</span>.<span class="ident">name</span>,
+            <span class="ident">group</span>.<span class="ident">get_id</span>(),
+            <span class="ident">derive_hint</span>
         );
 
         <span class="comment">// Groups should not have naming conflicts with Args</span>
         <span class="macro">assert!</span>(
-            <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">get_arguments</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="ident">group</span>.<span class="ident">id</span>),
-            <span class="string">&quot;Command {}: Argument group name &#39;{}&#39; must not conflict with argument name&quot;</span>,
+            <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">get_arguments</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">group</span>.<span class="ident">get_id</span>()),
+            <span class="string">&quot;Command {}: Argument group name &#39;{}&#39; must not conflict with argument name{}&quot;</span>,
             <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-            <span class="ident">group</span>.<span class="ident">name</span>,
+            <span class="ident">group</span>.<span class="ident">get_id</span>(),
+            <span class="ident">derive_hint</span>
         );
 
         <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">group</span>.<span class="ident">args</span> {
             <span class="comment">// Args listed inside groups should exist</span>
             <span class="macro">assert!</span>(
-                <span class="ident">cmd</span>.<span class="ident">get_arguments</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">id</span> <span class="op">==</span> <span class="kw-2">*</span><span class="ident">arg</span>),
-                <span class="string">&quot;Command {}: Argument group &#39;{}&#39; contains non-existent argument &#39;{:?}&#39;&quot;</span>,
+                <span class="ident">cmd</span>.<span class="ident">get_arguments</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">arg</span>),
+                <span class="string">&quot;Command {}: Argument group &#39;{}&#39; contains non-existent argument &#39;{}&#39;&quot;</span>,
                 <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
-                <span class="ident">group</span>.<span class="ident">name</span>,
+                <span class="ident">group</span>.<span class="ident">get_id</span>(),
                 <span class="ident">arg</span>
             );
         }
@@ -1180,17 +1206,37 @@
     <span class="ident">detect_duplicate_flags</span>(<span class="kw-2">&amp;</span><span class="ident">long_flags</span>, <span class="string">&quot;long&quot;</span>);
     <span class="ident">detect_duplicate_flags</span>(<span class="kw-2">&amp;</span><span class="ident">short_flags</span>, <span class="string">&quot;short&quot;</span>);
 
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">subs</span> <span class="op">=</span> <span class="ident">FlatSet::new</span>();
+    <span class="kw">for</span> <span class="ident">sc</span> <span class="kw">in</span> <span class="ident">cmd</span>.<span class="ident">get_subcommands</span>() {
+        <span class="macro">assert!</span>(
+            <span class="ident">subs</span>.<span class="ident">insert</span>(<span class="ident">sc</span>.<span class="ident">get_name</span>()),
+            <span class="string">&quot;Command {}: command name `{}` is duplicated&quot;</span>,
+            <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+            <span class="ident">sc</span>.<span class="ident">get_name</span>()
+        );
+        <span class="kw">for</span> <span class="ident">alias</span> <span class="kw">in</span> <span class="ident">sc</span>.<span class="ident">get_all_aliases</span>() {
+            <span class="macro">assert!</span>(
+                <span class="ident">subs</span>.<span class="ident">insert</span>(<span class="ident">alias</span>),
+                <span class="string">&quot;Command {}: command `{}` alias `{}` is duplicated&quot;</span>,
+                <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+                <span class="ident">sc</span>.<span class="ident">get_name</span>(),
+                <span class="ident">alias</span>
+            );
+        }
+    }
+
     <span class="ident">_verify_positionals</span>(<span class="ident">cmd</span>);
 
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;help&quot;</span>)]</span>
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">help_template</span>) <span class="op">=</span> <span class="ident">cmd</span>.<span class="ident">get_help_template</span>() {
         <span class="macro">assert!</span>(
-            <span class="op">!</span><span class="ident">help_template</span>.<span class="ident">contains</span>(<span class="string">&quot;{flags}&quot;</span>),
+            <span class="op">!</span><span class="ident">help_template</span>.<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="string">&quot;{flags}&quot;</span>),
             <span class="string">&quot;Command {}: {}&quot;</span>,
                     <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
             <span class="string">&quot;`{flags}` template variable was removed in clap3, they are now included in `{options}`&quot;</span>,
         );
         <span class="macro">assert!</span>(
-            <span class="op">!</span><span class="ident">help_template</span>.<span class="ident">contains</span>(<span class="string">&quot;{unified}&quot;</span>),
+            <span class="op">!</span><span class="ident">help_template</span>.<span class="ident">to_string</span>().<span class="ident">contains</span>(<span class="string">&quot;{unified}&quot;</span>),
             <span class="string">&quot;Command {}: {}&quot;</span>,
             <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
             <span class="string">&quot;`{unified}` template variable was removed in clap3, use `{options}` instead&quot;</span>
@@ -1199,6 +1245,20 @@
 
     <span class="ident">cmd</span>.<span class="ident">_panic_on_missing_help</span>(<span class="ident">cmd</span>.<span class="ident">is_help_expected_set</span>());
     <span class="ident">assert_app_flags</span>(<span class="ident">cmd</span>);
+}
+
+<span class="kw">fn</span> <span class="ident">duplicate_tip</span>(<span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident">Command</span>, <span class="ident">first</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>, <span class="ident">second</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+    <span class="kw">if</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">is_disable_help_flag_set</span>()
+        <span class="op">&amp;&amp;</span> (<span class="ident">first</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::HELP</span> <span class="op">|</span><span class="op">|</span> <span class="ident">second</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::HELP</span>)
+    {
+        <span class="string">&quot; (call `cmd.disable_help_flag(true)` to remove the auto-generated `--help`)&quot;</span>
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="ident">is_disable_version_flag_set</span>()
+        <span class="op">&amp;&amp;</span> (<span class="ident">first</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::VERSION</span> <span class="op">|</span><span class="op">|</span> <span class="ident">second</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::VERSION</span>)
+    {
+        <span class="string">&quot; (call `cmd.disable_version_flag(true)` to remove the auto-generated `--version`)&quot;</span>
+    } <span class="kw">else</span> {
+        <span class="string">&quot;&quot;</span>
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Eq</span>)]</span>
@@ -1286,7 +1346,8 @@
 
                 $(
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">cmd</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>() {
-                        <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  AppSettings::{} is required when AppSettings::{} is set.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)));
+                        <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
+                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="string">&quot;  AppSettings::{} is required when AppSettings::{} is set.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)).<span class="ident">unwrap</span>();
                     }
                 )<span class="op">+</span>
 
@@ -1301,7 +1362,8 @@
 
                 $(
                     <span class="kw">if</span> <span class="ident">cmd</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>() {
-                        <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  AppSettings::{} conflicts with AppSettings::{}.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)));
+                        <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
+                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="string">&quot;  AppSettings::{} conflicts with AppSettings::{}.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)).<span class="ident">unwrap</span>();
                     }
                 )<span class="op">+</span>
 
@@ -1312,7 +1374,6 @@
         };
     }
 
-    <span class="macro">checker!</span>(<span class="ident">is_allow_invalid_utf8_for_external_subcommands_set</span> <span class="ident">requires</span> <span class="ident">is_allow_external_subcommands_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_multicall_set</span> <span class="ident">conflicts</span> <span class="ident">is_no_binary_name_set</span>);
 }
 
@@ -1349,8 +1410,35 @@
         <span class="ident">num_p</span>
     );
 
+    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">cmd</span>.<span class="ident">get_arguments</span>() {
+        <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">index</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">==</span> <span class="ident">highest_idx</span> {
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_trailing_var_arg_set</span>() <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_last_set</span>(),
+                <span class="string">&quot;{}:{}: `Arg::trailing_var_arg` and `Arg::last` cannot be used together&quot;</span>,
+                <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
+
+            <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_trailing_var_arg_set</span>() {
+                <span class="macro">assert!</span>(
+                    <span class="ident">arg</span>.<span class="ident">is_multiple</span>(),
+                    <span class="string">&quot;{}:{}: `Arg::trailing_var_arg` must accept multiple values&quot;</span>,
+                    <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+                    <span class="ident">arg</span>.<span class="ident">get_id</span>()
+                );
+            }
+        } <span class="kw">else</span> {
+            <span class="macro">assert!</span>(
+                <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_trailing_var_arg_set</span>(),
+                <span class="string">&quot;{}:{}: `Arg::trailing_var_arg` can only apply to last positional&quot;</span>,
+                <span class="ident">cmd</span>.<span class="ident">get_name</span>(),
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
+            );
+        }
+    }
+
     <span class="comment">// Next we verify that only the highest index has takes multiple arguments (if any)</span>
-    <span class="kw">let</span> <span class="ident">only_highest</span> <span class="op">=</span> <span class="op">|</span><span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">is_multiple</span>() <span class="op">&amp;&amp;</span> (<span class="ident">a</span>.<span class="ident">index</span>.<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">highest_idx</span>);
+    <span class="kw">let</span> <span class="ident">only_highest</span> <span class="op">=</span> <span class="op">|</span><span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">is_multiple</span>() <span class="op">&amp;&amp;</span> (<span class="ident">a</span>.<span class="ident">get_index</span>().<span class="ident">unwrap_or</span>(<span class="number">0</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">highest_idx</span>);
     <span class="kw">if</span> <span class="ident">cmd</span>.<span class="ident">get_positionals</span>().<span class="ident">any</span>(<span class="ident">only_highest</span>) {
         <span class="comment">// First we make sure if there is a positional that allows multiple values</span>
         <span class="comment">// the one before it (second to last) has one of these:</span>
@@ -1370,7 +1458,7 @@
             <span class="op">|</span><span class="op">|</span> <span class="ident">last</span>.<span class="ident">is_last_set</span>();
         <span class="macro">assert!</span>(
             <span class="ident">ok</span>,
-            <span class="string">&quot;When using a positional argument with .multiple_values(true) that is *not the \
+            <span class="string">&quot;When using a positional argument with `.num_args(1..)` that is *not the \
                  last* positional argument, the last positional argument (i.e. the one \
                  with the highest index) *must* have .required(true) or .last(true) set.&quot;</span>
         );
@@ -1380,18 +1468,15 @@
         <span class="macro">assert!</span>(
             <span class="ident">ok</span>,
             <span class="string">&quot;Only the last positional argument, or second to last positional \
-                 argument may be set to .multiple_values(true)&quot;</span>
+                 argument may be set to `.num_args(1..)`&quot;</span>
         );
 
         <span class="comment">// Next we check how many have both Multiple and not a specific number of values set</span>
         <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">cmd</span>
             .<span class="ident">get_positionals</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">p</span><span class="op">|</span> {
-                <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-                {
-                    <span class="ident">p</span>.<span class="ident">is_multiple_occurrences_set</span>()
-                        <span class="op">|</span><span class="op">|</span> (<span class="ident">p</span>.<span class="ident">is_multiple_values_set</span>() <span class="op">&amp;&amp;</span> <span class="ident">p</span>.<span class="ident">num_vals</span>.<span class="ident">is_none</span>())
-                }
+                <span class="ident">p</span>.<span class="ident">is_multiple_values_set</span>()
+                    <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">get_num_args</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>).<span class="ident">is_fixed</span>()
             })
             .<span class="ident">count</span>();
         <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="ident">count</span> <span class="op">&lt;</span><span class="op">=</span> <span class="number">1</span>
@@ -1401,7 +1486,7 @@
                 <span class="op">&amp;&amp;</span> <span class="ident">count</span> <span class="op">==</span> <span class="number">2</span>);
         <span class="macro">assert!</span>(
             <span class="ident">ok</span>,
-            <span class="string">&quot;Only one positional argument with .multiple_values(true) set is allowed per \
+            <span class="string">&quot;Only one positional argument with `.num_args(1..)` set is allowed per \
                  command, unless the second one also has .last(true) set&quot;</span>
         );
     }
@@ -1420,8 +1505,8 @@
                     <span class="string">&quot;Found non-required positional argument with a lower \
                          index than a required positional argument by two or more: {:?} \
                          index {:?}&quot;</span>,
-                    <span class="ident">p</span>.<span class="ident">name</span>,
-                    <span class="ident">p</span>.<span class="ident">index</span>
+                    <span class="ident">p</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">p</span>.<span class="ident">get_index</span>()
                 );
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_required_set</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_last_set</span>() {
                 <span class="comment">// Args that .last(true) don&#39;t count since they can be required and have</span>
@@ -1449,8 +1534,8 @@
                     <span class="ident">p</span>.<span class="ident">is_required_set</span>(),
                     <span class="string">&quot;Found non-required positional argument with a lower \
                          index than a required positional argument: {:?} index {:?}&quot;</span>,
-                    <span class="ident">p</span>.<span class="ident">name</span>,
-                    <span class="ident">p</span>.<span class="ident">index</span>
+                    <span class="ident">p</span>.<span class="ident">get_id</span>(),
+                    <span class="ident">p</span>.<span class="ident">get_index</span>()
                 );
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">is_required_set</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">p</span>.<span class="ident">is_last_set</span>() {
                 <span class="comment">// Args that .last(true) don&#39;t count since they can be required and have</span>
@@ -1484,21 +1569,21 @@
 }
 
 <span class="kw">fn</span> <span class="ident">assert_arg</span>(<span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>) {
-    <span class="macro">debug!</span>(<span class="string">&quot;Arg::_debug_asserts:{}&quot;</span>, <span class="ident">arg</span>.<span class="ident">name</span>);
+    <span class="macro">debug!</span>(<span class="string">&quot;Arg::_debug_asserts:{}&quot;</span>, <span class="ident">arg</span>.<span class="ident">get_id</span>());
 
     <span class="comment">// Self conflict</span>
     <span class="comment">// TODO: this check should be recursive</span>
     <span class="macro">assert!</span>(
-        <span class="op">!</span><span class="ident">arg</span>.<span class="ident">blacklist</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="kw-2">*</span><span class="ident">x</span> <span class="op">==</span> <span class="ident">arg</span>.<span class="ident">id</span>),
+        <span class="op">!</span><span class="ident">arg</span>.<span class="ident">blacklist</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span> <span class="op">==</span> <span class="ident">arg</span>.<span class="ident">get_id</span>()),
         <span class="string">&quot;Argument &#39;{}&#39; cannot conflict with itself&quot;</span>,
-        <span class="ident">arg</span>.<span class="ident">name</span>,
+        <span class="ident">arg</span>.<span class="ident">get_id</span>(),
     );
 
     <span class="macro">assert_eq!</span>(
         <span class="ident">arg</span>.<span class="ident">get_action</span>().<span class="ident">takes_values</span>(),
         <span class="ident">arg</span>.<span class="ident">is_takes_value_set</span>(),
         <span class="string">&quot;Argument `{}`&#39;s selected action {:?} contradicts `takes_value`&quot;</span>,
-        <span class="ident">arg</span>.<span class="ident">name</span>,
+        <span class="ident">arg</span>.<span class="ident">get_id</span>(),
         <span class="ident">arg</span>.<span class="ident">get_action</span>()
     );
     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">action_type_id</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_action</span>().<span class="ident">value_type_id</span>() {
@@ -1506,7 +1591,7 @@
             <span class="ident">action_type_id</span>,
             <span class="ident">arg</span>.<span class="ident">get_value_parser</span>().<span class="ident">type_id</span>(),
             <span class="string">&quot;Argument `{}`&#39;s selected action {:?} contradicts `value_parser` ({:?})&quot;</span>,
-            <span class="ident">arg</span>.<span class="ident">name</span>,
+            <span class="ident">arg</span>.<span class="ident">get_id</span>(),
             <span class="ident">arg</span>.<span class="ident">get_action</span>(),
             <span class="ident">arg</span>.<span class="ident">get_value_parser</span>()
         );
@@ -1516,14 +1601,14 @@
         <span class="macro">assert!</span>(
             <span class="ident">arg</span>.<span class="ident">is_takes_value_set</span>(),
             <span class="string">&quot;Argument &#39;{}&#39; has value hint but takes no value&quot;</span>,
-            <span class="ident">arg</span>.<span class="ident">name</span>
+            <span class="ident">arg</span>.<span class="ident">get_id</span>()
         );
 
         <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">get_value_hint</span>() <span class="op">==</span> <span class="ident">ValueHint::CommandWithArguments</span> {
             <span class="macro">assert!</span>(
                 <span class="ident">arg</span>.<span class="ident">is_multiple_values_set</span>(),
                 <span class="string">&quot;Argument &#39;{}&#39; uses hint CommandWithArguments and must accept multiple values&quot;</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>()
             )
         }
     }
@@ -1532,41 +1617,83 @@
         <span class="macro">assert!</span>(
             <span class="ident">arg</span>.<span class="ident">is_positional</span>(),
             <span class="string">&quot;Argument &#39;{}&#39; is a positional argument and can&#39;t have short or long name versions&quot;</span>,
-            <span class="ident">arg</span>.<span class="ident">name</span>
+            <span class="ident">arg</span>.<span class="ident">get_id</span>()
         );
         <span class="macro">assert!</span>(
             <span class="ident">arg</span>.<span class="ident">is_takes_value_set</span>(),
-            <span class="string">&quot;Argument &#39;{}` is positional, it must take a value&quot;</span>,
-            <span class="ident">arg</span>.<span class="ident">name</span>
+            <span class="string">&quot;Argument &#39;{}` is positional, it must take a value{}&quot;</span>,
+            <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+            <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::HELP</span> {
+                <span class="string">&quot; (`mut_arg` no longer works with implicit `--help`)&quot;</span>
+            } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">get_id</span>() <span class="op">==</span> <span class="ident">Id::VERSION</span> {
+                <span class="string">&quot; (`mut_arg` no longer works with implicit `--version`)&quot;</span>
+            } <span class="kw">else</span> {
+                <span class="string">&quot;&quot;</span>
+            }
         );
     }
 
-    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;unstable-v4&quot;</span>)]</span>
-    {
-        <span class="kw">let</span> <span class="ident">num_vals</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_num_vals</span>().<span class="ident">unwrap_or</span>(<span class="ident">usize::MAX</span>);
+    <span class="kw">let</span> <span class="ident">num_vals</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_num_args</span>().<span class="ident">expect</span>(<span class="ident">INTERNAL_ERROR_MSG</span>);
+    <span class="comment">// This can be the cause of later asserts, so put this first</span>
+    <span class="kw">if</span> <span class="ident">num_vals</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ValueRange::EMPTY</span> {
+        <span class="comment">// HACK: Don&#39;t check for flags to make the derive easier</span>
         <span class="kw">let</span> <span class="ident">num_val_names</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_names</span>().<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span>[]).<span class="ident">len</span>();
-        <span class="kw">if</span> <span class="ident">num_vals</span> <span class="op">&lt;</span> <span class="ident">num_val_names</span> {
+        <span class="kw">if</span> <span class="ident">num_vals</span>.<span class="ident">max_values</span>() <span class="op">&lt;</span> <span class="ident">num_val_names</span> {
             <span class="macro">panic!</span>(
-                <span class="string">&quot;Argument {}: Too many value names ({}) compared to number_of_values ({})&quot;</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">num_val_names</span>, <span class="ident">num_vals</span>
+                <span class="string">&quot;Argument {}: Too many value names ({}) compared to `num_args` ({})&quot;</span>,
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+                <span class="ident">num_val_names</span>,
+                <span class="ident">num_vals</span>
             );
         }
     }
 
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">num_vals</span>.<span class="ident">takes_values</span>(),
+        <span class="ident">arg</span>.<span class="ident">is_takes_value_set</span>(),
+        <span class="string">&quot;Argument {}: mismatch between `num_args` ({}) and `takes_value`&quot;</span>,
+        <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+        <span class="ident">num_vals</span>,
+    );
+    <span class="macro">assert_eq!</span>(
+        <span class="ident">num_vals</span>.<span class="ident">is_multiple</span>(),
+        <span class="ident">arg</span>.<span class="ident">is_multiple_values_set</span>(),
+        <span class="string">&quot;Argument {}: mismatch between `num_args` ({}) and `multiple_values`&quot;</span>,
+        <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+        <span class="ident">num_vals</span>,
+    );
+
+    <span class="kw">if</span> <span class="number">1</span> <span class="op">&lt;</span> <span class="ident">num_vals</span>.<span class="ident">min_values</span>() {
+        <span class="macro">assert!</span>(
+            <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_require_equals_set</span>(),
+            <span class="string">&quot;Argument {}: cannot accept more than 1 arg (num_args={}) with require_equals&quot;</span>,
+            <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+            <span class="ident">num_vals</span>
+        );
+    }
+
+    <span class="kw">if</span> <span class="ident">num_vals</span> <span class="op">==</span> <span class="ident">ValueRange::SINGLE</span> {
+        <span class="macro">assert!</span>(
+            <span class="op">!</span><span class="ident">arg</span>.<span class="ident">is_multiple_values_set</span>(),
+            <span class="string">&quot;Argument {}: mismatch between `num_args` and `multiple_values`&quot;</span>,
+            <span class="ident">arg</span>.<span class="ident">get_id</span>()
+        );
+    }
+
     <span class="ident">assert_arg_flags</span>(<span class="ident">arg</span>);
 
-    <span class="ident">assert_defaults</span>(<span class="ident">arg</span>, <span class="string">&quot;default_value&quot;</span>, <span class="ident">arg</span>.<span class="ident">default_vals</span>.<span class="ident">iter</span>().<span class="ident">copied</span>());
+    <span class="ident">assert_defaults</span>(<span class="ident">arg</span>, <span class="string">&quot;default_value&quot;</span>, <span class="ident">arg</span>.<span class="ident">default_vals</span>.<span class="ident">iter</span>());
     <span class="ident">assert_defaults</span>(
         <span class="ident">arg</span>,
         <span class="string">&quot;default_missing_value&quot;</span>,
-        <span class="ident">arg</span>.<span class="ident">default_missing_vals</span>.<span class="ident">iter</span>().<span class="ident">copied</span>(),
+        <span class="ident">arg</span>.<span class="ident">default_missing_vals</span>.<span class="ident">iter</span>(),
     );
     <span class="ident">assert_defaults</span>(
         <span class="ident">arg</span>,
         <span class="string">&quot;default_value_if&quot;</span>,
         <span class="ident">arg</span>.<span class="ident">default_vals_ifs</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">default</span>)<span class="op">|</span> <span class="kw-2">*</span><span class="ident">default</span>),
+            .<span class="ident">filter_map</span>(<span class="op">|</span>(<span class="kw">_</span>, <span class="kw">_</span>, <span class="ident">default</span>)<span class="op">|</span> <span class="ident">default</span>.<span class="ident">as_ref</span>()),
     );
 }
 
@@ -1578,7 +1705,8 @@
 
                 $(
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">arg</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>() {
-                        <span class="ident">s</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;  Arg::{} is required when Arg::{} is set.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)));
+                        <span class="kw">use</span> <span class="ident">std::fmt::Write</span>;
+                        <span class="macro">write!</span>(<span class="kw-2">&amp;mut</span> <span class="ident">s</span>, <span class="string">&quot;  Arg::{} is required when Arg::{} is set.\n&quot;</span>, <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">b</span>), <span class="macro">std::stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">a</span>)).<span class="ident">unwrap</span>();
                     }
                 )<span class="op">+</span>
 
@@ -1589,95 +1717,22 @@
         }
     }
 
-    <span class="macro">checker!</span>(<span class="ident">is_require_value_delimiter_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
-    <span class="macro">checker!</span>(<span class="ident">is_require_value_delimiter_set</span> <span class="ident">requires</span> <span class="ident">is_use_value_delimiter_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_hide_possible_values_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_allow_hyphen_values_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
+    <span class="macro">checker!</span>(<span class="ident">is_allow_negative_numbers_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_require_equals_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_last_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_hide_default_value_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_multiple_values_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
     <span class="macro">checker!</span>(<span class="ident">is_ignore_case_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
-    {
-        <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="macro">checker!</span>(<span class="ident">is_forbid_empty_values_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
-        <span class="macro">checker!</span>(<span class="ident">is_allow_invalid_utf8_set</span> <span class="ident">requires</span> <span class="ident">is_takes_value_set</span>);
-    }
 }
 
 <span class="kw">fn</span> <span class="ident">assert_defaults</span><span class="op">&lt;</span><span class="lifetime">&#39;d</span><span class="op">&gt;</span>(
     <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>,
     <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>,
-    <span class="ident">defaults</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;d</span> <span class="ident">std::ffi::OsStr</span><span class="op">&gt;</span>,
+    <span class="ident">defaults</span>: <span class="kw">impl</span> <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="lifetime">&#39;d</span> <span class="ident">OsStr</span><span class="op">&gt;</span>,
 ) {
     <span class="kw">for</span> <span class="ident">default_os</span> <span class="kw">in</span> <span class="ident">defaults</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">default_s</span>) <span class="op">=</span> <span class="ident">default_os</span>.<span class="ident">to_str</span>() {
-            <span class="kw">if</span> <span class="op">!</span><span class="ident">arg</span>.<span class="ident">possible_vals</span>.<span class="ident">is_empty</span>() {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">delim</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_delimiter</span>() {
-                    <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">default_s</span>.<span class="ident">split</span>(<span class="ident">delim</span>) {
-                        <span class="macro">assert!</span>(
-                            <span class="ident">arg</span>.<span class="ident">possible_vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">possible_val</span><span class="op">|</span> {
-                                <span class="ident">possible_val</span>.<span class="ident">matches</span>(<span class="ident">part</span>, <span class="ident">arg</span>.<span class="ident">is_ignore_case_set</span>())
-                            }),
-                            <span class="string">&quot;Argument `{}`&#39;s {}={} doesn&#39;t match possible values&quot;</span>,
-                            <span class="ident">arg</span>.<span class="ident">name</span>,
-                            <span class="ident">field</span>,
-                            <span class="ident">part</span>
-                        )
-                    }
-                } <span class="kw">else</span> {
-                    <span class="macro">assert!</span>(
-                        <span class="ident">arg</span>.<span class="ident">possible_vals</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">possible_val</span><span class="op">|</span> {
-                            <span class="ident">possible_val</span>.<span class="ident">matches</span>(<span class="ident">default_s</span>, <span class="ident">arg</span>.<span class="ident">is_ignore_case_set</span>())
-                        }),
-                        <span class="string">&quot;Argument `{}`&#39;s {}={} doesn&#39;t match possible values&quot;</span>,
-                        <span class="ident">arg</span>.<span class="ident">name</span>,
-                        <span class="ident">field</span>,
-                        <span class="ident">default_s</span>
-                    );
-                }
-            }
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">validator</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">validator</span>.<span class="ident">as_ref</span>() {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">validator</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">delim</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_delimiter</span>() {
-                    <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">default_s</span>.<span class="ident">split</span>(<span class="ident">delim</span>) {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">validator</span>(<span class="ident">part</span>) {
-                            <span class="macro">panic!</span>(
-                                <span class="string">&quot;Argument `{}`&#39;s {}={} failed validation: {}&quot;</span>,
-                                <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">field</span>, <span class="ident">part</span>, <span class="ident">err</span>
-                            );
-                        }
-                    }
-                } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">validator</span>(<span class="ident">default_s</span>) {
-                    <span class="macro">panic!</span>(
-                        <span class="string">&quot;Argument `{}`&#39;s {}={} failed validation: {}&quot;</span>,
-                        <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">field</span>, <span class="ident">default_s</span>, <span class="ident">err</span>
-                    );
-                }
-            }
-        }
-
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">validator</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">validator_os</span>.<span class="ident">as_ref</span>() {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">validator</span> <span class="op">=</span> <span class="ident">validator</span>.<span class="ident">lock</span>().<span class="ident">unwrap</span>();
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">delim</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_delimiter</span>() {
-                <span class="kw">let</span> <span class="ident">default_os</span> <span class="op">=</span> <span class="ident">RawOsStr::new</span>(<span class="ident">default_os</span>);
-                <span class="kw">for</span> <span class="ident">part</span> <span class="kw">in</span> <span class="ident">default_os</span>.<span class="ident">split</span>(<span class="ident">delim</span>) {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">validator</span>(<span class="kw-2">&amp;</span><span class="ident">part</span>.<span class="ident">to_os_str</span>()) {
-                        <span class="macro">panic!</span>(
-                            <span class="string">&quot;Argument `{}`&#39;s {}={:?} failed validation: {}&quot;</span>,
-                            <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">field</span>, <span class="ident">part</span>, <span class="ident">err</span>
-                        );
-                    }
-                }
-            } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">validator</span>(<span class="ident">default_os</span>) {
-                <span class="macro">panic!</span>(
-                    <span class="string">&quot;Argument `{}`&#39;s {}={:?} failed validation: {}&quot;</span>,
-                    <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">field</span>, <span class="ident">default_os</span>, <span class="ident">err</span>
-                );
-            }
-        }
-
         <span class="kw">let</span> <span class="ident">value_parser</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_parser</span>();
         <span class="kw">let</span> <span class="ident">assert_cmd</span> <span class="op">=</span> <span class="ident">Command::new</span>(<span class="string">&quot;assert&quot;</span>);
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">delim</span>) <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">get_value_delimiter</span>() {
@@ -1687,7 +1742,7 @@
                 {
                     <span class="macro">panic!</span>(
                         <span class="string">&quot;Argument `{}`&#39;s {}={:?} failed validation: {}&quot;</span>,
-                        <span class="ident">arg</span>.<span class="ident">name</span>,
+                        <span class="ident">arg</span>.<span class="ident">get_id</span>(),
                         <span class="ident">field</span>,
                         <span class="ident">part</span>.<span class="ident">to_str_lossy</span>(),
                         <span class="ident">err</span>
@@ -1697,7 +1752,10 @@
         } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">err</span>) <span class="op">=</span> <span class="ident">value_parser</span>.<span class="ident">parse_ref</span>(<span class="kw-2">&amp;</span><span class="ident">assert_cmd</span>, <span class="prelude-val">Some</span>(<span class="ident">arg</span>), <span class="ident">default_os</span>) {
             <span class="macro">panic!</span>(
                 <span class="string">&quot;Argument `{}`&#39;s {}={:?} failed validation: {}&quot;</span>,
-                <span class="ident">arg</span>.<span class="ident">name</span>, <span class="ident">field</span>, <span class="ident">default_os</span>, <span class="ident">err</span>
+                <span class="ident">arg</span>.<span class="ident">get_id</span>(),
+                <span class="ident">field</span>,
+                <span class="ident">default_os</span>,
+                <span class="ident">err</span>
             );
         }
     }

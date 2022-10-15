@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/builder/value_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/builder/value_parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>value_parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -2186,6 +2186,260 @@
 <span id="2184">2184</span>
 <span id="2185">2185</span>
 <span id="2186">2186</span>
+<span id="2187">2187</span>
+<span id="2188">2188</span>
+<span id="2189">2189</span>
+<span id="2190">2190</span>
+<span id="2191">2191</span>
+<span id="2192">2192</span>
+<span id="2193">2193</span>
+<span id="2194">2194</span>
+<span id="2195">2195</span>
+<span id="2196">2196</span>
+<span id="2197">2197</span>
+<span id="2198">2198</span>
+<span id="2199">2199</span>
+<span id="2200">2200</span>
+<span id="2201">2201</span>
+<span id="2202">2202</span>
+<span id="2203">2203</span>
+<span id="2204">2204</span>
+<span id="2205">2205</span>
+<span id="2206">2206</span>
+<span id="2207">2207</span>
+<span id="2208">2208</span>
+<span id="2209">2209</span>
+<span id="2210">2210</span>
+<span id="2211">2211</span>
+<span id="2212">2212</span>
+<span id="2213">2213</span>
+<span id="2214">2214</span>
+<span id="2215">2215</span>
+<span id="2216">2216</span>
+<span id="2217">2217</span>
+<span id="2218">2218</span>
+<span id="2219">2219</span>
+<span id="2220">2220</span>
+<span id="2221">2221</span>
+<span id="2222">2222</span>
+<span id="2223">2223</span>
+<span id="2224">2224</span>
+<span id="2225">2225</span>
+<span id="2226">2226</span>
+<span id="2227">2227</span>
+<span id="2228">2228</span>
+<span id="2229">2229</span>
+<span id="2230">2230</span>
+<span id="2231">2231</span>
+<span id="2232">2232</span>
+<span id="2233">2233</span>
+<span id="2234">2234</span>
+<span id="2235">2235</span>
+<span id="2236">2236</span>
+<span id="2237">2237</span>
+<span id="2238">2238</span>
+<span id="2239">2239</span>
+<span id="2240">2240</span>
+<span id="2241">2241</span>
+<span id="2242">2242</span>
+<span id="2243">2243</span>
+<span id="2244">2244</span>
+<span id="2245">2245</span>
+<span id="2246">2246</span>
+<span id="2247">2247</span>
+<span id="2248">2248</span>
+<span id="2249">2249</span>
+<span id="2250">2250</span>
+<span id="2251">2251</span>
+<span id="2252">2252</span>
+<span id="2253">2253</span>
+<span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
+<span id="2261">2261</span>
+<span id="2262">2262</span>
+<span id="2263">2263</span>
+<span id="2264">2264</span>
+<span id="2265">2265</span>
+<span id="2266">2266</span>
+<span id="2267">2267</span>
+<span id="2268">2268</span>
+<span id="2269">2269</span>
+<span id="2270">2270</span>
+<span id="2271">2271</span>
+<span id="2272">2272</span>
+<span id="2273">2273</span>
+<span id="2274">2274</span>
+<span id="2275">2275</span>
+<span id="2276">2276</span>
+<span id="2277">2277</span>
+<span id="2278">2278</span>
+<span id="2279">2279</span>
+<span id="2280">2280</span>
+<span id="2281">2281</span>
+<span id="2282">2282</span>
+<span id="2283">2283</span>
+<span id="2284">2284</span>
+<span id="2285">2285</span>
+<span id="2286">2286</span>
+<span id="2287">2287</span>
+<span id="2288">2288</span>
+<span id="2289">2289</span>
+<span id="2290">2290</span>
+<span id="2291">2291</span>
+<span id="2292">2292</span>
+<span id="2293">2293</span>
+<span id="2294">2294</span>
+<span id="2295">2295</span>
+<span id="2296">2296</span>
+<span id="2297">2297</span>
+<span id="2298">2298</span>
+<span id="2299">2299</span>
+<span id="2300">2300</span>
+<span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
+<span id="2311">2311</span>
+<span id="2312">2312</span>
+<span id="2313">2313</span>
+<span id="2314">2314</span>
+<span id="2315">2315</span>
+<span id="2316">2316</span>
+<span id="2317">2317</span>
+<span id="2318">2318</span>
+<span id="2319">2319</span>
+<span id="2320">2320</span>
+<span id="2321">2321</span>
+<span id="2322">2322</span>
+<span id="2323">2323</span>
+<span id="2324">2324</span>
+<span id="2325">2325</span>
+<span id="2326">2326</span>
+<span id="2327">2327</span>
+<span id="2328">2328</span>
+<span id="2329">2329</span>
+<span id="2330">2330</span>
+<span id="2331">2331</span>
+<span id="2332">2332</span>
+<span id="2333">2333</span>
+<span id="2334">2334</span>
+<span id="2335">2335</span>
+<span id="2336">2336</span>
+<span id="2337">2337</span>
+<span id="2338">2338</span>
+<span id="2339">2339</span>
+<span id="2340">2340</span>
+<span id="2341">2341</span>
+<span id="2342">2342</span>
+<span id="2343">2343</span>
+<span id="2344">2344</span>
+<span id="2345">2345</span>
+<span id="2346">2346</span>
+<span id="2347">2347</span>
+<span id="2348">2348</span>
+<span id="2349">2349</span>
+<span id="2350">2350</span>
+<span id="2351">2351</span>
+<span id="2352">2352</span>
+<span id="2353">2353</span>
+<span id="2354">2354</span>
+<span id="2355">2355</span>
+<span id="2356">2356</span>
+<span id="2357">2357</span>
+<span id="2358">2358</span>
+<span id="2359">2359</span>
+<span id="2360">2360</span>
+<span id="2361">2361</span>
+<span id="2362">2362</span>
+<span id="2363">2363</span>
+<span id="2364">2364</span>
+<span id="2365">2365</span>
+<span id="2366">2366</span>
+<span id="2367">2367</span>
+<span id="2368">2368</span>
+<span id="2369">2369</span>
+<span id="2370">2370</span>
+<span id="2371">2371</span>
+<span id="2372">2372</span>
+<span id="2373">2373</span>
+<span id="2374">2374</span>
+<span id="2375">2375</span>
+<span id="2376">2376</span>
+<span id="2377">2377</span>
+<span id="2378">2378</span>
+<span id="2379">2379</span>
+<span id="2380">2380</span>
+<span id="2381">2381</span>
+<span id="2382">2382</span>
+<span id="2383">2383</span>
+<span id="2384">2384</span>
+<span id="2385">2385</span>
+<span id="2386">2386</span>
+<span id="2387">2387</span>
+<span id="2388">2388</span>
+<span id="2389">2389</span>
+<span id="2390">2390</span>
+<span id="2391">2391</span>
+<span id="2392">2392</span>
+<span id="2393">2393</span>
+<span id="2394">2394</span>
+<span id="2395">2395</span>
+<span id="2396">2396</span>
+<span id="2397">2397</span>
+<span id="2398">2398</span>
+<span id="2399">2399</span>
+<span id="2400">2400</span>
+<span id="2401">2401</span>
+<span id="2402">2402</span>
+<span id="2403">2403</span>
+<span id="2404">2404</span>
+<span id="2405">2405</span>
+<span id="2406">2406</span>
+<span id="2407">2407</span>
+<span id="2408">2408</span>
+<span id="2409">2409</span>
+<span id="2410">2410</span>
+<span id="2411">2411</span>
+<span id="2412">2412</span>
+<span id="2413">2413</span>
+<span id="2414">2414</span>
+<span id="2415">2415</span>
+<span id="2416">2416</span>
+<span id="2417">2417</span>
+<span id="2418">2418</span>
+<span id="2419">2419</span>
+<span id="2420">2420</span>
+<span id="2421">2421</span>
+<span id="2422">2422</span>
+<span id="2423">2423</span>
+<span id="2424">2424</span>
+<span id="2425">2425</span>
+<span id="2426">2426</span>
+<span id="2427">2427</span>
+<span id="2428">2428</span>
+<span id="2429">2429</span>
+<span id="2430">2430</span>
+<span id="2431">2431</span>
+<span id="2432">2432</span>
+<span id="2433">2433</span>
+<span id="2434">2434</span>
+<span id="2435">2435</span>
+<span id="2436">2436</span>
+<span id="2437">2437</span>
+<span id="2438">2438</span>
+<span id="2439">2439</span>
+<span id="2440">2440</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::convert::TryInto</span>;
 <span class="kw">use</span> <span class="ident">std::ops::RangeBounds</span>;
 
@@ -2217,14 +2471,14 @@
 <span class="doccomment">///         clap::Arg::new(&quot;hostname&quot;)</span>
 <span class="doccomment">///             .long(&quot;hostname&quot;)</span>
 <span class="doccomment">///             .value_parser(clap::builder::NonEmptyStringValueParser::new())</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     )</span>
 <span class="doccomment">///     .arg(</span>
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(clap::value_parser!(u16).range(3000..))</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2261,9 +2515,8 @@
 <span class="kw">impl</span> <span class="ident">ValueParser</span> {
     <span class="doccomment">/// Custom parser for argument values</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// To create a custom parser, see [`TypedValueParser`]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// Pre-existing implementations include:</span>
+    <span class="doccomment">/// Pre-existing [`TypedValueParser`] implementations include:</span>
+    <span class="doccomment">/// - `Fn(&amp;str) -&gt; Result&lt;T, E&gt;`</span>
     <span class="doccomment">/// - [`EnumValueParser`] and  [`PossibleValuesParser`] for static enumerated values</span>
     <span class="doccomment">/// - [`BoolishValueParser`] and [`FalseyValueParser`] for alternative `bool` implementations</span>
     <span class="doccomment">/// - [`RangedI64ValueParser`] and [`RangedU64ValueParser`]</span>
@@ -2296,7 +2549,6 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span>(<span class="ident">other</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
         <span class="ident">P</span>: <span class="ident">TypedValueParser</span>,
-        <span class="ident">P::Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
         <span class="self">Self</span>(<span class="ident">ValueParserInner::Other</span>(<span class="ident">Box::new</span>(<span class="ident">other</span>)))
     }
@@ -2432,7 +2684,7 @@
     <span class="doccomment">/// applications like errors and completion.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">any_value_parser</span>().<span class="ident">possible_values</span>()
     }
 
@@ -2457,7 +2709,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;hostname&quot;)</span>
 <span class="doccomment">///             .long(&quot;hostname&quot;)</span>
 <span class="doccomment">///             .value_parser(clap::builder::NonEmptyStringValueParser::new())</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2472,7 +2724,6 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ValueParser</span>
 <span class="kw">where</span>
     <span class="ident">P</span>: <span class="ident">TypedValueParser</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-    <span class="ident">P::Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">p</span>: <span class="ident">P</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">p</span>)
@@ -2499,7 +2750,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(3000..4000)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2529,7 +2780,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(3000..=4000)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2559,7 +2810,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(3000..)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2589,7 +2840,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(..3000)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2619,7 +2870,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(..=3000)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2649,7 +2900,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(..)</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -2668,7 +2919,7 @@
 <span class="doccomment">/// Create a [`ValueParser`] with [`PossibleValuesParser`]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See [`PossibleValuesParser`] for more flexibility in creating the</span>
-<span class="doccomment">/// [`PossibleValue`][crate::PossibleValue]s.</span>
+<span class="doccomment">/// [`PossibleValue`][crate::builder::PossibleValue]s.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Examples</span>
 <span class="doccomment">///</span>
@@ -2691,7 +2942,7 @@
 <span class="doccomment">/// ```</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="kw">const</span> <span class="ident">C</span>: <span class="ident">usize</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span>[<span class="ident">P</span>; <span class="ident">C</span>]<span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ValueParser</span>
 <span class="kw">where</span>
-    <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: [<span class="ident">P</span>; <span class="ident">C</span>]) -&gt; <span class="self">Self</span> {
         <span class="kw">let</span> <span class="ident">inner</span> <span class="op">=</span> <span class="ident">PossibleValuesParser::from</span>(<span class="ident">values</span>);
@@ -2744,7 +2995,7 @@
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span>;
 
     <span class="kw">fn</span> <span class="ident">clone_any</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">AnyValueParser</span><span class="op">&gt;</span>;
 }
@@ -2760,7 +3011,7 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AnyValue</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">TypedValueParser::parse_ref</span>(<span class="self">self</span>, <span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">TypedValueParser::parse_ref</span>(<span class="self">self</span>, <span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">AnyValue::new</span>(<span class="ident">value</span>))
     }
 
@@ -2770,7 +3021,7 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="ident">std::ffi::OsString</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">AnyValue</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">TypedValueParser::parse</span>(<span class="self">self</span>, <span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">TypedValueParser::parse</span>(<span class="self">self</span>, <span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>));
         <span class="prelude-val">Ok</span>(<span class="ident">AnyValue::new</span>(<span class="ident">value</span>))
     }
 
@@ -2780,7 +3031,7 @@
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="ident">P::possible_values</span>(<span class="self">self</span>)
     }
 
@@ -2790,9 +3041,57 @@
 }
 
 <span class="doccomment">/// Parse/validate argument values</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// As alternatives to implementing `TypedValueParser`,</span>
+<span class="doccomment">/// - Use `Fn(&amp;str) -&gt; Result&lt;T, E&gt;` which implements `TypedValueParser`</span>
+<span class="doccomment">/// - [`TypedValueParser::map`] or [`TypedValueParser::try_map`] to adapt an existing `TypedValueParser`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See `ValueParserFactory` to register `TypedValueParser::Value` with</span>
+<span class="doccomment">/// [`value_parser!`][crate::value_parser].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// # Example</span>
+<span class="doccomment">///</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;error-context&quot;</span>), <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```ignore&quot;</span>)]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;error-context&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
+<span class="doccomment">/// # use clap::error::ErrorKind;</span>
+<span class="doccomment">/// # use clap::error::ContextKind;</span>
+<span class="doccomment">/// # use clap::error::ContextValue;</span>
+<span class="doccomment">/// #[derive(Clone)]</span>
+<span class="doccomment">/// struct Custom(u32);</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// #[derive(Clone)]</span>
+<span class="doccomment">/// struct CustomValueParser;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// impl clap::builder::TypedValueParser for CustomValueParser {</span>
+<span class="doccomment">///     type Value = Custom;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///     fn parse_ref(</span>
+<span class="doccomment">///         &amp;self,</span>
+<span class="doccomment">///         cmd: &amp;clap::Command,</span>
+<span class="doccomment">///         arg: Option&lt;&amp;clap::Arg&gt;,</span>
+<span class="doccomment">///         value: &amp;std::ffi::OsStr,</span>
+<span class="doccomment">///     ) -&gt; Result&lt;Self::Value, clap::Error&gt; {</span>
+<span class="doccomment">///         let inner = clap::value_parser!(u32);</span>
+<span class="doccomment">///         let val = inner.parse_ref(cmd, arg, value)?;</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///         const INVALID_VALUE: u32 = 10;</span>
+<span class="doccomment">///         if val == INVALID_VALUE {</span>
+<span class="doccomment">///             let mut err = clap::Error::new(ErrorKind::ValueValidation)</span>
+<span class="doccomment">///                 .with_cmd(cmd);</span>
+<span class="doccomment">///             if let Some(arg) = arg {</span>
+<span class="doccomment">///                 err.insert(ContextKind::InvalidArg, ContextValue::String(arg.to_string()));</span>
+<span class="doccomment">///             }</span>
+<span class="doccomment">///             err.insert(ContextKind::InvalidValue, ContextValue::String(INVALID_VALUE.to_string()));</span>
+<span class="doccomment">///             return Err(err);</span>
+<span class="doccomment">///         }</span>
+<span class="doccomment">///</span>
+<span class="doccomment">///         Ok(Custom(val))</span>
+<span class="doccomment">///     }</span>
+<span class="doccomment">/// }</span>
+<span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">TypedValueParser</span>: <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span> {
     <span class="doccomment">/// Argument&#39;s value type</span>
-    <span class="kw">type</span> <span class="ident">Value</span>;
+    <span class="kw">type</span> <span class="ident">Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>;
 
     <span class="doccomment">/// Parse the argument value</span>
     <span class="doccomment">///</span>
@@ -2822,7 +3121,7 @@
     <span class="doccomment">/// applications like errors and completion.</span>
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">None</span>
     }
 
@@ -2839,7 +3138,7 @@
     <span class="doccomment">///     .arg(</span>
     <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
     <span class="doccomment">///             .long(&quot;flag&quot;)</span>
-    <span class="doccomment">///             .action(clap::ArgAction::Set)</span>
+    <span class="doccomment">///             .action(clap::ArgAction::SetTrue)</span>
     <span class="doccomment">///             .value_parser(</span>
     <span class="doccomment">///                 BoolishValueParser::new()</span>
     <span class="doccomment">///                 .map(|b| -&gt; usize {</span>
@@ -2848,14 +3147,14 @@
     <span class="doccomment">///             )</span>
     <span class="doccomment">///     );</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag=true&quot;, &quot;--flag=true&quot;]).unwrap();</span>
+    <span class="doccomment">/// let matches = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),</span>
     <span class="doccomment">///     Some(10)</span>
     <span class="doccomment">/// );</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag=false&quot;]).unwrap();</span>
+    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;]).unwrap();</span>
     <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
     <span class="doccomment">/// assert_eq!(</span>
     <span class="doccomment">///     matches.get_one::&lt;usize&gt;(&quot;flag&quot;).copied(),</span>
@@ -2869,12 +3168,63 @@
     {
         <span class="ident">MapValueParser::new</span>(<span class="self">self</span>, <span class="ident">func</span>)
     }
+
+    <span class="doccomment">/// Adapt a `TypedValueParser` from one value to another</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// # Example</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```rust</span>
+    <span class="doccomment">/// # use std::ffi::OsString;</span>
+    <span class="doccomment">/// # use std::ffi::OsStr;</span>
+    <span class="doccomment">/// # use std::path::PathBuf;</span>
+    <span class="doccomment">/// # use std::path::Path;</span>
+    <span class="doccomment">/// # use clap::Command;</span>
+    <span class="doccomment">/// # use clap::Arg;</span>
+    <span class="doccomment">/// # use clap::builder::TypedValueParser as _;</span>
+    <span class="doccomment">/// # use clap::builder::OsStringValueParser;</span>
+    <span class="doccomment">/// let cmd = Command::new(&quot;mycmd&quot;)</span>
+    <span class="doccomment">///     .arg(</span>
+    <span class="doccomment">///         Arg::new(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .long(&quot;flag&quot;)</span>
+    <span class="doccomment">///             .value_parser(</span>
+    <span class="doccomment">///                 OsStringValueParser::new()</span>
+    <span class="doccomment">///                 .try_map(verify_ext)</span>
+    <span class="doccomment">///             )</span>
+    <span class="doccomment">///     );</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// fn verify_ext(os: OsString) -&gt; Result&lt;PathBuf, &amp;&#39;static str&gt; {</span>
+    <span class="doccomment">///     let path = PathBuf::from(os);</span>
+    <span class="doccomment">///     if path.extension() != Some(OsStr::new(&quot;rs&quot;)) {</span>
+    <span class="doccomment">///         return Err(&quot;only Rust files are supported&quot;);</span>
+    <span class="doccomment">///     }</span>
+    <span class="doccomment">///     Ok(path)</span>
+    <span class="doccomment">/// }</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let error = cmd.clone().try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;foo.txt&quot;]).unwrap_err();</span>
+    <span class="doccomment">/// error.print();</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// let matches = cmd.try_get_matches_from([&quot;mycmd&quot;, &quot;--flag&quot;, &quot;foo.rs&quot;]).unwrap();</span>
+    <span class="doccomment">/// assert!(matches.contains_id(&quot;flag&quot;));</span>
+    <span class="doccomment">/// assert_eq!(</span>
+    <span class="doccomment">///     matches.get_one::&lt;PathBuf&gt;(&quot;flag&quot;).map(|s| s.as_path()),</span>
+    <span class="doccomment">///     Some(Path::new(&quot;foo.rs&quot;))</span>
+    <span class="doccomment">/// );</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">try_map</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span>, <span class="ident">F</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="ident">TryMapValueParser</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">F</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident"><span class="self">Self</span>::Value</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+        <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="ident">TryMapValueParser::new</span>(<span class="self">self</span>, <span class="ident">func</span>)
+    }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">TypedValueParser</span> <span class="kw">for</span> <span class="ident">F</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
 {
     <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">T</span>;
 
@@ -2884,18 +3234,18 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> (<span class="self">self</span>)(<span class="ident">value</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+        }));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>((<span class="self">self</span>)(<span class="ident">value</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
             <span class="ident"><span class="kw">crate</span>::Error::value_validation</span>(<span class="ident">arg</span>, <span class="ident">value</span>.<span class="ident">to_owned</span>(), <span class="ident">e</span>.<span class="ident">into</span>()).<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 }
@@ -2932,12 +3282,12 @@
         <span class="ident">_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="ident">std::ffi::OsString</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into_string</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">into_string</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
+        }));
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 }
@@ -3065,11 +3415,11 @@
 <span class="doccomment">///         &amp;[Self::Always, Self::Auto, Self::Never]</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">///</span>
-<span class="doccomment">///     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::PossibleValue&lt;&#39;a&gt;&gt; {</span>
+<span class="doccomment">///     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::builder::PossibleValue&gt; {</span>
 <span class="doccomment">///         match self {</span>
-<span class="doccomment">///             Self::Always =&gt; Some(clap::PossibleValue::new(&quot;always&quot;)),</span>
-<span class="doccomment">///             Self::Auto =&gt; Some(clap::PossibleValue::new(&quot;auto&quot;)),</span>
-<span class="doccomment">///             Self::Never =&gt; Some(clap::PossibleValue::new(&quot;never&quot;)),</span>
+<span class="doccomment">///             Self::Always =&gt; Some(clap::builder::PossibleValue::new(&quot;always&quot;)),</span>
+<span class="doccomment">///             Self::Auto =&gt; Some(clap::builder::PossibleValue::new(&quot;auto&quot;)),</span>
+<span class="doccomment">///             Self::Never =&gt; Some(clap::builder::PossibleValue::new(&quot;never&quot;)),</span>
 <span class="doccomment">///         }</span>
 <span class="doccomment">///     }</span>
 <span class="doccomment">/// }</span>
@@ -3125,11 +3475,11 @@
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter_map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">to_possible_value</span>())
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="op">!</span><span class="ident">v</span>.<span class="ident">is_hide_set</span>())
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">get_name</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">get_name</span>().<span class="ident">to_owned</span>())
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>()
         };
 
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_value</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident">value</span>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>(),
@@ -3137,8 +3487,8 @@
                 <span class="ident">arg</span>.<span class="ident">map</span>(<span class="ident">ToString::to_string</span>)
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>()),
             )
-        })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">E::value_variants</span>()
+        }));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">E::value_variants</span>()
             .<span class="ident">iter</span>()
             .<span class="ident">find</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> {
                 <span class="ident">v</span>.<span class="ident">to_possible_value</span>()
@@ -3153,14 +3503,14 @@
                 <span class="ident">arg</span>.<span class="ident">map</span>(<span class="ident">ToString::to_string</span>)
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>()),
             )
-            })<span class="question-mark">?</span>
+            }))
             .<span class="ident">clone</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(
             <span class="ident">E::value_variants</span>()
                 .<span class="ident">iter</span>()
@@ -3175,10 +3525,11 @@
     }
 }
 
-<span class="doccomment">/// Verify the value is from an enumerated set of [`PossibleValue`][crate::PossibleValue].</span>
+<span class="doccomment">/// Verify the value is from an enumerated set of [`PossibleValue`][crate::builder::PossibleValue].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See also:</span>
-<span class="doccomment">/// - [`EnumValueParser`]</span>
+<span class="doccomment">/// - [`EnumValueParser`] for directly supporting `enum`s</span>
+<span class="doccomment">/// - [`TypedValueParser::map`] for adapting values to a more specialized type</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -3211,10 +3562,10 @@
 <span class="doccomment">/// assert_eq!(value_parser.parse_ref(&amp;cmd, arg, OsStr::new(&quot;never&quot;)).unwrap(), &quot;never&quot;);</span>
 <span class="doccomment">/// ```</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PossibleValuesParser</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PossibleValuesParser</span>(<span class="ident">Vec</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&gt;</span>);
 
 <span class="kw">impl</span> <span class="ident">PossibleValuesParser</span> {
-    <span class="doccomment">/// Verify the value is from an enumerated set pf [`PossibleValue`][crate::PossibleValue].</span>
+    <span class="doccomment">/// Verify the value is from an enumerated set pf [`PossibleValue`][crate::builder::PossibleValue].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">values</span>: <span class="kw">impl</span> <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">PossibleValuesParser</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">values</span>.<span class="ident">into</span>()
     }
@@ -3238,12 +3589,12 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="ident">std::ffi::OsString</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">into_string</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">into_string</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="kw">_</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
+        }));
 
         <span class="kw">let</span> <span class="ident">ignore_case</span> <span class="op">=</span> <span class="ident">arg</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">is_ignore_case_set</span>()).<span class="ident">unwrap_or</span>(<span class="bool-val">false</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">matches</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="ident">ignore_case</span>)) {
@@ -3253,7 +3604,7 @@
                 .<span class="number">0</span>
                 .<span class="ident">iter</span>()
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="op">!</span><span class="ident">v</span>.<span class="ident">is_hide_set</span>())
-                .<span class="ident">map</span>(<span class="ident"><span class="kw">crate</span>::builder::PossibleValue::get_name</span>)
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">get_name</span>().<span class="ident">to_owned</span>())
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
             <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::invalid_value</span>(
@@ -3268,7 +3619,7 @@
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>()))
     }
 }
@@ -3276,7 +3627,7 @@
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">I</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PossibleValuesParser</span>
 <span class="kw">where</span>
     <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident"><span class="kw">super</span>::PossibleValue</span><span class="op">&gt;</span>,
 {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">values</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">values</span>.<span class="ident">into_iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">t</span><span class="op">|</span> <span class="ident">t</span>.<span class="ident">into</span>()).<span class="ident">collect</span>())
@@ -3284,6 +3635,10 @@
 }
 
 <span class="doccomment">/// Parse number that fall within a range of values</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// **NOTE:** To capture negative values, you will also need to set</span>
+<span class="doccomment">/// [`Arg::allow_negative_numbers`][crate::Arg::allow_negative_numbers] or</span>
+<span class="doccomment">/// [`Arg::allow_hyphen_values`][crate::Arg::allow_hyphen_values].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -3294,7 +3649,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(clap::value_parser!(u16).range(3000..))</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -3418,13 +3773,13 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">raw_value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">raw_value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">raw_value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        }));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">i64</span><span class="op">&gt;</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
@@ -3434,7 +3789,7 @@
                 <span class="ident">err</span>.<span class="ident">into</span>(),
             )
             .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
@@ -3448,7 +3803,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">value</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">try_into</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
@@ -3458,7 +3813,7 @@
                 <span class="ident">err</span>.<span class="ident">into</span>(),
             )
             .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
 
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
@@ -3492,7 +3847,7 @@
 <span class="doccomment">///         clap::Arg::new(&quot;port&quot;)</span>
 <span class="doccomment">///             .long(&quot;port&quot;)</span>
 <span class="doccomment">///             .value_parser(clap::value_parser!(u64).range(3000..))</span>
-<span class="doccomment">///             .takes_value(true)</span>
+<span class="doccomment">///             .action(clap::ArgAction::Set)</span>
 <span class="doccomment">///             .required(true)</span>
 <span class="doccomment">///     );</span>
 <span class="doccomment">///</span>
@@ -3616,13 +3971,13 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">raw_value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">raw_value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">raw_value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        }));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">parse</span>::<span class="op">&lt;</span><span class="ident">u64</span><span class="op">&gt;</span>().<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
@@ -3632,7 +3987,7 @@
                 <span class="ident">err</span>.<span class="ident">into</span>(),
             )
             .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">bounds</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>) {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
@@ -3646,7 +4001,7 @@
         }
 
         <span class="kw">let</span> <span class="ident">value</span>: <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">try_into</span>();
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">err</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
@@ -3656,7 +4011,7 @@
                 <span class="ident">err</span>.<span class="ident">into</span>(),
             )
             .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
 
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
@@ -3690,11 +4045,11 @@
         <span class="self">Self</span> {}
     }
 
-    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> {
         [<span class="string">&quot;true&quot;</span>, <span class="string">&quot;false&quot;</span>]
             .<span class="ident">iter</span>()
             .<span class="ident">copied</span>()
-            .<span class="ident">map</span>(<span class="ident"><span class="kw">crate</span>::PossibleValue::new</span>)
+            .<span class="ident">map</span>(<span class="ident"><span class="kw">crate</span>::builder::PossibleValue::new</span>)
     }
 }
 
@@ -3714,7 +4069,7 @@
         } <span class="kw">else</span> {
             <span class="comment">// Intentionally showing hidden as we hide all of them</span>
             <span class="kw">let</span> <span class="ident">possible_vals</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::possible_values</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">get_name</span>())
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">get_name</span>().<span class="ident">to_owned</span>())
                 .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span><span class="op">&gt;</span>();
 
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident"><span class="kw">crate</span>::Error::invalid_value</span>(
@@ -3730,7 +4085,7 @@
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident"><span class="self">Self</span>::possible_values</span>()))
     }
 }
@@ -3789,12 +4144,12 @@
         <span class="self">Self</span> {}
     }
 
-    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="kw">crate</span>::util::TRUE_LITERALS</span>
             .<span class="ident">iter</span>()
             .<span class="ident">chain</span>(<span class="ident"><span class="kw">crate</span>::util::FALSE_LITERALS</span>.<span class="ident">iter</span>())
             .<span class="ident">copied</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::PossibleValue::new</span>(<span class="ident">l</span>).<span class="ident">hide</span>(<span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;true&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;false&quot;</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue::new</span>(<span class="ident">l</span>).<span class="ident">hide</span>(<span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;true&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;false&quot;</span>))
     }
 }
 
@@ -3807,12 +4162,12 @@
         <span class="ident">_arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
+        }));
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_empty</span>() {
             <span class="bool-val">false</span>
         } <span class="kw">else</span> {
@@ -3823,7 +4178,7 @@
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident"><span class="self">Self</span>::possible_values</span>()))
     }
 }
@@ -3886,12 +4241,12 @@
         <span class="self">Self</span> {}
     }
 
-    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">possible_values</span>() -&gt; <span class="kw">impl</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> {
         <span class="ident"><span class="kw">crate</span>::util::TRUE_LITERALS</span>
             .<span class="ident">iter</span>()
             .<span class="ident">chain</span>(<span class="ident"><span class="kw">crate</span>::util::FALSE_LITERALS</span>.<span class="ident">iter</span>())
             .<span class="ident">copied</span>()
-            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::PossibleValue::new</span>(<span class="ident">l</span>).<span class="ident">hide</span>(<span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;true&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;false&quot;</span>))
+            .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue::new</span>(<span class="ident">l</span>).<span class="ident">hide</span>(<span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;true&quot;</span> <span class="op">&amp;&amp;</span> <span class="ident">l</span> <span class="op">!</span><span class="op">=</span> <span class="string">&quot;false&quot;</span>))
     }
 }
 
@@ -3904,25 +4259,25 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::util::str_to_bool</span>(<span class="ident">value</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        }));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident"><span class="kw">crate</span>::util::str_to_bool</span>(<span class="ident">value</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
                 .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
             <span class="ident"><span class="kw">crate</span>::Error::value_validation</span>(<span class="ident">arg</span>, <span class="ident">value</span>.<span class="ident">to_owned</span>(), <span class="string">&quot;value was not a boolean&quot;</span>.<span class="ident">into</span>())
                 .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
-        })<span class="question-mark">?</span>;
+        }));
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="prelude-val">Some</span>(<span class="ident">Box::new</span>(<span class="ident"><span class="self">Self</span>::possible_values</span>()))
     }
 }
@@ -3993,12 +4348,12 @@
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>()),
             ));
         }
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="ident">value</span>.<span class="ident">to_str</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
             <span class="ident"><span class="kw">crate</span>::Error::invalid_utf8</span>(
                 <span class="ident">cmd</span>,
                 <span class="ident"><span class="kw">crate</span>::output::Usage::new</span>(<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
             )
-        })<span class="question-mark">?</span>;
+        }));
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>.<span class="ident">to_owned</span>())
     }
 }
@@ -4018,7 +4373,13 @@
     <span class="ident">func</span>: <span class="ident">F</span>,
 }
 
-<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span> <span class="ident">MapValueParser</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span> {
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span>, <span class="ident">T</span><span class="op">&gt;</span> <span class="ident">MapValueParser</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">P</span>: <span class="ident">TypedValueParser</span>,
+    <span class="ident">P::Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">P::Value</span>) -&gt; <span class="ident">T</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+{
     <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parser</span>: <span class="ident">P</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">parser</span>, <span class="ident">func</span> }
     }
@@ -4039,7 +4400,7 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse_ref</span>(<span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse_ref</span>(<span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>));
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">func</span>)(<span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
@@ -4050,14 +4411,70 @@
         <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
         <span class="ident">value</span>: <span class="ident">std::ffi::OsString</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse</span>(<span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>));
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">func</span>)(<span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
     }
 
     <span class="kw">fn</span> <span class="ident">possible_values</span>(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
-    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">possible_values</span>()
+    }
+}
+
+<span class="doccomment">/// Adapt a `TypedValueParser` from one value to another</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See [`TypedValueParser::try_map`]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TryMapValueParser</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span> {
+    <span class="ident">parser</span>: <span class="ident">P</span>,
+    <span class="ident">func</span>: <span class="ident">F</span>,
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">TryMapValueParser</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">P</span>: <span class="ident">TypedValueParser</span>,
+    <span class="ident">P::Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">P::Value</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">parser</span>: <span class="ident">P</span>, <span class="ident">func</span>: <span class="ident">F</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">Self</span> { <span class="ident">parser</span>, <span class="ident">func</span> }
+    }
+}
+
+<span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span>, <span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="ident">TypedValueParser</span> <span class="kw">for</span> <span class="ident">TryMapValueParser</span><span class="op">&lt;</span><span class="ident">P</span>, <span class="ident">F</span><span class="op">&gt;</span>
+<span class="kw">where</span>
+    <span class="ident">P</span>: <span class="ident">TypedValueParser</span>,
+    <span class="ident">P::Value</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">P::Value</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">E</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    <span class="ident">T</span>: <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="ident">Clone</span>,
+    <span class="ident">E</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+{
+    <span class="kw">type</span> <span class="ident">Value</span> <span class="op">=</span> <span class="ident">T</span>;
+
+    <span class="kw">fn</span> <span class="ident">parse_ref</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">cmd</span>: <span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Command</span>,
+        <span class="ident">arg</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident"><span class="kw">crate</span>::Arg</span><span class="op">&gt;</span>,
+        <span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">std::ffi::OsStr</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Value</span>, <span class="ident"><span class="kw">crate</span>::Error</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">mid_value</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">parse_ref</span>(<span class="ident">cmd</span>, <span class="ident">arg</span>, <span class="ident">value</span>));
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="macro">ok!</span>((<span class="self">self</span>.<span class="ident">func</span>)(<span class="ident">mid_value</span>).<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> {
+            <span class="kw">let</span> <span class="ident">arg</span> <span class="op">=</span> <span class="ident">arg</span>
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">a</span><span class="op">|</span> <span class="ident">a</span>.<span class="ident">to_string</span>())
+                .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="string">&quot;...&quot;</span>.<span class="ident">to_owned</span>());
+            <span class="ident"><span class="kw">crate</span>::Error::value_validation</span>(<span class="ident">arg</span>, <span class="ident">value</span>.<span class="ident">to_string_lossy</span>().<span class="ident">into_owned</span>(), <span class="ident">e</span>.<span class="ident">into</span>())
+                .<span class="ident">with_cmd</span>(<span class="ident">cmd</span>)
+        }));
+        <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">possible_values</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+    ) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">Iterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span><span class="op">&gt;</span> <span class="op">+</span> <span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">parser</span>.<span class="ident">possible_values</span>()
     }
 }
@@ -4109,25 +4526,25 @@
 <span class="kw">impl</span> <span class="ident">ValueParserFactory</span> <span class="kw">for</span> <span class="ident">String</span> {
     <span class="kw">type</span> <span class="ident">Parser</span> <span class="op">=</span> <span class="ident">ValueParser</span>;
     <span class="kw">fn</span> <span class="ident">value_parser</span>() -&gt; <span class="ident"><span class="self">Self</span>::Parser</span> {
-        <span class="ident">ValueParser::string</span>()
+        <span class="ident">ValueParser::string</span>() <span class="comment">// Default `clap_derive` to optimized implementation</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">ValueParserFactory</span> <span class="kw">for</span> <span class="ident">std::ffi::OsString</span> {
     <span class="kw">type</span> <span class="ident">Parser</span> <span class="op">=</span> <span class="ident">ValueParser</span>;
     <span class="kw">fn</span> <span class="ident">value_parser</span>() -&gt; <span class="ident"><span class="self">Self</span>::Parser</span> {
-        <span class="ident">ValueParser::os_string</span>()
+        <span class="ident">ValueParser::os_string</span>() <span class="comment">// Default `clap_derive` to optimized implementation</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">ValueParserFactory</span> <span class="kw">for</span> <span class="ident">std::path::PathBuf</span> {
     <span class="kw">type</span> <span class="ident">Parser</span> <span class="op">=</span> <span class="ident">ValueParser</span>;
     <span class="kw">fn</span> <span class="ident">value_parser</span>() -&gt; <span class="ident"><span class="self">Self</span>::Parser</span> {
-        <span class="ident">ValueParser::path_buf</span>()
+        <span class="ident">ValueParser::path_buf</span>() <span class="comment">// Default `clap_derive` to optimized implementation</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">ValueParserFactory</span> <span class="kw">for</span> <span class="ident">bool</span> {
     <span class="kw">type</span> <span class="ident">Parser</span> <span class="op">=</span> <span class="ident">ValueParser</span>;
     <span class="kw">fn</span> <span class="ident">value_parser</span>() -&gt; <span class="ident"><span class="self">Self</span>::Parser</span> {
-        <span class="ident">ValueParser::bool</span>()
+        <span class="ident">ValueParser::bool</span>() <span class="comment">// Default `clap_derive` to optimized implementation</span>
     }
 }
 <span class="kw">impl</span> <span class="ident">ValueParserFactory</span> <span class="kw">for</span> <span class="ident">u8</span> {
@@ -4219,7 +4636,7 @@
         <span class="kw">type</span> <span class="ident">Parser</span>;
         <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Parser</span>;
     }
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ValueParserFactory</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFactory</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ValueParserFactory</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFactory</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {
         <span class="kw">type</span> <span class="ident">Parser</span> <span class="op">=</span> <span class="ident">P::Parser</span>;
         <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Parser</span> {
             <span class="ident">P::value_parser</span>()
@@ -4233,7 +4650,7 @@
         <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident"><span class="self">Self</span>::Output</span>;
     }
     <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident"><span class="kw">crate</span>::ValueEnum</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaValueEnum</span>
-        <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
+        <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>
     {
         <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">EnumValueParser</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span>;
 
@@ -4243,18 +4660,78 @@
     }
 
     <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromOsString</span>: <span class="ident">private::_ValueParserViaFromOsStringSealed</span> {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span>;
+    }
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromOsString</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromOsString</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromOsString</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">FromOsString</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">std::ffi::OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span> {
+            <span class="ident">_AnonymousValueParser</span>(
+                <span class="ident">OsStringValueParser::new</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FromOsString::from</span>(<span class="ident">s</span>))
+                    .<span class="ident">into</span>(),
+            )
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromOsStr</span>: <span class="ident">private::_ValueParserViaFromOsStrSealed</span> {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span>;
+    }
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromOsStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromOsStr</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromOsStr</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">FromOsStr</span>:
+            <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">std::ffi::OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span> {
+            <span class="ident">_AnonymousValueParser</span>(
+                <span class="ident">OsStringValueParser::new</span>()
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FromOsStr::from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>))
+                    .<span class="ident">into</span>(),
+            )
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromString</span>: <span class="ident">private::_ValueParserViaFromStringSealed</span> {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span>;
+    }
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromString</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromString</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromString</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">FromString</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+    {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span> {
+            <span class="ident">_AnonymousValueParser</span>(<span class="ident">StringValueParser::new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FromString::from</span>(<span class="ident">s</span>)).<span class="ident">into</span>())
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromStr</span>: <span class="ident">private::_ValueParserViaFromStrSealed</span> {
         <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span>;
     }
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromStr</span> <span class="kw">for</span> <span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span>
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromStr</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">FromStr</span>: <span class="ident">std::str::FromStr</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="op">&lt;</span><span class="ident">FromStr</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>:
-            <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">FromStr</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
     {
         <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span> {
-            <span class="kw">let</span> <span class="ident">func</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">FromStr</span>, <span class="op">&lt;</span><span class="ident">FromStr</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span><span class="op">&gt;</span> <span class="op">=</span>
-                <span class="ident">FromStr::from_str</span>;
+            <span class="ident">_AnonymousValueParser</span>(<span class="ident">StringValueParser::new</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">FromStr::from</span>(<span class="kw-2">&amp;</span><span class="ident">s</span>)).<span class="ident">into</span>())
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaParse</span>: <span class="ident">private::_ValueParserViaParseSealed</span> {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span>;
+    }
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Parse</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaParse</span> <span class="kw">for</span> <span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">Parse</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">Parse</span>: <span class="ident">std::str::FromStr</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Clone</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="op">&lt;</span><span class="ident">Parse</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">fn</span> <span class="ident">value_parser</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">_AnonymousValueParser</span> {
+            <span class="kw">let</span> <span class="ident">func</span>: <span class="kw">fn</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Parse</span>, <span class="op">&lt;</span><span class="ident">Parse</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span><span class="op">&gt;</span> <span class="op">=</span>
+                <span class="ident">Parse::from_str</span>;
             <span class="ident">_AnonymousValueParser</span>(<span class="ident">ValueParser::new</span>(<span class="ident">func</span>))
         }
     }
@@ -4262,7 +4739,14 @@
 
 <span class="doccomment">/// Select a [`ValueParser`] implementation from the intended type</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// To register a custom type with this macro, implement [`ValueParserFactory`].</span>
+<span class="doccomment">/// Supported types</span>
+<span class="doccomment">/// - [`ValueParserFactory` types][ValueParserFactory], including</span>
+<span class="doccomment">///   - [Native types][ValueParser]: `bool`, `String`, `OsString`, `PathBuf`</span>
+<span class="doccomment">///   - [Ranged numeric types][RangedI64ValueParser]: `u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64`</span>
+<span class="doccomment">/// - [`ValueEnum` types][crate::ValueEnum]</span>
+<span class="doccomment">/// - [`From&lt;OsString&gt;` types][std::convert::From] and [`From&lt;&amp;OsStr&gt;` types][std::convert::From]</span>
+<span class="doccomment">/// - [`From&lt;String&gt;` types][std::convert::From] and [`From&lt;&amp;str&gt;` types][std::convert::From]</span>
+<span class="doccomment">/// - [`FromStr` types][std::str::FromStr], including usize, isize</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Example</span>
 <span class="doccomment">///</span>
@@ -4283,7 +4767,7 @@
 <span class="doccomment">/// assert_eq!(port, Path::new(&quot;file.txt&quot;));</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Supported types:</span>
+<span class="doccomment">/// Example mappings:</span>
 <span class="doccomment">/// ```rust</span>
 <span class="doccomment">/// // Built-in types</span>
 <span class="doccomment">/// let parser = clap::value_parser!(String);</span>
@@ -4313,11 +4797,11 @@
 <span class="doccomment">/// #     fn value_variants&lt;&#39;a&gt;() -&gt; &amp;&#39;a [Self] {</span>
 <span class="doccomment">/// #         &amp;[Self::Always, Self::Auto, Self::Never]</span>
 <span class="doccomment">/// #     }</span>
-<span class="doccomment">/// #     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::PossibleValue&lt;&#39;a&gt;&gt; {</span>
+<span class="doccomment">/// #     fn to_possible_value&lt;&#39;a&gt;(&amp;self) -&gt; Option&lt;clap::builder::PossibleValue&gt; {</span>
 <span class="doccomment">/// #         match self {</span>
-<span class="doccomment">/// #             Self::Always =&gt; Some(clap::PossibleValue::new(&quot;always&quot;)),</span>
-<span class="doccomment">/// #             Self::Auto =&gt; Some(clap::PossibleValue::new(&quot;auto&quot;)),</span>
-<span class="doccomment">/// #             Self::Never =&gt; Some(clap::PossibleValue::new(&quot;never&quot;)),</span>
+<span class="doccomment">/// #             Self::Always =&gt; Some(clap::builder::PossibleValue::new(&quot;always&quot;)),</span>
+<span class="doccomment">/// #             Self::Auto =&gt; Some(clap::builder::PossibleValue::new(&quot;auto&quot;)),</span>
+<span class="doccomment">/// #             Self::Never =&gt; Some(clap::builder::PossibleValue::new(&quot;never&quot;)),</span>
 <span class="doccomment">/// #         }</span>
 <span class="doccomment">/// #     }</span>
 <span class="doccomment">/// }</span>
@@ -4329,28 +4813,52 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ty</span>) =&gt; {{
         <span class="kw">use</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::builder::via_prelude</span>::<span class="kw-2">*</span>;
         <span class="kw">let</span> <span class="ident">auto</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">crate::builder::_AutoValueParser</span>::<span class="op">&lt;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span><span class="op">&gt;</span><span class="ident">::new</span>();
-        (<span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">auto</span>).<span class="ident">value_parser</span>()
+        (<span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="ident">auto</span>).<span class="ident">value_parser</span>()
     }};
 }
 
 <span class="kw">mod</span> <span class="ident">private</span> {
     <span class="kw">use</span> <span class="kw">super</span>::<span class="kw-2">*</span>;
 
+    <span class="comment">// Prefer these so `clap_derive` defaults to optimized implementations</span>
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaSelfSealed</span> {}
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ValueParser</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaSelfSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">ValueParser</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaSelfSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {}
 
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFactorySealed</span> {}
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ValueParserFactory</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFactorySealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">P</span>: <span class="ident">ValueParserFactory</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFactorySealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">P</span><span class="op">&gt;</span> {}
 
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaValueEnumSealed</span> {}
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident"><span class="kw">crate</span>::ValueEnum</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaValueEnumSealed</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">E</span>: <span class="ident"><span class="kw">crate</span>::ValueEnum</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaValueEnumSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">E</span><span class="op">&gt;</span> {}
+
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromOsStringSealed</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromOsString</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromOsStringSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromOsString</span><span class="op">&gt;</span> <span class="kw">where</span>
+        <span class="ident">FromOsString</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">std::ffi::OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    {
+    }
+
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromOsStrSealed</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromOsStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromOsStrSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromOsStr</span><span class="op">&gt;</span> <span class="kw">where</span>
+        <span class="ident">FromOsStr</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">std::ffi::OsStr</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    {
+    }
+
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromStringSealed</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromString</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromStringSealed</span> <span class="kw">for</span> <span class="op">&amp;&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromString</span><span class="op">&gt;</span> <span class="kw">where</span>
+        <span class="ident">FromString</span>: <span class="ident">From</span><span class="op">&lt;</span><span class="ident">String</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    {
+    }
 
     <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaFromStrSealed</span> {}
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromStrSealed</span> <span class="kw">for</span> <span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span>
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaFromStrSealed</span> <span class="kw">for</span> <span class="kw-2">&amp;</span><span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">FromStr</span><span class="op">&gt;</span> <span class="kw">where</span>
+        <span class="ident">FromStr</span>: <span class="kw">for</span><span class="op">&lt;</span><span class="lifetime">&#39;s</span><span class="op">&gt;</span> <span class="ident">From</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;s</span> <span class="ident">str</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>
+    {
+    }
+
+    <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">_ValueParserViaParseSealed</span> {}
+    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">Parse</span><span class="op">&gt;</span> <span class="ident">_ValueParserViaParseSealed</span> <span class="kw">for</span> <span class="ident">_AutoValueParser</span><span class="op">&lt;</span><span class="ident">Parse</span><span class="op">&gt;</span>
     <span class="kw">where</span>
-        <span class="ident">FromStr</span>: <span class="ident">std::str::FromStr</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
-        <span class="op">&lt;</span><span class="ident">FromStr</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>:
-            <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">Parse</span>: <span class="ident">std::str::FromStr</span> <span class="op">+</span> <span class="ident">std::any::Any</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>,
+        <span class="op">&lt;</span><span class="ident">Parse</span> <span class="kw">as</span> <span class="ident">std::str::FromStr</span><span class="op">&gt;</span><span class="ident">::Err</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">Box</span><span class="op">&lt;</span><span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="ident">Send</span> <span class="op">+</span> <span class="ident">Sync</span> <span class="op">+</span> <span class="lifetime">&#39;static</span><span class="op">&gt;</span><span class="op">&gt;</span>,
     {
     }
 }

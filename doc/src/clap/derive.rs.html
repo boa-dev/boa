@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-3.2.22/src/derive.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>derive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/derive.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>derive.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -471,116 +471,11 @@
 <span id="469">469</span>
 <span id="470">470</span>
 <span id="471">471</span>
-<span id="472">472</span>
-<span id="473">473</span>
-<span id="474">474</span>
-<span id="475">475</span>
-<span id="476">476</span>
-<span id="477">477</span>
-<span id="478">478</span>
-<span id="479">479</span>
-<span id="480">480</span>
-<span id="481">481</span>
-<span id="482">482</span>
-<span id="483">483</span>
-<span id="484">484</span>
-<span id="485">485</span>
-<span id="486">486</span>
-<span id="487">487</span>
-<span id="488">488</span>
-<span id="489">489</span>
-<span id="490">490</span>
-<span id="491">491</span>
-<span id="492">492</span>
-<span id="493">493</span>
-<span id="494">494</span>
-<span id="495">495</span>
-<span id="496">496</span>
-<span id="497">497</span>
-<span id="498">498</span>
-<span id="499">499</span>
-<span id="500">500</span>
-<span id="501">501</span>
-<span id="502">502</span>
-<span id="503">503</span>
-<span id="504">504</span>
-<span id="505">505</span>
-<span id="506">506</span>
-<span id="507">507</span>
-<span id="508">508</span>
-<span id="509">509</span>
-<span id="510">510</span>
-<span id="511">511</span>
-<span id="512">512</span>
-<span id="513">513</span>
-<span id="514">514</span>
-<span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
-<span id="518">518</span>
-<span id="519">519</span>
-<span id="520">520</span>
-<span id="521">521</span>
-<span id="522">522</span>
-<span id="523">523</span>
-<span id="524">524</span>
-<span id="525">525</span>
-<span id="526">526</span>
-<span id="527">527</span>
-<span id="528">528</span>
-<span id="529">529</span>
-<span id="530">530</span>
-<span id="531">531</span>
-<span id="532">532</span>
-<span id="533">533</span>
-<span id="534">534</span>
-<span id="535">535</span>
-<span id="536">536</span>
-<span id="537">537</span>
-<span id="538">538</span>
-<span id="539">539</span>
-<span id="540">540</span>
-<span id="541">541</span>
-<span id="542">542</span>
-<span id="543">543</span>
-<span id="544">544</span>
-<span id="545">545</span>
-<span id="546">546</span>
-<span id="547">547</span>
-<span id="548">548</span>
-<span id="549">549</span>
-<span id="550">550</span>
-<span id="551">551</span>
-<span id="552">552</span>
-<span id="553">553</span>
-<span id="554">554</span>
-<span id="555">555</span>
-<span id="556">556</span>
-<span id="557">557</span>
-<span id="558">558</span>
-<span id="559">559</span>
-<span id="560">560</span>
-<span id="561">561</span>
-<span id="562">562</span>
-<span id="563">563</span>
-<span id="564">564</span>
-<span id="565">565</span>
-<span id="566">566</span>
-<span id="567">567</span>
-<span id="568">568</span>
-<span id="569">569</span>
-<span id="570">570</span>
-<span id="571">571</span>
-<span id="572">572</span>
-<span id="573">573</span>
-<span id="574">574</span>
-<span id="575">575</span>
-<span id="576">576</span>
-<span id="577">577</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains traits that are usable with the `#[derive(...)].`</span>
 <span class="doccomment">//! macros in [`clap_derive`].</span>
 
-<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ArgMatches</span>, <span class="ident">Command</span>, <span class="ident">Error</span>, <span class="ident">PossibleValue</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::builder::PossibleValue</span>;
+<span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">ArgMatches</span>, <span class="ident">Command</span>, <span class="ident">Error</span>};
 
 <span class="kw">use</span> <span class="ident">std::ffi::OsString</span>;
 
@@ -612,13 +507,13 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
 <span class="doccomment">/// /// My super CLI</span>
 <span class="doccomment">/// #[derive(clap::Parser)]</span>
-<span class="doccomment">/// #[clap(name = &quot;demo&quot;)]</span>
+<span class="doccomment">/// #[command(name = &quot;demo&quot;)]</span>
 <span class="doccomment">/// struct Context {</span>
 <span class="doccomment">///     /// More verbose output</span>
-<span class="doccomment">///     #[clap(long)]</span>
+<span class="doccomment">///     #[arg(long)]</span>
 <span class="doccomment">///     verbose: bool,</span>
 <span class="doccomment">///     /// An optional name</span>
-<span class="doccomment">///     #[clap(short, long)]</span>
+<span class="doccomment">///     #[arg(short, long)]</span>
 <span class="doccomment">///     name: Option&lt;String&gt;,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
@@ -637,7 +532,7 @@
 <span class="doccomment">///         .long(&quot;name&quot;)</span>
 <span class="doccomment">///         .short(&#39;n&#39;)</span>
 <span class="doccomment">///         .help(&quot;An optional name&quot;)</span>
-<span class="doccomment">///         .takes_value(true));</span>
+<span class="doccomment">///         .action(ArgAction::Set));</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// struct Context {</span>
 <span class="doccomment">///     verbose: bool,</span>
@@ -672,7 +567,7 @@
 
     <span class="doccomment">/// Parse from `std::env::args_os()`, return Err on error.</span>
     <span class="kw">fn</span> <span class="ident">try_parse</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>().<span class="ident">try_get_matches</span>()<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>().<span class="ident">try_get_matches</span>());
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">matches</span>).<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
     }
 
@@ -701,7 +596,7 @@
         <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>().<span class="ident">try_get_matches_from</span>(<span class="ident">itr</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span> <span class="macro">ok!</span>(<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>().<span class="ident">try_get_matches_from</span>(<span class="ident">itr</span>));
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches_mut</span>(<span class="kw-2">&amp;mut</span> <span class="ident">matches</span>).<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
     }
 
@@ -728,98 +623,9 @@
         <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
     {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">matches</span> <span class="op">=</span>
-            <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command_for_update</span>().<span class="ident">try_get_matches_from</span>(<span class="ident">itr</span>)<span class="question-mark">?</span>;
+            <span class="macro">ok!</span>(<span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command_for_update</span>().<span class="ident">try_get_matches_from</span>(<span class="ident">itr</span>));
         <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::update_from_arg_matches_mut</span>(<span class="self">self</span>, <span class="kw-2">&amp;mut</span> <span class="ident">matches</span>)
             .<span class="ident">map_err</span>(<span class="ident">format_error</span>::<span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span>)
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::clap` replaced with [`CommandFactory::command`] (derive as part of</span>
-    <span class="doccomment">/// [`Parser`])</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::clap` is replaced with `CommandFactory::command` (derived as part of `Parser`)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">clap</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>()
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::from_clap` replaced with [`FromArgMatches::from_arg_matches_mut`] (derive as part of</span>
-    <span class="doccomment">/// [`Parser`])</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_clap` is replaced with `FromArgMatches::from_arg_matches_mut` (derived as part of `Parser`)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_clap</span>(<span class="ident">matches</span>: <span class="kw-2">&amp;</span><span class="ident">ArgMatches</span>) -&gt; <span class="self">Self</span> {
-        <span class="op">&lt;</span><span class="self">Self</span> <span class="kw">as</span> <span class="ident">FromArgMatches</span><span class="op">&gt;</span><span class="ident">::from_arg_matches</span>(<span class="ident">matches</span>).<span class="ident">unwrap</span>()
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::from_args` replaced with `Parser::parse` (note the change in derives)</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_args` is replaced with `Parser::parse` (note the change in derives)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_args</span>() -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::parse</span>()
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::from_args_safe` replaced with `Parser::try_parse` (note the change in derives)</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_args_safe` is replaced with `Parser::try_parse` (note the change in derives)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_args_safe</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
-        <span class="ident"><span class="self">Self</span>::try_parse</span>()
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::from_iter` replaced with `Parser::parse_from` (note the change in derives)</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_iter` is replaced with `Parser::parse_from` (note the change in derives)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_iter</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="self">Self</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    {
-        <span class="ident"><span class="self">Self</span>::parse_from</span>(<span class="ident">itr</span>)
-    }
-
-    <span class="doccomment">/// Deprecated, `StructOpt::from_iter_safe` replaced with `Parser::try_parse_from` (note the</span>
-    <span class="doccomment">/// change in derives)</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.0.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;`StructOpt::from_iter_safe` is replaced with `Parser::try_parse_from` (note the change in derives)&quot;</span>
-        )
-    )]</span>
-    <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-    <span class="kw">fn</span> <span class="ident">from_iter_safe</span><span class="op">&lt;</span><span class="ident">I</span>, <span class="ident">T</span><span class="op">&gt;</span>(<span class="ident">itr</span>: <span class="ident">I</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span>, <span class="ident">Error</span><span class="op">&gt;</span>
-    <span class="kw">where</span>
-        <span class="ident">I</span>: <span class="ident">IntoIterator</span><span class="op">&lt;</span><span class="ident">Item</span> <span class="op">=</span> <span class="ident">T</span><span class="op">&gt;</span>,
-        <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">OsString</span><span class="op">&gt;</span> <span class="op">+</span> <span class="ident">Clone</span>,
-    {
-        <span class="ident"><span class="self">Self</span>::try_parse_from</span>(<span class="ident">itr</span>)
     }
 }
 
@@ -830,32 +636,11 @@
     <span class="doccomment">/// Build a [`Command`] that can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [`FromArgMatches::from_arg_matches_mut`] for instantiating `Self`.</span>
-    <span class="kw">fn</span> <span class="ident">command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="ident"><span class="self">Self</span>::into_app</span>()
-    }
-    <span class="doccomment">/// Deprecated, replaced with `CommandFactory::command`</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(<span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>, <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `CommandFactory::command&quot;</span>)
-    )]</span>
-    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">command</span>() -&gt; <span class="ident">Command</span>;
     <span class="doccomment">/// Build a [`Command`] that can update `self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See [`FromArgMatches::update_from_arg_matches_mut`] for updating `self`.</span>
-    <span class="kw">fn</span> <span class="ident">command_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
-        <span class="ident"><span class="self">Self</span>::into_app_for_update</span>()
-    }
-    <span class="doccomment">/// Deprecated, replaced with `CommandFactory::command_for_update`</span>
-    <span class="attribute">#[<span class="ident">cfg_attr</span>(
-        <span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deprecated&quot;</span>,
-        <span class="ident">deprecated</span>(
-            <span class="ident">since</span> <span class="op">=</span> <span class="string">&quot;3.1.0&quot;</span>,
-            <span class="ident">note</span> <span class="op">=</span> <span class="string">&quot;Replaced with `CommandFactory::command_for_update&quot;</span>
-        )
-    )]</span>
-    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">command_for_update</span>() -&gt; <span class="ident">Command</span>;
 }
 
 <span class="doccomment">/// Converts an instance of [`ArgMatches`] to a user-defined container.</span>
@@ -945,7 +730,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Implementing this trait lets a parent container delegate argument parsing behavior to `Self`.</span>
 <span class="doccomment">/// with:</span>
-<span class="doccomment">/// - `#[clap(flatten)] args: ChildArgs`: Attribute can only be used with struct fields that impl</span>
+<span class="doccomment">/// - `#[command(flatten)] args: ChildArgs`: Attribute can only be used with struct fields that impl</span>
 <span class="doccomment">///   `Args`.</span>
 <span class="doccomment">/// - `Variant(ChildArgs)`: No attribute is used with enum variants that impl `Args`.</span>
 <span class="doccomment">///</span>
@@ -959,36 +744,40 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
 <span class="doccomment">/// #[derive(clap::Parser)]</span>
 <span class="doccomment">/// struct Args {</span>
-<span class="doccomment">///     #[clap(flatten)]</span>
+<span class="doccomment">///     #[command(flatten)]</span>
 <span class="doccomment">///     logging: LogArgs,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// #[derive(clap::Args)]</span>
 <span class="doccomment">/// struct LogArgs {</span>
-<span class="doccomment">///     #[clap(long, short = &#39;v&#39;, parse(from_occurrences))]</span>
+<span class="doccomment">///     #[arg(long, short = &#39;v&#39;, action = clap::ArgAction::Count)]</span>
 <span class="doccomment">///     verbose: i8,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">/// ```</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">Args</span>: <span class="ident">FromArgMatches</span> <span class="op">+</span> <span class="ident">Sized</span> {
+    <span class="doccomment">/// Report the [`ArgGroup::id`][crate::ArgGroup::id] for this set of arguments</span>
+    <span class="kw">fn</span> <span class="ident">group_id</span>() -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident"><span class="kw">crate</span>::Id</span><span class="op">&gt;</span> {
+        <span class="prelude-val">None</span>
+    }
     <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`CommandFactory`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span>;
     <span class="doccomment">/// Append to [`Command`] so it can update `self`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used to implement `#[clap(flatten)]`</span>
+    <span class="doccomment">/// This is used to implement `#[command(flatten)]`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`CommandFactory`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span>;
 }
 
 <span class="doccomment">/// Parse a sub-command into a user-defined enum.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Implementing this trait lets a parent container delegate subcommand behavior to `Self`.</span>
 <span class="doccomment">/// with:</span>
-<span class="doccomment">/// - `#[clap(subcommand)] field: SubCmd`: Attribute can be used with either struct fields or enum</span>
+<span class="doccomment">/// - `#[command(subcommand)] field: SubCmd`: Attribute can be used with either struct fields or enum</span>
 <span class="doccomment">///   variants that impl `Subcommand`.</span>
-<span class="doccomment">/// - `#[clap(flatten)] Variant(SubCmd)`: Attribute can only be used with enum variants that impl</span>
+<span class="doccomment">/// - `#[command(flatten)] Variant(SubCmd)`: Attribute can only be used with enum variants that impl</span>
 <span class="doccomment">///   `Subcommand`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the [derive reference](crate::_derive) for attributes and best practices.</span>
@@ -1001,7 +790,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
 <span class="doccomment">/// #[derive(clap::Parser)]</span>
 <span class="doccomment">/// struct Args {</span>
-<span class="doccomment">///     #[clap(subcommand)]</span>
+<span class="doccomment">///     #[command(subcommand)]</span>
 <span class="doccomment">///     action: Action,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
@@ -1015,13 +804,13 @@
     <span class="doccomment">/// Append to [`Command`] so it can instantiate `Self`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`CommandFactory`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span>;
     <span class="doccomment">/// Append to [`Command`] so it can update `self`.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// This is used to implement `#[clap(flatten)]`</span>
+    <span class="doccomment">/// This is used to implement `#[command(flatten)]`</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// See also [`CommandFactory`].</span>
-    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span>;
     <span class="doccomment">/// Test whether `Self` can parse a specific subcommand</span>
     <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span>;
 }
@@ -1029,9 +818,9 @@
 <span class="doccomment">/// Parse arguments into enums.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// When deriving [`Parser`], a field whose type implements `ValueEnum` can have the attribute</span>
-<span class="doccomment">/// `#[clap(value_enum)]` which will</span>
-<span class="doccomment">/// - Call [`Arg::possible_values`][crate::Arg::possible_values]</span>
-<span class="doccomment">/// - Allowing using the `#[clap(default_value_t)]` attribute without implementing `Display`.</span>
+<span class="doccomment">/// `#[arg(value_enum)]` which will</span>
+<span class="doccomment">/// - Call [EnumValueParser`][crate::builder::EnumValueParser]`</span>
+<span class="doccomment">/// - Allowing using the `#[arg(default_value_t)]` attribute without implementing `Display`.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// See the [derive reference](crate::_derive) for attributes and best practices.</span>
 <span class="doccomment">///</span>
@@ -1043,7 +832,7 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;derive&quot;</span>, <span class="ident">doc</span> <span class="op">=</span> <span class="string">&quot; ```&quot;</span>)]</span>
 <span class="doccomment">/// #[derive(clap::Parser)]</span>
 <span class="doccomment">/// struct Args {</span>
-<span class="doccomment">///     #[clap(value_enum)]</span>
+<span class="doccomment">///     #[arg(value_enum)]</span>
 <span class="doccomment">///     level: Level,</span>
 <span class="doccomment">/// }</span>
 <span class="doccomment">///</span>
@@ -1075,7 +864,7 @@
     <span class="doccomment">/// The canonical argument value.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The value is `None` for skipped variants.</span>
-    <span class="kw">fn</span> <span class="ident">to_possible_value</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PossibleValue</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">to_possible_value</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PossibleValue</span><span class="op">&gt;</span>;
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Parser</span><span class="op">&gt;</span> <span class="ident">Parser</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
@@ -1104,13 +893,12 @@
     }
 }
 
-<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">CommandFactory</span><span class="op">&gt;</span> <span class="ident">CommandFactory</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">into_app</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::into_app</span>()
+    <span class="kw">fn</span> <span class="ident">command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span> {
+        <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command</span>()
     }
-    <span class="kw">fn</span> <span class="ident">into_app_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span> {
-        <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::into_app_for_update</span>()
+    <span class="kw">fn</span> <span class="ident">command_for_update</span><span class="op">&lt;</span><span class="lifetime">&#39;help</span><span class="op">&gt;</span>() -&gt; <span class="ident">Command</span> {
+        <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">CommandFactory</span><span class="op">&gt;</span><span class="ident">::command_for_update</span>()
     }
 }
 
@@ -1130,19 +918,19 @@
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Args</span><span class="op">&gt;</span> <span class="ident">Args</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_args</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Args</span><span class="op">&gt;</span><span class="ident">::augment_args</span>(<span class="ident">cmd</span>)
     }
-    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_args_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Args</span><span class="op">&gt;</span><span class="ident">::augment_args_for_update</span>(<span class="ident">cmd</span>)
     }
 }
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span>: <span class="ident">Subcommand</span><span class="op">&gt;</span> <span class="ident">Subcommand</span> <span class="kw">for</span> <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> {
-    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_subcommands</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Subcommand</span><span class="op">&gt;</span><span class="ident">::augment_subcommands</span>(<span class="ident">cmd</span>)
     }
-    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">Command</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">augment_subcommands_for_update</span>(<span class="ident">cmd</span>: <span class="ident">Command</span>) -&gt; <span class="ident">Command</span> {
         <span class="op">&lt;</span><span class="ident">T</span> <span class="kw">as</span> <span class="ident">Subcommand</span><span class="op">&gt;</span><span class="ident">::augment_subcommands_for_update</span>(<span class="ident">cmd</span>)
     }
     <span class="kw">fn</span> <span class="ident">has_subcommand</span>(<span class="ident">name</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
