@@ -750,6 +750,20 @@
 <span id="748">748</span>
 <span id="749">749</span>
 <span id="750">750</span>
+<span id="751">751</span>
+<span id="752">752</span>
+<span id="753">753</span>
+<span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -772,9 +786,15 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast::op::LogOp</span>,
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{<span class="ident">BinOp</span>, <span class="ident">Node</span>},
+        <span class="self">self</span>,
+        <span class="ident">expression</span>::{
+            <span class="ident">operator</span>::{
+                <span class="ident">binary::op</span>::{<span class="ident">BinaryOp</span>, <span class="ident">LogicalOp</span>},
+                <span class="ident">Binary</span>,
+            },
+            <span class="ident">Identifier</span>,
+        },
         <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
@@ -783,7 +803,7 @@
         <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
@@ -835,9 +855,9 @@
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>
     {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>)-&gt; <span class="ident">ParseResult</span> {
+        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>)-&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">ast::Expression</span><span class="op">&gt;</span> {
             <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot;Parsing&quot;</span>);
 
             <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">is_some</span>() {
@@ -850,16 +870,16 @@
                 <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">op</span>) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
-                            <span class="ident">op</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
+                            <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                             <span class="ident">lhs</span>,
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                         ).<span class="ident">into</span>();
                     }
                     <span class="ident">TokenKind::Keyword</span>((<span class="ident">op</span>, <span class="bool-val">false</span>)) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
-                            <span class="ident">op</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
+                            <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                             <span class="ident">lhs</span>,
                             <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                         ).<span class="ident">into</span>();
@@ -883,7 +903,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Expression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Expression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -893,7 +913,7 @@
     <span class="doccomment">/// Creates a new `Expression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -911,9 +931,13 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(
+        <span class="kw-2">mut</span> <span class="self">self</span>,
+        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
+    ) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span>
@@ -943,9 +967,9 @@
 
                     <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
 
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
                         <span class="ident">Punctuator::Comma</span>
-                            .<span class="ident">as_binop</span>()
+                            .<span class="ident">as_binary_op</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                         <span class="ident">lhs</span>,
                         <span class="ident">AssignmentExpression::new</span>(
@@ -976,7 +1000,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ShortCircuitExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ShortCircuitExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -994,7 +1018,7 @@
     <span class="doccomment">/// Creates a new `ShortCircuitExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1016,7 +1040,7 @@
         <span class="ident">previous</span>: <span class="ident">PreviousExpr</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1035,9 +1059,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ShortCircuitExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">current_node</span> <span class="op">=</span>
@@ -1065,7 +1089,8 @@
                     )
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-                    <span class="ident">current_node</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">LogOp::And</span>, <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
+                    <span class="ident">current_node</span> <span class="op">=</span>
+                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::And</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::BoolOr</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">previous</span> <span class="op">==</span> <span class="ident">PreviousExpr::Coalesce</span> {
@@ -1085,7 +1110,8 @@
                         <span class="ident">PreviousExpr::Logical</span>,
                     )
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">current_node</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">LogOp::Or</span>, <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
+                    <span class="ident">current_node</span> <span class="op">=</span>
+                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Or</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Coalesce</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">previous</span> <span class="op">==</span> <span class="ident">PreviousExpr::Logical</span> {
@@ -1105,7 +1131,9 @@
                         <span class="self">self</span>.<span class="ident">allow_await</span>,
                     )
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">current_node</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">LogOp::Coalesce</span>, <span class="ident">current_node</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
+                    <span class="ident">current_node</span> <span class="op">=</span>
+                        <span class="ident">Binary::new</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Coalesce</span>), <span class="ident">current_node</span>, <span class="ident">rhs</span>)
+                            .<span class="ident">into</span>();
                 }
                 <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             }
@@ -1124,7 +1152,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseORExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BitwiseORExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1134,7 +1162,7 @@
     <span class="doccomment">/// Creates a new `BitwiseORExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1166,7 +1194,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseXORExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BitwiseXORExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1176,7 +1204,7 @@
     <span class="doccomment">/// Creates a new `BitwiseXORExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1208,7 +1236,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-BitwiseANDExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">BitwiseANDExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1218,7 +1246,7 @@
     <span class="doccomment">/// Creates a new `BitwiseANDExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1250,7 +1278,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-equality-operators</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">EqualityExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1260,7 +1288,7 @@
     <span class="doccomment">/// Creates a new `EqualityExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1297,7 +1325,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-relational-operators</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">RelationalExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1307,7 +1335,7 @@
     <span class="doccomment">/// Creates a new `RelationalExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">I</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_in</span>: <span class="ident">I</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1325,9 +1353,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Relation Expression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
@@ -1341,8 +1369,8 @@
                         <span class="op">|</span><span class="op">|</span> <span class="ident">op</span> <span class="op">==</span> <span class="ident">Punctuator::GreaterThanOrEq</span> =&gt;
                 {
                     <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
-                        <span class="ident">op</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
+                        <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                         <span class="ident">lhs</span>,
                         <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
@@ -1360,8 +1388,8 @@
                         <span class="op">|</span><span class="op">|</span> (<span class="ident">op</span> <span class="op">==</span> <span class="ident">Keyword::In</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">allow_in</span> <span class="op">==</span> <span class="ident">AllowIn</span>(<span class="bool-val">true</span>)) =&gt;
                 {
                     <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(
-                        <span class="ident">op</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
+                        <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
                         <span class="ident">lhs</span>,
                         <span class="ident">ShiftExpression::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
@@ -1386,7 +1414,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-bitwise-shift-operators</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">ShiftExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
@@ -1395,7 +1423,7 @@
     <span class="doccomment">/// Creates a new `ShiftExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
@@ -1431,7 +1459,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-additive-operators</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">AdditiveExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
@@ -1440,7 +1468,7 @@
     <span class="doccomment">/// Creates a new `AdditiveExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
@@ -1472,7 +1500,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-multiplicative-operators</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">struct</span> <span class="ident">MultiplicativeExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
@@ -1481,7 +1509,7 @@
     <span class="doccomment">/// Creates a new `MultiplicativeExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {

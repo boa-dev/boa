@@ -158,6 +158,12 @@
 <span id="156">156</span>
 <span id="157">157</span>
 <span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Update expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -167,7 +173,13 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::left_hand_side::LeftHandSideExpression</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node</span>, <span class="ident">op::UnaryOp</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{
+        <span class="ident">expression</span>::{
+            <span class="ident">operator</span>::{<span class="ident">unary::op::UnaryOp</span>, <span class="ident">Unary</span>},
+            <span class="ident">Identifier</span>,
+        },
+        <span class="ident">Expression</span>, <span class="ident">Punctuator</span>,
+    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::unary::UnaryExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
@@ -186,7 +198,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">UpdateExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
@@ -195,7 +207,7 @@
     <span class="doccomment">/// Creates a new `UpdateExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
@@ -211,9 +223,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;UpdateExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">tok</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
@@ -228,12 +240,12 @@
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
                         <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
                     }
                 }
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::IncrementPre</span>, <span class="ident">target</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Unary::new</span>(<span class="ident">UnaryOp::IncrementPre</span>, <span class="ident">target</span>).<span class="ident">into</span>());
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Dec</span>) =&gt; {
                 <span class="ident">cursor</span>
@@ -244,12 +256,12 @@
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
                         <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
                     }
                 }
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::DecrementPre</span>, <span class="ident">target</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Unary::new</span>(<span class="ident">UnaryOp::DecrementPre</span>, <span class="ident">target</span>).<span class="ident">into</span>());
             }
             <span class="kw">_</span> =&gt; {}
         }
@@ -267,13 +279,13 @@
                         .<span class="ident">expect</span>(<span class="string">&quot;Punctuator::Inc token disappeared&quot;</span>);
                     <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors</span>
                     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">lhs</span> {
-                        <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">strict</span> =&gt; <span class="bool-val">true</span>,
-                        <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>)
+                        <span class="ident">Expression::Identifier</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">strict</span> =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>)
                             <span class="kw">if</span> <span class="op">!</span>[<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">sym</span>()) =&gt;
                         {
                             <span class="bool-val">true</span>
                         }
-                        <span class="ident">Node::GetConstField</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::GetField</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">Expression::PropertyAccess</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
                         <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                     };
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
@@ -283,7 +295,7 @@
                         )));
                     }
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::IncrementPost</span>, <span class="ident">lhs</span>).<span class="ident">into</span>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Unary::new</span>(<span class="ident">UnaryOp::IncrementPost</span>, <span class="ident">lhs</span>).<span class="ident">into</span>());
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Dec</span>) =&gt; {
                     <span class="ident">cursor</span>
@@ -291,13 +303,13 @@
                         .<span class="ident">expect</span>(<span class="string">&quot;Punctuator::Dec token disappeared&quot;</span>);
                     <span class="comment">// https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors</span>
                     <span class="kw">let</span> <span class="ident">ok</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">&amp;</span><span class="ident">lhs</span> {
-                        <span class="ident">Node::Identifier</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">strict</span> =&gt; <span class="bool-val">true</span>,
-                        <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>)
+                        <span class="ident">Expression::Identifier</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="op">!</span><span class="ident">strict</span> =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>)
                             <span class="kw">if</span> <span class="op">!</span>[<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">sym</span>()) =&gt;
                         {
                             <span class="bool-val">true</span>
                         }
-                        <span class="ident">Node::GetConstField</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident">Node::GetField</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
+                        <span class="ident">Expression::PropertyAccess</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">true</span>,
                         <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
                     };
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">ok</span> {
@@ -307,7 +319,7 @@
                         )));
                     }
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node::UnaryOp::new</span>(<span class="ident">UnaryOp::DecrementPost</span>, <span class="ident">lhs</span>).<span class="ident">into</span>());
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Unary::new</span>(<span class="ident">UnaryOp::DecrementPost</span>, <span class="ident">lhs</span>).<span class="ident">into</span>());
                 }
                 <span class="kw">_</span> =&gt; {}
             }

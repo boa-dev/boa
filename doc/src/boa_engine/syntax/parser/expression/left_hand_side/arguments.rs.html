@@ -114,9 +114,6 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Argument parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -127,10 +124,11 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Arguments</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::Spread</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{<span class="ident">expression::Spread</span>, <span class="ident">Expression</span>, <span class="ident">Punctuator</span>},
     <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
-        <span class="ident">expression::AssignmentExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">expression::AssignmentExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>,
+        <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
@@ -169,13 +167,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Node</span>]<span class="op">&gt;</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">Expression</span>]<span class="op">&gt;</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Arguments&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::OpenParen</span>, <span class="string">&quot;arguments&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;

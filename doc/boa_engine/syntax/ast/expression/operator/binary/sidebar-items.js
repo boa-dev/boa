@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["op","This module implements various structure for logic handling."]],"struct":[["Binary","Binary operations require two operands, one before the operator and one after the operator."]]};

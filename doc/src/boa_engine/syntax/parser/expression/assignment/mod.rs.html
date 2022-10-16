@@ -254,15 +254,6 @@
 <span id="252">252</span>
 <span id="253">253</span>
 <span id="254">254</span>
-<span id="255">255</span>
-<span id="256">256</span>
-<span id="257">257</span>
-<span id="258">258</span>
-<span id="259">259</span>
-<span id="260">260</span>
-<span id="261">261</span>
-<span id="262">262</span>
-<span id="263">263</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -279,8 +270,12 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{<span class="ident">operator::assign::AssignTarget</span>, <span class="ident">ArrowFunctionDecl</span>, <span class="ident">Assign</span>, <span class="ident">BinOp</span>, <span class="ident">Node</span>},
-        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
+        <span class="self">self</span>,
+        <span class="ident">expression</span>::{
+            <span class="ident">operator::assign</span>::{<span class="ident">op::AssignOp</span>, <span class="ident">Assign</span>, <span class="ident">AssignTarget</span>},
+            <span class="ident">Identifier</span>,
+        },
+        <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
@@ -292,7 +287,7 @@
         <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
@@ -318,7 +313,7 @@
 <span class="doccomment">/// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">AssignmentExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -333,7 +328,7 @@
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -351,9 +346,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AssignmentExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
 
@@ -392,7 +387,7 @@
                             <span class="self">self</span>.<span class="ident">allow_await</span>,
                         )
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Node::ArrowFunctionDecl</span>);
+                        .<span class="ident">map</span>(<span class="ident">Expression::ArrowFunction</span>);
                     }
                 }
             }
@@ -415,7 +410,7 @@
         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// If the left hand side is a parameter list, we must parse an arrow function.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FormalParameterList</span>(<span class="ident">parameters</span>) <span class="op">=</span> <span class="ident">lhs</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::FormalParameterList</span>(<span class="ident">parameters</span>) <span class="op">=</span> <span class="ident">lhs</span> {
             <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;arrow function&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
             <span class="ident">cursor</span>.<span class="ident">expect</span>(
@@ -454,16 +449,15 @@
                 <span class="ident">position</span>,
             )<span class="question-mark">?</span>;
 
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ArrowFunctionDecl::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>).<span class="ident">into</span>());
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ast::function::ArrowFunction::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">parameters</span>, <span class="ident">body</span>).<span class="ident">into</span>());
         }
 
         <span class="comment">// Review if we are trying to assign to an invalid left hand side expression.</span>
-        <span class="comment">// TODO: can we avoid cloning?</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">cloned</span>() {
             <span class="kw">match</span> <span class="ident">tok</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
                             <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
                         }
                     }
@@ -471,12 +465,14 @@
                     <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;= token vanished&quot;</span>);
                     <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="ident">InputElement::RegExp</span>);
 
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span> <span class="ident">AssignTarget::from_node</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>()) {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span>
+                        <span class="ident">AssignTarget::from_expression</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>(), <span class="bool-val">true</span>)
+                    {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
-                            <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>.<span class="ident">sym</span>());
+                            <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>);
                         }
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">target</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">AssignOp::Assign</span>, <span class="ident">target</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
@@ -484,18 +480,20 @@
                         )));
                     }
                 }
-                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">p</span> <span class="op">!</span><span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">Punctuator::Comma</span> =&gt; {
+                <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_assign_op</span>().<span class="ident">is_some</span>() =&gt; {
                     <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
                             <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
                         }
                     }
 
                     <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;token vanished&quot;</span>);
-                    <span class="kw">if</span> <span class="ident">is_assignable</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>) {
-                        <span class="kw">let</span> <span class="ident">binop</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_binop</span>().<span class="ident">expect</span>(<span class="string">&quot;binop disappeared&quot;</span>);
-                        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">BinOp::new</span>(<span class="ident">binop</span>, <span class="ident">lhs</span>, <span class="ident">expr</span>).<span class="ident">into</span>();
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">target</span>) <span class="op">=</span>
+                        <span class="ident">AssignTarget::from_expression</span>(<span class="kw-2">&amp;</span><span class="ident">lhs</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>(), <span class="bool-val">false</span>)
+                    {
+                        <span class="kw">let</span> <span class="ident">assignop</span> <span class="op">=</span> <span class="ident">p</span>.<span class="ident">as_assign_op</span>().<span class="ident">expect</span>(<span class="string">&quot;assignop disappeared&quot;</span>);
+                        <span class="kw">let</span> <span class="ident">rhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Assign::new</span>(<span class="ident">assignop</span>, <span class="ident">target</span>, <span class="ident">rhs</span>).<span class="ident">into</span>();
                     } <span class="kw">else</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                             <span class="string">&quot;Invalid left-hand side in assignment&quot;</span>.<span class="ident">into</span>(),
@@ -509,22 +507,6 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
     }
-}
-
-<span class="doccomment">/// Returns true if as per spec[spec] the node can be assigned a value.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors</span>
-<span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">is_assignable</span>(<span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>) -&gt; <span class="ident">bool</span> {
-    <span class="macro">matches!</span>(
-        <span class="ident">node</span>,
-        <span class="ident">Node::GetConstField</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::GetField</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Assign</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Call</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Identifier</span>(<span class="kw">_</span>)
-            <span class="op">|</span> <span class="ident">Node::Object</span>(<span class="kw">_</span>)
-    )
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

@@ -148,8 +148,6 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `eval()` function evaluates JavaScript code represented as a string.</span>
@@ -218,9 +216,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: If direct is false, then strictCaller is also false.</span>
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">direct</span> {
-            <span class="macro">debug_assert!</span>(<span class="op">!</span><span class="ident">strict</span>);
-        }
+        <span class="macro">debug_assert!</span>(<span class="ident">direct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">strict</span>);
 
         <span class="comment">// 2. If Type(x) is not String, return x.</span>
         <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">x</span>) <span class="op">=</span> <span class="ident">x</span>.<span class="ident">as_string</span>() {
@@ -254,14 +250,14 @@
 
             <span class="comment">// Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vars</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-            <span class="ident">body</span>.<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vars</span>);
+            <span class="ident">body</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vars</span>);
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">context</span>
                 .<span class="ident">realm</span>
                 .<span class="ident">environments</span>
                 .<span class="ident">has_lex_binding_until_function_environment</span>(<span class="kw-2">&amp;</span><span class="ident">vars</span>)
             {
-                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>);
-                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as lexically declaration&quot;</span>);
+                <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
+                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;variable declaration `{name}` in eval function already exists as lexically declaration&quot;</span>);
                 <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">msg</span>);
             }
 

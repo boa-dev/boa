@@ -1042,14 +1042,6 @@
 <span id="1040">1040</span>
 <span id="1041">1041</span>
 <span id="1042">1042</span>
-<span id="1043">1043</span>
-<span id="1044">1044</span>
-<span id="1045">1045</span>
-<span id="1046">1046</span>
-<span id="1047">1047</span>
-<span id="1048">1048</span>
-<span id="1049">1049</span>
-<span id="1050">1050</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -1065,7 +1057,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
-    <span class="ident">bytecompiler</span>::{<span class="ident">FunctionCompiler</span>, <span class="ident">FunctionKind</span>},
+    <span class="ident">bytecompiler::FunctionCompiler</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments::DeclarativeEnvironmentStack</span>,
     <span class="ident">js_string</span>,
@@ -1077,10 +1069,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">string::utf16</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">syntax</span>::{
-        <span class="ident">ast::node</span>::{<span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
-        <span class="ident">Parser</span>,
-    },
+    <span class="ident">syntax</span>::{<span class="ident">ast::function::FormalParameterList</span>, <span class="ident">ast::StatementList</span>, <span class="ident">Parser</span>},
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
@@ -1646,7 +1635,7 @@
                         {
                             <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
                                 <span class="string">&quot;Redeclaration of formal parameter `{}`&quot;</span>,
-                                <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>)
+                                <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">param_name</span>.<span class="ident">sym</span>())
                             ));
                         }
                     }
@@ -1657,7 +1646,6 @@
                 .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
                 .<span class="ident">generator</span>(<span class="ident">generator</span>)
                 .<span class="ident">r#async</span>(<span class="ident">r#async</span>)
-                .<span class="ident">kind</span>(<span class="ident">FunctionKind::Expression</span>)
                 .<span class="ident">compile</span>(<span class="kw-2">&amp;</span><span class="ident">parameters</span>, <span class="kw-2">&amp;</span><span class="ident">body</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
@@ -1675,7 +1663,6 @@
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>()
                 .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
                 .<span class="ident">generator</span>(<span class="bool-val">true</span>)
-                .<span class="ident">kind</span>(<span class="ident">FunctionKind::Expression</span>)
                 .<span class="ident">compile</span>(
                     <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::empty</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
@@ -1689,14 +1676,11 @@
 
             <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)
         } <span class="kw">else</span> {
-            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>()
-                .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
-                .<span class="ident">kind</span>(<span class="ident">FunctionKind::Expression</span>)
-                .<span class="ident">compile</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::empty</span>(),
-                    <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
-                    <span class="ident">context</span>,
-                )<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>().<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>).<span class="ident">compile</span>(
+                <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::empty</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
+                <span class="ident">context</span>,
+            )<span class="question-mark">?</span>;
 
             <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
             <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span>

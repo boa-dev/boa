@@ -143,23 +143,19 @@
 <span id="141">141</span>
 <span id="142">142</span>
 <span id="143">143</span>
-<span id="144">144</span>
-<span id="145">145</span>
-<span id="146">146</span>
-<span id="147">147</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{<span class="ident">function_contains_super</span>, <span class="ident">AsyncFunctionExpr</span>},
+        <span class="ident">expression::Identifier</span>, <span class="ident">function::function_contains_super</span>, <span class="ident">function::AsyncFunction</span>,
         <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::BindingIdentifier</span>,
         <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>},
-        <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -176,7 +172,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">AsyncFunctionExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
 }
 
@@ -184,7 +180,7 @@
     <span class="doccomment">/// Creates a new `AsyncFunctionExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
     {
         <span class="self">Self</span> {
@@ -198,13 +194,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">AsyncFunctionExpr</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">AsyncFunction</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncFunctionExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">peek_expect_no_lineterminator</span>(<span class="number">0</span>, <span class="string">&quot;async function expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
@@ -225,7 +217,7 @@
         <span class="comment">// Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,</span>
         <span class="comment">// it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="ident">name</span> {
-            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> [<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+            <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() <span class="op">&amp;&amp;</span> [<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">sym</span>()) {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                     <span class="string">&quot;Unexpected eval or arguments in strict mode&quot;</span>.<span class="ident">into</span>(),
                     <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
@@ -291,7 +283,7 @@
             )));
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">AsyncFunctionExpr::new</span>(<span class="ident">name</span>, <span class="ident">params</span>, <span class="ident">body</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">AsyncFunction::new</span>(<span class="ident">name</span>, <span class="ident">params</span>, <span class="ident">body</span>))
     }
 }
 </code></pre></div>

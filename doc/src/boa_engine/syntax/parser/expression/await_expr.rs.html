@@ -59,10 +59,6 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-<span id="60">60</span>
-<span id="61">61</span>
-<span id="62">62</span>
-<span id="63">63</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Await expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -74,9 +70,9 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::unary::UnaryExpression</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::AwaitExpr</span>, <span class="ident">Keyword</span>},
+    <span class="ident">ast</span>::{<span class="ident">expression::Await</span>, <span class="ident">Keyword</span>},
     <span class="ident">lexer::TokenKind</span>,
-    <span class="ident">parser</span>::{<span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>},
+    <span class="ident">parser</span>::{<span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
@@ -110,13 +106,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">AwaitExpr</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Await</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Await</span>, <span class="bool-val">false</span>)),
             <span class="string">&quot;Await expression parsing&quot;</span>,

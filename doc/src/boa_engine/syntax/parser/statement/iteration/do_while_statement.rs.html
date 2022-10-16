@@ -110,18 +110,6 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
-<span id="120">120</span>
-<span id="121">121</span>
-<span id="122">122</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Do-while statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -132,11 +120,11 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-do-while-statement</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::DoWhileLoop</span>, <span class="ident">Keyword</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{<span class="ident">statement::DoWhileLoop</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>},
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
         <span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>,
-        <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
@@ -184,25 +172,13 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">DoWhileLoop</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;DoWhileStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
-            .<span class="ident">expect</span>((<span class="ident">Keyword::Do</span>, <span class="bool-val">false</span>), <span class="string">&quot;do while statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-            .<span class="ident">span</span>()
-            .<span class="ident">end</span>();
+        <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::Do</span>, <span class="bool-val">false</span>), <span class="string">&quot;do while statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-
-        <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
-        }
 
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
         <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {

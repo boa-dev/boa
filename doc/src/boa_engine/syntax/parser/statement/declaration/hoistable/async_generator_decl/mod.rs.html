@@ -114,10 +114,6 @@
 <span id="112">112</span>
 <span id="113">113</span>
 <span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Declaration parsing</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Implements `TokenParser` for `AsyncGeneratorDeclaration`on and outputs an `AsyncGeneratorDecl`</span>
@@ -127,10 +123,10 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::AsyncGeneratorDecl</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{<span class="ident">function::AsyncGenerator</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>},
     <span class="ident">parser</span>::{
         <span class="ident">statement::declaration::hoistable</span>::{<span class="ident">parse_callable_declaration</span>, <span class="ident">CallableDeclaration</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
@@ -211,13 +207,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">AsyncGeneratorDecl</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">AsyncGenerator</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             (<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>),
             <span class="string">&quot;async generator declaration&quot;</span>,
@@ -233,7 +225,7 @@
 
         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">parse_callable_declaration</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">AsyncGeneratorDecl::new</span>(<span class="ident">result</span>.<span class="number">0</span>, <span class="ident">result</span>.<span class="number">1</span>, <span class="ident">result</span>.<span class="number">2</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">AsyncGenerator::new</span>(<span class="prelude-val">Some</span>(<span class="ident">result</span>.<span class="number">0</span>), <span class="ident">result</span>.<span class="number">1</span>, <span class="ident">result</span>.<span class="number">2</span>))
     }
 }
 </code></pre></div>

@@ -102,6 +102,9 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Conditional operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -112,14 +115,17 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-conditional-operator</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">node::ConditionalOp</span>, <span class="ident">Node</span>, <span class="ident">Punctuator</span>},
+    <span class="ident">ast</span>::{
+        <span class="ident">expression</span>::{<span class="ident">operator::conditional::Conditional</span>, <span class="ident">Identifier</span>},
+        <span class="ident">Expression</span>, <span class="ident">Punctuator</span>,
+    },
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{<span class="ident">AssignmentExpression</span>, <span class="ident">ShortCircuitExpression</span>},
         <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
@@ -133,7 +139,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser::expression</span>) <span class="kw">struct</span> <span class="ident">ConditionalExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -148,7 +154,7 @@
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -166,9 +172,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ConditionalExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ShortCircuitExpression::new</span>(
             <span class="self">self</span>.<span class="ident">name</span>,
@@ -197,7 +203,7 @@
                     <span class="self">self</span>.<span class="ident">allow_await</span>,
                 )
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ConditionalOp::new</span>(<span class="ident">lhs</span>, <span class="ident">then_clause</span>, <span class="ident">else_clause</span>).<span class="ident">into</span>());
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Conditional::new</span>(<span class="ident">lhs</span>, <span class="ident">then_clause</span>, <span class="ident">else_clause</span>).<span class="ident">into</span>());
             }
         }
 

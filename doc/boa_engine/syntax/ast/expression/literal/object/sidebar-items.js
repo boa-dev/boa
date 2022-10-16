@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ObjectLiteral","Objects in JavaScript may be defined as an unordered collection of related data, of primitive or reference types, in the form of “key: value” pairs."]]};

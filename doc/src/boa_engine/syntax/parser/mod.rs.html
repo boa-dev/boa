@@ -413,6 +413,21 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -429,10 +444,6 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">string::utf16</span>,
     <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{<span class="ident">ContainsSymbol</span>, <span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
-            <span class="ident">Position</span>,
-        },
         <span class="ident">lexer::TokenKind</span>,
         <span class="ident">parser</span>::{
             <span class="ident">cursor::Cursor</span>,
@@ -441,12 +452,16 @@
     },
     <span class="ident">Context</span>, <span class="ident">JsString</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">ParseError</span>, <span class="ident">ParseResult</span>};
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">expression::RESERVED_IDENTIFIERS_STRICT</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ast</span>::{
+    <span class="ident">expression::Identifier</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">Position</span>, <span class="ident">StatementList</span>,
+};
 
 <span class="doccomment">/// Trait implemented by parsers.</span>
 <span class="doccomment">///</span>
@@ -461,11 +476,7 @@
     <span class="doccomment">/// Parses the token stream using the current parser.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This method needs to be provided by the implementor type.</span>
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>;
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span>;
 }
 
 <span class="doccomment">/// Boolean representing if the parser should allow a `yield` keyword.</span>
@@ -554,6 +565,11 @@
         <span class="ident">Script::new</span>(<span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)
     }
 
+    <span class="doccomment">/// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Parses the source text input of an `eval` call.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-performeval</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parse_eval</span>(
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">direct</span>: <span class="ident">bool</span>,
@@ -562,67 +578,84 @@
     <span class="kw">where</span>
         <span class="ident">R</span>: <span class="ident">Read</span>,
     {
-        <span class="kw">let</span> (<span class="ident">in_function</span>, <span class="ident">in_method</span>, <span class="ident">in_derived_constructor</span>) <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">function_env</span>) <span class="op">=</span> <span class="ident">context</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Default</span>)]</span>
+        <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::struct_excessive_bools</span>)]</span>
+        <span class="kw">struct</span> <span class="ident">Flags</span> {
+            <span class="ident">in_function</span>: <span class="ident">bool</span>,
+            <span class="ident">in_method</span>: <span class="ident">bool</span>,
+            <span class="ident">in_derived_constructor</span>: <span class="ident">bool</span>,
+            <span class="ident">in_class_field_initializer</span>: <span class="ident">bool</span>,
+        }
+        <span class="comment">// 5. Perform ? HostEnsureCanCompileStrings(evalRealm).</span>
+        <span class="comment">// 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:</span>
+        <span class="comment">//     a. Let script be ParseText(StringToCodePoints(x), Script).</span>
+        <span class="comment">//     b. If script is a List of errors, throw a SyntaxError exception.</span>
+        <span class="comment">//     c. If script Contains ScriptBody is false, return undefined.</span>
+        <span class="comment">//     d. Let body be the ScriptBody of script.</span>
+        <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Script::new</span>(<span class="ident">direct</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// 6. Let inFunction be false.</span>
+        <span class="comment">// 7. Let inMethod be false.</span>
+        <span class="comment">// 8. Let inDerivedConstructor be false.</span>
+        <span class="comment">// 9. Let inClassFieldInitializer be false.</span>
+        <span class="comment">// a. Let thisEnvRec be GetThisEnvironment().</span>
+        <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>
             .<span class="ident">realm</span>
             .<span class="ident">environments</span>
             .<span class="ident">get_this_environment</span>()
             .<span class="ident">as_function_slots</span>()
         {
-            <span class="kw">let</span> <span class="ident">function_env_borrow</span> <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">has_super_binding</span> <span class="op">=</span> <span class="ident">function_env_borrow</span>.<span class="ident">has_super_binding</span>();
-            <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">function_env_borrow</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
-            (
-                <span class="bool-val">true</span>,
-                <span class="ident">has_super_binding</span>,
-                <span class="ident">function_object</span>
-                    .<span class="ident">as_function</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>)
-                    .<span class="ident">is_derived_constructor</span>(),
-            )
-        } <span class="kw">else</span> {
-            (<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
-        };
-
-        <span class="kw">let</span> <span class="ident">statement_list</span> <span class="op">=</span> <span class="ident">Script::new</span>(<span class="ident">direct</span>).<span class="ident">parse</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">cursor</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_super_property</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_super_call</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">contains_new_target</span> <span class="op">=</span> <span class="bool-val">false</span>;
-        <span class="kw">if</span> <span class="ident">direct</span> {
-            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">statement_list</span>.<span class="ident">items</span>() {
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_super_property</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>) {
-                    <span class="ident">contains_super_property</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                }
-
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_super_call</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
-                    <span class="ident">contains_super_call</span> <span class="op">=</span> <span class="bool-val">true</span>;
-                }
-
-                <span class="kw">if</span> <span class="op">!</span><span class="ident">contains_new_target</span> <span class="op">&amp;&amp;</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
-                    <span class="ident">contains_new_target</span> <span class="op">=</span> <span class="bool-val">true</span>;
+            <span class="comment">// 10. If direct is true, then</span>
+            <span class="comment">//     b. If thisEnvRec is a Function Environment Record, then</span>
+            <span class="prelude-val">Some</span>(<span class="ident">function_env</span>) <span class="kw">if</span> <span class="ident">direct</span> =&gt; {
+                <span class="kw">let</span> <span class="ident">function_env</span> <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">borrow</span>();
+                <span class="comment">// i. Let F be thisEnvRec.[[FunctionObject]].</span>
+                <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
+                <span class="ident">Flags</span> {
+                    <span class="comment">// ii. Set inFunction to true.</span>
+                    <span class="ident">in_function</span>: <span class="bool-val">true</span>,
+                    <span class="comment">// iii. Set inMethod to thisEnvRec.HasSuperBinding().</span>
+                    <span class="ident">in_method</span>: <span class="ident">function_env</span>.<span class="ident">has_super_binding</span>(),
+                    <span class="comment">// iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.</span>
+                    <span class="ident">in_derived_constructor</span>: <span class="ident">function_object</span>
+                        .<span class="ident">as_function</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>)
+                        .<span class="ident">is_derived_constructor</span>(),
+                    <span class="comment">// TODO:</span>
+                    <span class="comment">// v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].</span>
+                    <span class="comment">// vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.</span>
+                    <span class="ident">in_class_field_initializer</span>: <span class="bool-val">false</span>,
                 }
             }
+            <span class="kw">_</span> =&gt; <span class="ident">Flags::default</span>(),
+        };
+
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_function</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::NewTarget</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="string">&quot;invalid `new.target` expression inside eval&quot;</span>,
+                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_method</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="string">&quot;invalid `super` reference inside eval&quot;</span>,
+                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+        <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">in_derived_constructor</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="string">&quot;invalid `super` call inside eval&quot;</span>,
+                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            ));
+        }
+        <span class="kw">if</span> <span class="ident">flags</span>.<span class="ident">in_class_field_initializer</span> <span class="op">&amp;&amp;</span> <span class="ident">body</span>.<span class="ident">contains_arguments</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                <span class="string">&quot;invalid `arguments` reference inside eval&quot;</span>,
+                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
+            ));
         }
 
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">in_function</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_new_target</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                <span class="string">&quot;invalid new.target usage&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-            ));
-        }
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">in_method</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_super_property</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                <span class="string">&quot;invalid super usage&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-            ));
-        }
-        <span class="kw">if</span> <span class="op">!</span><span class="ident">in_derived_constructor</span> <span class="op">&amp;&amp;</span> <span class="ident">contains_super_call</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                <span class="string">&quot;invalid super usage&quot;</span>,
-                <span class="ident">Position::new</span>(<span class="number">1</span>, <span class="number">1</span>),
-            ));
-        }
-        <span class="prelude-val">Ok</span>(<span class="ident">statement_list</span>)
+        <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
     }
 
     <span class="doccomment">/// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.</span>
@@ -702,9 +735,10 @@
                 <span class="comment">// It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.</span>
                 <span class="comment">// It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.</span>
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">var_declared_names</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
-                <span class="ident">statement_list</span>.<span class="ident">var_declared_names_new</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
+                <span class="ident">statement_list</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">var_declared_names</span>);
                 <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">statement_list</span>.<span class="ident">lexically_declared_names</span>();
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Sym</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lexically_declared_names_map</span>: <span class="ident">FxHashMap</span><span class="op">&lt;</span><span class="ident">Identifier</span>, <span class="ident">bool</span><span class="op">&gt;</span> <span class="op">=</span>
+                    <span class="ident">FxHashMap::default</span>();
                 <span class="kw">for</span> (<span class="ident">name</span>, <span class="ident">is_function_declaration</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">lexically_declared_names</span> {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">existing_is_function_declaration</span>) <span class="op">=</span>
                         <span class="ident">lexically_declared_names_map</span>.<span class="ident">get</span>(<span class="ident">name</span>)
@@ -731,7 +765,7 @@
                         ));
                     }
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">is_function_declaration</span> {
-                        <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="kw-2">*</span><span class="ident">name</span>);
+                        <span class="kw">let</span> <span class="ident">name_str</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
                         <span class="kw">let</span> <span class="ident">desc</span> <span class="op">=</span> <span class="ident">context</span>
                             .<span class="ident">realm</span>
                             .<span class="ident">global_property_map</span>
@@ -789,16 +823,12 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">StatementList</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident"><span class="self">self</span>::statement::StatementList::new</span>(<span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="kw-2">&amp;</span>[])
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">direct_eval</span> {
-            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">items</span>() {
+            <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
                 <span class="comment">// It is a Syntax Error if StatementList Contains super unless the source text containing super is eval</span>
                 <span class="comment">// code that is being processed by a direct eval.</span>
                 <span class="comment">// Additional early error rules for super within direct eval are defined in 19.2.1.1.</span>

@@ -211,6 +211,20 @@
 <span id="209">209</span>
 <span id="210">210</span>
 <span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Member expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -221,9 +235,12 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::arguments::Arguments</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{
-            <span class="ident">field</span>::{<span class="ident">get_private_field::GetPrivateField</span>, <span class="ident">GetConstField</span>, <span class="ident">GetField</span>},
-            <span class="ident">Call</span>, <span class="ident">GetSuperField</span>, <span class="ident">New</span>, <span class="ident">Node</span>,
+        <span class="self">self</span>,
+        <span class="ident">expression</span>::{
+            <span class="ident">access</span>::{
+                <span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>, <span class="ident">SuperPropertyAccess</span>,
+            },
+            <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
         },
         <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
     },
@@ -247,7 +264,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-MemberExpression</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">MemberExpression</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
 }
@@ -256,7 +273,7 @@
     <span class="doccomment">/// Creates a new `MemberExpression` parser.</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">new</span><span class="op">&lt;</span><span class="ident">N</span>, <span class="ident">Y</span>, <span class="ident">A</span><span class="op">&gt;</span>(<span class="ident">name</span>: <span class="ident">N</span>, <span class="ident">allow_yield</span>: <span class="ident">Y</span>, <span class="ident">allow_await</span>: <span class="ident">A</span>) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
     {
@@ -272,9 +289,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;MemberExpression&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
@@ -291,7 +308,9 @@
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Dot</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
                     <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                     <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::TARGET</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">Node::NewTarget</span>),
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">Sym::TARGET</span>) =&gt; {
+                            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ast::Expression::NewTarget</span>)
+                        }
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                 <span class="string">&quot;unexpected private identifier&quot;</span>,
@@ -311,7 +330,7 @@
                 };
                 <span class="kw">let</span> <span class="ident">call_node</span> <span class="op">=</span> <span class="ident">Call::new</span>(<span class="ident">lhs</span>, <span class="ident">args</span>);
 
-                <span class="ident">Node::from</span>(<span class="ident">New::from</span>(<span class="ident">call_node</span>))
+                <span class="ident">ast::Expression::from</span>(<span class="ident">New::from</span>(<span class="ident">call_node</span>))
             }
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Super</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
@@ -320,11 +339,19 @@
                     <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Dot</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
                         <span class="kw">let</span> <span class="ident">field</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                            <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">GetSuperField::from</span>(<span class="kw-2">*</span><span class="ident">name</span>),
-                            <span class="ident">TokenKind::Keyword</span>((<span class="ident">kw</span>, <span class="kw">_</span>)) =&gt; <span class="ident">GetSuperField::from</span>(<span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>)),
-                            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>) =&gt; <span class="ident">GetSuperField::from</span>(<span class="ident">Sym::TRUE</span>),
-                            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>) =&gt; <span class="ident">GetSuperField::from</span>(<span class="ident">Sym::FALSE</span>),
-                            <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">GetSuperField::from</span>(<span class="ident">Sym::NULL</span>),
+                            <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; {
+                                <span class="ident">SuperPropertyAccess::new</span>(<span class="ident">PropertyAccessField::from</span>(<span class="kw-2">*</span><span class="ident">name</span>))
+                            }
+                            <span class="ident">TokenKind::Keyword</span>((<span class="ident">kw</span>, <span class="kw">_</span>)) =&gt; {
+                                <span class="ident">SuperPropertyAccess::new</span>(<span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>).<span class="ident">into</span>())
+                            }
+                            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>) =&gt; {
+                                <span class="ident">SuperPropertyAccess::new</span>(<span class="ident">Sym::TRUE</span>.<span class="ident">into</span>())
+                            }
+                            <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>) =&gt; {
+                                <span class="ident">SuperPropertyAccess::new</span>(<span class="ident">Sym::FALSE</span>.<span class="ident">into</span>())
+                            }
+                            <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">SuperPropertyAccess::new</span>(<span class="ident">Sym::NULL</span>.<span class="ident">into</span>()),
                             <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="kw">_</span>) =&gt; {
                                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                                     <span class="string">&quot;unexpected private identifier&quot;</span>,
@@ -336,7 +363,7 @@
                                     <span class="ident">token</span>.<span class="ident">to_string</span>(<span class="ident">interner</span>),
                                     <span class="ident">token</span>.<span class="ident">span</span>(),
                                     <span class="string">&quot;expected super property&quot;</span>,
-                                ))
+                                ));
                             }
                         };
                         <span class="ident">field</span>.<span class="ident">into</span>()
@@ -345,7 +372,7 @@
                         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;super property&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                        <span class="ident">GetSuperField::from</span>(<span class="ident">expr</span>).<span class="ident">into</span>()
+                        <span class="ident">ast::Expression::from</span>(<span class="ident">SuperPropertyAccess::new</span>(<span class="ident">expr</span>.<span class="ident">into</span>()))
                     }
                     <span class="kw">_</span> =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(
@@ -370,22 +397,22 @@
                     <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
                     <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetConstField::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>(),
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>(),
                         <span class="ident">TokenKind::Keyword</span>((<span class="ident">kw</span>, <span class="kw">_</span>)) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetConstField::new</span>(<span class="ident">lhs</span>, <span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>)).<span class="ident">into</span>();
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>)).<span class="ident">into</span>();
                         }
                         <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetConstField::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::TRUE</span>).<span class="ident">into</span>();
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::TRUE</span>).<span class="ident">into</span>();
                         }
                         <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetConstField::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::FALSE</span>).<span class="ident">into</span>();
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::FALSE</span>).<span class="ident">into</span>();
                         }
                         <span class="ident">TokenKind::NullLiteral</span> =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetConstField::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::NULL</span>).<span class="ident">into</span>();
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::NULL</span>).<span class="ident">into</span>();
                         }
                         <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="ident">name</span>) =&gt; {
                             <span class="ident">cursor</span>.<span class="ident">push_used_private_identifier</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>())<span class="question-mark">?</span>;
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetPrivateField::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>();
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PrivatePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>();
                         }
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
@@ -404,7 +431,7 @@
                     <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;member expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">GetField::new</span>(<span class="ident">lhs</span>, <span class="ident">idx</span>).<span class="ident">into</span>();
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">idx</span>).<span class="ident">into</span>();
                 }
                 <span class="ident">TokenKind::TemplateNoSubstitution</span> { .. } <span class="op">|</span> <span class="ident">TokenKind::TemplateMiddle</span> { .. } =&gt; {
                     <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">TaggedTemplateLiteral::new</span>(
@@ -413,7 +440,8 @@
                         <span class="ident">tok</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
                         <span class="ident">lhs</span>,
                     )
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">into</span>();
                 }
                 <span class="kw">_</span> =&gt; <span class="kw">break</span>,
             }

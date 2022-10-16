@@ -198,13 +198,13 @@
 <span id="196">196</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::position::Position</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::Span</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">position::Position</span>, <span class="ident">Node</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::Error</span> <span class="kw">as</span> <span class="ident">LexError</span>;
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="doccomment">/// Result of a parsing operation.</span>
-<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParseResult</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Node</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>;
+<span class="kw">pub</span> <span class="kw">type</span> <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">ParseError</span><span class="op">&gt;</span>;
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ErrorContext</span> {
     <span class="kw">fn</span> <span class="ident">context</span>(<span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) -&gt; <span class="self">Self</span>;

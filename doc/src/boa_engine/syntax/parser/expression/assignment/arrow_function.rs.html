@@ -236,9 +236,6 @@
 <span id="234">234</span>
 <span id="235">235</span>
 <span id="236">236</span>
-<span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Arrow function parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -251,11 +248,12 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::AssignmentExpression</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{
-            <span class="ident">declaration::Declaration</span>, <span class="ident">ArrowFunctionDecl</span>, <span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>,
-            <span class="ident">FormalParameterListFlags</span>, <span class="ident">Node</span>, <span class="ident">Return</span>, <span class="ident">StatementList</span>,
-        },
-        <span class="ident">Punctuator</span>,
+        <span class="self">self</span>,
+        <span class="ident">declaration::Variable</span>,
+        <span class="ident">expression::Identifier</span>,
+        <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FormalParameterListFlags</span>},
+        <span class="ident">statement::Return</span>,
+        <span class="ident">Expression</span>, <span class="ident">Punctuator</span>, <span class="ident">StatementList</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
@@ -279,7 +277,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">ArrowFunction</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -294,7 +292,7 @@
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -312,13 +310,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ArrowFunctionDecl</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::function::ArrowFunction</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ArrowFunction&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
 
@@ -347,7 +341,7 @@
                 (
                     <span class="ident">FormalParameterList::new</span>(
                         <span class="ident">Box::new</span>([<span class="ident">FormalParameter::new</span>(
-                            <span class="ident">Declaration::new_with_identifier</span>(<span class="ident">param</span>, <span class="prelude-val">None</span>),
+                            <span class="ident">Variable::from_identifier</span>(<span class="ident">param</span>, <span class="prelude-val">None</span>),
                             <span class="bool-val">false</span>,
                         )]),
                         <span class="ident">flags</span>,
@@ -393,7 +387,7 @@
             <span class="ident">params_start_position</span>,
         )<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">ArrowFunctionDecl::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">params</span>, <span class="ident">body</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">ast::function::ArrowFunction::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">params</span>, <span class="ident">body</span>))
     }
 }
 
@@ -421,11 +415,7 @@
 {
     <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">StatementList</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">cursor</span>
             .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
             .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
@@ -437,9 +427,13 @@
                 <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBlock</span>, <span class="string">&quot;arrow function&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">StatementList::from</span>(<span class="macro">vec!</span>[<span class="ident">Return::new</span>(
-                <span class="ident">ExpressionBody::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">false</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
-                <span class="prelude-val">None</span>,
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">StatementList::from</span>(<span class="macro">vec!</span>[<span class="ident">ast::Statement::Return</span>(
+                <span class="ident">Return::new</span>(
+                    <span class="ident">ExpressionBody::new</span>(<span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">false</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                        .<span class="ident">into</span>(),
+                    <span class="prelude-val">None</span>,
+                ),
             )
             .<span class="ident">into</span>()])),
         }
@@ -471,9 +465,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="self">self</span>.<span class="ident">allow_in</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
     }

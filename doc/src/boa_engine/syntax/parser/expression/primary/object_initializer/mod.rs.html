@@ -985,44 +985,6 @@
 <span id="983">983</span>
 <span id="984">984</span>
 <span id="985">985</span>
-<span id="986">986</span>
-<span id="987">987</span>
-<span id="988">988</span>
-<span id="989">989</span>
-<span id="990">990</span>
-<span id="991">991</span>
-<span id="992">992</span>
-<span id="993">993</span>
-<span id="994">994</span>
-<span id="995">995</span>
-<span id="996">996</span>
-<span id="997">997</span>
-<span id="998">998</span>
-<span id="999">999</span>
-<span id="1000">1000</span>
-<span id="1001">1001</span>
-<span id="1002">1002</span>
-<span id="1003">1003</span>
-<span id="1004">1004</span>
-<span id="1005">1005</span>
-<span id="1006">1006</span>
-<span id="1007">1007</span>
-<span id="1008">1008</span>
-<span id="1009">1009</span>
-<span id="1010">1010</span>
-<span id="1011">1011</span>
-<span id="1012">1012</span>
-<span id="1013">1013</span>
-<span id="1014">1014</span>
-<span id="1015">1015</span>
-<span id="1016">1016</span>
-<span id="1017">1017</span>
-<span id="1018">1018</span>
-<span id="1019">1019</span>
-<span id="1020">1020</span>
-<span id="1021">1021</span>
-<span id="1022">1022</span>
-<span id="1023">1023</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -1035,27 +997,26 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">string::utf16</span>,
-    <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{
-            <span class="ident">node</span>::{
-                <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
-                <span class="ident">object</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
-                <span class="ident">AsyncFunctionExpr</span>, <span class="ident">AsyncGeneratorExpr</span>, <span class="ident">FormalParameterList</span>, <span class="ident">FunctionExpr</span>,
-                <span class="ident">GeneratorExpr</span>, <span class="ident">Node</span>, <span class="ident">Object</span>,
-            },
-            <span class="ident">Const</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
+    <span class="ident">ast</span>::{
+        <span class="ident">expression</span>::{
+            <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">Literal</span>},
+            <span class="ident">Identifier</span>,
         },
-        <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
-        <span class="ident">parser</span>::{
-            <span class="ident">expression</span>::{<span class="ident">identifiers::IdentifierReference</span>, <span class="ident">AssignmentExpression</span>},
-            <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>},
-            <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
-        },
+        <span class="ident">function</span>::{<span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>},
+        <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
+        <span class="ident">property</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
+        <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
+    },
+    <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
+    <span class="ident">parser</span>::{
+        <span class="ident">expression</span>::{<span class="ident">identifiers::IdentifierReference</span>, <span class="ident">AssignmentExpression</span>},
+        <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>},
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
@@ -1091,13 +1052,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Object</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">literal::ObjectLiteral</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ObjectLiteral&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">elements</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
 
@@ -1126,7 +1083,7 @@
             }
         }
 
-        <span class="prelude-val">Ok</span>(<span class="ident">Object::from</span>(<span class="ident">elements</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">literal::ObjectLiteral::from</span>(<span class="ident">elements</span>))
     }
 }
 
@@ -1160,13 +1117,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">object::PropertyDefinition</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">property::PropertyDefinition</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PropertyDefinition&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">match</span> <span class="ident">cursor</span>
@@ -1177,7 +1130,10 @@
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::CloseBlock</span> <span class="op">|</span> <span class="ident">Punctuator::Comma</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">IdentifierReference::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::property</span>(<span class="ident">ident</span>.<span class="ident">sym</span>(), <span class="ident">ident</span>));
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::Property</span>(
+                    <span class="ident">ident</span>.<span class="ident">sym</span>().<span class="ident">into</span>(),
+                    <span class="ident">ident</span>.<span class="ident">into</span>(),
+                ));
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                 <span class="kw">return</span> <span class="ident">CoverInitializedName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
@@ -1190,7 +1146,7 @@
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Spread</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">node</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::SpreadObject</span>(<span class="ident">node</span>));
         }
 
         <span class="comment">//Async [AsyncMethod, AsyncGeneratorMethod] object methods</span>
@@ -1227,7 +1183,7 @@
                     }
 
                     <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span>
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">object::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="op">=</span>
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">property::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="op">=</span>
                             <span class="ident">class_element_name</span>
                         {
                             <span class="ident">property_name</span>
@@ -1238,15 +1194,15 @@
                             ));
                         };
 
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                        <span class="ident">method</span>,
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
                         <span class="ident">property_name</span>,
+                        <span class="ident">method</span>,
                     ));
                 }
                 <span class="kw">let</span> (<span class="ident">class_element_name</span>, <span class="ident">method</span>) <span class="op">=</span>
                     <span class="ident">AsyncMethod::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-                <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">object::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="op">=</span>
+                <span class="kw">let</span> <span class="ident">property_name</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">property::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) <span class="op">=</span>
                     <span class="ident">class_element_name</span>
                 {
                     <span class="ident">property_name</span>
@@ -1262,9 +1218,9 @@
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
                 }
 
-                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                    <span class="ident">method</span>,
+                <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
                     <span class="ident">property_name</span>,
+                    <span class="ident">method</span>,
                 ));
             }
             <span class="kw">_</span> =&gt; {}
@@ -1290,13 +1246,13 @@
             }
 
             <span class="kw">match</span> <span class="ident">class_element_name</span> {
-                <span class="ident">object::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                        <span class="ident">method</span>,
+                <span class="ident">property::ClassElementName::PropertyName</span>(<span class="ident">property_name</span>) =&gt; {
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
                         <span class="ident">property_name</span>,
+                        <span class="ident">method</span>,
                     ))
                 }
-                <span class="ident">object::ClassElementName::PrivateIdentifier</span>(<span class="kw">_</span>) =&gt; {
+                <span class="ident">property::ClassElementName::PrivateIdentifier</span>(<span class="kw">_</span>) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                         <span class="string">&quot;private identifier not allowed in object literal&quot;</span>,
                         <span class="ident">position</span>,
@@ -1312,7 +1268,7 @@
         <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Colon</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
             <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::property</span>(<span class="ident">property_name</span>, <span class="ident">value</span>));
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::Property</span>(<span class="ident">property_name</span>, <span class="ident">value</span>));
         }
 
         <span class="kw">let</span> <span class="ident">ordinary_method</span> <span class="op">=</span> <span class="ident">cursor</span>
@@ -1323,7 +1279,7 @@
 
         <span class="kw">match</span> <span class="ident">property_name</span> {
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; get ClassElementName[?Yield, ?Await] ( ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">object::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::GET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
+            <span class="ident">property::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::GET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
                     .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
                     .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
@@ -1361,17 +1317,17 @@
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(<span class="string">&quot;invalid super usage&quot;</span>, <span class="ident">position</span>));
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                    <span class="ident">MethodDefinition::Get</span>(<span class="ident">FunctionExpr::new</span>(
+                <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
+                    <span class="ident">property_name</span>,
+                    <span class="ident">MethodDefinition::Get</span>(<span class="ident">Function::new</span>(
                         <span class="prelude-val">None</span>,
                         <span class="ident">FormalParameterList::default</span>(),
                         <span class="ident">body</span>,
                     )),
-                    <span class="ident">property_name</span>,
                 ))
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }</span>
-            <span class="ident">object::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::SET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
+            <span class="ident">property::PropertyName::Literal</span>(<span class="ident">str</span>) <span class="kw">if</span> <span class="ident">str</span> <span class="op">==</span> <span class="ident">Sym::SET</span> <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">ordinary_method</span> =&gt; {
                 <span class="ident">property_name</span> <span class="op">=</span> <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1422,9 +1378,9 @@
                     ));
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                    <span class="ident">MethodDefinition::Set</span>(<span class="ident">FunctionExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">parameters</span>, <span class="ident">body</span>)),
+                <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
                     <span class="ident">property_name</span>,
+                    <span class="ident">MethodDefinition::Set</span>(<span class="ident">Function::new</span>(<span class="prelude-val">None</span>, <span class="ident">parameters</span>, <span class="ident">body</span>)),
                 ))
             }
             <span class="comment">// MethodDefinition[?Yield, ?Await] -&gt; ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }</span>
@@ -1501,9 +1457,9 @@
                     ));
                 }
 
-                <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::method_definition</span>(
-                    <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">FunctionExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
+                <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::MethodDefinition</span>(
                     <span class="ident">property_name</span>,
+                    <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">Function::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
                 ))
             }
         }
@@ -1540,13 +1496,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">object::PropertyName</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">property::PropertyName</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;PropertyName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
@@ -1559,27 +1511,20 @@
                 <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;expected token &#39;]&#39;&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">node</span>.<span class="ident">into</span>());
             }
-            <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">object::PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
-            <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">name</span>) =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">name</span>)).<span class="ident">into</span>(),
+            <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) <span class="op">|</span> <span class="ident">TokenKind::StringLiteral</span>(<span class="ident">name</span>) =&gt; (<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>(),
             <span class="ident">TokenKind::NumericLiteral</span>(<span class="ident">num</span>) =&gt; <span class="kw">match</span> <span class="ident">num</span> {
-                <span class="ident">Numeric::Rational</span>(<span class="ident">num</span>) =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">num</span>)).<span class="ident">into</span>(),
-                <span class="ident">Numeric::Integer</span>(<span class="ident">num</span>) =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="kw-2">*</span><span class="ident">num</span>)).<span class="ident">into</span>(),
-                <span class="ident">Numeric::BigInt</span>(<span class="ident">num</span>) =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())).<span class="ident">into</span>(),
+                <span class="ident">Numeric::Rational</span>(<span class="ident">num</span>) =&gt; <span class="ident">Expression::Literal</span>(<span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">num</span>)).<span class="ident">into</span>(),
+                <span class="ident">Numeric::Integer</span>(<span class="ident">num</span>) =&gt; <span class="ident">Expression::Literal</span>(<span class="ident">Literal::from</span>(<span class="kw-2">*</span><span class="ident">num</span>)).<span class="ident">into</span>(),
+                <span class="ident">Numeric::BigInt</span>(<span class="ident">num</span>) =&gt; <span class="ident">Expression::Literal</span>(<span class="ident">Literal::from</span>(<span class="ident">num</span>.<span class="ident">clone</span>())).<span class="ident">into</span>(),
             },
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">word</span>, <span class="kw">_</span>)) =&gt; {
                 <span class="kw">let</span> (<span class="ident">utf8</span>, <span class="ident">utf16</span>) <span class="op">=</span> <span class="ident">word</span>.<span class="ident">as_str</span>();
-                <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">utf8</span>, <span class="ident">utf16</span>))).<span class="ident">into</span>()
+                <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="ident">utf8</span>, <span class="ident">utf16</span>).<span class="ident">into</span>()
             }
-            <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(<span class="ident">Sym::NULL</span>)).<span class="ident">into</span>(),
+            <span class="ident">TokenKind::NullLiteral</span> =&gt; (<span class="ident">Sym::NULL</span>).<span class="ident">into</span>(),
             <span class="ident">TokenKind::BooleanLiteral</span>(<span class="ident">bool</span>) =&gt; <span class="kw">match</span> <span class="ident">bool</span> {
-                <span class="bool-val">true</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(
-                    <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>)),
-                ))
-                .<span class="ident">into</span>(),
-                <span class="bool-val">false</span> =&gt; <span class="ident">Node::Const</span>(<span class="ident">Const::from</span>(
-                    <span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>)),
-                ))
-                .<span class="ident">into</span>(),
+                <span class="bool-val">true</span> =&gt; (<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;true&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;true&quot;</span>))).<span class="ident">into</span>(),
+                <span class="bool-val">false</span> =&gt; (<span class="ident">interner</span>.<span class="ident">get_or_intern_static</span>(<span class="string">&quot;false&quot;</span>, <span class="macro">utf16!</span>(<span class="string">&quot;false&quot;</span>))).<span class="ident">into</span>(),
             },
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::AbruptEnd</span>),
         };
@@ -1618,13 +1563,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">object::ClassElementName</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">property::ClassElementName</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ClassElementName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">match</span> <span class="ident">cursor</span>
@@ -1635,9 +1576,9 @@
             <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="ident">ident</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">*</span><span class="ident">ident</span>;
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                <span class="prelude-val">Ok</span>(<span class="ident">object::ClassElementName::PrivateIdentifier</span>(<span class="ident">ident</span>))
+                <span class="prelude-val">Ok</span>(<span class="ident">property::ClassElementName::PrivateIdentifier</span>(<span class="ident">ident</span>))
             }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">object::ClassElementName::PropertyName</span>(
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">property::ClassElementName::PropertyName</span>(
                 <span class="ident">PropertyName::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
             )),
         }
@@ -1652,7 +1593,7 @@
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Initializer</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">struct</span> <span class="ident">Initializer</span> {
-    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+    <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     <span class="ident">allow_in</span>: <span class="ident">AllowIn</span>,
     <span class="ident">allow_yield</span>: <span class="ident">AllowYield</span>,
     <span class="ident">allow_await</span>: <span class="ident">AllowAwait</span>,
@@ -1667,7 +1608,7 @@
         <span class="ident">allow_await</span>: <span class="ident">A</span>,
     ) -&gt; <span class="self">Self</span>
     <span class="kw">where</span>
-        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span><span class="op">&gt;</span>,
+        <span class="ident">N</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span><span class="op">&gt;</span>,
         <span class="ident">I</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowIn</span><span class="op">&gt;</span>,
         <span class="ident">Y</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowYield</span><span class="op">&gt;</span>,
         <span class="ident">A</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">AllowAwait</span><span class="op">&gt;</span>,
@@ -1685,9 +1626,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Expression</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Initializer&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Assign</span>, <span class="string">&quot;initializer&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
@@ -1726,13 +1667,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">object::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">property::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;GeneratorMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Mul</span>, <span class="string">&quot;generator method definition&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -1781,7 +1718,7 @@
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">class_element_name</span>,
-            <span class="ident">MethodDefinition::Generator</span>(<span class="ident">GeneratorExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
+            <span class="ident">MethodDefinition::Generator</span>(<span class="ident">Generator::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
         ))
     }
 }
@@ -1816,13 +1753,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">object::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">property::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncGeneratorMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">expect</span>(
             <span class="ident">Punctuator::Mul</span>,
@@ -1899,7 +1832,7 @@
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">name</span>,
-            <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">AsyncGeneratorExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
+            <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">AsyncGenerator::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
         ))
     }
 }
@@ -1934,13 +1867,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">object::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> (<span class="ident">property::ClassElementName</span>, <span class="ident">MethodDefinition</span>);
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;AsyncMethod&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">class_element_name</span> <span class="op">=</span>
@@ -1988,7 +1917,7 @@
 
         <span class="prelude-val">Ok</span>((
             <span class="ident">class_element_name</span>,
-            <span class="ident">MethodDefinition::Async</span>(<span class="ident">AsyncFunctionExpr::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
+            <span class="ident">MethodDefinition::Async</span>(<span class="ident">AsyncFunction::new</span>(<span class="prelude-val">None</span>, <span class="ident">params</span>, <span class="ident">body</span>)),
         ))
     }
 }
@@ -2023,13 +1952,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">object::PropertyDefinition</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">property::PropertyDefinition</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;CoverInitializedName&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
         <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span>
@@ -2037,12 +1962,11 @@
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Assign</span>, <span class="string">&quot;CoverInitializedName&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="ident">ident</span>.<span class="ident">sym</span>(), <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+        <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="prelude-val">Ok</span>(<span class="ident">object::PropertyDefinition::CoverInitializedName</span>(
-            <span class="ident">ident</span>.<span class="ident">sym</span>(),
-            <span class="ident">expr</span>,
+        <span class="prelude-val">Ok</span>(<span class="ident">property::PropertyDefinition::CoverInitializedName</span>(
+            <span class="ident">ident</span>, <span class="ident">expr</span>,
         ))
     }
 }

@@ -405,6 +405,14 @@
 <span id="403">403</span>
 <span id="404">404</span>
 <span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -416,21 +424,22 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
-        <span class="ident">node</span>::{
-            <span class="ident">iteration::IterableLoopInitializer</span>,
-            <span class="ident">operator::assign</span>::{
-                <span class="ident">array_decl_to_declaration_pattern</span>, <span class="ident">object_decl_to_declaration_pattern</span>,
-            },
-            <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">Node</span>,
+        <span class="self">self</span>,
+        <span class="ident">expression::operator::assign</span>::{
+            <span class="ident">array_decl_to_declaration_pattern</span>, <span class="ident">object_decl_to_declaration_pattern</span>,
         },
-        <span class="ident">Const</span>, <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
+        <span class="ident">statement</span>::{
+            <span class="ident">iteration</span>::{<span class="ident">for_loop::ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>},
+            <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>,
+        },
+        <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
     },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::Expression</span>,
-        <span class="ident">statement::declaration::Declaration</span>,
+        <span class="ident">statement::declaration::LexicalDeclaration</span>,
         <span class="ident">statement</span>::{<span class="ident">variable::VariableDeclarationList</span>, <span class="ident">Statement</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -477,13 +486,9 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">Node</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Statement</span>;
 
-    <span class="kw">fn</span> <span class="ident">parse</span>(
-        <span class="self">self</span>,
-        <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
-        <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;ForStatement&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
         <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::For</span>, <span class="bool-val">false</span>), <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
@@ -524,13 +529,14 @@
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="prelude-val">Some</span>(
                     <span class="ident">VariableDeclarationList::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)
-                        .<span class="ident">map</span>(<span class="ident">Node::from</span>)<span class="question-mark">?</span>,
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                        .<span class="ident">into</span>(),
                 )
             }
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Let</span> <span class="op">|</span> <span class="ident">Keyword::Const</span>, <span class="kw">_</span>)) =&gt; <span class="prelude-val">Some</span>(
-                <span class="ident">Declaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                <span class="ident">LexicalDeclaration::new</span>(<span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">true</span>)
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">into</span>(),
             ),
             <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Async</span>, <span class="bool-val">false</span>)) =&gt; {
                 <span class="kw">match</span> <span class="ident">cursor</span>
@@ -546,29 +552,31 @@
                     }
                     <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(
                         <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                            .<span class="ident">into</span>(),
                     ),
                 }
             }
             <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(
                 <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
-                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">into</span>(),
             ),
         };
 
         <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="kw">match</span> (<span class="ident">init</span>.<span class="ident">as_ref</span>(), <span class="ident">token</span>.<span class="ident">kind</span>()) {
+        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+        <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="kw">match</span> (<span class="ident">init</span>, <span class="ident">token</span>.<span class="ident">kind</span>()) {
             (<span class="prelude-val">Some</span>(<span class="kw">_</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span> <span class="op">|</span> <span class="ident">Keyword::Of</span>, <span class="bool-val">true</span>))) =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;Keyword must not contain escaped characters&quot;</span>,
-                    <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>(),
+                    <span class="ident">position</span>,
                 ));
             }
             (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::In</span>, <span class="bool-val">false</span>))) =&gt; {
-                <span class="kw">let</span> <span class="ident">init_position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span>
-                    <span class="ident">node_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">init_position</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>())<span class="question-mark">?</span>;
+                    <span class="ident">initializer_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">position</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>())<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
@@ -582,11 +590,6 @@
                 <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-                <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
-                }
-
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
                 <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.</span>
@@ -597,19 +600,19 @@
                     <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;Cannot use &#39;let&#39; as a lexically bound name&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                     <span class="kw">if</span> <span class="ident">vars</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">bound_names</span>.<span class="ident">insert</span>(<span class="ident">name</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;For loop initializer cannot contain duplicate identifiers&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                 }
@@ -618,7 +621,7 @@
             }
             (<span class="prelude-val">Some</span>(<span class="ident">init</span>), <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Of</span>, <span class="bool-val">false</span>))) =&gt; {
                 <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span>
-                    <span class="ident">node_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">init_position</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>())<span class="question-mark">?</span>;
+                    <span class="ident">initializer_to_iterable_loop_initializer</span>(<span class="ident">init</span>, <span class="ident">position</span>, <span class="ident">cursor</span>.<span class="ident">strict_mode</span>())<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">iterable</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
@@ -632,11 +635,6 @@
                 <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-                <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
-                }
-
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
                 <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.</span>
@@ -647,49 +645,51 @@
                     <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::LET</span> {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;Cannot use &#39;let&#39; as a lexically bound name&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                     <span class="kw">if</span> <span class="ident">vars</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">bound_names</span>.<span class="ident">insert</span>(<span class="ident">name</span>) {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;For loop initializer cannot contain duplicate identifiers&quot;</span>,
-                            <span class="ident">init_position</span>,
+                            <span class="ident">position</span>,
                         ));
                     }
                 }
 
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ForOfLoop::new</span>(<span class="ident">init</span>, <span class="ident">iterable</span>, <span class="ident">body</span>, <span class="ident">r#await</span>).<span class="ident">into</span>());
             }
-            (<span class="prelude-val">Some</span>(<span class="ident">Node::ConstDeclList</span>(<span class="ident">list</span>)), <span class="kw">_</span>) =&gt; {
-                <span class="comment">// Reject const declarations without initializers inside for loops</span>
-                <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
-                    <span class="kw">if</span> <span class="ident">decl</span>.<span class="ident">init</span>().<span class="ident">is_none</span>() {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
-                            <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
-                            <span class="comment">// TODO: get exact position of uninitialized const decl</span>
-                            <span class="ident">init_position</span>,
-                        ));
-                    }
+            (<span class="ident">init</span>, <span class="kw">_</span>) =&gt; <span class="ident">init</span>,
+        };
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ForLoopInitializer::Lexical</span>(<span class="ident">ast::declaration::LexicalDeclaration::Const</span>(
+            <span class="kw-2">ref</span> <span class="ident">list</span>,
+        ))) <span class="op">=</span> <span class="ident">init</span>
+        {
+            <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
+                <span class="kw">if</span> <span class="ident">decl</span>.<span class="ident">init</span>().<span class="ident">is_none</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;Expected initializer for const declaration&quot;</span>,
+                        <span class="ident">position</span>,
+                    ));
                 }
             }
-            <span class="kw">_</span> =&gt; {}
         }
 
         <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Semicolon</span>, <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">cond</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::Semicolon</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
-            <span class="ident">Const::from</span>(<span class="bool-val">true</span>).<span class="ident">into</span>()
+            <span class="prelude-val">None</span>
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
             <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Semicolon</span>, <span class="string">&quot;for statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="ident">step</span>
+            <span class="prelude-val">Some</span>(<span class="ident">step</span>)
         };
 
         <span class="kw">let</span> <span class="ident">step</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">next_if</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">is_some</span>() {
@@ -714,100 +714,116 @@
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
-        <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Node::FunctionDecl</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">body</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_function_declaration_non_strict</span>(<span class="ident">position</span>));
+        <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of</span>
+        <span class="comment">// LexicalDeclaration also occurs in the VarDeclaredNames of Statement.</span>
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">vars</span> <span class="op">=</span> <span class="ident">FxHashSet::default</span>();
+        <span class="ident">body</span>.<span class="ident">var_declared_names</span>(<span class="kw-2">&amp;mut</span> <span class="ident">vars</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">init</span>) <span class="op">=</span> <span class="ident">init</span> {
+            <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init</span>.<span class="ident">bound_names</span>() {
+                <span class="kw">if</span> <span class="ident">vars</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>) {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+                        <span class="string">&quot;For loop initializer declared in loop body&quot;</span>,
+                        <span class="ident">position</span>,
+                    ));
+                }
+            }
         }
 
-        <span class="comment">// TODO: do not encapsulate the `for` in a block just to have an inner scope.</span>
         <span class="prelude-val">Ok</span>(<span class="ident">ForLoop::new</span>(<span class="ident">init</span>, <span class="ident">cond</span>, <span class="ident">step</span>, <span class="ident">body</span>).<span class="ident">into</span>())
     }
 }
 
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">fn</span> <span class="ident">node_to_iterable_loop_initializer</span>(
-    <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Node</span>,
+<span class="kw">fn</span> <span class="ident">initializer_to_iterable_loop_initializer</span>(
+    <span class="ident">initializer</span>: <span class="ident">ForLoopInitializer</span>,
     <span class="ident">position</span>: <span class="ident">Position</span>,
     <span class="ident">strict</span>: <span class="ident">bool</span>,
 ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">IterableLoopInitializer</span>, <span class="ident">ParseError</span><span class="op">&gt;</span> {
-    <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">Node::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">*</span><span class="ident">name</span>)),
-        <span class="ident">Node::VarDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
-            [<span class="ident">var</span>] =&gt; {
-                <span class="kw">if</span> <span class="ident">var</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>
-                            .<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
-                    )));
-                }
-                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">var</span>.<span class="ident">clone</span>()))
-            }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">position</span>,
-            ))),
-        },
-        <span class="ident">Node::LetDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
-            [<span class="ident">var</span>] =&gt; {
-                <span class="kw">if</span> <span class="ident">var</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>
-                            .<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
-                    )));
-                }
-                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">var</span>.<span class="ident">clone</span>()))
-            }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">position</span>,
-            ))),
-        },
-        <span class="ident">Node::ConstDeclList</span>(<span class="kw-2">ref</span> <span class="ident">list</span>) =&gt; <span class="kw">match</span> <span class="ident">list</span>.<span class="ident">as_ref</span>() {
-            [<span class="ident">var</span>] =&gt; {
-                <span class="kw">if</span> <span class="ident">var</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>
-                            .<span class="ident">into</span>(),
-                        <span class="ident">position</span>,
-                    )));
-                }
-                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">var</span>.<span class="ident">clone</span>()))
-            }
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
-                <span class="ident">position</span>,
-            ))),
-        },
-        <span class="ident">Node::Assign</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-            <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">position</span>,
-        ))),
-        <span class="ident">Node::Object</span>(<span class="ident">object</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::DeclarationPattern</span>(<span class="ident">pattern</span>))
-            } <span class="kw">else</span> {
+    <span class="kw">match</span> <span class="ident">initializer</span> {
+        <span class="ident">ForLoopInitializer::Expression</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">expr</span> {
+            <span class="ident">ast::Expression::Identifier</span>(<span class="ident">ident</span>)
+                <span class="kw">if</span> <span class="ident">strict</span> <span class="op">&amp;&amp;</span> [<span class="ident">Sym::EVAL</span>, <span class="ident">Sym::ARGUMENTS</span>].<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">ident</span>.<span class="ident">sym</span>()) =&gt;
+            {
                 <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                    <span class="string">&quot;invalid left-hand side declaration pattern in assignment head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
+                    <span class="string">&quot;cannot use `eval` or `arguments` as iterable loop variable in strict code&quot;</span>
+                        .<span class="ident">into</span>(),
                     <span class="ident">position</span>,
                 )))
             }
-        }
-        <span class="ident">Node::ArrayDecl</span>(<span class="ident">array</span>) =&gt; {
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>) {
-                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::DeclarationPattern</span>(<span class="ident">pattern</span>))
-            } <span class="kw">else</span> {
-                <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-                    <span class="string">&quot;invalid left-hand side declaration pattern in assignment head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
-                    <span class="ident">position</span>,
-                )))
+            <span class="ident">ast::Expression::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Identifier</span>(<span class="ident">ident</span>)),
+            <span class="ident">ast::Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
+                <span class="ident">array_decl_to_declaration_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="ident">strict</span>)
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
+                        <span class="ident">message</span>: <span class="string">&quot;
+            invalid array destructuring pattern in iterable loop initializer
+            &quot;</span>,
+                        <span class="ident">position</span>,
+                    })
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arr</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">arr</span>.<span class="ident">into</span>()))
             }
-        }
-        <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
-            <span class="string">&quot;unknown left hand side in head of for-of loop&quot;</span>.<span class="ident">into</span>(),
-            <span class="ident">position</span>,
-        ))),
+            <span class="ident">ast::Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
+                <span class="ident">object_decl_to_declaration_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="ident">strict</span>)
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
+                        <span class="ident">message</span>: <span class="string">&quot;
+            invalid object destructuring pattern in iterable loop initializer
+            &quot;</span>,
+                        <span class="ident">position</span>,
+                    })
+                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">obj</span>.<span class="ident">into</span>()))
+            }
+            <span class="comment">// TODO: implement member initializers</span>
+            <span class="ident">ast::Expression::PropertyAccess</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">ast::Expression::SuperPropertyAccess</span>(<span class="kw">_</span>)
+            <span class="op">|</span> <span class="ident">ast::Expression::PrivatePropertyAccess</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::Unimplemented</span> {
+                <span class="ident">message</span>: <span class="string">&quot;using a property access as iterable loop initializer is not implemented&quot;</span>,
+                <span class="ident">position</span>,
+            }),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;invalid variable for iterable loop&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">position</span>,
+            ))),
+        },
+        <span class="ident">ForLoopInitializer::Lexical</span>(<span class="ident">decl</span>) =&gt; <span class="kw">match</span> <span class="ident">decl</span>.<span class="ident">variable_list</span>().<span class="ident">as_ref</span>() {
+            [<span class="ident">declaration</span>] =&gt; {
+                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>
+                            .<span class="ident">into</span>(),
+                        <span class="ident">position</span>,
+                    )));
+                }
+                <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">decl</span> {
+                    <span class="ident">ast::declaration::LexicalDeclaration::Const</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="ident">IterableLoopInitializer::Const</span>(<span class="ident">declaration</span>.<span class="ident">binding</span>().<span class="ident">clone</span>())
+                    }
+                    <span class="ident">ast::declaration::LexicalDeclaration::Let</span>(<span class="kw">_</span>) =&gt; {
+                        <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">declaration</span>.<span class="ident">binding</span>().<span class="ident">clone</span>())
+                    }
+                })
+            }
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">position</span>,
+            ))),
+        },
+        <span class="ident">ForLoopInitializer::Var</span>(<span class="ident">decl</span>) =&gt; <span class="kw">match</span> <span class="ident">decl</span>.<span class="number">0</span>.<span class="ident">as_ref</span>() {
+            [<span class="ident">declaration</span>] =&gt; {
+                <span class="comment">// TODO: implement initializers in ForIn heads</span>
+                <span class="comment">// https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads</span>
+                <span class="kw">if</span> <span class="ident">declaration</span>.<span class="ident">init</span>().<span class="ident">is_some</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                        <span class="string">&quot;a declaration in the head of a for-of loop can&#39;t have an initializer&quot;</span>
+                            .<span class="ident">into</span>(),
+                        <span class="ident">position</span>,
+                    )));
+                }
+                <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>.<span class="ident">binding</span>().<span class="ident">clone</span>()))
+            }
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
+                <span class="string">&quot;only one variable can be declared in the head of a for-of loop&quot;</span>.<span class="ident">into</span>(),
+                <span class="ident">position</span>,
+            ))),
+        },
     }
 }
 </code></pre></div>

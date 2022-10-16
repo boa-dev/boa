@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["op",""]],"struct":[["Unary","A unary operation is an operation with only one operand."]]};

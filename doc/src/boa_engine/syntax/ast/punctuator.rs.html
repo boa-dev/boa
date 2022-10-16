@@ -269,6 +269,19 @@
 <span id="267">267</span>
 <span id="268">268</span>
 <span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -276,7 +289,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Punctuator</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::op</span>::{<span class="ident">AssignOp</span>, <span class="ident">BinOp</span>, <span class="ident">BitOp</span>, <span class="ident">CompOp</span>, <span class="ident">LogOp</span>, <span class="ident">NumOp</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::expression::operator</span>::{
+    <span class="ident">assign::op::AssignOp</span>,
+    <span class="ident">binary::op</span>::{<span class="ident">ArithmeticOp</span>, <span class="ident">BinaryOp</span>, <span class="ident">BitwiseOp</span>, <span class="ident">LogicalOp</span>, <span class="ident">RelationalOp</span>},
+};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">convert::TryInto</span>,
     <span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Error</span>, <span class="ident">Formatter</span>},
@@ -409,49 +425,59 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Punctuator</span> {
+    <span class="doccomment">/// Attempts to convert a punctuator (`+`, `=`...) to an Assign Operator</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If there is no match, `None` will be returned.</span>
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_assign_op</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">AssignOp</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Assign</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Assign</span>),
+            <span class="ident"><span class="self">Self</span>::AssignAdd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Add</span>),
+            <span class="ident"><span class="self">Self</span>::AssignAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::And</span>),
+            <span class="ident"><span class="self">Self</span>::AssignBoolAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::BoolAnd</span>),
+            <span class="ident"><span class="self">Self</span>::AssignBoolOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::BoolOr</span>),
+            <span class="ident"><span class="self">Self</span>::AssignCoalesce</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Coalesce</span>),
+            <span class="ident"><span class="self">Self</span>::AssignDiv</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Div</span>),
+            <span class="ident"><span class="self">Self</span>::AssignLeftSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Shl</span>),
+            <span class="ident"><span class="self">Self</span>::AssignMod</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Mod</span>),
+            <span class="ident"><span class="self">Self</span>::AssignMul</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Mul</span>),
+            <span class="ident"><span class="self">Self</span>::AssignOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Or</span>),
+            <span class="ident"><span class="self">Self</span>::AssignPow</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Exp</span>),
+            <span class="ident"><span class="self">Self</span>::AssignRightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Shr</span>),
+            <span class="ident"><span class="self">Self</span>::AssignSub</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Sub</span>),
+            <span class="ident"><span class="self">Self</span>::AssignURightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Ushr</span>),
+            <span class="ident"><span class="self">Self</span>::AssignXor</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">AssignOp::Xor</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="doccomment">/// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// If there is no match, `None` will be returned.</span>
-    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_binop</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">const</span> <span class="kw">fn</span> <span class="ident">as_binary_op</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">BinaryOp</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::AssignAdd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Add</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::And</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignBoolAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::BoolAnd</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignBoolOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::BoolOr</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignCoalesce</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Coalesce</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignDiv</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Div</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignLeftSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Shl</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignMod</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Mod</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignMul</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Mul</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Or</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignPow</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Exp</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignRightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Shr</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignSub</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Sub</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignURightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Ushr</span>)),
-            <span class="ident"><span class="self">Self</span>::AssignXor</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Assign</span>(<span class="ident">AssignOp::Xor</span>)),
-            <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Num</span>(<span class="ident">NumOp::Add</span>)),
-            <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Num</span>(<span class="ident">NumOp::Sub</span>)),
-            <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Num</span>(<span class="ident">NumOp::Mul</span>)),
-            <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Num</span>(<span class="ident">NumOp::Div</span>)),
-            <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Num</span>(<span class="ident">NumOp::Mod</span>)),
-            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::And</span>)),
-            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::Or</span>)),
-            <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::Xor</span>)),
-            <span class="ident"><span class="self">Self</span>::BoolAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Log</span>(<span class="ident">LogOp::And</span>)),
-            <span class="ident"><span class="self">Self</span>::BoolOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Log</span>(<span class="ident">LogOp::Or</span>)),
-            <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Log</span>(<span class="ident">LogOp::Coalesce</span>)),
-            <span class="ident"><span class="self">Self</span>::Eq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::Equal</span>)),
-            <span class="ident"><span class="self">Self</span>::NotEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::NotEqual</span>)),
-            <span class="ident"><span class="self">Self</span>::StrictEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::StrictEqual</span>)),
-            <span class="ident"><span class="self">Self</span>::StrictNotEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::StrictNotEqual</span>)),
-            <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::LessThan</span>)),
-            <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::GreaterThan</span>)),
-            <span class="ident"><span class="self">Self</span>::GreaterThanOrEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::GreaterThanOrEqual</span>)),
-            <span class="ident"><span class="self">Self</span>::LessThanOrEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comp</span>(<span class="ident">CompOp::LessThanOrEqual</span>)),
-            <span class="ident"><span class="self">Self</span>::LeftSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::Shl</span>)),
-            <span class="ident"><span class="self">Self</span>::RightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::Shr</span>)),
-            <span class="ident"><span class="self">Self</span>::URightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Bit</span>(<span class="ident">BitOp::UShr</span>)),
-            <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinOp::Comma</span>),
+            <span class="ident"><span class="self">Self</span>::Add</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Arithmetic</span>(<span class="ident">ArithmeticOp::Add</span>)),
+            <span class="ident"><span class="self">Self</span>::Sub</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Arithmetic</span>(<span class="ident">ArithmeticOp::Sub</span>)),
+            <span class="ident"><span class="self">Self</span>::Mul</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Arithmetic</span>(<span class="ident">ArithmeticOp::Mul</span>)),
+            <span class="ident"><span class="self">Self</span>::Div</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Arithmetic</span>(<span class="ident">ArithmeticOp::Div</span>)),
+            <span class="ident"><span class="self">Self</span>::Mod</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Arithmetic</span>(<span class="ident">ArithmeticOp::Mod</span>)),
+            <span class="ident"><span class="self">Self</span>::And</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::And</span>)),
+            <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::Or</span>)),
+            <span class="ident"><span class="self">Self</span>::Xor</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::Xor</span>)),
+            <span class="ident"><span class="self">Self</span>::BoolAnd</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::And</span>)),
+            <span class="ident"><span class="self">Self</span>::BoolOr</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Or</span>)),
+            <span class="ident"><span class="self">Self</span>::Coalesce</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Logical</span>(<span class="ident">LogicalOp::Coalesce</span>)),
+            <span class="ident"><span class="self">Self</span>::Eq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::Equal</span>)),
+            <span class="ident"><span class="self">Self</span>::NotEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::NotEqual</span>)),
+            <span class="ident"><span class="self">Self</span>::StrictEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::StrictEqual</span>)),
+            <span class="ident"><span class="self">Self</span>::StrictNotEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::StrictNotEqual</span>)),
+            <span class="ident"><span class="self">Self</span>::LessThan</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::LessThan</span>)),
+            <span class="ident"><span class="self">Self</span>::GreaterThan</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::GreaterThan</span>)),
+            <span class="ident"><span class="self">Self</span>::GreaterThanOrEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::GreaterThanOrEqual</span>)),
+            <span class="ident"><span class="self">Self</span>::LessThanOrEq</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Relational</span>(<span class="ident">RelationalOp::LessThanOrEqual</span>)),
+            <span class="ident"><span class="self">Self</span>::LeftSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::Shl</span>)),
+            <span class="ident"><span class="self">Self</span>::RightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::Shr</span>)),
+            <span class="ident"><span class="self">Self</span>::URightSh</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Bitwise</span>(<span class="ident">BitwiseOp::UShr</span>)),
+            <span class="ident"><span class="self">Self</span>::Comma</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">BinaryOp::Comma</span>),
             <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -519,10 +545,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">BinOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Punctuator</span> {
+<span class="kw">impl</span> <span class="ident">TryInto</span><span class="op">&lt;</span><span class="ident">BinaryOp</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Punctuator</span> {
     <span class="kw">type</span> <span class="ident">Error</span> <span class="op">=</span> <span class="ident">String</span>;
-    <span class="kw">fn</span> <span class="ident">try_into</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BinOp</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">as_binop</span>()
+    <span class="kw">fn</span> <span class="ident">try_into</span>(<span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">BinaryOp</span>, <span class="ident"><span class="self">Self</span>::Error</span><span class="op">&gt;</span> {
+        <span class="self">self</span>.<span class="ident">as_binary_op</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;No binary operation for {self}&quot;</span>))
     }
 }

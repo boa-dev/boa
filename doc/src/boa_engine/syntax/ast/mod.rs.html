@@ -16,21 +16,215 @@
 <span id="14">14</span>
 <span id="15">15</span>
 <span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+<span id="24">24</span>
+<span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
+<span id="28">28</span>
+<span id="29">29</span>
+<span id="30">30</span>
+<span id="31">31</span>
+<span id="32">32</span>
+<span id="33">33</span>
+<span id="34">34</span>
+<span id="35">35</span>
+<span id="36">36</span>
+<span id="37">37</span>
+<span id="38">38</span>
+<span id="39">39</span>
+<span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
+<span id="43">43</span>
+<span id="44">44</span>
+<span id="45">45</span>
+<span id="46">46</span>
+<span id="47">47</span>
+<span id="48">48</span>
+<span id="49">49</span>
+<span id="50">50</span>
+<span id="51">51</span>
+<span id="52">52</span>
+<span id="53">53</span>
+<span id="54">54</span>
+<span id="55">55</span>
+<span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
+<span id="60">60</span>
+<span id="61">61</span>
+<span id="62">62</span>
+<span id="63">63</span>
+<span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+<span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
+<span id="100">100</span>
+<span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
+<span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Javascript Abstract Syntax Tree.</span>
 
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">constant</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">declaration</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">expression</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">keyword</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">node</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">op</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pattern</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">position</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">punctuator</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement_list</span>;
+
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
-    <span class="ident">constant::Const</span>,
+    <span class="ident">declaration::Declaration</span>,
+    <span class="ident">expression::Expression</span>,
     <span class="ident">keyword::Keyword</span>,
-    <span class="ident">node::Node</span>,
     <span class="ident">position</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
     <span class="ident">punctuator::Punctuator</span>,
+    <span class="ident">statement::Statement</span>,
+    <span class="ident">statement_list</span>::{<span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>},
 };
+
+<span class="doccomment">/// Represents the possible symbols that can be use the the `contains` function.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ContainsSymbol</span> {
+    <span class="ident">SuperProperty</span>,
+    <span class="ident">SuperCall</span>,
+    <span class="ident">YieldExpression</span>,
+    <span class="ident">AwaitExpression</span>,
+    <span class="ident">NewTarget</span>,
+    <span class="ident">ClassBody</span>,
+    <span class="ident">ClassHeritage</span>,
+    <span class="ident">This</span>,
+    <span class="ident">MethodDefinition</span>,
+}
+
+<span class="doccomment">/// Utility to join multiple Nodes into a single string.</span>
+<span class="kw">fn</span> <span class="ident">join_nodes</span><span class="op">&lt;</span><span class="ident">N</span><span class="op">&gt;</span>(<span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">nodes</span>: <span class="kw-2">&amp;</span>[<span class="ident">N</span>]) -&gt; <span class="ident">String</span>
+<span class="kw">where</span>
+    <span class="ident">N</span>: <span class="ident">ToInternedString</span>,
+{
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">true</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">for</span> <span class="ident">e</span> <span class="kw">in</span> <span class="ident">nodes</span> {
+        <span class="kw">if</span> <span class="ident">first</span> {
+            <span class="ident">first</span> <span class="op">=</span> <span class="bool-val">false</span>;
+        } <span class="kw">else</span> {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;, &quot;</span>);
+        }
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
+    }
+    <span class="ident">buf</span>
+}
+
+<span class="doccomment">/// Displays the body of a block or statement list.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This includes the curly braces at the start and end. This will not indent the first brace,</span>
+<span class="doccomment">/// but will indent the last brace.</span>
+<span class="kw">fn</span> <span class="ident">block_to_string</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+    <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">statements</span>().<span class="ident">is_empty</span>() {
+        <span class="string">&quot;{}&quot;</span>.<span class="ident">to_owned</span>()
+    } <span class="kw">else</span> {
+        <span class="macro">format!</span>(
+            <span class="string">&quot;{{\n{}{}}}&quot;</span>,
+            <span class="ident">body</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>),
+            <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
+        )
+    }
+}
+
+<span class="doccomment">/// This parses the given source code, and then makes sure that</span>
+<span class="doccomment">/// the resulting `StatementList` is formatted in the same manner</span>
+<span class="doccomment">/// as the source code. This is expected to have a preceding</span>
+<span class="doccomment">/// newline.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is a utility function for tests. It was made in case people</span>
+<span class="doccomment">/// are using different indents in their source files. This fixes</span>
+<span class="doccomment">/// any strings which may have been changed in a different indent</span>
+<span class="doccomment">/// level.</span>
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
+<span class="kw">fn</span> <span class="ident">test_formatting</span>(<span class="ident">source</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span>) {
+    <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">syntax::Parser</span>, <span class="ident">Context</span>};
+
+    <span class="comment">// Remove preceding newline.</span>
+    <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[<span class="number">1</span>..];
+
+    <span class="comment">// Find out how much the code is indented</span>
+    <span class="kw">let</span> <span class="ident">first_line</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source</span>[..<span class="ident">source</span>.<span class="ident">find</span>(<span class="string">&#39;\n&#39;</span>).<span class="ident">unwrap</span>()];
+    <span class="kw">let</span> <span class="ident">trimmed_first_line</span> <span class="op">=</span> <span class="ident">first_line</span>.<span class="ident">trim</span>();
+    <span class="kw">let</span> <span class="ident">characters_to_remove</span> <span class="op">=</span> <span class="ident">first_line</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">trimmed_first_line</span>.<span class="ident">len</span>();
+
+    <span class="kw">let</span> <span class="ident">scenario</span> <span class="op">=</span> <span class="ident">source</span>
+        .<span class="ident">lines</span>()
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">l</span><span class="op">|</span> <span class="kw-2">&amp;</span><span class="ident">l</span>[<span class="ident">characters_to_remove</span>..]) <span class="comment">// Remove preceding whitespace from each line</span>
+        .<span class="ident">collect</span>::<span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span><span class="op">&gt;</span><span class="op">&gt;</span>()
+        .<span class="ident">join</span>(<span class="string">&quot;\n&quot;</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
+    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">Parser::new</span>(<span class="ident">scenario</span>.<span class="ident">as_bytes</span>())
+        .<span class="ident">parse_all</span>(<span class="kw-2">&amp;mut</span> <span class="ident">context</span>)
+        .<span class="ident">expect</span>(<span class="string">&quot;parsing failed&quot;</span>)
+        .<span class="ident">to_interned_string</span>(<span class="ident">context</span>.<span class="ident">interner</span>());
+    <span class="kw">if</span> <span class="ident">scenario</span> <span class="op">!</span><span class="op">=</span> <span class="ident">result</span> {
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Expected:\n{scenario}&quot;</span>);
+        <span class="macro">eprint!</span>(<span class="string">&quot;========= Got:\n{result}&quot;</span>);
+        <span class="comment">// Might be helpful to find differing whitespace</span>
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Expected: {scenario:?}&quot;</span>);
+        <span class="macro">eprintln!</span>(<span class="string">&quot;========= Got:      {result:?}&quot;</span>);
+        <span class="macro">panic!</span>(<span class="string">&quot;parsing test did not give the correct result (see above)&quot;</span>);
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

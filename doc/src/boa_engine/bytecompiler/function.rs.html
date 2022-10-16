@@ -194,10 +194,17 @@
 <span id="192">192</span>
 <span id="193">193</span>
 <span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
-    <span class="ident">bytecompiler</span>::{<span class="ident">ByteCompiler</span>, <span class="ident">FunctionKind</span>},
-    <span class="ident">syntax::ast::node</span>::{<span class="ident">Declaration</span>, <span class="ident">FormalParameterList</span>, <span class="ident">StatementList</span>},
+    <span class="ident">bytecompiler::ByteCompiler</span>,
+    <span class="ident">syntax::ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">StatementList</span>},
     <span class="ident">vm</span>::{<span class="ident">BindingOpcode</span>, <span class="ident">CodeBlock</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
@@ -207,12 +214,13 @@
 
 <span class="doccomment">/// `FunctionCompiler` is used to compile AST functions to bytecode.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::struct_excessive_bools</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">FunctionCompiler</span> {
     <span class="ident">name</span>: <span class="ident">Sym</span>,
     <span class="ident">generator</span>: <span class="ident">bool</span>,
     <span class="ident">r#async</span>: <span class="ident">bool</span>,
     <span class="ident">strict</span>: <span class="ident">bool</span>,
-    <span class="ident">kind</span>: <span class="ident">FunctionKind</span>,
+    <span class="ident">arrow</span>: <span class="ident">bool</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">FunctionCompiler</span> {
@@ -224,7 +232,7 @@
             <span class="ident">generator</span>: <span class="bool-val">false</span>,
             <span class="ident">r#async</span>: <span class="bool-val">false</span>,
             <span class="ident">strict</span>: <span class="bool-val">false</span>,
-            <span class="ident">kind</span>: <span class="ident">FunctionKind::Declaration</span>,
+            <span class="ident">arrow</span>: <span class="bool-val">false</span>,
         }
     }
 
@@ -241,6 +249,12 @@
         <span class="self">self</span>
     }
 
+    <span class="doccomment">/// Indicate if the function is an arrow function.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">arrow</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">arrow</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">arrow</span> <span class="op">=</span> <span class="ident">arrow</span>;
+        <span class="self">self</span>
+    }
     <span class="doccomment">/// Indicate if the function is a generator function.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">generator</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">generator</span>: <span class="ident">bool</span>) -&gt; <span class="self">Self</span> {
@@ -262,13 +276,6 @@
         <span class="self">self</span>
     }
 
-    <span class="doccomment">/// Indicate if the function is a declaration, expression or arrow function.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">kind</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">kind</span>: <span class="ident">FunctionKind</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">self</span>.<span class="ident">kind</span> <span class="op">=</span> <span class="ident">kind</span>;
-        <span class="self">self</span>
-    }
-
     <span class="doccomment">/// Compile a function statement list and it&#39;s parameters into bytecode.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">compile</span>(
         <span class="kw-2">mut</span> <span class="self">self</span>,
@@ -281,7 +288,7 @@
         <span class="kw">let</span> <span class="ident">length</span> <span class="op">=</span> <span class="ident">parameters</span>.<span class="ident">length</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">CodeBlock::new</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="ident">length</span>, <span class="self">self</span>.<span class="ident">strict</span>);
 
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">FunctionKind::Arrow</span> {
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">arrow</span> {
             <span class="ident">code</span>.<span class="ident">this_mode</span> <span class="op">=</span> <span class="ident">ThisMode::Lexical</span>;
         }
 
@@ -302,14 +309,14 @@
         <span class="comment">// - If the parameter list does not contain `arguments` (10.2.11.17)</span>
         <span class="comment">// Note: This following just means, that we add an extra environment for the arguments.</span>
         <span class="comment">// - If there are default parameters or if lexical names and function names do not contain `arguments` (10.2.11.18)</span>
-        <span class="kw">if</span> <span class="op">!</span>(<span class="self">self</span>.<span class="ident">kind</span> <span class="op">==</span> <span class="ident">FunctionKind::Arrow</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">has_arguments</span>() {
+        <span class="kw">if</span> <span class="op">!</span>(<span class="self">self</span>.<span class="ident">arrow</span>) <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">parameters</span>.<span class="ident">has_arguments</span>() {
             <span class="ident">compiler</span>
                 .<span class="ident">context</span>
-                .<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>, <span class="bool-val">false</span>);
+                .<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>);
             <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">arguments_binding</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
                 <span class="ident">compiler</span>
                     .<span class="ident">context</span>
-                    .<span class="ident">initialize_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>, <span class="bool-val">false</span>),
+                    .<span class="ident">initialize_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>),
             );
         }
 
@@ -318,19 +325,26 @@
                 <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RestParameterInit</span>);
             }
 
-            <span class="kw">match</span> <span class="ident">parameter</span>.<span class="ident">declaration</span>() {
-                <span class="ident">Declaration::Identifier</span> { <span class="ident">ident</span>, .. } =&gt; {
-                    <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>.<span class="ident">sym</span>(), <span class="bool-val">false</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">declaration</span>().<span class="ident">init</span>() {
+            <span class="kw">match</span> <span class="ident">parameter</span>.<span class="ident">variable</span>().<span class="ident">binding</span>() {
+                <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
+                    <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                    <span class="comment">// TODO: throw custom error if ident is in init</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">variable</span>().<span class="ident">init</span>() {
                         <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
                         <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">init</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="ident">compiler</span>.<span class="ident">patch_jump</span>(<span class="ident">skip</span>);
                     }
-                    <span class="ident">compiler</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitArg</span>, <span class="ident">ident</span>.<span class="ident">sym</span>());
+                    <span class="ident">compiler</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitArg</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                 }
-                <span class="ident">Declaration::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
+                <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
                         <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                    }
+                    <span class="comment">// TODO: throw custom error if ident is in init</span>
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">variable</span>().<span class="ident">init</span>() {
+                        <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
+                        <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">init</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="ident">compiler</span>.<span class="ident">patch_jump</span>(<span class="ident">skip</span>);
                     }
                     <span class="ident">compiler</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitArg</span>)<span class="question-mark">?</span>;
                 }
@@ -357,8 +371,8 @@
             <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Yield</span>);
         }
 
-        <span class="ident">compiler</span>.<span class="ident">create_declarations</span>(<span class="ident">body</span>.<span class="ident">items</span>())<span class="question-mark">?</span>;
-        <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>.<span class="ident">items</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">body</span>);
+        <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env_label</span>) <span class="op">=</span> <span class="ident">env_label</span> {
             <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
