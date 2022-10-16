@@ -1,17 +1,14 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                Break, Call, Case, Declaration, DeclarationList, GetConstField, Identifier, Node,
-                Switch,
-            },
-            Const,
-        },
-        parser::tests::{check_invalid, check_parser},
+use crate::syntax::{
+    ast::{
+        declaration::{LexicalDeclaration, Variable},
+        expression::{access::PropertyAccess, literal::Literal, Call, Identifier},
+        statement::{Break, Case, Switch},
+        Declaration, Expression, Statement,
     },
+    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks parsing malformed switch with no closeblock.
 #[test]
@@ -160,48 +157,57 @@ fn check_separated_switch() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Node::from(Const::from(10)),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    a.into(),
+                    Some(Literal::from(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            Switch::new(
-                Identifier::new(a),
+            Statement::Switch(Switch::new(
+                Identifier::new(a).into(),
                 vec![
                     Case::new(
-                        Const::from(5),
+                        Literal::from(5).into(),
                         vec![
-                            Call::new(
-                                GetConstField::new(Identifier::new(console), log),
-                                vec![Node::from(Const::from(5))],
-                            )
+                            Statement::Expression(Expression::from(Call::new(
+                                PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                                vec![Literal::from(5).into()].into(),
+                            )))
                             .into(),
-                            Break::new(None).into(),
-                        ],
+                            Statement::Break(Break::new(None)).into(),
+                        ]
+                        .into(),
                     ),
                     Case::new(
-                        Const::from(10),
+                        Literal::from(10).into(),
                         vec![
-                            Call::new(
-                                GetConstField::new(Identifier::new(console), log),
-                                vec![Node::from(Const::from(10))],
-                            )
+                            Statement::Expression(Expression::from(Call::new(
+                                PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                                vec![Literal::from(10).into()].into(),
+                            )))
                             .into(),
-                            Break::new(None).into(),
-                        ],
+                            Statement::Break(Break::new(None)).into(),
+                        ]
+                        .into(),
                     ),
-                ],
-                Some(vec![Call::new(
-                    GetConstField::new(Identifier::new(console), log),
-                    vec![Node::from(Const::from(
-                        interner.get_or_intern_static("Default", utf16!("Default")),
-                    ))],
-                )
-                .into()]),
-            )
+                ]
+                .into(),
+                Some(
+                    vec![Statement::Expression(Expression::from(Call::new(
+                        PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                        vec![Literal::from(
+                            interner.get_or_intern_static("Default", utf16!("Default")),
+                        )
+                        .into()]
+                        .into(),
+                    )))
+                    .into()]
+                    .into(),
+                ),
+            ))
             .into(),
         ],
         interner,

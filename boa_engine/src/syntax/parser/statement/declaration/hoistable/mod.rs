@@ -20,8 +20,11 @@ use self::{
     class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
-    ast::node::{FormalParameterList, StatementList},
-    ast::{node::function_contains_super, Keyword, Node, Position, Punctuator},
+    ast::{
+        expression::Identifier,
+        function::{function_contains_super, FormalParameterList},
+        Declaration, Keyword, Position, Punctuator, StatementList,
+    },
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier,
@@ -69,9 +72,9 @@ impl<R> TokenParser<R> for HoistableDeclaration
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Declaration;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("HoistableDeclaration", "Parsing");
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -87,11 +90,11 @@ where
                 if let TokenKind::Punctuator(Punctuator::Mul) = next_token.kind() {
                     GeneratorDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(Declaration::from)
                 } else {
                     FunctionDeclaration::new(self.allow_yield, self.allow_await, self.is_default)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(Declaration::from)
                 }
             }
             TokenKind::Keyword((Keyword::Async, false)) => {
@@ -103,17 +106,17 @@ where
                         self.is_default,
                     )
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(Declaration::from)
                 } else {
                     AsyncFunctionDeclaration::new(self.allow_yield, self.allow_await, false)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(Declaration::from)
                 }
             }
             TokenKind::Keyword((Keyword::Class, false)) => {
                 ClassDeclaration::new(self.allow_yield, self.allow_await, false)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(Declaration::from)
             }
             _ => unreachable!("unknown token found: {:?}", tok),
         }
@@ -137,7 +140,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
     cursor: &mut Cursor<R>,
     interner: &mut Interner,
-) -> Result<(Sym, FormalParameterList, StatementList), ParseError> {
+) -> Result<(Identifier, FormalParameterList, StatementList), ParseError> {
     let next_token = cursor.peek(0, interner)?;
     let name = if let Some(token) = next_token {
         match token.kind() {
@@ -149,7 +152,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
                         c.error_context(),
                     ));
                 }
-                Sym::DEFAULT
+                Sym::DEFAULT.into()
             }
             _ => BindingIdentifier::new(c.name_allow_yield(), c.name_allow_await())
                 .parse(cursor, interner)?,
@@ -160,7 +163,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
 
     // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
     // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
-    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+    if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
         return Err(ParseError::lex(LexError::Syntax(
             "Unexpected eval or arguments in strict mode".into(),
             match cursor.peek(0, interner)? {

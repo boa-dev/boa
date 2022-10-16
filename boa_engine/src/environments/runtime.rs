@@ -1,6 +1,9 @@
-use crate::{environments::CompileTimeEnvironment, object::JsObject, Context, JsResult, JsValue};
+use crate::{
+    environments::CompileTimeEnvironment, object::JsObject, syntax::ast::expression::Identifier,
+    Context, JsResult, JsValue,
+};
 use boa_gc::{Cell, Finalize, Gc, Trace};
-use boa_interner::Sym;
+
 use rustc_hash::FxHashSet;
 
 /// A declarative environment holds binding values at runtime.
@@ -259,8 +262,8 @@ impl DeclarativeEnvironmentStack {
     /// Stop at the next outer function environment.
     pub(crate) fn has_lex_binding_until_function_environment(
         &self,
-        names: &FxHashSet<Sym>,
-    ) -> Option<Sym> {
+        names: &FxHashSet<Identifier>,
+    ) -> Option<Identifier> {
         for env in self.stack.iter().rev() {
             let compile = env.compile.borrow();
             for name in names {
@@ -517,7 +520,7 @@ impl DeclarativeEnvironmentStack {
         &self,
         mut environment_index: usize,
         mut binding_index: usize,
-        name: Sym,
+        name: Identifier,
     ) -> Option<JsValue> {
         if environment_index != self.stack.len() - 1 {
             for env_index in (environment_index + 1..self.stack.len()).rev() {
@@ -554,7 +557,7 @@ impl DeclarativeEnvironmentStack {
     /// This only considers function environments that are poisoned.
     /// All other bindings are accessed via indices.
     #[inline]
-    pub(crate) fn get_value_global_poisoned(&self, name: Sym) -> Option<JsValue> {
+    pub(crate) fn get_value_global_poisoned(&self, name: Identifier) -> Option<JsValue> {
         for env in self.stack.iter().rev() {
             if !*env.poisoned.borrow() {
                 return None;
@@ -612,7 +615,7 @@ impl DeclarativeEnvironmentStack {
         &mut self,
         mut environment_index: usize,
         mut binding_index: usize,
-        name: Sym,
+        name: Identifier,
         value: JsValue,
     ) -> bool {
         if environment_index != self.stack.len() - 1 {
@@ -687,7 +690,7 @@ impl DeclarativeEnvironmentStack {
     ///
     /// Panics if the environment or binding index are out of range.
     #[inline]
-    pub(crate) fn put_value_global_poisoned(&mut self, name: Sym, value: &JsValue) -> bool {
+    pub(crate) fn put_value_global_poisoned(&mut self, name: Identifier, value: &JsValue) -> bool {
         for env in self.stack.iter().rev() {
             if !*env.poisoned.borrow() {
                 return false;
@@ -718,7 +721,7 @@ impl DeclarativeEnvironmentStack {
 /// Binding locators get created at bytecode compile time and are accessible at runtime via the [`crate::vm::CodeBlock`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub(crate) struct BindingLocator {
-    name: Sym,
+    name: Identifier,
     environment_index: usize,
     binding_index: usize,
     global: bool,
@@ -729,7 +732,7 @@ impl BindingLocator {
     /// Creates a new declarative binding locator that has knows indices.
     #[inline]
     pub(in crate::environments) fn declarative(
-        name: Sym,
+        name: Identifier,
         environment_index: usize,
         binding_index: usize,
     ) -> Self {
@@ -744,7 +747,7 @@ impl BindingLocator {
 
     /// Creates a binding locator that indicates that the binding is on the global object.
     #[inline]
-    pub(in crate::environments) fn global(name: Sym) -> Self {
+    pub(in crate::environments) fn global(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -757,7 +760,7 @@ impl BindingLocator {
     /// Creates a binding locator that indicates that it was attempted to mutate an immutable binding.
     /// At runtime this should always produce a type error.
     #[inline]
-    pub(in crate::environments) fn mutate_immutable(name: Sym) -> Self {
+    pub(in crate::environments) fn mutate_immutable(name: Identifier) -> Self {
         Self {
             name,
             environment_index: 0,
@@ -769,7 +772,7 @@ impl BindingLocator {
 
     /// Returns the name of the binding.
     #[inline]
-    pub(crate) fn name(&self) -> Sym {
+    pub(crate) fn name(&self) -> Identifier {
         self.name
     }
 
@@ -797,7 +800,7 @@ impl BindingLocator {
         if self.mutate_immutable {
             context.throw_type_error(format!(
                 "cannot mutate an immutable binding '{}'",
-                context.interner().resolve_expect(self.name)
+                context.interner().resolve_expect(self.name.sym())
             ))
         } else {
             Ok(())

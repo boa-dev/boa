@@ -1,17 +1,16 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                Declaration, DeclarationList, FormalParameterList, FunctionExpr, Return,
-                StatementList,
-            },
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        declaration::{LexicalDeclaration, Variable},
+        expression::literal::Literal,
+        function::{FormalParameterList, Function},
+        statement::Return,
+        statement_list::StatementListItem,
+        Declaration, Statement,
     },
+    parser::tests::check_parser,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks async expression parsing.
 #[test]
@@ -23,20 +22,24 @@ fn check_function_expression() {
             return 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                add,
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                add.into(),
                 Some(
-                    FunctionExpr::new::<_, _, StatementList>(
-                        Some(add),
+                    Function::new(
+                        Some(add.into()),
                         FormalParameterList::default(),
-                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::from(1).into()), None),
+                        ))]
+                        .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -54,40 +57,40 @@ fn check_nested_function_expression() {
             };
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                a,
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                a.into(),
                 Some(
-                    FunctionExpr::new::<_, _, StatementList>(
-                        Some(a),
+                    Function::new(
+                        Some(a.into()),
                         FormalParameterList::default(),
-                        vec![DeclarationList::Const(
-                            vec![Declaration::new_with_identifier(
-                                b,
+                        vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            vec![Variable::from_identifier(
+                                b.into(),
                                 Some(
-                                    FunctionExpr::new::<_, _, StatementList>(
-                                        Some(b),
+                                    Function::new(
+                                        Some(b.into()),
                                         FormalParameterList::default(),
-                                        vec![Return::new::<_, _, Option<Sym>>(
-                                            Const::from(1),
-                                            None,
-                                        )
-                                        .into()]
+                                        vec![StatementListItem::Statement(Statement::Return(
+                                            Return::new(Some(Literal::from(1).into()), None),
+                                        ))]
                                         .into(),
                                     )
                                     .into(),
                                 ),
                             )]
-                            .into(),
-                        )
+                            .try_into()
+                            .unwrap(),
+                        ))
                         .into()]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -97,20 +100,20 @@ fn check_nested_function_expression() {
 fn check_function_non_reserved_keyword() {
     macro_rules! genast {
         ($keyword:literal, $interner:expr) => {
-            vec![DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    $interner.get_or_intern_static("add", utf16!("add")),
+            vec![Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    $interner.get_or_intern_static("add", utf16!("add")).into(),
                     Some(
-                        FunctionExpr::new::<_, _, StatementList>(
-                            Some($interner.get_or_intern_static($keyword, utf16!($keyword))),
+                        Function::new(
+                            Some($interner.get_or_intern_static($keyword, utf16!($keyword)).into()),
                             FormalParameterList::default(),
-                            vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                            vec![StatementListItem::Statement(Statement::Return(Return::new(Some(Literal::from(1).into()), None)))].into(),
                         )
                         .into(),
                     ),
                 )]
-                .into(),
-            )
+                .try_into().unwrap(),
+            ))
             .into()]
         };
     }

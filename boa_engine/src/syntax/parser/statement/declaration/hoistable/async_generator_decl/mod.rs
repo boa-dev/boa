@@ -7,10 +7,10 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::AsyncGeneratorDecl, Keyword, Punctuator},
+    ast::{function::AsyncGenerator, Keyword, Punctuator},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -91,13 +91,9 @@ impl<R> TokenParser<R> for AsyncGeneratorDeclaration
 where
     R: Read,
 {
-    type Output = AsyncGeneratorDecl;
+    type Output = AsyncGenerator;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
             (Keyword::Async, false),
             "async generator declaration",
@@ -113,6 +109,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(AsyncGeneratorDecl::new(result.0, result.1, result.2))
+        Ok(AsyncGenerator::new(Some(result.0), result.1, result.2))
     }
 }

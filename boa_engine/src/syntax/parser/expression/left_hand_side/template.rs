@@ -1,6 +1,5 @@
 use crate::syntax::{
-    ast::node::TaggedTemplate,
-    ast::{Node, Position, Punctuator},
+    ast::{self, expression::TaggedTemplate, Position, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
@@ -22,12 +21,17 @@ pub(super) struct TaggedTemplateLiteral {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     start: Position,
-    tag: Node,
+    tag: ast::Expression,
 }
 
 impl TaggedTemplateLiteral {
     /// Creates a new `TaggedTemplateLiteral` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, start: Position, tag: Node) -> Self
+    pub(super) fn new<Y, A>(
+        allow_yield: Y,
+        allow_await: A,
+        start: Position,
+        tag: ast::Expression,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -45,9 +49,9 @@ impl<R> TokenParser<R> for TaggedTemplateLiteral
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = TaggedTemplate;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("TaggedTemplateLiteral", "Parsing");
 
         let mut raws = Vec::new();
@@ -74,9 +78,12 @@ where
                 TokenKind::TemplateNoSubstitution(template_string) => {
                     raws.push(template_string.as_raw());
                     cookeds.push(template_string.to_owned_cooked(interner).ok());
-                    return Ok(Node::from(TaggedTemplate::new(
-                        self.tag, raws, cookeds, exprs,
-                    )));
+                    return Ok(TaggedTemplate::new(
+                        self.tag,
+                        raws.into_boxed_slice(),
+                        cookeds.into_boxed_slice(),
+                        exprs.into_boxed_slice(),
+                    ));
                 }
                 _ => {
                     return Err(ParseError::general(

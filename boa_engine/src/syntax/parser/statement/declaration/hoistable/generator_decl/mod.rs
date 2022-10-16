@@ -2,10 +2,11 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::declaration::generator_decl::GeneratorDecl, Keyword, Punctuator},
+    ast::function::Generator,
+    ast::{Keyword, Punctuator},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -73,13 +74,9 @@ impl<R> TokenParser<R> for GeneratorDeclaration
 where
     R: Read,
 {
-    type Output = GeneratorDecl;
+    type Output = Generator;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
             (Keyword::Function, false),
             "generator declaration",
@@ -89,6 +86,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(GeneratorDecl::new(result.0, result.1, result.2))
+        Ok(Generator::new(Some(result.0), result.1, result.2))
     }
 }

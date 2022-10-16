@@ -9,21 +9,22 @@
 
 use crate::syntax::{
     ast::{
-        node::{
-            iteration::IterableLoopInitializer,
-            operator::assign::{
-                array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
-            },
-            ForInLoop, ForLoop, ForOfLoop, Node,
+        self,
+        expression::operator::assign::{
+            array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
         },
-        Const, Keyword, Position, Punctuator,
+        statement::{
+            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+            ForInLoop, ForLoop, ForOfLoop,
+        },
+        Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::Expression,
-        statement::declaration::Declaration,
+        statement::declaration::LexicalDeclaration,
         statement::{variable::VariableDeclarationList, Statement},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -70,13 +71,9 @@ impl<R> TokenParser<R> for ForStatement
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Statement;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ForStatement", "Parsing");
         cursor.expect((Keyword::For, false), "for statement", interner)?;
 
@@ -117,13 +114,14 @@ where
                 let _next = cursor.next(interner)?;
                 Some(
                     VariableDeclarationList::new(false, self.allow_yield, self.allow_await)
-                        .parse(cursor, interner)
-                        .map(Node::from)?,
+                        .parse(cursor, interner)?
+                        .into(),
                 )
             }
             TokenKind::Keyword((Keyword::Let | Keyword::Const, _)) => Some(
-                Declaration::new(self.allow_yield, self.allow_await, false)
-                    .parse(cursor, interner)?,
+                LexicalDeclaration::new(false, self.allow_yield, self.allow_await, true)
+                    .parse(cursor, interner)?
+                    .into(),
             ),
             TokenKind::Keyword((Keyword::Async, false)) => {
                 match cursor
@@ -139,29 +137,31 @@ where
                     }
                     _ => Some(
                         Expression::new(None, false, self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
+                            .parse(cursor, interner)?
+                            .into(),
                     ),
                 }
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => None,
             _ => Some(
                 Expression::new(None, false, self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?,
+                    .parse(cursor, interner)?
+                    .into(),
             ),
         };
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-        match (init.as_ref(), token.kind()) {
+        let position = token.span().start();
+        let init = match (init, token.kind()) {
             (Some(_), TokenKind::Keyword((Keyword::In | Keyword::Of, true))) => {
                 return Err(ParseError::general(
                     "Keyword must not contain escaped characters",
-                    token.span().start(),
+                    position,
                 ));
             }
             (Some(init), TokenKind::Keyword((Keyword::In, false))) => {
-                let init_position = token.span().start();
                 let init =
-                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
+                    initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -175,11 +175,6 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
 
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let Node::FunctionDecl(_) = body {
-                    return Err(ParseError::wrong_function_declaration_non_strict(position));
-                }
-
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
@@ -190,19 +185,19 @@ where
                     if name == Sym::LET {
                         return Err(ParseError::general(
                             "Cannot use 'let' as a lexically bound name",
-                            init_position,
+                            position,
                         ));
                     }
                     if vars.contains(&name) {
                         return Err(ParseError::general(
                             "For loop initializer declared in loop body",
-                            init_position,
+                            position,
                         ));
                     }
                     if !bound_names.insert(name) {
                         return Err(ParseError::general(
                             "For loop initializer cannot contain duplicate identifiers",
-                            init_position,
+                            position,
                         ));
                     }
                 }
@@ -211,7 +206,7 @@ where
             }
             (Some(init), TokenKind::Keyword((Keyword::Of, false))) => {
                 let init =
-                    node_to_iterable_loop_initializer(init, init_position, cursor.strict_mode())?;
+                    initializer_to_iterable_loop_initializer(init, position, cursor.strict_mode())?;
 
                 let _next = cursor.next(interner)?;
                 let iterable = Expression::new(None, true, self.allow_yield, self.allow_await)
@@ -225,11 +220,6 @@ where
                 let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)?;
 
-                // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-                if let Node::FunctionDecl(_) = body {
-                    return Err(ParseError::wrong_function_declaration_non_strict(position));
-                }
-
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains "let".
                 // It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.
                 // It is a Syntax Error if the BoundNames of ForDeclaration contains any duplicate entries.
@@ -240,49 +230,51 @@ where
                     if name == Sym::LET {
                         return Err(ParseError::general(
                             "Cannot use 'let' as a lexically bound name",
-                            init_position,
+                            position,
                         ));
                     }
                     if vars.contains(&name) {
                         return Err(ParseError::general(
                             "For loop initializer declared in loop body",
-                            init_position,
+                            position,
                         ));
                     }
                     if !bound_names.insert(name) {
                         return Err(ParseError::general(
                             "For loop initializer cannot contain duplicate identifiers",
-                            init_position,
+                            position,
                         ));
                     }
                 }
 
                 return Ok(ForOfLoop::new(init, iterable, body, r#await).into());
             }
-            (Some(Node::ConstDeclList(list)), _) => {
-                // Reject const declarations without initializers inside for loops
-                for decl in list.as_ref() {
-                    if decl.init().is_none() {
-                        return Err(ParseError::general(
-                            "Expected initializer for const declaration",
-                            // TODO: get exact position of uninitialized const decl
-                            init_position,
-                        ));
-                    }
+            (init, _) => init,
+        };
+
+        if let Some(ForLoopInitializer::Lexical(ast::declaration::LexicalDeclaration::Const(
+            ref list,
+        ))) = init
+        {
+            for decl in list.as_ref() {
+                if decl.init().is_none() {
+                    return Err(ParseError::general(
+                        "Expected initializer for const declaration",
+                        position,
+                    ));
                 }
             }
-            _ => {}
         }
 
         cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
 
         let cond = if cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {
-            Const::from(true).into()
+            None
         } else {
             let step = Expression::new(None, true, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
             cursor.expect(Punctuator::Semicolon, "for statement", interner)?;
-            step
+            Some(step)
         };
 
         let step = if cursor.next_if(Punctuator::CloseParen, interner)?.is_some() {
@@ -307,99 +299,115 @@ where
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
-        // Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.
-        if let Node::FunctionDecl(_) = body {
-            return Err(ParseError::wrong_function_declaration_non_strict(position));
+        // Early Error: It is a Syntax Error if any element of the BoundNames of
+        // LexicalDeclaration also occurs in the VarDeclaredNames of Statement.
+        let mut vars = FxHashSet::default();
+        body.var_declared_names(&mut vars);
+        if let Some(ref init) = init {
+            for name in init.bound_names() {
+                if vars.contains(&name) {
+                    return Err(ParseError::general(
+                        "For loop initializer declared in loop body",
+                        position,
+                    ));
+                }
+            }
         }
 
-        // TODO: do not encapsulate the `for` in a block just to have an inner scope.
         Ok(ForLoop::new(init, cond, step, body).into())
     }
 }
 
 #[inline]
-fn node_to_iterable_loop_initializer(
-    node: &Node,
+fn initializer_to_iterable_loop_initializer(
+    initializer: ForLoopInitializer,
     position: Position,
     strict: bool,
 ) -> Result<IterableLoopInitializer, ParseError> {
-    match node {
-        Node::Identifier(name) => Ok(IterableLoopInitializer::Identifier(*name)),
-        Node::VarDeclList(ref list) => match list.as_ref() {
-            [var] => {
-                if var.init().is_some() {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "a declaration in the head of a for-of loop can't have an initializer"
-                            .into(),
-                        position,
-                    )));
-                }
-                Ok(IterableLoopInitializer::Var(var.clone()))
-            }
-            _ => Err(ParseError::lex(LexError::Syntax(
-                "only one variable can be declared in the head of a for-of loop".into(),
-                position,
-            ))),
-        },
-        Node::LetDeclList(ref list) => match list.as_ref() {
-            [var] => {
-                if var.init().is_some() {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "a declaration in the head of a for-of loop can't have an initializer"
-                            .into(),
-                        position,
-                    )));
-                }
-                Ok(IterableLoopInitializer::Let(var.clone()))
-            }
-            _ => Err(ParseError::lex(LexError::Syntax(
-                "only one variable can be declared in the head of a for-of loop".into(),
-                position,
-            ))),
-        },
-        Node::ConstDeclList(ref list) => match list.as_ref() {
-            [var] => {
-                if var.init().is_some() {
-                    return Err(ParseError::lex(LexError::Syntax(
-                        "a declaration in the head of a for-of loop can't have an initializer"
-                            .into(),
-                        position,
-                    )));
-                }
-                Ok(IterableLoopInitializer::Const(var.clone()))
-            }
-            _ => Err(ParseError::lex(LexError::Syntax(
-                "only one variable can be declared in the head of a for-of loop".into(),
-                position,
-            ))),
-        },
-        Node::Assign(_) => Err(ParseError::lex(LexError::Syntax(
-            "a declaration in the head of a for-of loop can't have an initializer".into(),
-            position,
-        ))),
-        Node::Object(object) => {
-            if let Some(pattern) = object_decl_to_declaration_pattern(object, strict) {
-                Ok(IterableLoopInitializer::DeclarationPattern(pattern))
-            } else {
+    match initializer {
+        ForLoopInitializer::Expression(expr) => match expr {
+            ast::Expression::Identifier(ident)
+                if strict && [Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
+            {
                 Err(ParseError::lex(LexError::Syntax(
-                    "invalid left-hand side declaration pattern in assignment head of a for-of loop".into(),
+                    "cannot use `eval` or `arguments` as iterable loop variable in strict code"
+                        .into(),
                     position,
                 )))
             }
-        }
-        Node::ArrayDecl(array) => {
-            if let Some(pattern) = array_decl_to_declaration_pattern(array, strict) {
-                Ok(IterableLoopInitializer::DeclarationPattern(pattern))
-            } else {
-                Err(ParseError::lex(LexError::Syntax(
-                    "invalid left-hand side declaration pattern in assignment head of a for-of loop".into(),
-                    position,
-                )))
+            ast::Expression::Identifier(ident) => Ok(IterableLoopInitializer::Identifier(ident)),
+            ast::Expression::ArrayLiteral(array) => {
+                array_decl_to_declaration_pattern(&array, strict)
+                    .ok_or(ParseError::General {
+                        message: "
+            invalid array destructuring pattern in iterable loop initializer
+            ",
+                        position,
+                    })
+                    .map(|arr| IterableLoopInitializer::Pattern(arr.into()))
             }
-        }
-        _ => Err(ParseError::lex(LexError::Syntax(
-            "unknown left hand side in head of for-of loop".into(),
-            position,
-        ))),
+            ast::Expression::ObjectLiteral(object) => {
+                object_decl_to_declaration_pattern(&object, strict)
+                    .ok_or(ParseError::General {
+                        message: "
+            invalid object destructuring pattern in iterable loop initializer
+            ",
+                        position,
+                    })
+                    .map(|obj| IterableLoopInitializer::Pattern(obj.into()))
+            }
+            // TODO: implement member initializers
+            ast::Expression::PropertyAccess(_)
+            | ast::Expression::SuperPropertyAccess(_)
+            | ast::Expression::PrivatePropertyAccess(_) => Err(ParseError::Unimplemented {
+                message: "using a property access as iterable loop initializer is not implemented",
+                position,
+            }),
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "invalid variable for iterable loop".into(),
+                position,
+            ))),
+        },
+        ForLoopInitializer::Lexical(decl) => match decl.variable_list().as_ref() {
+            [declaration] => {
+                if declaration.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(match decl {
+                    ast::declaration::LexicalDeclaration::Const(_) => {
+                        IterableLoopInitializer::Const(declaration.binding().clone())
+                    }
+                    ast::declaration::LexicalDeclaration::Let(_) => {
+                        IterableLoopInitializer::Let(declaration.binding().clone())
+                    }
+                })
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
+        ForLoopInitializer::Var(decl) => match decl.0.as_ref() {
+            [declaration] => {
+                // TODO: implement initializers in ForIn heads
+                // https://tc39.es/ecma262/#sec-initializers-in-forin-statement-heads
+                if declaration.init().is_some() {
+                    return Err(ParseError::lex(LexError::Syntax(
+                        "a declaration in the head of a for-of loop can't have an initializer"
+                            .into(),
+                        position,
+                    )));
+                }
+                Ok(IterableLoopInitializer::Var(declaration.binding().clone()))
+            }
+            _ => Err(ParseError::lex(LexError::Syntax(
+                "only one variable can be declared in the head of a for-of loop".into(),
+                position,
+            ))),
+        },
     }
 }

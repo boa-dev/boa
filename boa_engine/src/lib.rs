@@ -52,6 +52,7 @@
     nonstandard_style,
 )]
 #![allow(
+    clippy::missing_inline_in_public_items,
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -61,7 +62,6 @@
     clippy::missing_panics_doc,
     clippy::too_many_lines,
     clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
     clippy::cognitive_complexity,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,

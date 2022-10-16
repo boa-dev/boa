@@ -1,19 +1,21 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                object::{MethodDefinition, PropertyDefinition},
-                AsyncFunctionExpr, AsyncGeneratorExpr, Declaration, DeclarationList,
-                FormalParameter, FormalParameterList, FormalParameterListFlags, FunctionExpr,
-                Identifier, Node, Object,
-            },
-            Const,
+use crate::syntax::{
+    ast::{
+        declaration::{LexicalDeclaration, Variable},
+        expression::{
+            literal::{Literal, ObjectLiteral},
+            Identifier,
         },
-        parser::tests::{check_invalid, check_parser},
+        function::{
+            AsyncFunction, AsyncGenerator, FormalParameter, FormalParameterList,
+            FormalParameterListFlags, Function,
+        },
+        property::{MethodDefinition, PropertyDefinition, PropertyName},
+        Declaration, StatementList,
     },
+    parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks object literal parsing.
 #[test]
@@ -21,13 +23,13 @@ fn check_object_literal() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(true),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(true).into(),
         ),
-        PropertyDefinition::property(
-            interner.get_or_intern_static("b", utf16!("b")),
-            Const::from(false),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Literal::from(false).into(),
         ),
     ];
 
@@ -37,13 +39,14 @@ fn check_object_literal() {
             b: false,
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -55,17 +58,17 @@ fn check_object_short_function() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(true),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(true).into(),
         ),
-        PropertyDefinition::method_definition(
-            MethodDefinition::Ordinary(FunctionExpr::new(
+        PropertyDefinition::MethodDefinition(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            MethodDefinition::Ordinary(Function::new(
                 None,
                 FormalParameterList::default(),
-                vec![],
+                StatementList::default(),
             )),
-            interner.get_or_intern_static("b", utf16!("b")),
         ),
     ];
 
@@ -75,13 +78,14 @@ fn check_object_short_function() {
             b() {},
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -93,17 +97,18 @@ fn check_object_short_function_arguments() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(true),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(true).into(),
         ),
-        PropertyDefinition::method_definition(
-            MethodDefinition::Ordinary(FunctionExpr::new(
+        PropertyDefinition::MethodDefinition(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            MethodDefinition::Ordinary(Function::new(
                 None,
                 FormalParameterList {
                     parameters: Box::new([FormalParameter::new(
-                        Declaration::new_with_identifier(
-                            interner.get_or_intern_static("test", utf16!("test")),
+                        Variable::from_identifier(
+                            interner.get_or_intern_static("test", utf16!("test")).into(),
                             None,
                         ),
                         false,
@@ -111,9 +116,8 @@ fn check_object_short_function_arguments() {
                     flags: FormalParameterListFlags::default(),
                     length: 1,
                 },
-                vec![],
+                StatementList::default(),
             )),
-            interner.get_or_intern_static("b", utf16!("b")),
         ),
     ];
 
@@ -123,13 +127,14 @@ fn check_object_short_function_arguments() {
             b(test) {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -140,17 +145,17 @@ fn check_object_getter() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(true),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(true).into(),
         ),
-        PropertyDefinition::method_definition(
-            MethodDefinition::Get(FunctionExpr::new(
+        PropertyDefinition::MethodDefinition(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            MethodDefinition::Get(Function::new(
                 None,
                 FormalParameterList::default(),
-                vec![],
+                StatementList::default(),
             )),
-            interner.get_or_intern_static("b", utf16!("b")),
         ),
     ];
 
@@ -160,13 +165,14 @@ fn check_object_getter() {
             get b() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -177,17 +183,18 @@ fn check_object_setter() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(true),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(true).into(),
         ),
-        PropertyDefinition::method_definition(
-            MethodDefinition::Set(FunctionExpr::new(
+        PropertyDefinition::MethodDefinition(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            MethodDefinition::Set(Function::new(
                 None,
                 FormalParameterList {
                     parameters: Box::new([FormalParameter::new(
-                        Declaration::new_with_identifier(
-                            interner.get_or_intern_static("test", utf16!("test")),
+                        Variable::from_identifier(
+                            interner.get_or_intern_static("test", utf16!("test")).into(),
                             None,
                         ),
                         false,
@@ -195,9 +202,8 @@ fn check_object_setter() {
                     flags: FormalParameterListFlags::default(),
                     length: 1,
                 },
-                vec![],
+                StatementList::default(),
             )),
-            interner.get_or_intern_static("b", utf16!("b")),
         ),
     ];
 
@@ -207,13 +213,14 @@ fn check_object_setter() {
             set b(test) {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -223,13 +230,13 @@ fn check_object_setter() {
 fn check_object_short_function_get() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::method_definition(
-        MethodDefinition::Ordinary(FunctionExpr::new(
+    let object_properties = vec![PropertyDefinition::MethodDefinition(
+        interner.get_or_intern_static("get", utf16!("get")).into(),
+        MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )),
-        interner.get_or_intern_static("get", utf16!("get")),
     )];
 
     check_parser(
@@ -237,13 +244,14 @@ fn check_object_short_function_get() {
             get() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -253,13 +261,13 @@ fn check_object_short_function_get() {
 fn check_object_short_function_set() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::method_definition(
-        MethodDefinition::Ordinary(FunctionExpr::new(
+    let object_properties = vec![PropertyDefinition::MethodDefinition(
+        interner.get_or_intern_static("set", utf16!("set")).into(),
+        MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )),
-        interner.get_or_intern_static("set", utf16!("set")),
     )];
 
     check_parser(
@@ -267,13 +275,14 @@ fn check_object_short_function_set() {
             set() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -283,9 +292,9 @@ fn check_object_short_function_set() {
 fn check_object_shorthand_property_names() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::property(
-        interner.get_or_intern_static("a", utf16!("a")),
-        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
+    let object_properties = vec![PropertyDefinition::Property(
+        interner.get_or_intern_static("a", utf16!("a")).into(),
+        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
     )];
 
     check_parser(
@@ -293,21 +302,23 @@ fn check_object_shorthand_property_names() {
             const x = { a };
         ",
         vec![
-            DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::from(true).into()),
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(true).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("x", utf16!("x")),
-                    Some(Object::from(object_properties).into()),
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("x", utf16!("x")).into(),
+                    Some(ObjectLiteral::from(object_properties).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -319,13 +330,13 @@ fn check_object_shorthand_multiple_properties() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
         ),
-        PropertyDefinition::property(
-            interner.get_or_intern_static("b", utf16!("b")),
-            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("b", utf16!("b")).into(),
+            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
         ),
     ];
 
@@ -335,29 +346,32 @@ fn check_object_shorthand_multiple_properties() {
             const x = { a, b, };
         ",
         vec![
-            DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::from(true).into()),
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(true).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Some(Const::from(false).into()),
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Some(Literal::from(false).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Const(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("x", utf16!("x")),
-                    Some(Object::from(object_properties).into()),
+            Declaration::Lexical(LexicalDeclaration::Const(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("x", utf16!("x")).into(),
+                    Some(ObjectLiteral::from(object_properties).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -369,25 +383,26 @@ fn check_object_spread() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(1),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(1).into(),
         ),
-        PropertyDefinition::spread_object(Identifier::new(
-            interner.get_or_intern_static("b", utf16!("b")),
-        )),
+        PropertyDefinition::SpreadObject(
+            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+        ),
     ];
 
     check_parser(
         "const x = { a: 1, ...b };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -397,13 +412,13 @@ fn check_object_spread() {
 fn check_async_method() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::method_definition(
-        MethodDefinition::Async(AsyncFunctionExpr::new(
+    let object_properties = vec![PropertyDefinition::MethodDefinition(
+        interner.get_or_intern_static("dive", utf16!("dive")).into(),
+        MethodDefinition::Async(AsyncFunction::new(
             None,
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )),
-        interner.get_or_intern_static("dive", utf16!("dive")),
     )];
 
     check_parser(
@@ -411,13 +426,14 @@ fn check_async_method() {
             async dive() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -427,13 +443,15 @@ fn check_async_method() {
 fn check_async_generator_method() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::method_definition(
-        MethodDefinition::AsyncGenerator(AsyncGeneratorExpr::new(
+    let object_properties = vec![PropertyDefinition::MethodDefinition(
+        interner
+            .get_or_intern_static("vroom", utf16!("vroom"))
+            .into(),
+        MethodDefinition::AsyncGenerator(AsyncGenerator::new(
             None,
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )),
-        interner.get_or_intern_static("vroom", utf16!("vroom")),
     )];
 
     check_parser(
@@ -441,13 +459,14 @@ fn check_async_generator_method() {
             async* vroom() {}
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -479,14 +498,12 @@ fn check_async_gen_method_lineterminator() {
 fn check_async_ordinary_method() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::method_definition(
-        MethodDefinition::Ordinary(FunctionExpr::new(
+    let object_properties = vec![PropertyDefinition::MethodDefinition(
+        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
-            vec![],
-        )),
-        Node::Const(Const::from(
-            interner.get_or_intern_static("async", utf16!("async")),
+            StatementList::default(),
         )),
     )];
 
@@ -495,13 +512,14 @@ fn check_async_ordinary_method() {
             async() {}
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -511,11 +529,9 @@ fn check_async_ordinary_method() {
 fn check_async_property() {
     let mut interner = Interner::default();
 
-    let object_properties = vec![PropertyDefinition::property(
-        Node::Const(Const::from(
-            interner.get_or_intern_static("async", utf16!("async")),
-        )),
-        Const::from(true),
+    let object_properties = vec![PropertyDefinition::Property(
+        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        Literal::from(true).into(),
     )];
 
     check_parser(
@@ -523,13 +539,14 @@ fn check_async_property() {
             async: true
          };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

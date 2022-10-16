@@ -1,20 +1,24 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{Block, Break, Node, WhileLoop},
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        statement::{Block, Break, WhileLoop},
+        statement_list::StatementListItem,
+        Statement,
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn inline() {
     check_parser(
         "while (true) break;",
-        vec![WhileLoop::new(Const::from(true), Node::Break(Break::new(None))).into()],
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Break::new(None).into(),
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -24,7 +28,11 @@ fn new_line() {
     check_parser(
         "while (true)
             break;",
-        vec![WhileLoop::new(Const::from(true), Break::new(None)).into()],
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Break::new(None).into(),
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -33,10 +41,13 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {break}",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -49,13 +60,13 @@ fn new_line_semicolon_insertion() {
         "while (true) {
             break test
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
-                interner.get_or_intern_static("test", utf16!("test")),
-            )
-            .into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -65,10 +76,13 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {break;}",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -81,13 +95,13 @@ fn new_line_block() {
         "while (true) {
             break test;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
-                interner.get_or_intern_static("test", utf16!("test")),
-            )
-            .into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -100,13 +114,15 @@ fn reserved_label() {
         "while (true) {
             break await;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
-                interner.get_or_intern_static("await", utf16!("await")),
-            )
-            .into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(Some(
+                    interner.get_or_intern_static("await", utf16!("await")),
+                )),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -116,13 +132,15 @@ fn reserved_label() {
         "while (true) {
             break yield;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(
-                interner.get_or_intern_static("yield", utf16!("yield")),
-            )
-            .into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(Some(
+                    interner.get_or_intern_static("yield", utf16!("yield")),
+                )),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -134,10 +152,13 @@ fn new_line_block_empty() {
         "while (true) {
             break;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -149,10 +170,13 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             break
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Break::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );

@@ -16,7 +16,10 @@ mod member;
 mod template;
 
 use crate::syntax::{
-    ast::{node::SuperCall, Keyword, Node, Punctuator},
+    ast::{
+        expression::{Identifier, SuperCall},
+        Expression, Keyword, Punctuator,
+    },
     lexer::{InputElement, TokenKind},
     parser::{
         expression::left_hand_side::{
@@ -25,7 +28,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -39,7 +42,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct LeftHandSideExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -48,7 +51,7 @@ impl LeftHandSideExpression {
     /// Creates a new `LeftHandSideExpression` parser.
     pub(in crate::syntax::parser) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -64,10 +67,10 @@ impl<R> TokenParser<R> for LeftHandSideExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
-        let _timer = Profiler::global().start_event("LeftHandSIdeExpression", "Parsing");
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 

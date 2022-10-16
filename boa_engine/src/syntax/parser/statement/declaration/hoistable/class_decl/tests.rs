@@ -1,31 +1,25 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                declaration::class_decl::ClassElement as ClassElementNode,
-                object::{MethodDefinition, PropertyName},
-                Class, FormalParameterList, FunctionExpr, Node,
-            },
-            Const,
-        },
-        parser::tests::check_parser,
+use crate::syntax::{
+    ast::{
+        expression::literal::Literal,
+        function::{Class, ClassElement, FormalParameterList, Function},
+        property::{MethodDefinition, PropertyName},
+        Declaration, StatementList,
     },
+    parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn check_async_ordinary_method() {
     let mut interner = Interner::default();
 
-    let elements = vec![ClassElementNode::MethodDefinition(
-        PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", utf16!("async")),
-        ))),
-        MethodDefinition::Ordinary(FunctionExpr::new(
+    let elements = vec![ClassElement::MethodDefinition(
+        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        MethodDefinition::Ordinary(Function::new(
             None,
             FormalParameterList::default(),
-            vec![],
+            StatementList::default(),
         )),
     )];
 
@@ -34,12 +28,13 @@ fn check_async_ordinary_method() {
             async() { }
          }
         ",
-        [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", utf16!("A")),
+        [Declaration::Class(Class::new(
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
-            elements,
-        ))],
+            elements.into(),
+        ))
+        .into()],
         interner,
     );
 }
@@ -48,11 +43,9 @@ fn check_async_ordinary_method() {
 fn check_async_field_initialization() {
     let mut interner = Interner::default();
 
-    let elements = vec![ClassElementNode::FieldDefinition(
-        PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", utf16!("async")),
-        ))),
-        Some(Node::Const(Const::from(1))),
+    let elements = vec![ClassElement::FieldDefinition(
+        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
+        Some(Literal::from(1).into()),
     )];
 
     check_parser(
@@ -61,12 +54,13 @@ fn check_async_field_initialization() {
               = 1
          }
         ",
-        [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", utf16!("A")),
+        [Declaration::Class(Class::new(
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
-            elements,
-        ))],
+            elements.into(),
+        ))
+        .into()],
         interner,
     );
 }
@@ -75,10 +69,8 @@ fn check_async_field_initialization() {
 fn check_async_field() {
     let mut interner = Interner::default();
 
-    let elements = vec![ClassElementNode::FieldDefinition(
-        PropertyName::Computed(Node::Const(Const::from(
-            interner.get_or_intern_static("async", utf16!("async")),
-        ))),
+    let elements = vec![ClassElement::FieldDefinition(
+        PropertyName::Literal(interner.get_or_intern_static("async", utf16!("async"))),
         None,
     )];
 
@@ -87,12 +79,13 @@ fn check_async_field() {
             async
          }
         ",
-        [Node::ClassDecl(Class::new(
-            interner.get_or_intern_static("A", utf16!("A")),
+        [Declaration::Class(Class::new(
+            Some(interner.get_or_intern_static("A", utf16!("A")).into()),
             None,
             None,
-            elements,
-        ))],
+            elements.into(),
+        ))
+        .into()],
         interner,
     );
 }

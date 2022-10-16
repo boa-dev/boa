@@ -1,18 +1,31 @@
 //! Tests for the parser.
 
+use std::convert::TryInto;
+
 use super::Parser;
 use crate::{
     context::ContextBuilder,
     string::utf16,
     syntax::ast::{
-        node::{
-            field::GetConstField, object::PropertyDefinition, ArrowFunctionDecl, Assign, BinOp,
-            Call, Declaration, DeclarationList, FormalParameter, FormalParameterList,
-            FormalParameterListFlags, FunctionDecl, Identifier, If, New, Node, Object, Return,
-            StatementList, UnaryOp,
+        declaration::{Declaration, LexicalDeclaration, VarDeclaration, Variable},
+        expression::{
+            access::PropertyAccess,
+            literal::{Literal, ObjectLiteral},
+            operator::{
+                assign::op::AssignOp,
+                binary::op::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
+                unary::op::UnaryOp,
+                Assign, Binary, Unary,
+            },
+            Call, Identifier, New,
         },
-        op::{self, CompOp, LogOp, NumOp},
-        Const,
+        function::{
+            ArrowFunction, FormalParameter, FormalParameterList, FormalParameterListFlags, Function,
+        },
+        property::PropertyDefinition,
+        statement::{If, Return},
+        statement_list::StatementListItem,
+        Expression, Statement, StatementList,
     },
     Context,
 };
@@ -23,14 +36,14 @@ use boa_interner::Interner;
 #[track_caller]
 pub(super) fn check_parser<L>(js: &str, expr: L, interner: Interner)
 where
-    L: Into<Box<[Node]>>,
+    L: Into<Box<[StatementListItem]>>,
 {
     let mut context = ContextBuilder::default().interner(interner).build();
     assert_eq!(
         Parser::new(js.as_bytes())
             .parse_all(&mut context)
             .expect("failed to parse"),
-        StatementList::from(expr)
+        StatementList::from(expr.into())
     );
 }
 
@@ -47,16 +60,19 @@ fn check_construct_call_precedence() {
     let mut interner = Interner::default();
     check_parser(
         "new Date().getTime()",
-        vec![Node::from(Call::new(
-            GetConstField::new(
+        vec![Statement::Expression(Expression::from(Call::new(
+            PropertyAccess::new(
                 New::from(Call::new(
-                    Identifier::new(interner.get_or_intern_static("Date", utf16!("Date"))),
-                    vec![],
-                )),
+                    Identifier::new(interner.get_or_intern_static("Date", utf16!("Date"))).into(),
+                    Box::default(),
+                ))
+                .into(),
                 interner.get_or_intern_static("getTime", utf16!("getTime")),
-            ),
-            vec![],
-        ))],
+            )
+            .into(),
+            Box::default(),
+        )))
+        .into()],
         interner,
     );
 }
@@ -66,14 +82,16 @@ fn assign_operator_precedence() {
     let mut interner = Interner::default();
     check_parser(
         "a = a + 1",
-        vec![Assign::new(
-            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
-            BinOp::new(
-                NumOp::Add,
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
-                Const::from(1),
-            ),
-        )
+        vec![Statement::Expression(Expression::from(Assign::new(
+            AssignOp::Assign,
+            Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            Binary::new(
+                ArithmeticOp::Add.into(),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Literal::from(1).into(),
+            )
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -82,7 +100,9 @@ fn assign_operator_precedence() {
 #[test]
 fn hoisting() {
     let mut interner = Interner::default();
-    let hello = interner.get_or_intern_static("hello", utf16!("hello"));
+    let hello = interner
+        .get_or_intern_static("hello", utf16!("hello"))
+        .into();
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         r"
@@ -91,21 +111,27 @@ fn hoisting() {
 
             function hello() { return 10 }",
         vec![
-            FunctionDecl::new(
-                hello,
+            Declaration::Function(Function::new(
+                Some(hello),
                 FormalParameterList::default(),
-                vec![Return::new(Const::from(10), None).into()],
-            )
+                vec![Statement::Return(Return::new(Some(Literal::from(10).into()), None)).into()]
+                    .into(),
+            ))
             .into(),
-            DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Node::from(Call::new(Identifier::new(hello), vec![])),
+            Statement::Var(VarDeclaration(
+                vec![Variable::from_identifier(
+                    a.into(),
+                    Some(Call::new(hello.into(), Box::default()).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
+            Statement::Expression(Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            )))
+            .into(),
         ],
         interner,
     );
@@ -119,9 +145,23 @@ fn hoisting() {
 
             var a;",
         vec![
-            Assign::new(Identifier::new(a), Const::from(10)).into(),
-            UnaryOp::new(op::UnaryOp::IncrementPost, Identifier::new(a)).into(),
-            DeclarationList::Var(vec![Declaration::new_with_identifier(a, None)].into()).into(),
+            Statement::Expression(Expression::from(Assign::new(
+                AssignOp::Assign,
+                Identifier::new(a).into(),
+                Literal::from(10).into(),
+            )))
+            .into(),
+            Statement::Expression(Expression::from(Unary::new(
+                UnaryOp::IncrementPost,
+                Identifier::new(a).into(),
+            )))
+            .into(),
+            Statement::Var(VarDeclaration(
+                vec![Variable::from_identifier(a.into(), None)]
+                    .try_into()
+                    .unwrap(),
+            ))
+            .into(),
         ],
         interner,
     );
@@ -134,19 +174,21 @@ fn ambigous_regex_divide_expression() {
     let mut interner = Interner::default();
     check_parser(
         s,
-        vec![BinOp::new(
-            CompOp::StrictEqual,
-            BinOp::new(
-                NumOp::Div,
-                Const::Int(1),
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
-            ),
-            BinOp::new(
-                NumOp::Div,
-                Const::Int(1),
-                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))),
-            ),
-        )
+        vec![Statement::Expression(Expression::from(Binary::new(
+            RelationalOp::StrictEqual.into(),
+            Binary::new(
+                ArithmeticOp::Div.into(),
+                Literal::Int(1).into(),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+            )
+            .into(),
+            Binary::new(
+                ArithmeticOp::Div.into(),
+                Literal::Int(1).into(),
+                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            )
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -160,19 +202,31 @@ fn two_divisions_in_expression() {
     let a = interner.get_or_intern_static("a", utf16!("a"));
     check_parser(
         s,
-        vec![BinOp::new(
-            LogOp::Or,
-            BinOp::new(CompOp::StrictNotEqual, Identifier::new(a), Const::Int(0)),
-            BinOp::new(
-                CompOp::StrictEqual,
-                BinOp::new(NumOp::Div, Const::Int(1), Identifier::new(a)),
-                BinOp::new(
-                    NumOp::Div,
-                    Const::Int(1),
-                    Identifier::new(interner.get_or_intern_static("b", utf16!("b"))),
-                ),
-            ),
-        )
+        vec![Statement::Expression(Expression::from(Binary::new(
+            LogicalOp::Or.into(),
+            Binary::new(
+                RelationalOp::StrictNotEqual.into(),
+                Identifier::new(a).into(),
+                Literal::Int(0).into(),
+            )
+            .into(),
+            Binary::new(
+                RelationalOp::StrictEqual.into(),
+                Binary::new(
+                    ArithmeticOp::Div.into(),
+                    Literal::Int(1).into(),
+                    Identifier::new(a).into(),
+                )
+                .into(),
+                Binary::new(
+                    ArithmeticOp::Div.into(),
+                    Literal::Int(1).into(),
+                    Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+                )
+                .into(),
+            )
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -189,21 +243,23 @@ fn comment_semi_colon_insertion() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::Int(10).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::Int(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Some(Const::Int(20).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Some(Literal::Int(20).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -223,21 +279,23 @@ fn multiline_comment_semi_colon_insertion() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::Int(10).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::Int(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Some(Const::Int(20).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Some(Literal::Int(20).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -254,21 +312,23 @@ fn multiline_comment_no_lineterminator() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::Int(10).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::Int(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("b", utf16!("b")),
-                    Some(Const::Int(20).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    Some(Literal::Int(20).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
         ],
         interner,
@@ -288,18 +348,20 @@ fn assignment_line_terminator() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a", utf16!("a")),
-                    Some(Const::Int(3).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::Int(3).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            Assign::new(
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))),
-                Const::from(5),
-            )
+            Statement::Expression(Expression::from(Assign::new(
+                AssignOp::Assign,
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Literal::from(5).into(),
+            )))
             .into(),
         ],
         interner,
@@ -323,15 +385,21 @@ fn assignment_multiline_terminator() {
     check_parser(
         s,
         vec![
-            DeclarationList::Let(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Some(Const::Int(3).into()),
+            Declaration::Lexical(LexicalDeclaration::Let(
+                vec![Variable::from_identifier(
+                    a.into(),
+                    Some(Literal::Int(3).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            Assign::new(Identifier::new(a), Const::from(5)).into(),
+            Statement::Expression(Expression::from(Assign::new(
+                AssignOp::Assign,
+                Identifier::new(a).into(),
+                Literal::from(5).into(),
+            )))
+            .into(),
         ],
         interner,
     );
@@ -344,7 +412,10 @@ fn bracketed_expr() {
     let mut interner = Interner::default();
     check_parser(
         s,
-        vec![Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into()],
+        vec![Statement::Expression(Expression::from(Identifier::new(
+            interner.get_or_intern_static("b", utf16!("b")),
+        )))
+        .into()],
         interner,
     );
 }
@@ -357,11 +428,11 @@ fn increment_in_comma_op() {
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_parser(
         s,
-        vec![BinOp::new::<_, Node, Node>(
-            op::BinOp::Comma,
-            UnaryOp::new::<Node>(op::UnaryOp::IncrementPost, Identifier::new(b).into()).into(),
+        vec![Statement::Expression(Expression::from(Binary::new(
+            BinaryOp::Comma,
+            Unary::new(UnaryOp::IncrementPost, Identifier::new(b).into()).into(),
             Identifier::new(b).into(),
-        )
+        )))
         .into()],
         interner,
     );
@@ -379,24 +450,25 @@ fn spread_in_object() {
     let mut interner = Interner::default();
 
     let object_properties = vec![
-        PropertyDefinition::property(
-            interner.get_or_intern_static("a", utf16!("a")),
-            Const::from(1),
+        PropertyDefinition::Property(
+            interner.get_or_intern_static("a", utf16!("a")).into(),
+            Literal::from(1).into(),
         ),
-        PropertyDefinition::spread_object(Identifier::new(
-            interner.get_or_intern_static("b", utf16!("b")),
-        )),
+        PropertyDefinition::SpreadObject(
+            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+        ),
     ];
 
     check_parser(
         s,
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("x", utf16!("x")),
-                Some(Object::from(object_properties).into()),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("x", utf16!("x")).into(),
+                Some(ObjectLiteral::from(object_properties).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -414,19 +486,19 @@ fn spread_in_arrow_function() {
     let b = interner.get_or_intern_static("b", utf16!("b"));
     check_parser(
         s,
-        vec![ArrowFunctionDecl::new(
+        vec![Statement::Expression(Expression::from(ArrowFunction::new(
             None,
             FormalParameterList {
                 parameters: Box::new([FormalParameter::new(
-                    Declaration::new_with_identifier(b, None),
+                    Variable::from_identifier(b.into(), None),
                     true,
                 )]),
                 flags: FormalParameterListFlags::empty()
                     .union(FormalParameterListFlags::HAS_REST_PARAMETER),
                 length: 0,
             },
-            vec![Identifier::from(b).into()],
-        )
+            vec![Statement::Expression(Expression::from(Identifier::from(b))).into()].into(),
+        )))
         .into()],
         interner,
     );
@@ -442,20 +514,17 @@ fn empty_statement() {
             if(a) ;
         ",
         vec![
-            Node::Empty,
-            DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    a,
-                    Node::from(Const::from(10)),
+            Statement::Empty.into(),
+            Statement::Var(VarDeclaration(
+                vec![Variable::from_identifier(
+                    a.into(),
+                    Some(Literal::from(10).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            Node::If(If::new::<_, _, Node, _>(
-                Identifier::new(a),
-                Node::Empty,
-                None,
-            )),
+            Statement::If(If::new(Identifier::new(a).into(), Statement::Empty, None)).into(),
         ],
         interner,
     );

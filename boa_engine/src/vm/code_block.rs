@@ -18,7 +18,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
     },
     property::PropertyDescriptor,
-    syntax::ast::node::FormalParameterList,
+    syntax::ast::{expression::Identifier, function::FormalParameterList},
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
@@ -82,7 +82,7 @@ pub struct CodeBlock {
 
     /// Property field names.
     #[unsafe_ignore_trace]
-    pub(crate) names: Vec<Sym>,
+    pub(crate) names: Vec<Identifier>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
@@ -248,7 +248,7 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     operand,
-                    interner.resolve_expect(self.bindings[operand as usize].name()),
+                    interner.resolve_expect(self.bindings[operand as usize].name().sym()),
                 )
             }
             Opcode::GetPropertyByName
@@ -274,7 +274,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.names[operand as usize]),
+                    interner.resolve_expect(self.names[operand as usize].sym()),
                 )
             }
             Opcode::Pop
@@ -431,7 +431,7 @@ impl ToInternedString for CodeBlock {
             for (i, binding_locator) in self.bindings.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: {}\n",
-                    interner.resolve_expect(binding_locator.name())
+                    interner.resolve_expect(binding_locator.name().sym())
                 ));
             }
         }
@@ -1350,8 +1350,8 @@ impl JsObject {
 
                 for param in code.params.parameters.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
-                    arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
+                    arguments_in_parameter_names = arguments_in_parameter_names
+                        || param.names().contains(&Sym::ARGUMENTS.into());
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()

@@ -1,17 +1,18 @@
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{
-                AsyncGeneratorExpr, Declaration, DeclarationList, FormalParameterList, Return,
-                StatementList,
-            },
-            Const,
-        },
-        parser::tests::check_parser,
+use std::convert::TryInto;
+
+use crate::syntax::{
+    ast::{
+        declaration::{LexicalDeclaration, Variable},
+        expression::literal::Literal,
+        function::{AsyncGenerator, FormalParameterList},
+        statement::Return,
+        statement_list::StatementListItem,
+        Declaration, Statement,
     },
+    parser::tests::check_parser,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
+use boa_macros::utf16;
 
 ///checks async generator expression parsing
 
@@ -24,20 +25,24 @@ fn check_async_generator_expr() {
             return 1;
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                add,
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                add.into(),
                 Some(
-                    AsyncGeneratorExpr::new::<_, _, StatementList>(
-                        Some(add),
+                    AsyncGenerator::new(
+                        Some(add.into()),
                         FormalParameterList::default(),
-                        vec![Return::new::<_, _, Option<Sym>>(Const::from(1), None).into()].into(),
+                        vec![StatementListItem::Statement(Statement::Return(
+                            Return::new(Some(Literal::from(1).into()), None),
+                        ))]
+                        .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -55,40 +60,40 @@ fn check_nested_async_generator_expr() {
             };
         };
         ",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                a,
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                a.into(),
                 Some(
-                    AsyncGeneratorExpr::new::<_, _, StatementList>(
-                        Some(a),
+                    AsyncGenerator::new(
+                        Some(a.into()),
                         FormalParameterList::default(),
-                        vec![DeclarationList::Const(
-                            vec![Declaration::new_with_identifier(
-                                b,
+                        vec![Declaration::Lexical(LexicalDeclaration::Const(
+                            vec![Variable::from_identifier(
+                                b.into(),
                                 Some(
-                                    AsyncGeneratorExpr::new::<_, _, StatementList>(
-                                        Some(b),
+                                    AsyncGenerator::new(
+                                        Some(b.into()),
                                         FormalParameterList::default(),
-                                        vec![Return::new::<_, _, Option<Sym>>(
-                                            Const::from(1),
-                                            None,
-                                        )
-                                        .into()]
+                                        vec![StatementListItem::Statement(Statement::Return(
+                                            Return::new(Some(Literal::from(1).into()), None),
+                                        ))]
                                         .into(),
                                     )
                                     .into(),
                                 ),
                             )]
-                            .into(),
-                        )
+                            .try_into()
+                            .unwrap(),
+                        ))
                         .into()]
                         .into(),
                     )
                     .into(),
                 ),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

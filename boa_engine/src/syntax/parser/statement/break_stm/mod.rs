@@ -11,12 +11,12 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::Break, Keyword, Punctuator},
+    ast::{statement::Break, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
-        AllowAwait, AllowYield, ParseError, TokenParser,
+        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -57,11 +57,7 @@ where
 {
     type Output = Break;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BreakStatement", "Parsing");
         cursor.expect((Keyword::Break, false), "break statement", interner)?;
 
@@ -75,8 +71,9 @@ where
 
             None
         } else {
-            let label =
-                LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?
+                .sym();
             cursor.expect_semicolon("break statement", interner)?;
 
             Some(label)

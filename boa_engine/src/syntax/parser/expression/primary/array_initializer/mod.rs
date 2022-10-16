@@ -12,12 +12,13 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{ArrayDecl, Node, Spread},
+        expression::{literal, Spread},
         Punctuator,
     },
     lexer::TokenKind,
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -56,13 +57,9 @@ impl<R> TokenParser<R> for ArrayLiteral
 where
     R: Read,
 {
-    type Output = ArrayDecl;
+    type Output = literal::ArrayLiteral;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrayLiteral", "Parsing");
         let mut elements = Vec::new();
         let mut has_trailing_comma_spread = false;
@@ -90,7 +87,7 @@ where
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     cursor.next(interner).expect("token disappeared");
-                    elements.push(Node::Empty);
+                    elements.push(None);
                 }
                 TokenKind::Punctuator(Punctuator::Spread) if next_comma => {
                     return Err(ParseError::unexpected(
@@ -104,7 +101,7 @@ where
                     let node =
                         AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                    elements.push(Spread::new(node).into());
+                    elements.push(Some(Spread::new(node).into()));
                     next_comma = true;
                     last_spread = true;
                 }
@@ -116,10 +113,10 @@ where
                     ));
                 }
                 _ => {
-                    let node =
+                    let expr =
                         AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
-                    elements.push(node);
+                    elements.push(Some(expr));
                     next_comma = true;
                     last_spread = false;
                 }
@@ -127,11 +124,14 @@ where
         }
 
         if last_spread {
-            if let Some(Node::Empty) = elements.last() {
+            if let Some(None) = elements.last() {
                 has_trailing_comma_spread = true;
             }
         }
 
-        Ok(ArrayDecl::new(elements, has_trailing_comma_spread))
+        Ok(literal::ArrayLiteral::new(
+            elements,
+            has_trailing_comma_spread,
+        ))
     }
 }

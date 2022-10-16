@@ -1,5 +1,5 @@
 use crate::syntax::{
-    ast::{node::Node, Keyword, Punctuator},
+    ast::{Keyword, Punctuator, Statement},
     lexer::TokenKind,
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
@@ -40,9 +40,9 @@ impl<R> TokenParser<R> for ExpressionStatement
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Statement;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExpressionStatement", "Parsing");
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -97,6 +97,6 @@ where
 
         cursor.expect_semicolon("expression statement", interner)?;
 
-        Ok(expr)
+        Ok(expr.into())
     }
 }

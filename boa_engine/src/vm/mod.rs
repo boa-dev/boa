@@ -480,7 +480,7 @@ impl Context {
                 if binding_locator.is_global() {
                     let key = self
                         .interner()
-                        .resolve_expect(binding_locator.name())
+                        .resolve_expect(binding_locator.name().sym())
                         .into_common(false);
                     self.global_bindings_mut().entry(key).or_insert(
                         PropertyDescriptor::builder()
@@ -507,7 +507,7 @@ impl Context {
                 if binding_locator.is_global() {
                     let key = self
                         .interner()
-                        .resolve_expect(binding_locator.name())
+                        .resolve_expect(binding_locator.name().sym())
                         .into_common::<JsString>(false)
                         .into();
                     crate::object::internal_methods::global::global_set_no_receiver(
@@ -555,7 +555,7 @@ impl Context {
                     } else {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
+                            .resolve_expect(binding_locator.name().sym())
                             .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
@@ -592,7 +592,7 @@ impl Context {
                 } else {
                     let name = self
                         .interner()
-                        .resolve_expect(binding_locator.name())
+                        .resolve_expect(binding_locator.name().sym())
                         .to_string();
                     return self.throw_reference_error(format!("{name} is not initialized",));
                 };
@@ -613,7 +613,7 @@ impl Context {
                     } else {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
+                            .resolve_expect(binding_locator.name().sym())
                             .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
@@ -657,7 +657,7 @@ impl Context {
                     {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
+                            .resolve_expect(binding_locator.name().sym())
                             .into_common(false);
                         let exists = self.global_bindings_mut().contains_key(&key);
 
@@ -690,7 +690,7 @@ impl Context {
                 ) {
                     self.throw_reference_error(format!(
                         "cannot access '{}' before initialization",
-                        self.interner().resolve_expect(binding_locator.name())
+                        self.interner().resolve_expect(binding_locator.name().sym())
                     ))?;
                 }
             }
@@ -753,7 +753,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name: PropertyKey = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let result = object.get(name, self)?;
@@ -803,7 +803,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name: PropertyKey = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
 
@@ -821,7 +821,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false);
                 object.__define_own_property__(
                     name.into(),
@@ -851,7 +851,7 @@ impl Context {
                     .expect("method must be function object")
                     .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name);
+                let name = self.interner().resolve_expect(name.sym());
                 object.__define_own_property__(
                     name.into_common::<JsString>(false).into(),
                     PropertyDescriptor::builder()
@@ -933,7 +933,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let set = object
@@ -967,7 +967,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let set = object
@@ -1045,7 +1045,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let get = object
@@ -1079,7 +1079,7 @@ impl Context {
                 let name = self.vm.frame().code.names[index as usize];
                 let name = self
                     .interner()
-                    .resolve_expect(name)
+                    .resolve_expect(name.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let get = object
@@ -1156,10 +1156,10 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    match object_borrow_mut.get_private_element(name) {
+                    match object_borrow_mut.get_private_element(name.sym()) {
                         Some(PrivateElement::Field(_)) => {
                             object_borrow_mut
-                                .set_private_element(name, PrivateElement::Field(value));
+                                .set_private_element(name.sym(), PrivateElement::Field(value));
                         }
                         Some(PrivateElement::Method(_)) => {
                             return self.throw_type_error("private method is not writable");
@@ -1193,13 +1193,14 @@ impl Context {
                     if let Some(PrivateElement::Accessor {
                         getter: _,
                         setter: Some(setter),
-                    }) = object_borrow_mut.get_private_element(name)
+                    }) = object_borrow_mut.get_private_element(name.sym())
                     {
                         let setter = setter.clone();
                         drop(object_borrow_mut);
                         setter.call(&object.clone().into(), &[value], self)?;
                     } else {
-                        object_borrow_mut.set_private_element(name, PrivateElement::Field(value));
+                        object_borrow_mut
+                            .set_private_element(name.sym(), PrivateElement::Field(value));
                     }
                 } else {
                     return self.throw_type_error("cannot set private property on non-object");
@@ -1214,7 +1215,7 @@ impl Context {
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
                     object_borrow_mut
-                        .set_private_element(name, PrivateElement::Method(value.clone()));
+                        .set_private_element(name.sym(), PrivateElement::Method(value.clone()));
                 } else {
                     return self.throw_type_error("cannot set private setter on non-object");
                 }
@@ -1227,7 +1228,7 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    object_borrow_mut.set_private_element_setter(name, value.clone());
+                    object_borrow_mut.set_private_element_setter(name.sym(), value.clone());
                 } else {
                     return self.throw_type_error("cannot set private setter on non-object");
                 }
@@ -1240,7 +1241,7 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    object_borrow_mut.set_private_element_getter(name, value.clone());
+                    object_borrow_mut.set_private_element_getter(name.sym(), value.clone());
                 } else {
                     return self.throw_type_error("cannot set private getter on non-object");
                 }
@@ -1251,7 +1252,7 @@ impl Context {
                 let value = self.vm.pop();
                 if let Some(object) = value.as_object() {
                     let object_borrow_mut = object.borrow();
-                    if let Some(element) = object_borrow_mut.get_private_element(name) {
+                    if let Some(element) = object_borrow_mut.get_private_element(name.sym()) {
                         match element {
                             PrivateElement::Field(value) => self.vm.push(value),
                             PrivateElement::Method(method) => self.vm.push(method.clone()),
@@ -1323,7 +1324,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_field_private(
-                        name,
+                        name.sym(),
                         JsFunction::from_object_unchecked(field_function_object.clone()),
                     );
             }
@@ -1340,7 +1341,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_private_method(
-                        name,
+                        name.sym(),
                         PrivateElement::Accessor {
                             getter: Some(getter_object.clone()),
                             setter: None,
@@ -1360,7 +1361,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_private_method(
-                        name,
+                        name.sym(),
                         PrivateElement::Accessor {
                             getter: None,
                             setter: Some(setter_object.clone()),
@@ -1379,14 +1380,14 @@ impl Context {
                     .borrow_mut()
                     .as_function_mut()
                     .expect("class must be function object")
-                    .push_private_method(name, PrivateElement::Method(method_object.clone()));
+                    .push_private_method(name.sym(), PrivateElement::Method(method_object.clone()));
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
                 let key = self.vm.frame().code.names[index as usize];
                 let key = self
                     .interner()
-                    .resolve_expect(key)
+                    .resolve_expect(key.sym())
                     .into_common::<JsString>(false)
                     .into();
                 let object = self.vm.pop();

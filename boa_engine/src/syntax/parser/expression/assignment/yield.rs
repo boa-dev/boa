@@ -9,10 +9,7 @@
 
 use super::AssignmentExpression;
 use crate::syntax::{
-    ast::{
-        node::{Node, Yield},
-        Keyword, Punctuator,
-    },
+    ast::{expression::Yield, Expression, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
 };
@@ -52,9 +49,9 @@ impl<R> TokenParser<R> for YieldExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("YieldExpression", "Parsing");
 
         cursor.expect(
@@ -67,7 +64,7 @@ where
             cursor.peek_is_line_terminator(0, interner)?,
             Some(true) | None
         ) {
-            return Ok(Node::Yield(Yield::new::<Node>(None, false)));
+            return Ok(Yield::new(None, false).into());
         }
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -76,7 +73,7 @@ where
                 cursor.next(interner)?.expect("token disappeared");
                 let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Node::Yield(Yield::new(Some(expr), true)))
+                Ok(Yield::new(Some(expr), true).into())
             }
             TokenKind::Identifier(_)
             | TokenKind::Punctuator(
@@ -113,9 +110,9 @@ where
             | TokenKind::TemplateMiddle(_) => {
                 let expr = AssignmentExpression::new(None, self.allow_in, true, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(Node::Yield(Yield::new(Some(expr), false)))
+                Ok(Yield::new(Some(expr), false).into())
             }
-            _ => Ok(Node::Yield(Yield::new::<Node>(None, false))),
+            _ => Ok(Yield::new(None, false).into()),
         }
     }
 }

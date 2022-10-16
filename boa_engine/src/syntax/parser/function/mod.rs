@@ -10,26 +10,27 @@
 #[cfg(test)]
 mod tests;
 
-use crate::{
-    string::utf16,
-    syntax::{
-        ast::{
-            node::{self, FormalParameterList},
-            node::{declaration::Declaration, FormalParameterListFlags},
-            Punctuator,
-        },
-        lexer::{Error as LexError, InputElement, TokenKind},
-        parser::{
-            expression::{BindingIdentifier, Initializer},
-            statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
-            AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
-        },
+use crate::syntax::{
+    ast::{
+        self,
+        declaration::Variable,
+        function::{FormalParameterList, FormalParameterListFlags},
+        Punctuator,
+    },
+    lexer::{Error as LexError, InputElement, TokenKind},
+    parser::{
+        expression::{BindingIdentifier, Initializer},
+        statement::{ArrayBindingPattern, ObjectBindingPattern, StatementList},
+        AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
+use boa_macros::utf16;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
 use std::io::Read;
+
+use super::ParseResult;
 
 /// Formal parameters parsing.
 ///
@@ -65,11 +66,7 @@ where
 {
     type Output = FormalParameterList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FormalParameters", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -122,7 +119,7 @@ where
             if next_param.init().is_some() {
                 flags |= FormalParameterListFlags::HAS_EXPRESSIONS;
             }
-            if next_param.names().contains(&Sym::ARGUMENTS) {
+            if next_param.names().contains(&Sym::ARGUMENTS.into()) {
                 flags |= FormalParameterListFlags::HAS_ARGUMENTS;
             }
 
@@ -219,11 +216,7 @@ where
 {
     type Output = FormalParameterList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let params_start_position = cursor
             .expect(
                 TokenKind::Punctuator(Punctuator::OpenParen),
@@ -293,13 +286,9 @@ impl<R> TokenParser<R> for BindingRestElement
 where
     R: Read,
 {
-    type Output = node::FormalParameter;
+    type Output = ast::function::FormalParameter;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingRestElement", "Parsing");
         cursor.expect(Punctuator::Spread, "rest parameter", interner)?;
 
@@ -321,16 +310,15 @@ where
                                 .parse(cursor, interner)
                         })
                         .transpose()?;
-                    Declaration::new_with_object_pattern(param, init)
+                    Variable::from_pattern(param.into(), init)
                 }
 
-                TokenKind::Punctuator(Punctuator::OpenBracket) => {
-                    Declaration::new_with_array_pattern(
-                        ArrayBindingPattern::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
-                        None,
-                    )
-                }
+                TokenKind::Punctuator(Punctuator::OpenBracket) => Variable::from_pattern(
+                    ArrayBindingPattern::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?
+                        .into(),
+                    None,
+                ),
 
                 _ => {
                     let params = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -348,13 +336,13 @@ where
                         })
                         .transpose()?;
 
-                    Declaration::new_with_identifier(params, init)
+                    Variable::from_identifier(params, init)
                 }
             };
             Ok(Self::Output::new(declaration, true))
         } else {
             Ok(Self::Output::new(
-                Declaration::new_with_identifier(Sym::EMPTY_STRING, None),
+                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
                 true,
             ))
         }
@@ -393,13 +381,9 @@ impl<R> TokenParser<R> for FormalParameter
 where
     R: Read,
 {
-    type Output = node::FormalParameter;
+    type Output = ast::function::FormalParameter;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FormalParameter", "Parsing");
 
         if let Some(t) = cursor.peek(0, interner)? {
@@ -421,7 +405,7 @@ where
                         None
                     };
 
-                    Declaration::new_with_object_pattern(bindings, init)
+                    Variable::from_pattern(bindings.into(), init)
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
@@ -440,7 +424,7 @@ where
                         None
                     };
 
-                    Declaration::new_with_array_pattern(bindings, init)
+                    Variable::from_pattern(bindings.into(), init)
                 }
                 _ => {
                     let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -459,13 +443,13 @@ where
                         None
                     };
 
-                    Declaration::new_with_identifier(ident, init)
+                    Variable::from_identifier(ident, init)
                 }
             };
             Ok(Self::Output::new(declaration, false))
         } else {
             Ok(Self::Output::new(
-                Declaration::new_with_identifier(Sym::EMPTY_STRING, None),
+                Variable::from_identifier(Sym::EMPTY_STRING.into(), None),
                 false,
             ))
         }
@@ -514,13 +498,9 @@ impl<R> TokenParser<R> for FunctionStatementList
 where
     R: Read,
 {
-    type Output = node::StatementList;
+    type Output = ast::StatementList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("FunctionStatementList", "Parsing");
 
         let global_strict_mode = cursor.strict_mode();

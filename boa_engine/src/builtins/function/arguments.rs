@@ -3,7 +3,7 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::node::FormalParameterList,
+    syntax::ast::function::FormalParameterList,
     Context, JsValue,
 };
 use boa_gc::{Finalize, Gc, Trace};

@@ -2,14 +2,14 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node, node::Switch, Keyword, Punctuator},
+    ast::{self, expression::Identifier, statement, statement::Switch, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
-        Cursor, ParseError, TokenParser,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
@@ -58,11 +58,7 @@ where
 {
     type Output = Switch;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("SwitchStatement", "Parsing");
         cursor.expect((Keyword::Switch, false), "switch statement", interner)?;
         cursor.expect(Punctuator::OpenParen, "switch statement", interner)?;
@@ -113,13 +109,9 @@ impl<R> TokenParser<R> for CaseBlock
 where
     R: Read,
 {
-    type Output = (Box<[node::Case]>, Option<node::StatementList>);
+    type Output = (Box<[statement::Case]>, Option<ast::StatementList>);
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(Punctuator::OpenBlock, "switch case block", interner)?;
 
         let mut cases = Vec::new();
@@ -154,7 +146,7 @@ where
                     )
                     .parse(cursor, interner)?;
 
-                    cases.push(node::Case::new(cond, statement_list));
+                    cases.push(statement::Case::new(cond, statement_list));
                 }
                 TokenKind::Keyword((Keyword::Default, false)) => {
                     if default.is_some() {
@@ -197,15 +189,15 @@ where
         for case in &cases {
             lexically_declared_names.extend(case.body().lexically_declared_names());
 
-            case.body().var_declared_names_new(&mut var_declared_names);
+            case.body().var_declared_names(&mut var_declared_names);
         }
         if let Some(default_clause) = &default {
             lexically_declared_names.extend(default_clause.lexically_declared_names());
 
-            default_clause.var_declared_names_new(&mut var_declared_names);
+            default_clause.var_declared_names(&mut var_declared_names);
         }
 
-        let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+        let mut lexically_declared_names_map: FxHashMap<Identifier, bool> = FxHashMap::default();
         for (name, is_function_declaration) in &lexically_declared_names {
             if let Some(existing_is_function_declaration) = lexically_declared_names_map.get(name) {
                 if !(!cursor.strict_mode()

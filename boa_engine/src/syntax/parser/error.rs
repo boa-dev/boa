@@ -1,12 +1,12 @@
 //! Error and result implementation for the parser.
 
+use crate::syntax::ast::position::Position;
 use crate::syntax::ast::Span;
-use crate::syntax::ast::{position::Position, Node};
 use crate::syntax::lexer::Error as LexError;
 use std::fmt;
 
 /// Result of a parsing operation.
-pub type ParseResult = Result<Node, ParseError>;
+pub type ParseResult<T> = Result<T, ParseError>;
 
 pub(crate) trait ErrorContext {
     fn context(self, context: &'static str) -> Self;
