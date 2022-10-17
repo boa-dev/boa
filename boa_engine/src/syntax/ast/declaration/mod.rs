@@ -1,4 +1,5 @@
 use boa_interner::{Interner, ToInternedString};
+use tap::Tap;
 
 use super::{
     expression::Identifier,
@@ -40,7 +41,7 @@ impl Declaration {
             Declaration::AsyncFunction(af) => af.to_indented_string(interner, indentation),
             Declaration::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
             Declaration::Class(c) => c.to_indented_string(interner, indentation),
-            Declaration::Lexical(l) => l.to_interned_string(interner),
+            Declaration::Lexical(l) => l.to_interned_string(interner).tap_mut(|s| s.push(';')),
         }
     }
 
