@@ -375,8 +375,7 @@ pub struct JsNativeError {
 }
 
 impl JsNativeError {
-    /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally)
-    /// its `cause`.
+    /// Creates a new `JsNativeError` from its `kind`, `message` and (optionally) its `cause`.
     fn new(kind: JsNativeErrorKind, message: Box<str>, cause: Option<Box<JsError>>) -> Self {
         Self {
             kind,
@@ -385,8 +384,8 @@ impl JsNativeError {
         }
     }
 
-    /// Creates a new `JsNativeError` of kind `AggregateError` from
-    /// a list of [`JsError`]s, with empty `message` and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `AggregateError` from a list of [`JsError`]s, with
+    /// empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -407,8 +406,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Aggregate(errors), Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `Error`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `Error`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -422,8 +420,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Error, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `EvalError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `EvalError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -437,8 +434,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Eval, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `RangeError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `RangeError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -452,8 +448,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Range, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `ReferenceError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -467,8 +462,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Reference, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `SyntaxError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -482,8 +476,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Syntax, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `TypeError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `TypeError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -497,8 +490,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Type, Box::default(), None)
     }
 
-    /// Creates a new `JsNativeError` of kind `UriError`, with empty `message`
-    /// and undefined `cause`.
+    /// Creates a new `JsNativeError` of kind `UriError`, with empty `message` and undefined `cause`.
     ///
     /// # Examples
     ///
@@ -590,8 +582,7 @@ impl JsNativeError {
         self.cause.as_deref()
     }
 
-    /// Converts this native error to its opaque representation as a
-    /// [`JsObject`].
+    /// Converts this native error to its opaque representation as a [`JsObject`].
     ///
     /// # Examples
     ///
@@ -745,8 +736,8 @@ pub enum JsNativeErrorKind {
     /// [spec]: https://tc39.es/ecma262/#sec-native-error-types-used-in-this-standard-typeerror
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError
     Type,
-    /// An error thrown when the [`encodeURI()`][e_uri] and [`decodeURI()`][d_uri]
-    /// functions receive invalid parameters.
+    /// An error thrown when the [`encodeURI()`][e_uri] and [`decodeURI()`][d_uri] functions receive
+    /// invalid parameters.
     ///
     /// More information:
     /// - [ECMAScript reference][spec]
