@@ -1,14 +1,18 @@
-//! Labelled statement.
-
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::syntax::ast::{function::Function, ContainsSymbol};
 
 use super::Statement;
 
-/// The set of AST nodes that can be preceded by a label, per the [spec].
+/// The set of AST nodes that can be preceded by a label, as defined by the [spec].
+///
+/// Semantically, a [`Labelled`] statement should only wrap [`Statement`] nodes. However,
+/// old ECMAScript implementations supported [labelled function declarations][label-fn] as an extension
+/// of the grammar. In the ECMAScript 2015 spec, the production of [`LabelledStatement`] was
+/// modified to include labelled [`Function`]s as a valid node.
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelledItem
+/// [label-fn]: https://tc39.es/ecma262/#sec-labelled-function-declarations
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LabelledItem {
@@ -59,15 +63,12 @@ impl From<Statement> for LabelledItem {
     }
 }
 
-/// The labeled statement can be used with break or continue statements. It is prefixing a statement
-/// with an identifier which you can refer to.
+/// Labelled statement nodes, as defined by the [spec].
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
+/// The method [`Labelled::item`] doesn't return a [`Statement`] for compatibility reasons.
+/// See [`LabelledItem`] for more information.
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-labelled-statements
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/label
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Labelled {
@@ -76,6 +77,7 @@ pub struct Labelled {
 }
 
 impl Labelled {
+    /// Creates a new `Labelled` statement.
     pub fn new(item: LabelledItem, label: Sym) -> Self {
         Self {
             item: Box::new(item),
@@ -83,10 +85,12 @@ impl Labelled {
         }
     }
 
+    /// Gets the labelled item.
     pub fn item(&self) -> &LabelledItem {
         &self.item
     }
 
+    /// Gets the label name.
     pub fn label(&self) -> Sym {
         self.label
     }
