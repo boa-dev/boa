@@ -61,7 +61,7 @@ version = "0.16.0"
 dependencies = [
  "boa_engine",
  "boa_interner",
- "clap 4.0.12",
+ "clap 4.0.16",
  "colored",
  "jemallocator",
  "phf",
@@ -167,7 +167,7 @@ dependencies = [
  "boa_engine",
  "boa_gc",
  "boa_interner",
- "clap 4.0.12",
+ "clap 4.0.16",
  "colored",
  "fxhash",
  "gc",
@@ -281,9 +281,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.0.12"
+version = "4.0.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "385007cbbed899260395a4107435fead4cad80684461b3cc78238bdcb0bad58f"
+checksum = "2ef582e2c00a63a0c0aa1fb4a4870781c4f5729f51196d3537fa7c1c1992eaa3"
 dependencies = [
  "atty",
  "bitflags",
@@ -296,9 +296,9 @@ dependencies = [
 
 [[package]]
 name = "clap_derive"
-version = "4.0.10"
+version = "4.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db342ce9fda24fb191e2ed4e102055a4d381c1086a06630174cd8da8d5d917ce"
+checksum = "c42f169caba89a7d512b5418b09864543eeb4d497416c917d7137863bd2076ad"
 dependencies = [
  "heck",
  "proc-macro-error",
