@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/error/format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.16/src/error/format.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>format.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -422,45 +422,6 @@
 <span id="420">420</span>
 <span id="421">421</span>
 <span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
-<span id="429">429</span>
-<span id="430">430</span>
-<span id="431">431</span>
-<span id="432">432</span>
-<span id="433">433</span>
-<span id="434">434</span>
-<span id="435">435</span>
-<span id="436">436</span>
-<span id="437">437</span>
-<span id="438">438</span>
-<span id="439">439</span>
-<span id="440">440</span>
-<span id="441">441</span>
-<span id="442">442</span>
-<span id="443">443</span>
-<span id="444">444</span>
-<span id="445">445</span>
-<span id="446">446</span>
-<span id="447">447</span>
-<span id="448">448</span>
-<span id="449">449</span>
-<span id="450">450</span>
-<span id="451">451</span>
-<span id="452">452</span>
-<span id="453">453</span>
-<span id="454">454</span>
-<span id="455">455</span>
-<span id="456">456</span>
-<span id="457">457</span>
-<span id="458">458</span>
-<span id="459">459</span>
-<span id="460">460</span>
-<span id="461">461</span>
 </pre><pre class="rust"><code><span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_copy_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">missing_debug_implementations</span>)]</span>
 <span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;error-context&quot;</span>), <span class="ident">allow</span>(<span class="ident">dead_code</span>))]</span>
@@ -524,6 +485,27 @@
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">source</span>.<span class="ident">to_string</span>());
             } <span class="kw">else</span> {
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Unknown cause&quot;</span>);
+            }
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">valid</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedSubcommand</span>) {
+            <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
+            <span class="ident">did_you_mean</span>(<span class="kw-2">&amp;mut</span> <span class="ident">styled</span>, <span class="ident">valid</span>);
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">valid</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedArg</span>) {
+            <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
+            <span class="ident">did_you_mean</span>(<span class="kw-2">&amp;mut</span> <span class="ident">styled</span>, <span class="ident">valid</span>);
+        }
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">valid</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedValue</span>) {
+            <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
+            <span class="ident">did_you_mean</span>(<span class="kw-2">&amp;mut</span> <span class="ident">styled</span>, <span class="ident">valid</span>);
+        }
+        <span class="kw">let</span> <span class="ident">suggestions</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::Suggested</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::StyledStrs</span>(<span class="ident">suggestions</span>)) <span class="op">=</span> <span class="ident">suggestions</span> {
+            <span class="kw">for</span> <span class="ident">suggestion</span> <span class="kw">in</span> <span class="ident">suggestions</span> {
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
+                <span class="ident">styled</span>.<span class="ident">extend</span>(<span class="ident">suggestion</span>.<span class="ident">iter</span>());
             }
         }
 
@@ -591,7 +573,7 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Equal sign is needed when assigning values to &#39;&quot;</span>);
                 <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;.&quot;</span>);
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
@@ -610,8 +592,9 @@
                     <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
                     <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; requires a value but none was supplied&quot;</span>);
                 } <span class="kw">else</span> {
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">quote</span>(<span class="ident">invalid_value</span>));
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot; isn&#39;t a valid value for &#39;&quot;</span>);
+                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">invalid_value</span>);
+                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; isn&#39;t a valid value for &#39;&quot;</span>);
                     <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
                     <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
                 }
@@ -632,15 +615,6 @@
                         <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;]&quot;</span>);
                     }
                 }
-
-                <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedValue</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>)) <span class="op">=</span> <span class="ident">suggestion</span> {
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &quot;</span>);
-                    <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">quote</span>(<span class="ident">suggestion</span>));
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;?&quot;</span>);
-                }
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
@@ -652,24 +626,6 @@
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;The subcommand &#39;&quot;</span>);
                 <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_sub</span>);
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; wasn&#39;t recognized&quot;</span>);
-
-                <span class="kw">let</span> <span class="ident">valid_sub</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedSubcommand</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_sub</span>)) <span class="op">=</span> <span class="ident">valid_sub</span> {
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &quot;</span>);
-                    <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid_sub</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;?&quot;</span>);
-                }
-
-                <span class="kw">let</span> <span class="ident">suggestion</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedCommand</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">suggestion</span>)) <span class="op">=</span> <span class="ident">suggestion</span> {
-                    <span class="ident">styled</span>.<span class="ident">none</span>(
-            <span class="string">&quot;\n\nIf you believe you received this message in error, try re-running with &#39;&quot;</span>,
-        );
-                    <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">suggestion</span>);
-                    <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
-                }
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
@@ -750,9 +706,9 @@
                 <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_value</span>)),
             ) <span class="op">=</span> (<span class="ident">invalid_arg</span>, <span class="ident">invalid_value</span>)
             {
-                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Invalid value &quot;</span>);
-                <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">quote</span>(<span class="ident">invalid_value</span>));
-                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot; for &#39;&quot;</span>);
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Invalid value &#39;&quot;</span>);
+                <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_value</span>);
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; for &#39;&quot;</span>);
                 <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source</span>) <span class="op">=</span> <span class="ident">error</span>.<span class="ident">inner</span>.<span class="ident">source</span>.<span class="ident">as_deref</span>() {
                     <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;: &quot;</span>);
@@ -794,57 +750,6 @@
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Found argument &#39;&quot;</span>);
                 <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>.<span class="ident">to_string</span>());
                 <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; which wasn&#39;t expected, or isn&#39;t valid in this context&quot;</span>);
-
-                <span class="kw">let</span> <span class="ident">valid_sub</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedSubcommand</span>);
-                <span class="kw">let</span> <span class="ident">valid_arg</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::SuggestedArg</span>);
-                <span class="kw">match</span> (<span class="ident">valid_sub</span>, <span class="ident">valid_arg</span>) {
-                    (
-                        <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_sub</span>)),
-                        <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_arg</span>)),
-                    ) =&gt; {
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;to put &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid_arg</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; after the subcommand &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid_sub</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;?&quot;</span>);
-                    }
-                    (<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">valid_arg</span>))) =&gt; {
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid_arg</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;?&quot;</span>);
-                    }
-                    (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {}
-                }
-
-                <span class="kw">let</span> <span class="ident">invalid_arg</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::InvalidArg</span>);
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ContextValue::String</span>(<span class="ident">invalid_arg</span>)) <span class="op">=</span> <span class="ident">invalid_arg</span> {
-                    <span class="kw">if</span> <span class="ident">invalid_arg</span>.<span class="ident">starts_with</span>(<span class="string">&#39;-&#39;</span>) {
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;If you tried to supply &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; as a value rather than a flag, use &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="string">&quot;-- &quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">invalid_arg</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
-                    }
-
-                    <span class="kw">let</span> <span class="ident">trailing_arg</span> <span class="op">=</span> <span class="ident">error</span>.<span class="ident">get</span>(<span class="ident">ContextKind::TrailingArg</span>);
-                    <span class="kw">if</span> <span class="ident">trailing_arg</span> <span class="op">==</span> <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="ident">ContextValue::Bool</span>(<span class="bool-val">true</span>)) {
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;\n\n&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;If you tried to supply &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="ident">invalid_arg</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; as a subcommand, remove the &#39;&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">warning</span>(<span class="string">&quot;--&quot;</span>);
-                        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39; before it.&quot;</span>);
-                    }
-                }
                 <span class="bool-val">true</span>
             } <span class="kw">else</span> {
                 <span class="bool-val">false</span>
@@ -909,15 +814,32 @@
     }
 }
 
-<span class="kw">fn</span> <span class="ident">quote</span>(<span class="ident">s</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
-    <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>();
-    <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">s</span>)
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;error-context&quot;</span>)]</span>
+<span class="kw">fn</span> <span class="ident">did_you_mean</span>(<span class="ident">styled</span>: <span class="kw-2">&amp;mut</span> <span class="ident">StyledStr</span>, <span class="ident">valid</span>: <span class="kw-2">&amp;</span><span class="ident">ContextValue</span>) {
+    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ContextValue::String</span>(<span class="ident">valid</span>) <span class="op">=</span> <span class="ident">valid</span> {
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &#39;&quot;</span>);
+        <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid</span>);
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;?&quot;</span>);
+    } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">ContextValue::Strings</span>(<span class="ident">valid</span>) <span class="op">=</span> <span class="ident">valid</span> {
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="ident">TAB</span>);
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;Did you mean &quot;</span>);
+        <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">valid</span>) <span class="kw">in</span> <span class="ident">valid</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
+            <span class="kw">if</span> <span class="ident">i</span> <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
+                <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;, &quot;</span>);
+            }
+            <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+            <span class="ident">styled</span>.<span class="ident">good</span>(<span class="ident">valid</span>);
+            <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;&#39;&quot;</span>);
+        }
+        <span class="ident">styled</span>.<span class="ident">none</span>(<span class="string">&quot;?&quot;</span>);
+    }
 }
 
 <span class="kw">fn</span> <span class="ident">escape</span>(<span class="ident">s</span>: <span class="kw">impl</span> <span class="ident">AsRef</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>) -&gt; <span class="ident">String</span> {
     <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">s</span>.<span class="ident">as_ref</span>();
     <span class="kw">if</span> <span class="ident">s</span>.<span class="ident">contains</span>(<span class="ident">char::is_whitespace</span>) {
-        <span class="ident">quote</span>(<span class="ident">s</span>)
+        <span class="macro">format!</span>(<span class="string">&quot;{:?}&quot;</span>, <span class="ident">s</span>)
     } <span class="kw">else</span> {
         <span class="ident">s</span>.<span class="ident">to_owned</span>()
     }

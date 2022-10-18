@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.12/src/parser/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/clap-4.0.16/src/parser/parser.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>parser.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../../normalize.css"><link rel="stylesheet" type="text/css" href="../../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../../storage.js"></script><script defer src="../../../source-script.js"></script><script defer src="../../../source-files.js"></script><script defer src="../../../main.js"></script><noscript><link rel="stylesheet" href="../../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container"><img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../../clap/index.html"><div class="logo-container">
                     <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../../clap/index.html">
                         <img src="https://raw.githubusercontent.com/clap-rs/clap/master/assets/clap.png" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
@@ -1637,6 +1637,12 @@
 <span id="1635">1635</span>
 <span id="1636">1636</span>
 <span id="1637">1637</span>
+<span id="1638">1638</span>
+<span id="1639">1639</span>
+<span id="1640">1640</span>
+<span id="1641">1641</span>
+<span id="1642">1642</span>
+<span id="1643">1643</span>
 </pre><pre class="rust"><code><span class="comment">// Std</span>
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">cell::Cell</span>,
@@ -1814,7 +1820,12 @@
                                 .<span class="ident">remaining</span>(<span class="kw-2">&amp;mut</span> <span class="ident">args_cursor</span>)
                                 .<span class="ident">map</span>(<span class="op">|</span><span class="ident">x</span><span class="op">|</span> <span class="ident">x</span>.<span class="ident">to_str</span>().<span class="ident">expect</span>(<span class="ident">INVALID_UTF8</span>))
                                 .<span class="ident">collect</span>();
-                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">did_you_mean_error</span>(<span class="kw-2">&amp;</span><span class="ident">arg</span>, <span class="ident">matcher</span>, <span class="kw-2">&amp;</span><span class="ident">remaining_args</span>));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">did_you_mean_error</span>(
+                                <span class="kw-2">&amp;</span><span class="ident">arg</span>,
+                                <span class="ident">matcher</span>,
+                                <span class="kw-2">&amp;</span><span class="ident">remaining_args</span>,
+                                <span class="ident">trailing_values</span>,
+                            ));
                         }
                         <span class="ident">ParseResult::UnneededAttachedValue</span> { <span class="ident">rest</span>, <span class="ident">used</span>, <span class="ident">arg</span> } =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resolve_pending</span>(<span class="ident">matcher</span>);
@@ -1896,10 +1907,14 @@
                         }
                         <span class="ident">ParseResult::NoMatchingArg</span> { <span class="ident">arg</span> } =&gt; {
                             <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resolve_pending</span>(<span class="ident">matcher</span>);
+                            <span class="comment">// We already know it looks like a flag</span>
+                            <span class="kw">let</span> <span class="ident">suggested_trailing_arg</span> <span class="op">=</span>
+                                <span class="op">!</span><span class="ident">trailing_values</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">has_positionals</span>();
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClapError::unknown_argument</span>(
                                 <span class="self">self</span>.<span class="ident">cmd</span>,
                                 <span class="ident">arg</span>,
                                 <span class="prelude-val">None</span>,
+                                <span class="ident">suggested_trailing_arg</span>,
                                 <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
                             ));
                         }
@@ -2013,10 +2028,14 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_keymap</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">pos_counter</span>) {
                 <span class="kw">if</span> <span class="ident">arg</span>.<span class="ident">is_last_set</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">trailing_values</span> {
                     <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">resolve_pending</span>(<span class="ident">matcher</span>);
+                    <span class="comment">// Its already considered a positional, we don&#39;t need to suggest turning it</span>
+                    <span class="comment">// into one</span>
+                    <span class="kw">let</span> <span class="ident">suggested_trailing_arg</span> <span class="op">=</span> <span class="bool-val">false</span>;
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ClapError::unknown_argument</span>(
                         <span class="self">self</span>.<span class="ident">cmd</span>,
                         <span class="ident">arg_os</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
                         <span class="prelude-val">None</span>,
+                        <span class="ident">suggested_trailing_arg</span>,
                         <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
                     ));
                 }
@@ -2136,14 +2155,10 @@
         );
         <span class="comment">// If the argument looks like a subcommand.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">candidates</span>.<span class="ident">is_empty</span>() {
-            <span class="kw">let</span> <span class="ident">candidates</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">candidates</span>
-                .<span class="ident">iter</span>()
-                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">candidate</span><span class="op">|</span> <span class="macro">format!</span>(<span class="string">&quot;&#39;{}&#39;&quot;</span>, <span class="ident">candidate</span>))
-                .<span class="ident">collect</span>();
             <span class="kw">return</span> <span class="ident">ClapError::invalid_subcommand</span>(
                 <span class="self">self</span>.<span class="ident">cmd</span>,
                 <span class="ident">arg_os</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
-                <span class="ident">candidates</span>.<span class="ident">join</span>(<span class="string">&quot; or &quot;</span>),
+                <span class="ident">candidates</span>,
                 <span class="self">self</span>.<span class="ident">cmd</span>
                     .<span class="ident">get_bin_name</span>()
                     .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_name</span>())
@@ -2163,10 +2178,14 @@
             );
         }
 
+        <span class="kw">let</span> <span class="ident">suggested_trailing_arg</span> <span class="op">=</span> <span class="op">!</span><span class="ident">trailing_values</span>
+            <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">has_positionals</span>()
+            <span class="op">&amp;&amp;</span> (<span class="ident">arg_os</span>.<span class="ident">is_long</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">arg_os</span>.<span class="ident">is_short</span>());
         <span class="ident">ClapError::unknown_argument</span>(
             <span class="self">self</span>.<span class="ident">cmd</span>,
             <span class="ident">arg_os</span>.<span class="ident">display</span>().<span class="ident">to_string</span>(),
             <span class="prelude-val">None</span>,
+            <span class="ident">suggested_trailing_arg</span>,
             <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>).<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span>[]),
         )
     }
@@ -2717,15 +2736,6 @@
             <span class="ident">matcher</span>.<span class="ident">add_index_to</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>(), <span class="self">self</span>.<span class="ident">cur_idx</span>.<span class="ident">get</span>());
         }
 
-        <span class="comment">// Increment or create the group &quot;args&quot;</span>
-        <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">groups_for_arg</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>()) {
-            <span class="ident">matcher</span>.<span class="ident">add_val_to</span>(
-                <span class="kw-2">&amp;</span><span class="ident">group</span>,
-                <span class="ident">AnyValue::new</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">clone</span>()),
-                <span class="ident">OsString::from</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>()),
-            );
-        }
-
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -3138,20 +3148,15 @@
             <span class="self">self</span>.<span class="ident">remove_overrides</span>(<span class="ident">arg</span>, <span class="ident">matcher</span>);
         }
         <span class="ident">matcher</span>.<span class="ident">start_custom_arg</span>(<span class="ident">arg</span>, <span class="ident">source</span>);
-        <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">groups_for_arg</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>()) {
-            <span class="ident">matcher</span>.<span class="ident">start_custom_group</span>(<span class="ident">group</span>, <span class="ident">source</span>);
-        }
-    }
-
-    <span class="doccomment">/// Increase occurrence of specific argument and the grouped arg it&#39;s in.</span>
-    <span class="kw">fn</span> <span class="ident">start_occurrence_of_arg</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span>, <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">Arg</span>) {
-        <span class="comment">// With each new occurrence, remove overrides from prior occurrences</span>
-        <span class="self">self</span>.<span class="ident">remove_overrides</span>(<span class="ident">arg</span>, <span class="ident">matcher</span>);
-
-        <span class="ident">matcher</span>.<span class="ident">start_occurrence_of_arg</span>(<span class="ident">arg</span>);
-        <span class="comment">// Increment or create the group &quot;args&quot;</span>
-        <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">groups_for_arg</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>()) {
-            <span class="ident">matcher</span>.<span class="ident">start_occurrence_of_group</span>(<span class="ident">group</span>);
+        <span class="kw">if</span> <span class="ident">source</span>.<span class="ident">is_explicit</span>() {
+            <span class="kw">for</span> <span class="ident">group</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">groups_for_arg</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>()) {
+                <span class="ident">matcher</span>.<span class="ident">start_custom_group</span>(<span class="ident">group</span>.<span class="ident">clone</span>(), <span class="ident">source</span>);
+                <span class="ident">matcher</span>.<span class="ident">add_val_to</span>(
+                    <span class="kw-2">&amp;</span><span class="ident">group</span>,
+                    <span class="ident">AnyValue::new</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">clone</span>()),
+                    <span class="ident">OsString::from</span>(<span class="ident">arg</span>.<span class="ident">get_id</span>().<span class="ident">as_str</span>()),
+                );
+            }
         }
     }
 }
@@ -3164,6 +3169,7 @@
         <span class="ident">arg</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>,
         <span class="ident">matcher</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ArgMatcher</span>,
         <span class="ident">remaining_args</span>: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="ident">str</span>],
+        <span class="ident">trailing_values</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">ClapError</span> {
         <span class="macro">debug!</span>(<span class="string">&quot;Parser::did_you_mean_error: arg={}&quot;</span>, <span class="ident">arg</span>);
         <span class="comment">// Didn&#39;t match a flag or option</span>
@@ -3188,7 +3194,7 @@
         <span class="comment">// Add the arg to the matches to build a proper usage string</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">name</span>, <span class="kw">_</span>)) <span class="op">=</span> <span class="ident">did_you_mean</span>.<span class="ident">as_ref</span>() {
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">arg</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">get_keymap</span>().<span class="ident">get</span>(<span class="kw-2">&amp;</span><span class="ident">name</span>.<span class="ident">as_ref</span>()) {
-                <span class="self">self</span>.<span class="ident">start_occurrence_of_arg</span>(<span class="ident">matcher</span>, <span class="ident">arg</span>);
+                <span class="self">self</span>.<span class="ident">start_custom_arg</span>(<span class="ident">matcher</span>, <span class="ident">arg</span>, <span class="ident">ValueSource::CommandLine</span>);
             }
         }
 
@@ -3202,10 +3208,16 @@
             .<span class="ident">cloned</span>()
             .<span class="ident">collect</span>();
 
+        <span class="comment">// `did_you_mean` is a lot more likely and should cause us to skip the `--` suggestion</span>
+        <span class="comment">//</span>
+        <span class="comment">// In theory, this is only called for `--long`s, so we don&#39;t need to check</span>
+        <span class="kw">let</span> <span class="ident">suggested_trailing_arg</span> <span class="op">=</span>
+            <span class="ident">did_you_mean</span>.<span class="ident">is_none</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">trailing_values</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">cmd</span>.<span class="ident">has_positionals</span>();
         <span class="ident">ClapError::unknown_argument</span>(
             <span class="self">self</span>.<span class="ident">cmd</span>,
             <span class="macro">format!</span>(<span class="string">&quot;--{}&quot;</span>, <span class="ident">arg</span>),
             <span class="ident">did_you_mean</span>,
+            <span class="ident">suggested_trailing_arg</span>,
             <span class="ident">Usage::new</span>(<span class="self">self</span>.<span class="ident">cmd</span>)
                 .<span class="ident">required</span>(<span class="kw-2">&amp;</span><span class="ident">required</span>)
                 .<span class="ident">create_usage_with_title</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="ident">used</span>),
