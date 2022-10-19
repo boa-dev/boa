@@ -56,7 +56,9 @@ impl Operation for SetName {
         ) {
             context.throw_reference_error(format!(
                 "cannot access '{}' before initialization",
-                context.interner().resolve_expect(binding_locator.name().sym())
+                context
+                    .interner()
+                    .resolve_expect(binding_locator.name().sym())
             ))?;
         }
         Ok(ShouldExit::False)

@@ -94,7 +94,8 @@ impl Operation for SetPrivateMethod {
         let object = context.vm.pop();
         if let Some(object) = object.as_object() {
             let mut object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element(name.sym(), PrivateElement::Method(value.clone()));
+            object_borrow_mut
+                .set_private_element(name.sym(), PrivateElement::Method(value.clone()));
         } else {
             return context.throw_type_error("cannot set private setter on non-object");
         }
