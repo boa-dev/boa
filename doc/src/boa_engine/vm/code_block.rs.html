@@ -1531,6 +1531,15 @@
 <span id="1529">1529</span>
 <span id="1530">1530</span>
 <span id="1531">1531</span>
+<span id="1532">1532</span>
+<span id="1533">1533</span>
+<span id="1534">1534</span>
+<span id="1535">1535</span>
+<span id="1536">1536</span>
+<span id="1537">1537</span>
+<span id="1538">1538</span>
+<span id="1539">1539</span>
+<span id="1540">1540</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1546,6 +1555,7 @@
     },
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PrivateElement</span>,
@@ -2191,7 +2201,9 @@
         <span class="kw">let</span> <span class="ident">this_function_object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">clone</span>();
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_callable</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;not a callable function&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
@@ -2229,8 +2241,9 @@
                 <span class="ident">drop</span>(<span class="ident">object</span>);
 
                 <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">is_class_constructor</span> {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Class constructor cannot be invoked without &#39;new&#39;&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Class constructor cannot be invoked without &#39;new&#39;&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="ident">std::mem::swap</span>(<span class="kw-2">&amp;mut</span> <span class="ident">environments</span>, <span class="kw-2">&amp;mut</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>);
@@ -2770,7 +2783,9 @@
         };
 
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">is_constructor</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a constructor function&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;not a constructor function&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">borrow</span>();
@@ -2792,9 +2807,11 @@
                         <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">expect</span>(<span class="string">&quot;hmm&quot;</span>).<span class="ident">is_base</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_undefined</span>() {
                             <span class="ident">create_this</span>(<span class="ident">context</span>)
                         } <span class="kw">else</span> {
-                            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                                <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
-                            )
+                            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(
+                                    <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
+                                )
+                                .<span class="ident">into</span>())
                         }
                     }
                 }
@@ -2816,9 +2833,11 @@
                         <span class="kw">if</span> <span class="ident">constructor</span>.<span class="ident">expect</span>(<span class="string">&quot;hmma&quot;</span>).<span class="ident">is_base</span>() <span class="op">|</span><span class="op">|</span> <span class="ident">val</span>.<span class="ident">is_undefined</span>() {
                             <span class="ident">create_this</span>(<span class="ident">context</span>)
                         } <span class="kw">else</span> {
-                            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                                <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
-                            )
+                            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(
+                                    <span class="string">&quot;Derived constructor can only return an Object or undefined&quot;</span>,
+                                )
+                                .<span class="ident">into</span>())
                         }
                     }
                 }
@@ -2968,22 +2987,21 @@
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">this</span>) <span class="op">=</span> <span class="ident">this</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">this</span>)
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span>.<span class="ident">is_undefined</span>() {
-                    <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Function constructor must not return non-object&quot;</span>)
+                    <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Function constructor must not return non-object&quot;</span>)
+                        .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
                     <span class="kw">let</span> <span class="ident">function_env</span> <span class="op">=</span> <span class="ident">environment</span>
                         .<span class="ident">slots</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;must be function environment&quot;</span>)
                         .<span class="ident">as_function_slots</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;must be function environment&quot;</span>);
-                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">this_binding</span>) <span class="op">=</span> <span class="ident">function_env</span>.<span class="ident">borrow</span>().<span class="ident">get_this_binding</span>() {
-                        <span class="prelude-val">Ok</span>(<span class="ident">this_binding</span>
-                            .<span class="ident">as_object</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;this binding must be object&quot;</span>)
-                            .<span class="ident">clone</span>())
-                    } <span class="kw">else</span> {
-                        <span class="comment">//context.throw_type_error(&quot;Function constructor must not return non-object&quot;)</span>
-                        <span class="ident">context</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;Must call super constructor in derived class before accessing &#39;this&#39; or returning from derived constructor&quot;</span>)
-                    }
+                    <span class="prelude-val">Ok</span>(<span class="ident">function_env</span>
+                        .<span class="ident">borrow</span>()
+                        .<span class="ident">get_this_binding</span>()<span class="question-mark">?</span>
+                        .<span class="ident">as_object</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;this binding must be object&quot;</span>)
+                        .<span class="ident">clone</span>())
                 }
             }
             <span class="ident">Function::Generator</span> { .. }

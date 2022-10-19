@@ -214,6 +214,29 @@
 <span id="212">212</span>
 <span id="213">213</span>
 <span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module to read the list of test suites from disk.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Harness</span>, <span class="ident">Locale</span>, <span class="ident">Phase</span>, <span class="ident">Test</span>, <span class="ident">TestSuite</span>, <span class="ident">IGNORED</span>};
@@ -249,7 +272,30 @@
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">struct</span> <span class="ident">Negative</span> {
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">phase</span>: <span class="ident">Phase</span>,
     <span class="attribute">#[<span class="ident">serde</span>(<span class="ident">rename</span> <span class="op">=</span> <span class="string">&quot;type&quot;</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">error_type</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span>,
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="ident">error_type</span>: <span class="ident">ErrorType</span>,
+}
+
+<span class="doccomment">/// All possible error types</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Deserialize</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
+<span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::enum_variant_names</span>)]</span> <span class="comment">// Better than appending `rename` to all variants</span>
+<span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">enum</span> <span class="ident">ErrorType</span> {
+    <span class="ident">Test262Error</span>,
+    <span class="ident">SyntaxError</span>,
+    <span class="ident">ReferenceError</span>,
+    <span class="ident">RangeError</span>,
+    <span class="ident">TypeError</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">ErrorType</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">as_str</span>(<span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">ErrorType::Test262Error</span> =&gt; <span class="string">&quot;Test262Error&quot;</span>,
+            <span class="ident">ErrorType::SyntaxError</span> =&gt; <span class="string">&quot;SyntaxError&quot;</span>,
+            <span class="ident">ErrorType::ReferenceError</span> =&gt; <span class="string">&quot;ReferenceError&quot;</span>,
+            <span class="ident">ErrorType::RangeError</span> =&gt; <span class="string">&quot;RangeError&quot;</span>,
+            <span class="ident">ErrorType::TypeError</span> =&gt; <span class="string">&quot;TypeError&quot;</span>,
+        }
+    }
 }
 
 <span class="doccomment">/// Individual test flag.</span>

@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thiserror-1.0.30/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../thiserror/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../thiserror/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../thiserror/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thiserror-1.0.37/src/lib.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>lib.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../thiserror/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../thiserror/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../thiserror/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -223,11 +218,45 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
+<span id="225">225</span>
+<span id="226">226</span>
+<span id="227">227</span>
+<span id="228">228</span>
+<span id="229">229</span>
+<span id="230">230</span>
+<span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
 </pre><pre class="rust"><code><span class="doccomment">//! [![github]](https://github.com/dtolnay/thiserror)&amp;ensp;[![crates-io]](https://crates.io/crates/thiserror)&amp;ensp;[![docs-rs]](https://docs.rs/thiserror)</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [github]: https://img.shields.io/badge/github-8da0cb?style=for-the-badge&amp;labelColor=555555&amp;logo=github</span>
 <span class="doccomment">//! [crates-io]: https://img.shields.io/badge/crates.io-fc8d62?style=for-the-badge&amp;labelColor=555555&amp;logo=rust</span>
-<span class="doccomment">//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&amp;labelColor=555555&amp;logoColor=white&amp;logo=data:image/svg+xml;base64,PHN2ZyByb2xlPSJpbWciIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDUxMiA1MTIiPjxwYXRoIGZpbGw9IiNmNWY1ZjUiIGQ9Ik00ODguNiAyNTAuMkwzOTIgMjE0VjEwNS41YzAtMTUtOS4zLTI4LjQtMjMuNC0zMy43bC0xMDAtMzcuNWMtOC4xLTMuMS0xNy4xLTMuMS0yNS4zIDBsLTEwMCAzNy41Yy0xNC4xIDUuMy0yMy40IDE4LjctMjMuNCAzMy43VjIxNGwtOTYuNiAzNi4yQzkuMyAyNTUuNSAwIDI2OC45IDAgMjgzLjlWMzk0YzAgMTMuNiA3LjcgMjYuMSAxOS45IDMyLjJsMTAwIDUwYzEwLjEgNS4xIDIyLjEgNS4xIDMyLjIgMGwxMDMuOS01MiAxMDMuOSA1MmMxMC4xIDUuMSAyMi4xIDUuMSAzMi4yIDBsMTAwLTUwYzEyLjItNi4xIDE5LjktMTguNiAxOS45LTMyLjJWMjgzLjljMC0xNS05LjMtMjguNC0yMy40LTMzLjd6TTM1OCAyMTQuOGwtODUgMzEuOXYtNjguMmw4NS0zN3Y3My4zek0xNTQgMTA0LjFsMTAyLTM4LjIgMTAyIDM4LjJ2LjZsLTEwMiA0MS40LTEwMi00MS40di0uNnptODQgMjkxLjFsLTg1IDQyLjV2LTc5LjFsODUtMzguOHY3NS40em0wLTExMmwtMTAyIDQxLjQtMTAyLTQxLjR2LS42bDEwMi0zOC4yIDEwMiAzOC4ydi42em0yNDAgMTEybC04NSA0Mi41di03OS4xbDg1LTM4Ljh2NzUuNHptMC0xMTJsLTEwMiA0MS40LTEwMi00MS40di0uNmwxMDItMzguMiAxMDIgMzguMnYuNnoiPjwvcGF0aD48L3N2Zz4K</span>
+<span class="doccomment">//! [docs-rs]: https://img.shields.io/badge/docs.rs-66c2a5?style=for-the-badge&amp;labelColor=555555&amp;logo=docs.rs</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! &lt;br&gt;</span>
 <span class="doccomment">//!</span>
@@ -371,8 +400,9 @@
 <span class="doccomment">//!   # }</span>
 <span class="doccomment">//!   ```</span>
 <span class="doccomment">//!</span>
-<span class="doccomment">//! - The Error trait&#39;s `backtrace()` method is implemented to return whichever</span>
-<span class="doccomment">//!   field has a type named `Backtrace`, if any.</span>
+<span class="doccomment">//! - The Error trait&#39;s `provide()` method is implemented to provide whichever</span>
+<span class="doccomment">//!   field has a type named `Backtrace`, if any, as a</span>
+<span class="doccomment">//!   `std::backtrace::Backtrace`.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!   ```rust</span>
 <span class="doccomment">//!   # const IGNORE: &amp;str = stringify! {</span>
@@ -388,7 +418,8 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! - If a field is both a source (named `source`, or has `#[source]` or</span>
 <span class="doccomment">//!   `#[from]` attribute) *and* is marked `#[backtrace]`, then the Error</span>
-<span class="doccomment">//!   trait&#39;s `backtrace()` method is forwarded to the source&#39;s backtrace.</span>
+<span class="doccomment">//!   trait&#39;s `provide()` method is forwarded to the source&#39;s `provide` so that</span>
+<span class="doccomment">//!   both layers of the error share the same backtrace.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//!   ```rust</span>
 <span class="doccomment">//!   # const IGNORE: &amp;str = stringify! {</span>
@@ -421,6 +452,31 @@
 <span class="doccomment">//!   }</span>
 <span class="doccomment">//!   ```</span>
 <span class="doccomment">//!</span>
+<span class="doccomment">//!   Another use case is hiding implementation details of an error</span>
+<span class="doccomment">//!   representation behind an opaque error type, so that the representation is</span>
+<span class="doccomment">//!   able to evolve without breaking the crate&#39;s public API.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   ```</span>
+<span class="doccomment">//!   # use thiserror::Error;</span>
+<span class="doccomment">//!   #</span>
+<span class="doccomment">//!   // PublicError is public, but opaque and easy to keep compatible.</span>
+<span class="doccomment">//!   #[derive(Error, Debug)]</span>
+<span class="doccomment">//!   #[error(transparent)]</span>
+<span class="doccomment">//!   pub struct PublicError(#[from] ErrorRepr);</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   impl PublicError {</span>
+<span class="doccomment">//!       // Accessors for anything we do want to expose publicly.</span>
+<span class="doccomment">//!   }</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//!   // Private and free to change across minor version of the crate.</span>
+<span class="doccomment">//!   #[derive(Error, Debug)]</span>
+<span class="doccomment">//!   enum ErrorRepr {</span>
+<span class="doccomment">//!       # /*</span>
+<span class="doccomment">//!       ...</span>
+<span class="doccomment">//!       # */</span>
+<span class="doccomment">//!   }</span>
+<span class="doccomment">//!   ```</span>
+<span class="doccomment">//!</span>
 <span class="doccomment">//! - See also the [`anyhow`] library for a convenient single error type to use</span>
 <span class="doccomment">//!   in application code.</span>
 <span class="doccomment">//!</span>
@@ -430,19 +486,25 @@
     <span class="comment">// Clippy bug: https://github.com/rust-lang/rust-clippy/issues/7421</span>
     <span class="ident">clippy::doc_markdown</span>,
     <span class="ident">clippy::module_name_repetitions</span>,
+    <span class="ident">clippy::return_self_not_must_use</span>,
+    <span class="ident">clippy::wildcard_imports</span>,
 )]</span>
+<span class="attribute">#![<span class="ident">cfg_attr</span>(<span class="ident">provide_any</span>, <span class="ident">feature</span>(<span class="ident">provide_any</span>))]</span>
 
 <span class="kw">mod</span> <span class="ident">aserror</span>;
 <span class="kw">mod</span> <span class="ident">display</span>;
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">provide_any</span>)]</span>
+<span class="kw">mod</span> <span class="ident">provide</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">thiserror_impl</span>::<span class="kw-2">*</span>;
 
 <span class="comment">// Not public API.</span>
 <span class="attribute">#[<span class="ident">doc</span>(<span class="ident">hidden</span>)]</span>
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">private</span> {
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">__private</span> {
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::aserror::AsDynError</span>;
     <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::display</span>::{<span class="ident">DisplayAsDisplay</span>, <span class="ident">PathAsDisplay</span>};
+    <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">provide_any</span>)]</span>
+    <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::provide::ThiserrorProvide</span>;
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="thiserror" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="thiserror" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

@@ -146,10 +146,14 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
 </pre><pre class="rust"><code><span class="comment">// NOTE: this example requires the `console` feature to run correctly.</span>
 <span class="kw">use</span> <span class="ident">boa_engine</span>::{
     <span class="ident">builtins::JsArgs</span>,
     <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassBuilder</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">property::Attribute</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
@@ -177,7 +181,7 @@
 <span class="comment">// or any function that matches the required signature.</span>
 <span class="kw">impl</span> <span class="ident">Person</span> {
     <span class="doccomment">/// Says hello if `this` is a `Person`</span>
-    <span class="kw">fn</span> <span class="ident">say_hello</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">say_hello</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// We check if this is an object.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="comment">// If it is we downcast the type to type `Person`.</span>
@@ -193,7 +197,9 @@
         }
         <span class="comment">// If `this` was not an object or the type of `this` was not a native object `Person`,</span>
         <span class="comment">// we throw a `TypeError`.</span>
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Person object&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Person object&quot;</span>)
+            .<span class="ident">into</span>())
     }
 }
 

@@ -866,6 +866,13 @@
 <span id="864">864</span>
 <span id="865">865</span>
 <span id="866">866</span>
+<span id="867">867</span>
+<span id="868">868</span>
+<span id="869">869</span>
+<span id="870">870</span>
+<span id="871">871</span>
+<span id="872">872</span>
+<span id="873">873</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `JSON` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JSON` object contains methods for parsing [JavaScript Object Notation (JSON)][spec]</span>
@@ -889,6 +896,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectInitializer</span>, <span class="ident">RecursionLimiter</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyNameKind</span>},
@@ -1042,12 +1050,12 @@
             .<span class="ident">unwrap_or_default</span>()
             .<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">to_std_string</span>()
-            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
+            .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()))<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.</span>
         <span class="comment">//    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">serde_json::from_str</span>::<span class="op">&lt;</span><span class="ident">serde_json::Value</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="ident">json_string</span>) {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>());
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let scriptString be the string-concatenation of &quot;(&quot;, jsonString, and &quot;);&quot;.</span>
@@ -1418,7 +1426,9 @@
 
         <span class="comment">// 10. If Type(value) is BigInt, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_bigint</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot serialize bigint to JSON&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot serialize bigint to JSON&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 11. If Type(value) is Object and IsCallable(value) is false, then</span>
@@ -1506,7 +1516,9 @@
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cyclic object value&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. Append value to state.[[Stack]].</span>
@@ -1632,7 +1644,9 @@
         <span class="comment">// 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.</span>
         <span class="kw">let</span> <span class="ident">limiter</span> <span class="op">=</span> <span class="ident">RecursionLimiter::new</span>(<span class="ident">value</span>);
         <span class="kw">if</span> <span class="ident">limiter</span>.<span class="ident">live</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cyclic object value&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cyclic object value&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. Append value to state.[[Stack]].</span>

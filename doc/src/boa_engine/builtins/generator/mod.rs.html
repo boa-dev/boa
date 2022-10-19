@@ -419,6 +419,18 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Generator` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A Generator is an instance of a generator function and conforms to both the Iterator and Iterable interfaces.</span>
@@ -433,12 +445,13 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">iterable::create_iter_result_object</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">environments::DeclarativeEnvironmentStack</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::JsValue</span>,
     <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">ReturnType</span>},
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+    <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -572,7 +585,9 @@
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_generator</span>() =&gt; {
                 <span class="ident"><span class="self">Self</span>::generator_resume</span>(<span class="ident">obj</span>, <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="ident">context</span>)
             }
-            <span class="kw">_</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Generator.prototype.next called on non generator&quot;</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Generator.prototype.next called on non generator&quot;</span>)
+                .<span class="ident">into</span>()),
         }
     }
 
@@ -616,7 +631,11 @@
         <span class="comment">// 1. Let g be the this value.</span>
         <span class="comment">// 2. Let C be ThrowCompletion(exception).</span>
         <span class="comment">// 3. Return ? GeneratorResumeAbrupt(g, C, empty).</span>
-        <span class="ident"><span class="self">Self</span>::generator_resume_abrupt</span>(<span class="ident">this</span>, <span class="prelude-val">Err</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()), <span class="ident">context</span>)
+        <span class="ident"><span class="self">Self</span>::generator_resume_abrupt</span>(
+            <span class="ident">this</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>())),
+            <span class="ident">context</span>,
+        )
     }
 
     <span class="doccomment">/// `27.5.3.3 GeneratorResume ( generator, value, generatorBrand )`</span>
@@ -633,12 +652,14 @@
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_obj</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">state</span>;
 
         <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">GeneratorState::Executing</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Generator should not be executing&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Generator should not be executing&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. If state is completed, return CreateIterResultObject(undefined, true).</span>
@@ -735,16 +756,18 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let state be ? GeneratorValidate(generator, generatorBrand).</span>
         <span class="kw">let</span> <span class="ident">generator_obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_obj</span>.<span class="ident">borrow_mut</span>();
         <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">state</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">state</span>;
 
         <span class="kw">if</span> <span class="ident">state</span> <span class="op">==</span> <span class="ident">GeneratorState::Executing</span> {
-            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Generator should not be executing&quot;</span>));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Generator should not be executing&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. If state is suspendedStart, then</span>
@@ -800,6 +823,7 @@
                 <span class="ident">context</span>.<span class="ident">run</span>()
             }
             <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">generator_resume_kind</span> <span class="op">=</span> <span class="ident">GeneratorResumeKind::Throw</span>;
                 <span class="ident">context</span>.<span class="ident">run</span>()

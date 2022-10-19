@@ -2074,6 +2074,27 @@
 <span id="2072">2072</span>
 <span id="2073">2073</span>
 <span id="2074">2074</span>
+<span id="2075">2075</span>
+<span id="2076">2076</span>
+<span id="2077">2077</span>
+<span id="2078">2078</span>
+<span id="2079">2079</span>
+<span id="2080">2080</span>
+<span id="2081">2081</span>
+<span id="2082">2082</span>
+<span id="2083">2083</span>
+<span id="2084">2084</span>
+<span id="2085">2085</span>
+<span id="2086">2086</span>
+<span id="2087">2087</span>
+<span id="2088">2088</span>
+<span id="2089">2089</span>
+<span id="2090">2090</span>
+<span id="2091">2091</span>
+<span id="2092">2092</span>
+<span id="2093">2093</span>
+<span id="2094">2094</span>
+<span id="2095">2095</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Promise` object.</span>
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
@@ -2084,8 +2105,9 @@
 <span class="kw">use</span> <span class="ident"><span class="self">self</span>::promise_job::PromiseJob</span>;
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">iterable::IteratorRecord</span>, <span class="ident">JsArgs</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">builtins</span>::{<span class="ident">Array</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">builtins</span>::{<span class="ident">error::ErrorKind</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">job::JobCallback</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -2094,7 +2116,7 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptorBuilder</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::JsValue</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+    <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span> <span class="kw">as</span> <span class="ident">GcCell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -2113,12 +2135,13 @@
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>:<span class="ident">expr</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>: <span class="ident">expr</span>) =&gt; {
         <span class="kw">let</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">value</span> {
             <span class="comment">// 1. If value is an abrupt completion, then</span>
-            <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">err</span>.<span class="ident">to_opaque</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>);
                 <span class="comment">// a. Perform ? Call(capability.[[Reject]], undefined, « value.[[Value]] »).</span>
                 <span class="macro-nonterminal">$</span><span class="macro-nonterminal">context</span>.<span class="ident">call</span>(
                     <span class="kw-2">&amp;</span><span class="macro-nonterminal">$</span><span class="macro-nonterminal">capability</span>.<span class="ident">reject</span>().<span class="ident">clone</span>().<span class="ident">into</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
-                    <span class="kw-2">&amp;</span>[<span class="ident">value</span>],
+                    <span class="kw-2">&amp;</span>[<span class="ident">err</span>],
                 )<span class="question-mark">?</span>;
 
                 <span class="comment">// b. Return capability.[[Promise]].</span>
@@ -2186,7 +2209,9 @@
 
         <span class="kw">match</span> <span class="ident">c</span>.<span class="ident">as_constructor</span>() {
             <span class="comment">// 1. If IsConstructor(C) is false, throw a TypeError exception.</span>
-            <span class="prelude-val">None</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;PromiseCapability: expected constructor&quot;</span>),
+            <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;PromiseCapability: expected constructor&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="prelude-val">Some</span>(<span class="ident">c</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">c</span> <span class="op">=</span> <span class="ident">c</span>.<span class="ident">clone</span>();
 
@@ -2201,19 +2226,20 @@
                 <span class="comment">// 5. Let executor be CreateBuiltinFunction(executorClosure, 2, &quot;&quot;, « »).</span>
                 <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">FunctionBuilder::closure_with_captures</span>(
                     <span class="ident">context</span>,
-                    <span class="op">|</span><span class="ident">_this</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">captures</span>, <span class="ident">context</span><span class="op">|</span> {
+                    <span class="op">|</span><span class="ident">_this</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">captures</span>, <span class="kw">_</span><span class="op">|</span> {
                         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">promise_capability</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">borrow_mut</span>();
                         <span class="comment">// a. If promiseCapability.[[Resolve]] is not undefined, throw a TypeError exception.</span>
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">promise_capability</span>.<span class="ident">resolve</span>.<span class="ident">is_undefined</span>() {
-                            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                                <span class="string">&quot;promiseCapability.[[Resolve]] is not undefined&quot;</span>,
-                            );
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;promiseCapability.[[Resolve]] is not undefined&quot;</span>)
+                                .<span class="ident">into</span>());
                         }
 
                         <span class="comment">// b. If promiseCapability.[[Reject]] is not undefined, throw a TypeError exception.</span>
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">promise_capability</span>.<span class="ident">reject</span>.<span class="ident">is_undefined</span>() {
-                            <span class="kw">return</span> <span class="ident">context</span>
-                                .<span class="ident">throw_type_error</span>(<span class="string">&quot;promiseCapability.[[Reject]] is not undefined&quot;</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;promiseCapability.[[Reject]] is not undefined&quot;</span>)
+                                .<span class="ident">into</span>());
                         }
 
                         <span class="kw">let</span> <span class="ident">resolve</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -2249,8 +2275,8 @@
                     .<span class="ident">cloned</span>()
                     .<span class="ident">and_then</span>(<span class="ident">JsFunction::from_object</span>)
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>
-                            .<span class="ident">construct_type_error</span>(<span class="string">&quot;promiseCapability.[[Resolve]] is not callable&quot;</span>)
+                        <span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;promiseCapability.[[Resolve]] is not callable&quot;</span>)
                     })<span class="question-mark">?</span>;
 
                 <span class="comment">// 8. If IsCallable(promiseCapability.[[Reject]]) is false, throw a TypeError exception.</span>
@@ -2259,7 +2285,8 @@
                     .<span class="ident">cloned</span>()
                     .<span class="ident">and_then</span>(<span class="ident">JsFunction::from_object</span>)
                     .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;promiseCapability.[[Reject]] is not callable&quot;</span>)
+                        <span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;promiseCapability.[[Reject]] is not callable&quot;</span>)
                     })<span class="question-mark">?</span>;
 
                 <span class="comment">// 9. Set promiseCapability.[[Promise]] to promise.</span>
@@ -2360,14 +2387,18 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Promise NewTarget cannot be undefined&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Promise NewTarget cannot be undefined&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">executor</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 2. If IsCallable(executor) is false, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">executor</span>.<span class="ident">is_callable</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Promise executor is not callable&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Promise executor is not callable&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let promise be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Promise.prototype%&quot;, « [[PromiseState]], [[PromiseResult]], [[PromiseFulfillReactions]], [[PromiseRejectReactions]], [[PromiseIsHandled]] »).</span>
@@ -2403,9 +2434,10 @@
         );
 
         <span class="comment">// 10. If completion is an abrupt completion, then</span>
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">completion</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>) <span class="op">=</span> <span class="ident">completion</span> {
+            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
             <span class="comment">// a. Perform ? Call(resolvingFunctions.[[Reject]], undefined, « completion.[[Value]] »).</span>
-            <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">resolving_functions</span>.<span class="ident">reject</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">value</span>])<span class="question-mark">?</span>;
+            <span class="ident">context</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">resolving_functions</span>.<span class="ident">reject</span>, <span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">e</span>])<span class="question-mark">?</span>;
         }
 
         <span class="comment">// 11. Return promise.</span>
@@ -3109,7 +3141,7 @@
                                 .<span class="ident">constructors</span>()
                                 .<span class="ident">aggregate_error</span>()
                                 .<span class="ident">prototype</span>(),
-                            <span class="ident">ObjectData::error</span>(),
+                            <span class="ident">ObjectData::error</span>(<span class="ident">ErrorKind::Aggregate</span>),
                         );
 
                         <span class="comment">// 2. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).</span>
@@ -3129,7 +3161,7 @@
                             .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
 
                         <span class="comment">// 3. Return ThrowCompletion(error).</span>
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>.<span class="ident">into</span>());
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">error</span>.<span class="ident">into</span>()));
                     }
 
                     <span class="comment">// iv. Return resultCapability.[[Promise]].</span>
@@ -3204,7 +3236,7 @@
                                 .<span class="ident">constructors</span>()
                                 .<span class="ident">aggregate_error</span>()
                                 .<span class="ident">prototype</span>(),
-                            <span class="ident">ObjectData::error</span>(),
+                            <span class="ident">ObjectData::error</span>(<span class="ident">ErrorKind::Aggregate</span>),
                         );
 
                         <span class="comment">// b. Perform ! DefinePropertyOrThrow(error, &quot;errors&quot;, PropertyDescriptor { [[Configurable]]: true, [[Enumerable]]: false, [[Writable]]: true, [[Value]]: CreateArrayFromList(errors) }).</span>
@@ -3222,7 +3254,6 @@
                                 <span class="ident">context</span>,
                             )
                             .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
-
                         <span class="comment">// c. Return ? Call(promiseCapability.[[Reject]], undefined, « error »).</span>
                         <span class="kw">return</span> <span class="ident">captures</span>.<span class="ident">capability_reject</span>.<span class="ident">call</span>(
                             <span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(),
@@ -3319,15 +3350,16 @@
                 <span class="comment">// 7. If SameValue(resolution, promise) is true, then</span>
                 <span class="kw">if</span> <span class="ident">JsValue::same_value</span>(<span class="ident">resolution</span>, <span class="kw-2">&amp;</span><span class="ident">promise</span>.<span class="ident">clone</span>().<span class="ident">into</span>()) {
                     <span class="comment">//   a. Let selfResolutionError be a newly created TypeError object.</span>
-                    <span class="kw">let</span> <span class="ident">self_resolution_error</span> <span class="op">=</span>
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;SameValue(resolution, promise) is true&quot;</span>);
+                    <span class="kw">let</span> <span class="ident">self_resolution_error</span> <span class="op">=</span> <span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;SameValue(resolution, promise) is true&quot;</span>)
+                        .<span class="ident">to_opaque</span>(<span class="ident">context</span>);
 
                     <span class="comment">//   b. Perform RejectPromise(promise, selfResolutionError).</span>
                     <span class="ident">promise</span>
                         .<span class="ident">borrow_mut</span>()
                         .<span class="ident">as_promise_mut</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                        .<span class="ident">reject_promise</span>(<span class="kw-2">&amp;</span><span class="ident">self_resolution_error</span>, <span class="ident">context</span>);
+                        .<span class="ident">reject_promise</span>(<span class="kw-2">&amp;</span><span class="ident">self_resolution_error</span>.<span class="ident">into</span>(), <span class="ident">context</span>);
 
                     <span class="comment">//   c. Return undefined.</span>
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Undefined</span>);
@@ -3351,13 +3383,13 @@
 
                 <span class="kw">let</span> <span class="ident">then_action</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">then</span> {
                     <span class="comment">// 10. If then is an abrupt completion, then</span>
-                    <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
+                    <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                         <span class="comment">//   a. Perform RejectPromise(promise, then.[[Value]]).</span>
                         <span class="ident">promise</span>
                             .<span class="ident">borrow_mut</span>()
                             .<span class="ident">as_promise_mut</span>()
                             .<span class="ident">expect</span>(<span class="string">&quot;Expected promise to be a Promise&quot;</span>)
-                            .<span class="ident">reject_promise</span>(<span class="kw-2">&amp;</span><span class="ident">value</span>, <span class="ident">context</span>);
+                            .<span class="ident">reject_promise</span>(<span class="kw-2">&amp;</span><span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>), <span class="ident">context</span>);
 
                         <span class="comment">//   b. Return undefined.</span>
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Undefined</span>);
@@ -3750,7 +3782,9 @@
             <span class="ident"><span class="self">Self</span>::promise_resolve</span>(<span class="ident">c</span>.<span class="ident">clone</span>(), <span class="ident">x</span>.<span class="ident">clone</span>(), <span class="ident">context</span>)
         } <span class="kw">else</span> {
             <span class="comment">// 2. If Type(C) is not Object, throw a TypeError exception.</span>
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Promise.resolve() called on a non-object&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Promise.resolve() called on a non-object&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 
@@ -3807,7 +3841,9 @@
         <span class="kw">let</span> <span class="ident">promise_obj</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">p</span>) <span class="op">=</span> <span class="ident">promise</span>.<span class="ident">as_object</span>() {
             <span class="ident">p</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;finally called with a non-object promise&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;finally called with a non-object promise&quot;</span>)
+                .<span class="ident">into</span>());
         };
 
         <span class="comment">// 3. Let C be ? SpeciesConstructor(promise, %Promise%).</span>
@@ -3895,7 +3931,7 @@
                         <span class="ident">context</span>,
                         <span class="op">|</span><span class="ident">_this</span>, <span class="ident">_args</span>, <span class="ident">captures</span>, <span class="ident">_context</span><span class="op">|</span> {
                             <span class="comment">// 1. Return ThrowCompletion(reason).</span>
-                            <span class="prelude-val">Err</span>(<span class="ident">captures</span>.<span class="ident">reason</span>.<span class="ident">clone</span>())
+                            <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">captures</span>.<span class="ident">reason</span>.<span class="ident">clone</span>()))
                         },
                         <span class="ident">ThrowReasonCaptures</span> {
                             <span class="ident">reason</span>: <span class="ident">reason</span>.<span class="ident">clone</span>(),
@@ -3944,7 +3980,11 @@
         <span class="comment">// 2. If IsPromise(promise) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">promise_obj</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">promise</span>.<span class="ident">as_promise</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) =&gt; <span class="ident">obj</span>,
-            <span class="prelude-val">None</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;IsPromise(promise) is false&quot;</span>),
+            <span class="prelude-val">None</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;IsPromise(promise) is false&quot;</span>)
+                    .<span class="ident">into</span>())
+            }
         };
 
         <span class="comment">// 3. Let C be ? SpeciesConstructor(promise, %Promise%).</span>
@@ -4144,7 +4184,9 @@
             <span class="comment">// 3. Return promiseResolve.</span>
             <span class="prelude-val">Ok</span>(<span class="ident">promise_resolve</span>.<span class="ident">clone</span>())
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;retrieving a non-callable promise resolver&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;retrieving a non-callable promise resolver&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 }

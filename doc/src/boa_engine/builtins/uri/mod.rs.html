@@ -549,6 +549,8 @@
 <span id="547">547</span>
 <span id="548">548</span>
 <span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
 </pre><pre class="rust"><code><span class="doccomment">//! URI Handling Functions</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Uniform Resource Identifiers, or URIs, are Strings that identify resources (e.g. web pages or</span>
@@ -571,7 +573,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::BuiltIn</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::JsArgs</span>, <span class="ident">js_string</span>, <span class="ident">object::FunctionBuilder</span>, <span class="ident">property::Attribute</span>, <span class="ident">string::CodePoint</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 
 <span class="doccomment">/// URI Handling Functions</span>
@@ -662,11 +664,7 @@
         <span class="kw">let</span> <span class="ident">reserved_uri_set</span> <span class="op">=</span> <span class="ident">is_uri_reserved_or_number_sign</span>;
 
         <span class="comment">// 3. Return ? Decode(uriString, reservedURISet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">decode</span>(
-            <span class="ident">context</span>,
-            <span class="kw-2">&amp;</span><span class="ident">uri_string</span>,
-            <span class="ident">reserved_uri_set</span>,
-        )<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">decode</span>(<span class="kw-2">&amp;</span><span class="ident">uri_string</span>, <span class="ident">reserved_uri_set</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.</span>
@@ -696,7 +694,6 @@
 
         <span class="comment">// 3. Return ? Decode(componentString, reservedURIComponentSet).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">decode</span>(
-            <span class="ident">context</span>,
             <span class="kw-2">&amp;</span><span class="ident">component_string</span>,
             <span class="ident">reserved_uri_component_set</span>,
         )<span class="question-mark">?</span>))
@@ -728,11 +725,7 @@
         <span class="kw">let</span> <span class="ident">unescaped_uri_set</span> <span class="op">=</span> <span class="ident">is_uri_reserved_or_uri_unescaped_or_number_sign</span>;
 
         <span class="comment">// 3. Return ? Encode(uriString, unescapedURISet).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">encode</span>(
-            <span class="ident">context</span>,
-            <span class="kw-2">&amp;</span><span class="ident">uri_string</span>,
-            <span class="ident">unescaped_uri_set</span>,
-        )<span class="question-mark">?</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">encode</span>(<span class="kw-2">&amp;</span><span class="ident">uri_string</span>, <span class="ident">unescaped_uri_set</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.</span>
@@ -762,7 +755,6 @@
 
         <span class="comment">// 3. Return ? Encode(componentString, unescapedURIComponentSet).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::from</span>(<span class="ident">encode</span>(
-            <span class="ident">context</span>,
             <span class="kw-2">&amp;</span><span class="ident">component_string</span>,
             <span class="ident">unescaped_uri_component_set</span>,
         )<span class="question-mark">?</span>))
@@ -779,7 +771,7 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-encode</span>
-<span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">unescaped_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">encode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">unescaped_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
 {
@@ -817,7 +809,9 @@
             <span class="kw">let</span> <span class="ident">ch</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">CodePoint::Unicode</span>(<span class="ident">ch</span>) <span class="op">=</span> <span class="ident">cp</span> {
                 <span class="ident">ch</span>
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;trying to encode an invalid string&quot;</span>));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;trying to encode an invalid string&quot;</span>)
+                    .<span class="ident">into</span>());
             };
 
             <span class="comment">// iii. Set k to k + cp.[[CodeUnitCount]].</span>
@@ -853,7 +847,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-decode</span>
 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::many_single_char_names</span>)]</span>
-<span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>, <span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">reserved_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
+<span class="kw">fn</span> <span class="ident">decode</span><span class="op">&lt;</span><span class="ident">F</span><span class="op">&gt;</span>(<span class="ident">string</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>, <span class="ident">reserved_set</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>
 <span class="kw">where</span>
     <span class="ident">F</span>: <span class="ident">Fn</span>(<span class="ident">u16</span>) -&gt; <span class="ident">bool</span>,
 {
@@ -888,14 +882,17 @@
 
             <span class="comment">// ii. If k + 2 ≥ strLen, throw a URIError exception.</span>
             <span class="kw">if</span> <span class="ident">k</span> <span class="op">+</span> <span class="number">2</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">str_len</span> {
-                <span class="ident">context</span>.<span class="ident">throw_uri_error</span>(<span class="string">&quot;invalid escape character found&quot;</span>)<span class="question-mark">?</span>;
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;invalid escape character found&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// iii. If the code units at index (k + 1) and (k + 2) within string do not represent</span>
             <span class="comment">// hexadecimal digits, throw a URIError exception.</span>
             <span class="comment">// iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
-            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>])
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::uri</span>().<span class="ident">with_message</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+            })<span class="question-mark">?</span>;
 
             <span class="comment">// v. Set k to k + 2.</span>
             <span class="ident">k</span> <span class="op">+</span><span class="op">=</span> <span class="number">2</span>;
@@ -921,12 +918,16 @@
                 <span class="comment">// viii. Else,</span>
                 <span class="comment">// 1. If n = 1 or n &gt; 4, throw a URIError exception.</span>
                 <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">1</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">&gt;</span> <span class="number">4</span> {
-                    <span class="ident">context</span>.<span class="ident">throw_uri_error</span>(<span class="string">&quot;invalid escaped character found&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;invalid escaped character found&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.</span>
                 <span class="kw">if</span> <span class="ident">k</span> <span class="op">+</span> (<span class="number">3</span> <span class="op">*</span> (<span class="ident">n</span> <span class="op">-</span> <span class="number">1</span>)) <span class="op">&gt;</span> <span class="ident">str_len</span> {
-                    <span class="ident">context</span>.<span class="ident">throw_uri_error</span>(<span class="string">&quot;non-terminated escape character found&quot;</span>)<span class="question-mark">?</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;non-terminated escape character found&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// 3. Let Octets be « B ».</span>
@@ -940,14 +941,15 @@
 
                     <span class="comment">// b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.</span>
                     <span class="kw">if</span> <span class="ident">string</span>[<span class="ident">k</span>] <span class="op">!</span><span class="op">=</span> <span class="number">0x0025</span> {
-                        <span class="ident">context</span>
-                            .<span class="ident">throw_uri_error</span>(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)<span class="question-mark">?</span>;
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;escape characters must be preceded with a % sign&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
 
                     <span class="comment">// c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.</span>
                     <span class="comment">// d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).</span>
                     <span class="kw">let</span> <span class="ident">b</span> <span class="op">=</span> <span class="ident">decode_hex_byte</span>(<span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">1</span>], <span class="ident">string</span>[<span class="ident">k</span> <span class="op">+</span> <span class="number">2</span>]).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
+                        <span class="ident">JsNativeError::uri</span>().<span class="ident">with_message</span>(<span class="string">&quot;invalid hexadecimal digit found&quot;</span>)
                     })<span class="question-mark">?</span>;
 
                     <span class="comment">// e. Set k to k + 2.</span>
@@ -965,7 +967,9 @@
                 <span class="comment">// 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.</span>
                 <span class="kw">match</span> <span class="ident">std::str::from_utf8</span>(<span class="kw-2">&amp;</span><span class="ident">octets</span>) {
                     <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_uri_error</span>(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>))
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::uri</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;invalid UTF-8 encoding found&quot;</span>)
+                            .<span class="ident">into</span>())
                     }
                     <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; {
                         <span class="comment">// 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.</span>

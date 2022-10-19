@@ -343,9 +343,6 @@
 <span id="341">341</span>
 <span id="342">342</span>
 <span id="343">343</span>
-<span id="344">344</span>
-<span id="345">345</span>
-<span id="346">346</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Symbol` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The data type symbol is a primitive data type.</span>
@@ -369,6 +366,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>},
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol</span>::{<span class="ident">JsSymbol</span>, <span class="ident">WellKnownSymbols</span>},
@@ -523,7 +521,9 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If NewTarget is not undefined, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol is not a constructor&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Symbol is not a constructor&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. If description is undefined, let descString be undefined.</span>
@@ -537,11 +537,15 @@
         <span class="prelude-val">Ok</span>(<span class="ident">JsSymbol::new</span>(<span class="ident">description</span>).<span class="ident">into</span>())
     }
 
-    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_symbol_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsSymbol</span><span class="op">&gt;</span> {
         <span class="ident">value</span>
             .<span class="ident">as_symbol</span>()
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_symbol</span>()))
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Symbol&quot;</span>)
+                    .<span class="ident">into</span>()
+            })
     }
 
     <span class="doccomment">/// `Symbol.prototype.toString()`</span>
@@ -555,13 +559,9 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let sym be ? thisSymbolValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return SymbolDescriptiveString(sym).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">descriptive_string</span>().<span class="ident">into</span>())
@@ -577,13 +577,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/valueOf</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.valueof</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ? thisSymbolValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::Symbol</span>(<span class="ident">symbol</span>))
     }
 
@@ -600,9 +596,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_description</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">symbol</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">description</span>) <span class="op">=</span> <span class="ident">symbol</span>.<span class="ident">description</span>() {
             <span class="prelude-val">Ok</span>(<span class="ident">description</span>.<span class="ident">clone</span>().<span class="ident">into</span>())
         } <span class="kw">else</span> {
@@ -648,11 +644,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-symbol.prototype.keyfor</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol/keyFor</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">key_for</span>(
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">key_for</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="comment">// 1. If Type(sym) is not Symbol, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="ident">sym</span>.<span class="ident">as_symbol</span>() {
@@ -667,7 +659,9 @@
 
             <span class="prelude-val">Ok</span>(<span class="ident">symbol</span>.<span class="ident">map</span>(<span class="ident">JsValue::from</span>).<span class="ident">unwrap_or_default</span>())
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Symbol.keyFor: sym is not a symbol&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 
@@ -685,9 +679,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_primitive</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">sym</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_symbol_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// 1. Return ? thisSymbolValue(this value).</span>
         <span class="prelude-val">Ok</span>(<span class="ident">sym</span>.<span class="ident">into</span>())
     }

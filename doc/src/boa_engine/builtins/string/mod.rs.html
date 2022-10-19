@@ -2301,6 +2301,15 @@
 <span id="2299">2299</span>
 <span id="2300">2300</span>
 <span id="2301">2301</span>
+<span id="2302">2302</span>
+<span id="2303">2303</span>
+<span id="2304">2304</span>
+<span id="2305">2305</span>
+<span id="2306">2306</span>
+<span id="2307">2307</span>
+<span id="2308">2308</span>
+<span id="2309">2309</span>
+<span id="2310">2310</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `String` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `String` global object is a constructor for strings or a sequence of characters.</span>
@@ -2320,6 +2329,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">string::string_iterator::StringIterator</span>, <span class="ident">Array</span>, <span class="ident">BuiltIn</span>, <span class="ident">Number</span>, <span class="ident">RegExp</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -2510,7 +2520,7 @@
     <span class="doccomment">/// - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#thisstringvalue</span>
-    <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_string_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(value) is String, return value.</span>
         <span class="ident">this</span>.<span class="ident">as_string</span>()
             .<span class="ident">cloned</span>()
@@ -2520,7 +2530,11 @@
             <span class="comment">//     c. Return s.</span>
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_string</span>()))
             <span class="comment">// 3. Throw a TypeError exception.</span>
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a string&quot;</span>)
+                    .<span class="ident">into</span>()
+            })
     }
 
     <span class="doccomment">/// `String.fromCodePoint(num1[, ...[, numN]])`</span>
@@ -2550,12 +2564,16 @@
 
             <span class="comment">// b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">Number::is_float_integer</span>(<span class="ident">nextcp</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>)));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>))
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// c. If ℝ(nextCP) &lt; 0 or ℝ(nextCP) &gt; 0x10FFFF, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">nextcp</span> <span class="op">&lt;</span> <span class="number">0.0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">nextcp</span> <span class="op">&gt;</span> <span class="ident">f64::from</span>(<span class="number">0x10FFFF</span>) {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>)));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;invalid code point: {nextcp}&quot;</span>))
+                    .<span class="ident">into</span>());
             }
 
             <span class="kw">let</span> <span class="ident">nextcp</span> <span class="op">=</span>
@@ -2678,13 +2696,9 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ? thisStringValue(this value).</span>
-        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::this_string_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
+        <span class="prelude-val">Ok</span>(<span class="ident"><span class="self">Self</span>::this_string_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `String.prototype.charAt( index )`</span>
@@ -2709,7 +2723,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2742,7 +2756,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2787,7 +2801,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2830,7 +2844,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2869,7 +2883,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2903,7 +2917,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -2931,10 +2945,12 @@
             <span class="comment">// 5. If n is 0, return the empty String.</span>
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">n</span>) <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>().<span class="ident">into</span>()),
             <span class="comment">// 4. If n &lt; 0 or n is +∞, throw a RangeError exception.</span>
-            <span class="kw">_</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
-                <span class="string">&quot;repeat count must be a positive finite number \
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(
+                    <span class="string">&quot;repeat count must be a positive finite number \
                         that doesn&#39;t overflow the maximum string length (2^32 - 1)&quot;</span>,
-            ),
+                )
+                .<span class="ident">into</span>()),
         }
     }
 
@@ -2954,7 +2970,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3019,7 +3035,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3029,9 +3045,9 @@
         <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).</span>
         <span class="comment">// 4. If isRegExp is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">is_reg_exp</span>(<span class="ident">search_string</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                 <span class="string">&quot;First argument to String.prototype.startsWith must not be a regular expression&quot;</span>,
-            )<span class="question-mark">?</span>;
+            ).<span class="ident">into</span>());
         }
 
         <span class="comment">// 5. Let searchStr be ? ToString(searchString).</span>
@@ -3088,7 +3104,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3097,9 +3113,9 @@
             <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).</span>
             <span class="comment">// 4. If isRegExp is true, throw a TypeError exception.</span>
             <span class="ident">search_string</span> <span class="kw">if</span> <span class="ident">is_reg_exp</span>(<span class="ident">search_string</span>, <span class="ident">context</span>)<span class="question-mark">?</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                     <span class="string">&quot;First argument to String.prototype.endsWith must not be a regular expression&quot;</span>,
-                );
+                ).<span class="ident">into</span>());
             }
             <span class="comment">// 5. Let searchStr be ? ToString(searchString).</span>
             <span class="ident">search_string</span> =&gt; <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
@@ -3154,7 +3170,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3162,10 +3178,10 @@
         <span class="kw">let</span> <span class="ident">search_str</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>) {
             <span class="comment">// 3. Let isRegExp be ? IsRegExp(searchString).</span>
             <span class="ident">search_string</span> <span class="kw">if</span> <span class="ident">is_reg_exp</span>(<span class="ident">search_string</span>, <span class="ident">context</span>)<span class="question-mark">?</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                     <span class="comment">// 4. If isRegExp is true, throw a TypeError exception.</span>
                     <span class="string">&quot;First argument to String.prototype.includes must not be a regular expression&quot;</span>,
-                );
+                ).<span class="ident">into</span>());
             }
             <span class="comment">// 5. Let searchStr be ? ToString(searchString).</span>
             <span class="ident">search_string</span> =&gt; <span class="ident">search_string</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>,
@@ -3206,7 +3222,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
@@ -3316,7 +3332,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">search_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">replace_value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -3331,13 +3347,13 @@
                     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                     <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).</span>
-                    <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
                     <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>)) {
-                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">u16::from</span>(<span class="string">b&#39;g&#39;</span>)) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                             <span class="string">&quot;String.prototype.replaceAll called with a non-global RegExp argument&quot;</span>,
-                        );
+                        ).<span class="ident">into</span>());
                     }
                 }
             }
@@ -3473,7 +3489,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3517,7 +3533,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3585,7 +3601,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -3697,7 +3713,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -3724,7 +3740,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">max_length</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">fill_string</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -3748,7 +3764,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">trim</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let S be the this value.</span>
         <span class="comment">// 2. Return ? TrimString(S, start+end).</span>
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim</span>()).<span class="ident">into</span>())
     }
@@ -3772,7 +3788,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let S be the this value.</span>
         <span class="comment">// 2. Return ? TrimString(S, start).</span>
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim_start</span>()).<span class="ident">into</span>())
     }
@@ -3796,7 +3812,7 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let S be the this value.</span>
         <span class="comment">// 2. Return ? TrimString(S, end).</span>
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="macro">js_string!</span>(<span class="ident">string</span>.<span class="ident">trim_end</span>()).<span class="ident">into</span>())
     }
@@ -3818,7 +3834,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3881,7 +3897,7 @@
         <span class="comment">// Comments below are an adaptation of the `String.prototype.toLowerCase` documentation.</span>
 
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3936,7 +3952,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3986,7 +4002,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">string</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -4049,7 +4065,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">separator</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">limit</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4165,10 +4181,10 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="ident">_context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ? thisStringValue(this value).</span>
-        <span class="ident"><span class="self">Self</span>::this_string_value</span>(<span class="ident">this</span>, <span class="ident">context</span>).<span class="ident">map</span>(<span class="ident">JsValue::from</span>)
+        <span class="ident"><span class="self">Self</span>::this_string_value</span>(<span class="ident">this</span>).<span class="ident">map</span>(<span class="ident">JsValue::from</span>)
     }
 
     <span class="doccomment">/// `String.prototype.matchAll( regexp )`</span>
@@ -4189,7 +4205,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -4202,13 +4218,15 @@
                     <span class="kw">let</span> <span class="ident">flags</span> <span class="op">=</span> <span class="ident">regexp_obj</span>.<span class="ident">get</span>(<span class="string">&quot;flags&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
 
                     <span class="comment">// ii. Perform ? RequireObjectCoercible(flags).</span>
-                    <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+                    <span class="ident">flags</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
                     <span class="comment">// iii. If ? ToString(flags) does not contain &quot;g&quot;, throw a TypeError exception.</span>
-                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="string">&#39;g&#39;</span> <span class="kw">as</span> <span class="ident">u16</span>)) {
-                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">flags</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">u16::from</span>(<span class="string">b&#39;g&#39;</span>)) {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(
                             <span class="string">&quot;String.prototype.matchAll called with a non-global RegExp argument&quot;</span>,
-                        );
+                        )
+                        .<span class="ident">into</span>());
                     }
                 }
             }
@@ -4255,7 +4273,7 @@
             <span class="ident">Nfkd</span>,
         }
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let S be ? ToString(O).</span>
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">to_string</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -4277,9 +4295,9 @@
             <span class="ident">ntype</span> <span class="kw">if</span> <span class="kw-2">&amp;</span><span class="ident">ntype</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;NFKD&quot;</span>) =&gt; <span class="ident">Normalization::Nfkd</span>,
             <span class="comment">// 5. If f is not one of &quot;NFC&quot;, &quot;NFD&quot;, &quot;NFKC&quot;, or &quot;NFKD&quot;, throw a RangeError exception.</span>
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
-                    <span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;The normalization form should be one of NFC, NFD, NFKC, NFKD.&quot;</span>)
+                    .<span class="ident">into</span>());
             }
         };
 
@@ -4348,7 +4366,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be ? RequireObjectCoercible(this value).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If regexp is neither undefined nor null, then</span>
         <span class="kw">let</span> <span class="ident">regexp</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);

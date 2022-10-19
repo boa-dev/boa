@@ -146,8 +146,12 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">Array</span>, <span class="ident">JsValue</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyNameKind</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
@@ -220,7 +224,7 @@
         <span class="kw">let</span> <span class="ident">array_iterator</span> <span class="op">=</span> <span class="ident">array_iterator</span>
             .<span class="ident">as_mut</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_array_iterator_mut</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not an ArrayIterator&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">next_index</span>;
         <span class="kw">if</span> <span class="ident">array_iterator</span>.<span class="ident">done</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
@@ -232,9 +236,11 @@
 
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">f</span>) <span class="op">=</span> <span class="ident">array_iterator</span>.<span class="ident">array</span>.<span class="ident">borrow</span>().<span class="ident">as_typed_array</span>() {
             <span class="kw">if</span> <span class="ident">f</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;Cannot get value from typed array that has a detached array buffer&quot;</span>,
-                );
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;Cannot get value from typed array that has a detached array buffer&quot;</span>,
+                    )
+                    .<span class="ident">into</span>());
             }
 
             <span class="ident">f</span>.<span class="ident">array_length</span>()

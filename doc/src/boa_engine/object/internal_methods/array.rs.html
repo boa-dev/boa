@@ -255,7 +255,11 @@
 <span id="253">253</span>
 <span id="254">254</span>
 <span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object::JsObject</span>,
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">string::utf16</span>,
@@ -384,7 +388,9 @@
     <span class="comment">// 5. If SameValueZero(newLen, numberLen) is false, throw a RangeError exception.</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::float_cmp</span>)]</span>
     <span class="kw">if</span> <span class="ident">f64::from</span>(<span class="ident">new_len</span>) <span class="op">!</span><span class="op">=</span> <span class="ident">number_len</span> {
-        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;bad length for array&quot;</span>);
+        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;bad length for array&quot;</span>)
+            .<span class="ident">into</span>());
     }
 
     <span class="comment">// 2. Let newLenDesc be a copy of Desc.</span>

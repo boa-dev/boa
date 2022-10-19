@@ -856,12 +856,22 @@
 <span id="854">854</span>
 <span id="855">855</span>
 <span id="856">856</span>
+<span id="857">857</span>
+<span id="858">858</span>
+<span id="859">859</span>
+<span id="860">860</span>
+<span id="861">861</span>
+<span id="862">862</span>
+<span id="863">863</span>
+<span id="864">864</span>
+<span id="865">865</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `JsObject` structure.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `JsObject` is a garbage collected Object.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">JsPrototype</span>, <span class="ident">NativeObject</span>, <span class="ident">Object</span>, <span class="ident">PropertyMap</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">ObjectData</span>, <span class="ident">ObjectKind</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">value::PreferredType</span>,
@@ -1044,7 +1054,9 @@
         }
 
         <span class="comment">// 6. Throw a TypeError exception.</span>
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert object to primitive value&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// Return `true` if it is a native object and the native type is `T`.</span>
@@ -1404,7 +1416,9 @@
             <span class="comment">// b. If IsCallable(getter) is false and getter is not undefined, throw a TypeError exception.</span>
             <span class="comment">// todo: extract IsCallable to be callable from Value</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">getter</span>.<span class="ident">is_undefined</span>() <span class="op">&amp;&amp;</span> <span class="ident">getter</span>.<span class="ident">as_object</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_callable</span>()) {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Property descriptor getter must be callable&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// c. Set desc.[[Get]] to getter.</span>
             <span class="prelude-val">Some</span>(<span class="ident">getter</span>)
@@ -1420,7 +1434,9 @@
             <span class="comment">// 14.b. If IsCallable(setter) is false and setter is not undefined, throw a TypeError exception.</span>
             <span class="comment">// todo: extract IsCallable to be callable from Value</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">setter</span>.<span class="ident">is_undefined</span>() <span class="op">&amp;&amp;</span> <span class="ident">setter</span>.<span class="ident">as_object</span>().<span class="ident">map_or</span>(<span class="bool-val">true</span>, <span class="op">|</span><span class="ident">o</span><span class="op">|</span> <span class="op">!</span><span class="ident">o</span>.<span class="ident">is_callable</span>()) {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Property descriptor setter must be callable&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// 14.c. Set desc.[[Set]] to setter.</span>
             <span class="prelude-val">Some</span>(<span class="ident">setter</span>)
@@ -1431,10 +1447,12 @@
         <span class="comment">// 15. If desc.[[Get]] is present or desc.[[Set]] is present, then ...</span>
         <span class="comment">// a. If desc.[[Value]] is present or desc.[[Writable]] is present, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">get</span>.<span class="ident">as_ref</span>().<span class="ident">or</span>(<span class="ident">set</span>.<span class="ident">as_ref</span>()).<span class="ident">is_some</span>() <span class="op">&amp;&amp;</span> <span class="ident">desc</span>.<span class="ident">inner</span>().<span class="ident">is_data_descriptor</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;Invalid property descriptor.\
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
+                    <span class="string">&quot;Invalid property descriptor.\
 Cannot both specify accessors and a value or writable attribute&quot;</span>,
-            );
+                )
+                .<span class="ident">into</span>());
         }
 
         <span class="ident">desc</span> <span class="op">=</span> <span class="ident">desc</span>.<span class="ident">maybe_get</span>(<span class="ident">get</span>).<span class="ident">maybe_set</span>(<span class="ident">set</span>);

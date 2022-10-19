@@ -3477,6 +3477,104 @@
 <span id="3475">3475</span>
 <span id="3476">3476</span>
 <span id="3477">3477</span>
+<span id="3478">3478</span>
+<span id="3479">3479</span>
+<span id="3480">3480</span>
+<span id="3481">3481</span>
+<span id="3482">3482</span>
+<span id="3483">3483</span>
+<span id="3484">3484</span>
+<span id="3485">3485</span>
+<span id="3486">3486</span>
+<span id="3487">3487</span>
+<span id="3488">3488</span>
+<span id="3489">3489</span>
+<span id="3490">3490</span>
+<span id="3491">3491</span>
+<span id="3492">3492</span>
+<span id="3493">3493</span>
+<span id="3494">3494</span>
+<span id="3495">3495</span>
+<span id="3496">3496</span>
+<span id="3497">3497</span>
+<span id="3498">3498</span>
+<span id="3499">3499</span>
+<span id="3500">3500</span>
+<span id="3501">3501</span>
+<span id="3502">3502</span>
+<span id="3503">3503</span>
+<span id="3504">3504</span>
+<span id="3505">3505</span>
+<span id="3506">3506</span>
+<span id="3507">3507</span>
+<span id="3508">3508</span>
+<span id="3509">3509</span>
+<span id="3510">3510</span>
+<span id="3511">3511</span>
+<span id="3512">3512</span>
+<span id="3513">3513</span>
+<span id="3514">3514</span>
+<span id="3515">3515</span>
+<span id="3516">3516</span>
+<span id="3517">3517</span>
+<span id="3518">3518</span>
+<span id="3519">3519</span>
+<span id="3520">3520</span>
+<span id="3521">3521</span>
+<span id="3522">3522</span>
+<span id="3523">3523</span>
+<span id="3524">3524</span>
+<span id="3525">3525</span>
+<span id="3526">3526</span>
+<span id="3527">3527</span>
+<span id="3528">3528</span>
+<span id="3529">3529</span>
+<span id="3530">3530</span>
+<span id="3531">3531</span>
+<span id="3532">3532</span>
+<span id="3533">3533</span>
+<span id="3534">3534</span>
+<span id="3535">3535</span>
+<span id="3536">3536</span>
+<span id="3537">3537</span>
+<span id="3538">3538</span>
+<span id="3539">3539</span>
+<span id="3540">3540</span>
+<span id="3541">3541</span>
+<span id="3542">3542</span>
+<span id="3543">3543</span>
+<span id="3544">3544</span>
+<span id="3545">3545</span>
+<span id="3546">3546</span>
+<span id="3547">3547</span>
+<span id="3548">3548</span>
+<span id="3549">3549</span>
+<span id="3550">3550</span>
+<span id="3551">3551</span>
+<span id="3552">3552</span>
+<span id="3553">3553</span>
+<span id="3554">3554</span>
+<span id="3555">3555</span>
+<span id="3556">3556</span>
+<span id="3557">3557</span>
+<span id="3558">3558</span>
+<span id="3559">3559</span>
+<span id="3560">3560</span>
+<span id="3561">3561</span>
+<span id="3562">3562</span>
+<span id="3563">3563</span>
+<span id="3564">3564</span>
+<span id="3565">3565</span>
+<span id="3566">3566</span>
+<span id="3567">3567</span>
+<span id="3568">3568</span>
+<span id="3569">3569</span>
+<span id="3570">3570</span>
+<span id="3571">3571</span>
+<span id="3572">3572</span>
+<span id="3573">3573</span>
+<span id="3574">3574</span>
+<span id="3575">3575</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `TypedArray` objects.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `TypedArray` object describes an array-like view of an underlying binary data buffer.</span>
@@ -3499,6 +3597,7 @@
         <span class="ident">Array</span>, <span class="ident">ArrayIterator</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>,
     },
     <span class="ident">context::intrinsics</span>::{<span class="ident">StandardConstructor</span>, <span class="ident">StandardConstructors</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -3600,10 +3699,12 @@
             ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
                 <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">concat!</span>(
-                        <span class="string">&quot;new target was undefined when constructing an &quot;</span>,
-                        <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
-                    ));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="macro">concat!</span>(
+                            <span class="string">&quot;new target was undefined when constructing an &quot;</span>,
+                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+                        ))
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// 2. Let constructorName be the String value of the Constructor Name value specified in Table 72 for this TypedArray constructor.</span>
@@ -3859,13 +3960,11 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%</span>
-    <span class="kw">fn</span> <span class="ident">constructor</span>(
-        <span class="ident">_new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="ident">_new_target</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Throw a TypeError exception.</span>
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;the TypedArray constructor should never be called directly&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `23.2.2.1 %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )`</span>
@@ -3880,8 +3979,9 @@
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.from called on non-constructable value&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.from called on non-constructable value&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -3894,8 +3994,9 @@
                 <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
                 <span class="comment">// a. If IsCallable(mapfn) is false, throw a TypeError exception.</span>
                 <span class="kw">_</span> =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.from called with non-callable mapfn&quot;</span>)
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.from called with non-callable mapfn&quot;</span>)
+                        .<span class="ident">into</span>())
                 }
             },
         };
@@ -3990,7 +4091,9 @@
         <span class="kw">let</span> <span class="ident">constructor</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_constructor</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.of called on non-constructable value&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.of called on non-constructable value&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -4031,15 +4134,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">at</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4076,17 +4181,17 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer</span>
-    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">buffer</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. Return buffer.</span>
@@ -4101,21 +4206,17 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_length</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.</span>
@@ -4134,21 +4235,17 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_offset</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">byte_offset</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.</span>
@@ -4169,19 +4266,21 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin</span>
     <span class="kw">fn</span> <span class="ident">copy_within</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> {
             <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-                .<span class="ident">as_typed_array</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+            })<span class="question-mark">?</span>;
 
             <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4236,9 +4335,9 @@
         <span class="kw">let</span> <span class="ident">count</span> <span class="op">=</span> <span class="ident">std::cmp::min</span>(<span class="ident">r#final</span> <span class="op">-</span> <span class="ident">from</span>, <span class="ident">len</span> <span class="op">-</span> <span class="ident">to</span>);
 
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 17. If count &gt; 0, then</span>
         <span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
@@ -4246,7 +4345,9 @@
             <span class="comment">// b. Let buffer be O.[[ViewedArrayBuffer]].</span>
             <span class="comment">// c. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// d. Let typedArrayName be the String value of O.[[TypedArrayName]].</span>
@@ -4339,15 +4440,17 @@
     <span class="kw">fn</span> <span class="ident">entries</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">borrow</span>()
             .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key+value).</span>
@@ -4371,15 +4474,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4389,9 +4494,11 @@
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.every called with non-callable callback function&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.every called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -4434,15 +4541,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4487,7 +4596,9 @@
 
         <span class="comment">// 14. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 15. Repeat, while k &lt; final,</span>
@@ -4518,29 +4629,32 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>();
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.filter called with non-callable callback function&quot;</span>,
-                )
-            }
-        };
+        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span>
+            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.filter called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>()),
+            };
 
         <span class="comment">// 5. Let kept be a new empty List.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">kept</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
@@ -4603,15 +4717,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4621,9 +4737,11 @@
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.find called with non-callable predicate function&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.find called with non-callable predicate function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -4665,28 +4783,31 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>();
 
         <span class="comment">// 4. If IsCallable(predicate) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span>
-            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+        <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
                     <span class="string">&quot;TypedArray.prototype.findindex called with non-callable predicate function&quot;</span>,
-                ),
-            };
+                )
+                .<span class="ident">into</span>()),
+        };
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -4726,29 +4847,32 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>();
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.foreach called with non-callable callback function&quot;</span>,
-                )
-            }
-        };
+        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span>
+            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.foreach called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>()),
+            };
 
         <span class="comment">// 5. Let k be 0.</span>
         <span class="comment">// 6. Repeat, while k &lt; len,</span>
@@ -4782,15 +4906,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4859,15 +4985,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -4945,15 +5073,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5002,15 +5132,17 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">keys</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">borrow</span>()
             .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, key).</span>
@@ -5034,15 +5166,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5105,21 +5239,17 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">length</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">typed_array</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.</span>
@@ -5145,15 +5275,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5163,9 +5295,11 @@
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.map called with non-callable callback function&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.map called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -5207,34 +5341,38 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>();
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.reduce called with non-callable callback function&quot;</span>,
-                )
-            }
-        };
+        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span>
+            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
+                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.reduce called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>()),
+            };
 
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 6. Let k be 0.</span>
@@ -5288,33 +5426,37 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">i64</span>;
 
         <span class="comment">// 4. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
-        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span>
-            <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
-                <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
-                <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+        <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
+            <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
+            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
                     <span class="string">&quot;TypedArray.prototype.reduceright called with non-callable callback function&quot;</span>,
-                ),
-            };
+                )
+                .<span class="ident">into</span>()),
+        };
 
         <span class="comment">// 5. If len = 0 and initialValue is not present, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Typed array length is 0 and initial value is not present&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 6. Let k be len - 1.</span>
@@ -5372,15 +5514,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5433,10 +5577,12 @@
         <span class="comment">// 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: target has a [[ViewedArrayBuffer]] internal slot.</span>
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_typed_array</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.set must be called on typed array object&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 4. Let targetOffset be ? ToIntegerOrInfinity(offset).</span>
@@ -5445,10 +5591,14 @@
         <span class="comment">// 5. If targetOffset &lt; 0, throw a RangeError exception.</span>
         <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&lt;</span> <span class="number">0</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                    .<span class="ident">into</span>())
             }
             <span class="ident">IntegerOrInfinity::NegativeInfinity</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.set called with negative offset&quot;</span>)
+                    .<span class="ident">into</span>())
             }
             <span class="kw">_</span> =&gt; {}
         }
@@ -5496,7 +5646,9 @@
         <span class="comment">// 1. Let targetBuffer be target.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="kw">let</span> <span class="ident">target_buffer_obj</span> <span class="op">=</span> <span class="ident">target_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -5508,7 +5660,9 @@
         <span class="comment">// 4. Let srcBuffer be source.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">source_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">src_buffer_obj</span> <span class="op">=</span> <span class="ident">source_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -5542,23 +5696,27 @@
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
         };
 
         <span class="comment">// 16. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_length</span> <span class="op">+</span> <span class="ident">target_offset</span> <span class="op">&gt;</span> <span class="ident">target_length</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
-                <span class="string">&quot;Source typed array and target offset longer than target typed array&quot;</span>,
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Source typed array and target offset longer than target typed array&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 17. If target.[[ContentType]] ≠ source.[[ContentType]], throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_name</span>.<span class="ident">content_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">src_name</span>.<span class="ident">content_type</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;Source typed array and target typed array have different content types&quot;</span>,
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
+                    <span class="string">&quot;Source typed array and target typed array have different content types&quot;</span>,
+                )
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// TODO: Shared Array Buffer</span>
@@ -5706,7 +5864,9 @@
         <span class="comment">// 1. Let targetBuffer be target.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">target_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let targetLength be target.[[ArrayLength]].</span>
@@ -5731,7 +5891,9 @@
         <span class="kw">let</span> <span class="ident">target_offset</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">target_offset</span> {
             <span class="comment">// 10. If targetOffset is +∞, throw a RangeError exception.</span>
             <span class="ident">IntegerOrInfinity::PositiveInfinity</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Target offset cannot be Infinity&quot;</span>)
+                    .<span class="ident">into</span>())
             }
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">i</span>) <span class="kw">if</span> <span class="ident">i</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0</span> =&gt; <span class="ident">i</span> <span class="kw">as</span> <span class="ident">u64</span>,
             <span class="kw">_</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -5739,9 +5901,9 @@
 
         <span class="comment">// 11. If srcLength + targetOffset &gt; targetLength, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_length</span> <span class="op">+</span> <span class="ident">target_offset</span> <span class="op">&gt;</span> <span class="ident">target_length</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
-                <span class="string">&quot;Source object and target offset longer than target typed array&quot;</span>,
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Source object and target offset longer than target typed array&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 12. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.</span>
@@ -5777,7 +5939,9 @@
 
             <span class="comment">// e. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">target_buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot set value on detached array buffer&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot set value on detached array buffer&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// f. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).</span>
@@ -5813,15 +5977,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -5870,7 +6036,9 @@
         <span class="kw">if</span> <span class="ident">count</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// a. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// b. Let srcName be the String value of O.[[TypedArrayName]].</span>
@@ -5982,15 +6150,17 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Let len be O.[[ArrayLength]].</span>
@@ -6000,9 +6170,11 @@
         <span class="kw">let</span> <span class="ident">callback_fn</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_object</span>() {
             <span class="prelude-val">Some</span>(<span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">obj</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;TypedArray.prototype.some called with non-callable callback function&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(
+                        <span class="string">&quot;TypedArray.prototype.some called with non-callable callback function&quot;</span>,
+                    )
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -6047,37 +6219,41 @@
             <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="prelude-val">Some</span>(<span class="ident">JsValue::Object</span>(<span class="ident">obj</span>)) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;TypedArray.sort called with non-callable comparefn&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.sort called with non-callable comparefn&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
 
         <span class="comment">// 2. Let obj be the this value.</span>
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;TypedArray.sort must be called on typed array object&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.sort must be called on typed array object&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be obj.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 5. Let len be obj.[[ArrayLength]].</span>
-        <span class="kw">let</span> (<span class="ident">buffer</span>, <span class="ident">len</span>) <span class="op">=</span> {
-            <span class="comment">// 3. Perform ? ValidateTypedArray(obj).</span>
-            <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;TypedArray.sort must be called on typed array object&quot;</span>)
-            })<span class="question-mark">?</span>;
-            <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+        <span class="kw">let</span> (<span class="ident">buffer</span>, <span class="ident">len</span>) <span class="op">=</span>
+            {
+                <span class="comment">// 3. Perform ? ValidateTypedArray(obj).</span>
+                <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
+                <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                    <span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;TypedArray.sort must be called on typed array object&quot;</span>)
+                })<span class="question-mark">?</span>;
+                <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                     <span class="string">&quot;TypedArray.sort called on typed array object with detached array buffer&quot;</span>,
-                );
-            }
+                ).<span class="ident">into</span>());
+                }
 
-            (
-                <span class="ident">o</span>.<span class="ident">viewed_array_buffer</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>)
-                    .<span class="ident">clone</span>(),
-                <span class="ident">o</span>.<span class="ident">array_length</span>(),
-            )
-        };
+                (
+                    <span class="ident">o</span>.<span class="ident">viewed_array_buffer</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;Already checked for detached buffer&quot;</span>)
+                        .<span class="ident">clone</span>(),
+                    <span class="ident">o</span>.<span class="ident">array_length</span>(),
+                )
+            };
 
         <span class="comment">// 4. Let items be a new empty List.</span>
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">items</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">len</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -6120,8 +6296,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;Must be array buffer&quot;</span>)
                     .<span class="ident">is_detached_buffer</span>()
                 {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot sort typed array with detached buffer&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Cannot sort typed array with detached buffer&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// c. If v is NaN, return +0𝔽.</span>
@@ -6257,13 +6434,13 @@
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).</span>
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
-        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">obj</span>.<span class="ident">borrow</span>();
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">o</span>
@@ -6341,15 +6518,17 @@
     <span class="kw">fn</span> <span class="ident">values</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? ValidateTypedArray(O).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>
-            .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">borrow</span>()
             .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached</span>()
         {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. Return CreateArrayIterator(O, value).</span>
@@ -6427,8 +6606,9 @@
             .<span class="ident">content_type</span>()
             <span class="op">!</span><span class="op">=</span> <span class="ident">typed_array_name</span>.<span class="ident">content_type</span>()
         {
-            <span class="kw">return</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;New typed array has different context type than exemplar&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;New typed array has different context type than exemplar&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 6. Return result.</span>
@@ -6451,11 +6631,13 @@
 
         <span class="kw">let</span> <span class="ident">obj_borrow</span> <span class="op">=</span> <span class="ident">new_typed_array</span>.<span class="ident">borrow</span>();
         <span class="comment">// 2. Perform ? ValidateTypedArray(newTypedArray).</span>
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>
-            .<span class="ident">as_typed_array</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>))<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">obj_borrow</span>.<span class="ident">as_typed_array</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Value is not a typed array object&quot;</span>)
+        })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Buffer of the typed array is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 3. If argumentList is a List of a single Number, then</span>
@@ -6463,8 +6645,9 @@
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="op">=</span> <span class="ident">args</span>[<span class="number">0</span>].<span class="ident">as_number</span>() {
                 <span class="comment">// a. If newTypedArray.[[ArrayLength]] &lt; ℝ(argumentList[0]), throw a TypeError exception.</span>
                 <span class="kw">if</span> (<span class="ident">o</span>.<span class="ident">array_length</span>() <span class="kw">as</span> <span class="ident">f64</span>) <span class="op">&lt;</span> <span class="ident">number</span> {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;New typed array length is smaller than expected&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;New typed array length is smaller than expected&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
         }
@@ -6612,7 +6795,9 @@
         <span class="comment">// 1. Let srcData be srcArray.[[ViewedArrayBuffer]].</span>
         <span class="comment">// 2. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">src_array</span>.<span class="ident">is_detached</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="kw">let</span> <span class="ident">src_data_obj</span> <span class="op">=</span> <span class="ident">src_array</span>
             .<span class="ident">viewed_array_buffer</span>()
@@ -6670,14 +6855,16 @@
 
             <span class="comment">// b. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">src_data</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot initialize typed array from detached buffer&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// c. If srcArray.[[ContentType]] ≠ O.[[ContentType]], throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">src_name</span>.<span class="ident">content_type</span>() <span class="op">!</span><span class="op">=</span> <span class="ident">constructor_name</span>.<span class="ident">content_type</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot initialize typed array from different content type&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// d. Let srcByteIndex be srcByteOffset.</span>
@@ -6762,7 +6949,9 @@
 
         <span class="comment">// 4. If offset modulo elementSize ≠ 0, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">offset</span> <span class="op">%</span> <span class="ident">constructor_name</span>.<span class="ident">element_size</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">buffer_byte_length</span> <span class="op">=</span> {
@@ -6773,8 +6962,9 @@
 
             <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">buffer_array</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot construct typed array from detached buffer&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot construct typed array from detached buffer&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// 7. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].</span>
@@ -6785,7 +6975,9 @@
         <span class="kw">let</span> <span class="ident">new_byte_length</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">length</span>.<span class="ident">is_undefined</span>() {
             <span class="comment">// a. If bufferByteLength modulo elementSize ≠ 0, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">buffer_byte_length</span> <span class="op">%</span> <span class="ident">constructor_name</span>.<span class="ident">element_size</span>() <span class="op">!</span><span class="op">=</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="comment">// b. Let newByteLength be bufferByteLength - offset.</span>
@@ -6793,7 +6985,9 @@
 
             <span class="comment">// c. If newByteLength &lt; 0, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">new_byte_length</span> <span class="op">&lt;</span> <span class="number">0</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="ident">new_byte_length</span> <span class="kw">as</span> <span class="ident">u64</span>
@@ -6807,7 +7001,9 @@
 
             <span class="comment">// b. If offset + newByteLength &gt; bufferByteLength, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">new_byte_length</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Invalid length for typed array&quot;</span>)
+                    .<span class="ident">into</span>());
             }
 
             <span class="ident">new_byte_length</span>

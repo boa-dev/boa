@@ -1098,6 +1098,27 @@
 <span id="1096">1096</span>
 <span id="1097">1097</span>
 <span id="1098">1098</span>
+<span id="1099">1099</span>
+<span id="1100">1100</span>
+<span id="1101">1101</span>
+<span id="1102">1102</span>
+<span id="1103">1103</span>
+<span id="1104">1104</span>
+<span id="1105">1105</span>
+<span id="1106">1106</span>
+<span id="1107">1107</span>
+<span id="1108">1108</span>
+<span id="1109">1109</span>
+<span id="1110">1110</span>
+<span id="1111">1111</span>
+<span id="1112">1112</span>
+<span id="1113">1113</span>
+<span id="1114">1114</span>
+<span id="1115">1115</span>
+<span id="1116">1116</span>
+<span id="1117">1117</span>
+<span id="1118">1118</span>
+<span id="1119">1119</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the JavaScript Value.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript values, utility methods and conversion between Javascript values and Rust values.</span>
@@ -1110,6 +1131,7 @@
         <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
         <span class="ident">Number</span>,
     },
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
@@ -1475,7 +1497,9 @@
                 <span class="comment">// v. If Type(result) is not Object, return result.</span>
                 <span class="comment">// vi. Throw a TypeError exception.</span>
                 <span class="kw">return</span> <span class="kw">if</span> <span class="ident">result</span>.<span class="ident">is_object</span>() {
-                    <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.toPrimitive cannot return an object&quot;</span>)
+                    <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Symbol.toPrimitive cannot return an object&quot;</span>)
+                        .<span class="ident">into</span>())
                 } <span class="kw">else</span> {
                     <span class="prelude-val">Ok</span>(<span class="ident">result</span>)
                 };
@@ -1503,29 +1527,37 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tobigint</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_bigint</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsBigInt</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert null to a BigInt&quot;</span>)
+                .<span class="ident">into</span>()),
+            <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert undefined to a BigInt&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">string</span>.<span class="ident">to_big_int</span>() {
                     <span class="prelude-val">Ok</span>(<span class="ident">value</span>)
                 } <span class="kw">else</span> {
-                    <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
-                        <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>()
-                    ))
+                    <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
+                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                            <span class="string">&quot;cannot convert string &#39;{}&#39; to bigint primitive&quot;</span>,
+                            <span class="ident">string</span>.<span class="ident">to_std_string_escaped</span>()
+                        ))
+                        .<span class="ident">into</span>())
                 }
             }
             <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">true</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::one</span>()),
             <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="bool-val">false</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">JsBigInt::zero</span>()),
-            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) =&gt; {
-                <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert Number to a BigInt&quot;</span>)
-            }
+            <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="kw">_</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Number to a BigInt&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="ident">b</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">b</span>.<span class="ident">clone</span>()),
             <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
                 <span class="ident">primitive</span>.<span class="ident">to_bigint</span>(<span class="ident">context</span>)
             }
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert Symbol to a BigInt&quot;</span>)
+                .<span class="ident">into</span>()),
         }
     }
 
@@ -1562,7 +1594,9 @@
             <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">rational</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Number::to_native_string</span>(<span class="kw-2">*</span><span class="ident">rational</span>).<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">integer</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">clone</span>()),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;can&#39;t convert symbol to string&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">bigint</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">bigint</span>.<span class="ident">to_string</span>().<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::String</span>)<span class="question-mark">?</span>;
@@ -1578,9 +1612,9 @@
     <span class="doccomment">/// See: &lt;https://tc39.es/ecma262/#sec-toobject&gt;</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_object</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Null</span> =&gt; {
-                <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
-            }
+            <span class="ident"><span class="self">Self</span>::Undefined</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert &#39;null&#39; or &#39;undefined&#39; to object&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="ident">boolean</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">intrinsics</span>().<span class="ident">constructors</span>().<span class="ident">boolean</span>().<span class="ident">prototype</span>();
                 <span class="prelude-val">Ok</span>(<span class="ident">JsObject::from_proto_and_data</span>(
@@ -1917,7 +1951,9 @@
 
         <span class="comment">// c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">integer</span> <span class="op">!</span><span class="op">=</span> <span class="ident">clamped</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Index must be between 0 and  2^53 - 1&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// d. Assert: 0 ≤ integer ≤ 2^53 - 1.</span>
@@ -1984,8 +2020,12 @@
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw-2">ref</span> <span class="ident">string</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">string</span>.<span class="ident">to_number</span>()),
             <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">number</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">number</span>),
             <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">integer</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">f64::from</span>(<span class="ident">integer</span>)),
-            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>),
-            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) =&gt; <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;argument must not be a bigint&quot;</span>),
+            <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;argument must not be a symbol&quot;</span>)
+                .<span class="ident">into</span>()),
+            <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw">_</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;argument must not be a bigint&quot;</span>)
+                .<span class="ident">into</span>()),
             <span class="ident"><span class="self">Self</span>::Object</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">primitive</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Number</span>)<span class="question-mark">?</span>;
                 <span class="ident">primitive</span>.<span class="ident">to_number</span>(<span class="ident">context</span>)
@@ -2018,9 +2058,11 @@
     <span class="doccomment">/// [table]: https://tc39.es/ecma262/#table-14</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_object_coercible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">require_object_coercible</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">is_null_or_undefined</span>() {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot convert null or undefined to Object&quot;</span>)
+                .<span class="ident">into</span>())
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(<span class="self">self</span>)
         }
@@ -2031,9 +2073,9 @@
         <span class="comment">// 1. If Type(Obj) is not Object, throw a TypeError exception.</span>
         <span class="self">self</span>.<span class="ident">as_object</span>()
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                    <span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>,
-                )
+                <span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Cannot construct a property descriptor from a non-object&quot;</span>)
+                    .<span class="ident">into</span>()
             })
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">to_property_descriptor</span>(<span class="ident">context</span>))
     }

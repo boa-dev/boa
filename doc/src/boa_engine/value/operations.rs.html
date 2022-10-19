@@ -659,15 +659,26 @@
 <span id="657">657</span>
 <span id="658">658</span>
 <span id="659">659</span>
+<span id="660">660</span>
+<span id="661">661</span>
+<span id="662">662</span>
+<span id="663">663</span>
+<span id="664">664</span>
+<span id="665">665</span>
+<span id="666">666</span>
+<span id="667">667</span>
+<span id="668">668</span>
+<span id="669">669</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{
         <span class="ident">number</span>::{<span class="ident">f64_to_int32</span>, <span class="ident">f64_to_uint32</span>},
         <span class="ident">Number</span>,
     },
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
+    <span class="ident">value</span>::{<span class="ident">Numeric</span>, <span class="ident">PreferredType</span>, <span class="ident">WellKnownSymbols</span>},
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
-
-<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>, <span class="ident">Numeric</span>, <span class="ident">PreferredType</span>, <span class="ident">WellKnownSymbols</span>};
 
 <span class="kw">impl</span> <span class="ident">JsValue</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -701,9 +712,11 @@
                         <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::add</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                     }
                     (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                            <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                        )
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(
+                                <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
+                            )
+                            .<span class="ident">into</span>())
                     }
                 },
             },
@@ -728,9 +741,9 @@
                 (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">-</span> <span class="ident">b</span>),
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::sub</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -754,9 +767,9 @@
                 (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">*</span> <span class="ident">b</span>),
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::mul</span>(<span class="ident">x</span>, <span class="ident">y</span>)),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -776,7 +789,9 @@
 
             (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
                 <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;BigInt division by zero&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::div</span>(<span class="ident">x</span>, <span class="ident">y</span>))
             }
@@ -786,14 +801,16 @@
                 (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">/</span> <span class="ident">b</span>),
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
                     <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;BigInt division by zero&quot;</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::div</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -823,7 +840,9 @@
 
             (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
                 <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;BigInt division by zero&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::rem</span>(<span class="ident">x</span>, <span class="ident">y</span>))
             }
@@ -833,14 +852,16 @@
                 (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span> <span class="op">%</span> <span class="ident">b</span>),
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
                     <span class="kw">if</span> <span class="ident">y</span>.<span class="ident">is_zero</span>() {
-                        <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;BigInt division by zero&quot;</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;BigInt division by zero&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::rem</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -858,18 +879,16 @@
             (<span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64::from</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">powf</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
             (<span class="ident"><span class="self">Self</span>::Rational</span>(<span class="ident">x</span>), <span class="ident"><span class="self">Self</span>::Integer</span>(<span class="ident">y</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">x</span>.<span class="ident">powi</span>(<span class="kw-2">*</span><span class="ident">y</span>)),
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">context</span>)<span class="question-mark">?</span>),
+            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
                 (<span class="ident">Numeric::Number</span>(<span class="ident">a</span>), <span class="ident">Numeric::Number</span>(<span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">a</span>.<span class="ident">powf</span>(<span class="ident">b</span>)),
-                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
-                }
+                (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::pow</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -897,9 +916,9 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitand</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -927,9 +946,9 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitor</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -957,9 +976,9 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::bitxor</span>(<span class="ident">x</span>, <span class="ident">y</span>))
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -978,9 +997,7 @@
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
             }
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
-            }
+            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
@@ -988,12 +1005,12 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shl</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
                 }
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
+                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_left</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="question-mark">?</span>)
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -1012,9 +1029,7 @@
                 <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="kw-2">*</span><span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="kw-2">*</span><span class="ident">y</span> <span class="kw">as</span> <span class="ident">u32</span>))
             }
 
-            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; {
-                <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">a</span>, <span class="ident">b</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
-            }
+            (<span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">a</span>), <span class="ident"><span class="self">Self</span>::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">b</span>)) =&gt; <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">a</span>, <span class="ident">b</span>)<span class="question-mark">?</span>),
 
             <span class="comment">// Slow path:</span>
             (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; <span class="kw">match</span> (<span class="self">self</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="ident">other</span>.<span class="ident">to_numeric</span>(<span class="ident">context</span>)<span class="question-mark">?</span>) {
@@ -1022,12 +1037,12 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_int32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
                 }
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">x</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw-2">ref</span> <span class="ident">y</span>)) =&gt; {
-                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">context</span>)<span class="question-mark">?</span>)
+                    <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">JsBigInt::shift_right</span>(<span class="ident">x</span>, <span class="ident">y</span>)<span class="question-mark">?</span>)
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -1054,13 +1069,14 @@
                     <span class="ident"><span class="self">Self</span>::new</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">x</span>).<span class="ident">wrapping_shr</span>(<span class="ident">f64_to_uint32</span>(<span class="ident">y</span>)))
                 }
                 (<span class="ident">Numeric::BigInt</span>(<span class="kw">_</span>), <span class="ident">Numeric::BigInt</span>(<span class="kw">_</span>)) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>
-                        .<span class="ident">throw_type_error</span>(<span class="string">&quot;BigInts have no unsigned right shift, use &gt;&gt; instead&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;BigInts have no unsigned right shift, use &gt;&gt; instead&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 (<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot mix BigInt and other types, use explicit conversions&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             },
         })
@@ -1076,10 +1092,12 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">instance_of</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">bool</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If Type(target) is not Object, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_object</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
-                <span class="ident">target</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
-            ));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;right-hand side of &#39;instanceof&#39; should be an object, got {}&quot;</span>,
+                    <span class="ident">target</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
+                ))
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. Let instOfHandler be ? GetMethod(target, @@hasInstance).</span>
@@ -1097,7 +1115,9 @@
             }
             <span class="prelude-val">None</span> =&gt; {
                 <span class="comment">// 4. If IsCallable(target) is false, throw a TypeError exception.</span>
-                <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>)
+                <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;right-hand side of &#39;instanceof&#39; is not callable&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         }
     }

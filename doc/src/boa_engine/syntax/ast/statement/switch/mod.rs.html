@@ -146,14 +146,10 @@
 <span id="144">144</span>
 <span id="145">145</span>
 <span id="146">146</span>
-<span id="147">147</span>
-<span id="148">148</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Switch node.</span>
 <span class="doccomment">//!</span>
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">StatementList</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
-
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::StatementList</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ContainsSymbol</span>;
 

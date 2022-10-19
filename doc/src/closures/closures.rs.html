@@ -129,11 +129,11 @@
     <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">string::utf16</span>,
-    <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
-<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsValue</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsError</span><span class="op">&gt;</span> {
     <span class="comment">// We create a new `Context` to create a new Javascript executor.</span>
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">context</span> <span class="op">=</span> <span class="ident">Context::default</span>();
 

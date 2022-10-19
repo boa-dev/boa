@@ -2927,6 +2927,29 @@
 <span id="2925">2925</span>
 <span id="2926">2926</span>
 <span id="2927">2927</span>
+<span id="2928">2928</span>
+<span id="2929">2929</span>
+<span id="2930">2930</span>
+<span id="2931">2931</span>
+<span id="2932">2932</span>
+<span id="2933">2933</span>
+<span id="2934">2934</span>
+<span id="2935">2935</span>
+<span id="2936">2936</span>
+<span id="2937">2937</span>
+<span id="2938">2938</span>
+<span id="2939">2939</span>
+<span id="2940">2940</span>
+<span id="2941">2941</span>
+<span id="2942">2942</span>
+<span id="2943">2943</span>
+<span id="2944">2944</span>
+<span id="2945">2945</span>
+<span id="2946">2946</span>
+<span id="2947">2947</span>
+<span id="2948">2948</span>
+<span id="2949">2949</span>
+<span id="2950">2950</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Array` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Array` class is a global object that is used in the construction of arrays; which are high-level, list-like objects.</span>
@@ -2952,6 +2975,7 @@
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">builtins::Number</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
@@ -3106,7 +3130,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;this ToUint32 call must not fail&quot;</span>);
                 <span class="comment">// ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.</span>
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">JsValue::same_value_zero</span>(<span class="kw-2">&amp;</span><span class="ident">int_len</span>.<span class="ident">into</span>(), <span class="ident">len</span>) {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;invalid array length&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;invalid array length&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="ident">int_len</span>
             };
@@ -3153,7 +3179,9 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If length &gt; 2^32 - 1, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">length</span> <span class="op">&gt;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="number">32</span>) <span class="op">-</span> <span class="number">1</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;array exceeded max size&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;array exceeded max size&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="comment">// 7. Return A.</span>
         <span class="comment">// 2. If proto is not present, set proto to %Array.prototype%.</span>
@@ -3311,7 +3339,9 @@
             <span class="comment">// 8. Return ? Construct(C, « 𝔽(length) »).</span>
             <span class="ident">c</span>.<span class="ident">construct</span>(<span class="kw-2">&amp;</span>[<span class="ident">JsValue::new</span>(<span class="ident">length</span>)], <span class="prelude-val">Some</span>(<span class="ident">c</span>), <span class="ident">context</span>)
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Symbol.species must be a constructor&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 
@@ -3343,10 +3373,12 @@
             <span class="ident">JsValue::Undefined</span> =&gt; <span class="prelude-val">None</span>,
             <span class="ident">JsValue::Object</span>(<span class="ident">o</span>) <span class="kw">if</span> <span class="ident">o</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">o</span>),
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                    <span class="string">&quot;{} is not a function&quot;</span>,
-                    <span class="ident">mapfn</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
-                ))
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                        <span class="string">&quot;{} is not a function&quot;</span>,
+                        <span class="ident">mapfn</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
+                    ))
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -3417,7 +3449,9 @@
             <span class="comment">// which is why it&#39;s safe to have this as the fallback return</span>
             <span class="comment">//</span>
             <span class="comment">// 1. Let error be ThrowCompletion(a newly created TypeError object).</span>
-            <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Invalid array length&quot;</span>);
+            <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Invalid array length&quot;</span>)
+                .<span class="ident">into</span>());
 
             <span class="comment">// 2. Return ? IteratorClose(iteratorRecord, error).</span>
             <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">error</span>, <span class="ident">context</span>)
@@ -3608,9 +3642,11 @@
                 <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">item</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// iii. If n + len &gt; 2^53 - 1, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="ident">n</span> <span class="op">+</span> <span class="ident">len</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                        <span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>,
-                    );
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(
+                            <span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>,
+                        )
+                        .<span class="ident">into</span>());
                 }
                 <span class="comment">// iv. Repeat, while k &lt; len,</span>
                 <span class="kw">for</span> <span class="ident">k</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">len</span> {
@@ -3634,7 +3670,9 @@
                 <span class="comment">// i. NOTE: E is added as a single item rather than spread.</span>
                 <span class="comment">// ii. If n ≥ 2^53 - 1, throw a TypeError exception.</span>
                 <span class="kw">if</span> <span class="ident">n</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;length exceeds the max safe integer limit&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;length exceeds the max safe integer limit&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="comment">// iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).</span>
                 <span class="ident">arr</span>.<span class="ident">create_data_property_or_throw</span>(<span class="ident">n</span>, <span class="ident">item</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -3674,9 +3712,11 @@
         <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u64</span>;
         <span class="comment">// 4. If len + argCount &gt; 2^53 - 1, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">arg_count</span> <span class="op">&gt;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="number">53</span>) <span class="op">-</span> <span class="number">1</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>,
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
+                    <span class="string">&quot;the length + the number of arguments exceed the maximum safe integer limit&quot;</span>,
+                )
+                .<span class="ident">into</span>());
         }
         <span class="comment">// 5. For each element E of items, do</span>
         <span class="kw">for</span> <span class="ident">element</span> <span class="kw">in</span> <span class="ident">args</span>.<span class="ident">iter</span>().<span class="ident">cloned</span>() {
@@ -3751,7 +3791,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.forEach: invalid callback function&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.forEach: invalid callback function&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="comment">// 4. Let k be 0.</span>
         <span class="comment">// 5. Repeat, while k &lt; len,</span>
@@ -4025,9 +4065,9 @@
         <span class="kw">if</span> <span class="ident">arg_count</span> <span class="op">&gt;</span> <span class="number">0</span> {
             <span class="comment">// a. If len + argCount &gt; 2^53 - 1, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">arg_count</span> <span class="op">&gt;</span> <span class="number">2u64</span>.<span class="ident">pow</span>(<span class="number">53</span>) <span class="op">-</span> <span class="number">1</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>,
-                );
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;length + number of arguments exceeds the max safe integer limit&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// b. Let k be len.</span>
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">k</span> <span class="op">=</span> <span class="ident">len</span>;
@@ -4092,7 +4132,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.every: callback is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.every: callback is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4144,7 +4184,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.map: Callbackfn is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.map: Callbackfn is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let A be ? ArraySpeciesCreate(O, len).</span>
@@ -4352,7 +4392,7 @@
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.find: predicate is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.find: predicate is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4409,7 +4449,8 @@
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findIndex: predicate is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.findIndex: predicate is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4460,7 +4501,7 @@
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findLast: predicate is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.findLast: predicate is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4512,7 +4553,8 @@
 
         <span class="comment">// 3. If IsCallable(predicate) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">predicate</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.findLastIndex: predicate is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.findLastIndex: predicate is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -4617,7 +4659,7 @@
 
         <span class="comment">// 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">mapper_function</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;flatMap mapper function is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;flatMap mapper function is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let A be ? ArraySpeciesCreate(O, 0).</span>
@@ -4733,8 +4775,9 @@
                 } <span class="kw">else</span> {
                     <span class="comment">// 1. If targetIndex &gt;= 2^53 - 1, throw a TypeError exception</span>
                     <span class="kw">if</span> <span class="ident">target_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
-                        <span class="kw">return</span> <span class="ident">context</span>
-                            .<span class="ident">throw_type_error</span>(<span class="string">&quot;Target index exceeded max safe integer value&quot;</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;Target index exceeded max safe integer value&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
 
                     <span class="comment">// 2. Perform ? CreateDataPropertyOrThrow(target, targetIndex, element)</span>
@@ -5004,7 +5047,9 @@
 
         <span class="comment">// 10. If len + insertCount - actualDeleteCount &gt; 2^53 - 1, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">+</span> <span class="ident">insert_count</span> <span class="op">-</span> <span class="ident">actual_delete_count</span> <span class="op">&gt;</span> <span class="ident">Number::MAX_SAFE_INTEGER</span> <span class="kw">as</span> <span class="ident">u64</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Target splice exceeded max safe integer value&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Target splice exceeded max safe integer value&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).</span>
@@ -5146,7 +5191,7 @@
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.filter: `callback` must be callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.filter: `callback` must be callable&quot;</span>)
         })<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
@@ -5210,7 +5255,7 @@
         <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">o</span>.<span class="ident">length_of_array_like</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.some: callback is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.some: callback is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. Let k be 0.</span>
@@ -5261,9 +5306,9 @@
             <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="kw">if</span> <span class="ident">obj</span>.<span class="ident">is_callable</span>() =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>),
             <span class="ident">JsValue::Undefined</span> =&gt; <span class="prelude-val">None</span>,
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                    <span class="string">&quot;The comparison function must be either a function or undefined&quot;</span>,
-                )
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;The comparison function must be either a function or undefined&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -5395,15 +5440,17 @@
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>
-                .<span class="ident">construct_type_error</span>(<span class="string">&quot;Array.prototype.reduce: callback function is not callable&quot;</span>)
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.reduce: callback function is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If len = 0 and initialValue is not present, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
-                <span class="string">&quot;Array.prototype.reduce: called on an empty array and with no initial value&quot;</span>,
-            );
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(
+                    <span class="string">&quot;Array.prototype.reduce: called on an empty array and with no initial value&quot;</span>,
+                )
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 5. Let k be 0.</span>
@@ -5435,9 +5482,9 @@
             }
             <span class="comment">// c. If kPresent is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">k_present</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                     <span class="string">&quot;Array.prototype.reduce: called on an empty array and with no initial value&quot;</span>,
-                );
+                ).<span class="ident">into</span>());
             }
         }
 
@@ -5490,16 +5537,15 @@
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(
-                <span class="string">&quot;Array.prototype.reduceRight: callback function is not callable&quot;</span>,
-            )
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Array.prototype.reduceRight: callback function is not callable&quot;</span>)
         })<span class="question-mark">?</span>;
 
         <span class="comment">// 4. If len is 0 and initialValue is not present, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">len</span> <span class="op">==</span> <span class="number">0</span> <span class="op">&amp;&amp;</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">is_none</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                 <span class="string">&quot;Array.prototype.reduceRight: called on an empty array and with no initial value&quot;</span>,
-            );
+            ).<span class="ident">into</span>());
         }
 
         <span class="comment">// 5. Let k be len - 1.</span>
@@ -5530,9 +5576,9 @@
             }
             <span class="comment">// c. If kPresent is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="op">!</span><span class="ident">k_present</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(
                     <span class="string">&quot;Array.prototype.reduceRight: called on an empty array and with no initial value&quot;</span>,
-                );
+                ).<span class="ident">into</span>());
             }
         }
 

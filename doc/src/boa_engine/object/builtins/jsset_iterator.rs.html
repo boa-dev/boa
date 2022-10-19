@@ -56,12 +56,16 @@
 <span id="54">54</span>
 <span id="55">55</span>
 <span id="56">56</span>
+<span id="57">57</span>
+<span id="58">58</span>
+<span id="59">59</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::SetIterator</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
@@ -75,11 +79,13 @@
 <span class="kw">impl</span> <span class="ident">JsSetIterator</span> {
     <span class="doccomment">/// Create a `JsSetIterator` from a `JsObject`.</span>
     <span class="doccomment">/// If object is not a `SetIterator`, throw `TypeError`.</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">from_object</span>(<span class="ident">object</span>: <span class="ident">JsObject</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">borrow</span>().<span class="ident">is_set_iterator</span>() {
             <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">inner</span>: <span class="ident">object</span> })
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;object is not a SetIterator&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;object is not a SetIterator&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
     <span class="doccomment">/// Advances the `JsSetIterator` and gets the next result in the `JsSet`.</span>

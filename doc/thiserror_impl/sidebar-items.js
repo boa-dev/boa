@@ -1,1 +1,1 @@
-initSidebarItems({"derive":[["Error",""]]});
+window.SIDEBAR_ITEMS = {"derive":[["Error",""]]};

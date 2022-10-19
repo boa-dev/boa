@@ -53,22 +53,22 @@
 <span id="53">53</span>
 </pre><pre class="rust"><code><span class="comment">// This example shows how to manipulate a Javascript Set using Rust code.</span>
 <span class="attribute">#![<span class="ident">allow</span>(<span class="ident">clippy::bool_assert_comparison</span>)]</span>
-<span class="kw">use</span> <span class="ident">boa_engine</span>::{<span class="ident">object::builtins::JsSet</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>};
+<span class="kw">use</span> <span class="ident">boa_engine</span>::{<span class="ident">object::builtins::JsSet</span>, <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsValue</span>};
 
-<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsValue</span><span class="op">&gt;</span> {
+<span class="kw">fn</span> <span class="ident">main</span>() -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsError</span><span class="op">&gt;</span> {
     <span class="comment">// New `Context` for a new Javascript executor.</span>
     <span class="kw">let</span> <span class="ident">context</span> <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="ident">Context::default</span>();
 
     <span class="comment">// Create an empty set.</span>
     <span class="kw">let</span> <span class="ident">set</span> <span class="op">=</span> <span class="ident">JsSet::new</span>(<span class="ident">context</span>);
 
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">0</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">0</span>);
     <span class="ident">set</span>.<span class="ident">add</span>(<span class="number">5</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">1</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">1</span>);
     <span class="ident">set</span>.<span class="ident">add</span>(<span class="number">10</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">2</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">2</span>);
     <span class="ident">set</span>.<span class="ident">clear</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">0</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">0</span>);
 
     <span class="ident">set</span>.<span class="ident">add</span>(<span class="string">&quot;one&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
     <span class="ident">set</span>.<span class="ident">add</span>(<span class="string">&quot;two&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
@@ -85,7 +85,7 @@
 
     <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">has</span>(<span class="string">&quot;one&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>, <span class="bool-val">false</span>);
     <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">has</span>(<span class="string">&quot;three&quot;</span>, <span class="ident">context</span>)<span class="question-mark">?</span>, <span class="bool-val">false</span>);
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">0</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">0</span>);
 
     <span class="comment">// Add a slice into a set;</span>
     <span class="ident">set</span>.<span class="ident">add_items</span>(
@@ -93,12 +93,12 @@
         <span class="ident">context</span>,
     )<span class="question-mark">?</span>;
     <span class="comment">// Will return 1, as one slice was added.</span>
-    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">1</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">1</span>);
 
     <span class="comment">// Make a new set from a slice</span>
     <span class="kw">let</span> <span class="ident">slice_set</span> <span class="op">=</span> <span class="ident">JsSet::from_iter</span>([<span class="ident">JsValue::new</span>(<span class="number">1</span>), <span class="ident">JsValue::new</span>(<span class="number">2</span>), <span class="ident">JsValue::new</span>(<span class="number">3</span>)], <span class="ident">context</span>);
     <span class="comment">// Will return 3, as each element of slice was added into the set.</span>
-    <span class="macro">assert_eq!</span>(<span class="ident">slice_set</span>.<span class="ident">size</span>(<span class="ident">context</span>)<span class="question-mark">?</span>, <span class="number">3</span>);
+    <span class="macro">assert_eq!</span>(<span class="ident">slice_set</span>.<span class="ident">size</span>()<span class="question-mark">?</span>, <span class="number">3</span>);
 
     <span class="ident">set</span>.<span class="ident">clear</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 

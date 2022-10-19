@@ -397,6 +397,19 @@
 <span id="395">395</span>
 <span id="396">396</span>
 <span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Reflect` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `Reflect` global object is a built-in object that provides methods for interceptable</span>
@@ -412,6 +425,7 @@
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Array</span>, <span class="ident">JsArgs</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="self">self</span>, <span class="ident">BuiltIn</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object::ObjectInitializer</span>,
     <span class="ident">property::Attribute</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
@@ -477,12 +491,14 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be a function&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be a function&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
         <span class="kw">let</span> <span class="ident">args_list</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
 
         <span class="kw">if</span> <span class="op">!</span><span class="ident">target</span>.<span class="ident">is_callable</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;target must be a function&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;target must be a function&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">args_list</span>.<span class="ident">create_list_from_array_like</span>(<span class="kw-2">&amp;</span>[], <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="ident">target</span>.<span class="ident">call</span>(<span class="ident">this_arg</span>, <span class="kw-2">&amp;</span><span class="ident">args</span>, <span class="ident">context</span>)
@@ -505,14 +521,16 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
             .<span class="ident">as_constructor</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be a constructor&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be a constructor&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">new_target</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_target</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">2</span>) {
             <span class="comment">// 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">new_target</span>) <span class="op">=</span> <span class="ident">new_target</span>.<span class="ident">as_constructor</span>() {
                 <span class="ident">new_target</span>
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;newTarget must be a constructor&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;newTarget must be a constructor&quot;</span>)
+                    .<span class="ident">into</span>());
             }
         } <span class="kw">else</span> {
             <span class="comment">// 2. If newTarget is not present, set newTarget to target.</span>
@@ -546,12 +564,14 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">prop_desc</span>: <span class="ident">JsValue</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">2</span>)
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">as_object</span>().<span class="ident">cloned</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;property descriptor must be an object&quot;</span>))<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;property descriptor must be an object&quot;</span>)
+            })<span class="question-mark">?</span>
             .<span class="ident">into</span>();
 
         <span class="ident">target</span>
@@ -575,7 +595,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
@@ -594,7 +614,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 2. Let key be ? ToPropertyKey(propertyKey).</span>
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="comment">// 3. If receiver is not present, then</span>
@@ -630,7 +650,9 @@
                 <span class="ident">context</span>,
             )
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 
@@ -650,7 +672,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">target</span>
             .<span class="ident">__get_prototype_of__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
             .<span class="ident">map_or</span>(<span class="ident">JsValue::Null</span>, <span class="ident">JsValue::new</span>))
@@ -668,7 +690,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">1</span>)
             .<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>())
@@ -692,7 +714,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__is_extensible__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
 
@@ -712,7 +734,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">target</span>
             .<span class="ident">__own_property_keys__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>
@@ -739,7 +761,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__prevent_extensions__</span>(<span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }
@@ -756,7 +778,7 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">2</span>);
         <span class="kw">let</span> <span class="ident">receiver</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">receiver</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">3</span>).<span class="ident">cloned</span>() {
@@ -785,11 +807,15 @@
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get</span>(<span class="number">0</span>)
             .<span class="ident">and_then</span>(<span class="ident">JsValue::as_object</span>)
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;target must be an object&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>) {
             <span class="ident">JsValue::Object</span>(<span class="ident">obj</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">obj</span>.<span class="ident">clone</span>()),
             <span class="ident">JsValue::Null</span> =&gt; <span class="prelude-val">None</span>,
-            <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;proto must be an object or null&quot;</span>),
+            <span class="kw">_</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;proto must be an object or null&quot;</span>)
+                    .<span class="ident">into</span>())
+            }
         };
         <span class="prelude-val">Ok</span>(<span class="ident">target</span>.<span class="ident">__set_prototype_of__</span>(<span class="ident">proto</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="ident">into</span>())
     }

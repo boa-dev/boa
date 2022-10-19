@@ -3297,6 +3297,10 @@
 <span id="3295">3295</span>
 <span id="3296">3296</span>
 <span id="3297">3297</span>
+<span id="3298">3298</span>
+<span id="3299">3299</span>
+<span id="3300">3300</span>
+<span id="3301">3301</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -3323,7 +3327,7 @@
         <span class="ident">Declaration</span>, <span class="ident">Expression</span>, <span class="ident">Statement</span>, <span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>,
     },
     <span class="ident">vm</span>::{<span class="ident">BindingOpcode</span>, <span class="ident">CodeBlock</span>, <span class="ident">Opcode</span>},
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -4107,8 +4111,7 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">context</span>
-                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
+                            <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="prelude-val">None</span>
@@ -4117,9 +4120,9 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
 
+                        <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">context</span>
-                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
+                            <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="prelude-val">None</span>
@@ -4128,9 +4131,9 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::IncPost</span>, <span class="kw-2">&amp;</span>[]);
 
+                        <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">context</span>
-                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
+                            <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
@@ -4140,9 +4143,9 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DecPost</span>, <span class="kw-2">&amp;</span>[]);
 
+                        <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">context</span>
-                                .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
+                            <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
@@ -4489,10 +4492,11 @@
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::CopyDataProperties</span>, <span class="kw-2">&amp;</span>[<span class="number">0</span>, <span class="number">0</span>]);
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
                         }
+                        <span class="comment">// TODO: Promote to early errors</span>
                         <span class="ident">PropertyDefinition::CoverInitializedName</span>(<span class="kw">_</span>, <span class="kw">_</span>) =&gt; {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(
-                                <span class="string">&quot;invalid assignment pattern in object literal&quot;</span>,
-                            );
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;invalid assignment pattern in object literal&quot;</span>)
+                                .<span class="ident">into</span>())
                         }
                     }
                 }
@@ -5232,9 +5236,10 @@
                                 <span class="ident">emit_for_of_in_exit</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                             }
                         }
+                        <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">address_info</span>
                             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(<span class="macro">format!</span>(
+                                <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(
                                     <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
                                     <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
                                 ))
@@ -5252,9 +5257,9 @@
                     } <span class="kw">else</span> {
                         <span class="ident">items</span>
                             .<span class="ident">next</span>()
+                            <span class="comment">// TODO: promote to an early error.</span>
                             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                <span class="self">self</span>.<span class="ident">context</span>
-                                    .<span class="ident">construct_syntax_error</span>(<span class="string">&quot;continue must be inside loop&quot;</span>)
+                                <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;continue must be inside loop&quot;</span>)
                             })<span class="question-mark">?</span>
                             .<span class="ident">start_address</span>
                     };
@@ -5297,19 +5302,22 @@
                             <span class="kw">break</span>;
                         }
                     }
+                    <span class="comment">// TODO: promote to an early error.</span>
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">found</span> {
-                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="macro">format!</span>(
-                            <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
-                            <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
-                        ));
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
+                            .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                                <span class="string">&quot;Cannot use the undeclared label &#39;{}&#39;&quot;</span>,
+                                <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">label_name</span>)
+                            ))
+                            .<span class="ident">into</span>());
                     }
                 } <span class="kw">else</span> {
                     <span class="self">self</span>.<span class="ident">jump_info</span>
                         .<span class="ident">last_mut</span>()
+                        <span class="comment">// TODO: promote to an early error.</span>
                         .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">construct_syntax_error</span>(
-                                <span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>,
-                            )
+                            <span class="ident">JsNativeError::syntax</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;unlabeled break must be inside loop or switch&quot;</span>)
                         })<span class="question-mark">?</span>
                         .<span class="ident">breaks</span>
                         .<span class="ident">push</span>(<span class="ident">label</span>);

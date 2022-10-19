@@ -1031,9 +1031,32 @@
 <span id="1029">1029</span>
 <span id="1030">1030</span>
 <span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
+<span id="1039">1039</span>
+<span id="1040">1040</span>
+<span id="1041">1041</span>
+<span id="1042">1042</span>
+<span id="1043">1043</span>
+<span id="1044">1044</span>
+<span id="1045">1045</span>
+<span id="1046">1046</span>
+<span id="1047">1047</span>
+<span id="1048">1048</span>
+<span id="1049">1049</span>
+<span id="1050">1050</span>
+<span id="1051">1051</span>
+<span id="1052">1052</span>
+<span id="1053">1053</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">array_buffer::SharedMemoryOrder</span>, <span class="ident">typed_array::TypedArrayKind</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -1136,31 +1159,36 @@
         <span class="kw">let</span> <span class="ident">buffer_obj</span> <span class="op">=</span> <span class="ident">args</span>
             .<span class="ident">get_or_undefined</span>(<span class="number">0</span>)
             .<span class="ident">as_object</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
         <span class="kw">let</span> (<span class="ident">offset</span>, <span class="ident">view_byte_length</span>) <span class="op">=</span> {
             <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;new target is undefined&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;new target is undefined&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).</span>
             <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">buffer_obj</span>.<span class="ident">borrow</span>();
-            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>
-                .<span class="ident">as_array_buffer</span>()
-                .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>;
+            <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">buffer_borrow</span>.<span class="ident">as_array_buffer</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>)
+            })<span class="question-mark">?</span>;
 
             <span class="comment">// 3. Let offset be ? ToIndex(byteOffset).</span>
             <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>).<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
             <span class="comment">// 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
             <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].</span>
             <span class="kw">let</span> <span class="ident">buffer_byte_length</span> <span class="op">=</span> <span class="ident">buffer</span>.<span class="ident">array_buffer_byte_length</span>();
             <span class="comment">// 6. If offset &gt; bufferByteLength, throw a RangeError exception.</span>
             <span class="kw">if</span> <span class="ident">offset</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_range_error</span>(<span class="string">&quot;Start offset is outside the bounds of the buffer&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Start offset is outside the bounds of the buffer&quot;</span>)
+                    .<span class="ident">into</span>());
             }
             <span class="comment">// 7. If byteLength is undefined, then</span>
             <span class="kw">let</span> <span class="ident">view_byte_length</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">byte_length</span>.<span class="ident">is_undefined</span>() {
@@ -1171,7 +1199,9 @@
                 <span class="kw">let</span> <span class="ident">view_byte_length</span> <span class="op">=</span> <span class="ident">byte_length</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
                 <span class="comment">// 8.b. If offset + viewByteLength &gt; bufferByteLength, throw a RangeError exception.</span>
                 <span class="kw">if</span> <span class="ident">offset</span> <span class="op">+</span> <span class="ident">view_byte_length</span> <span class="op">&gt;</span> <span class="ident">buffer_byte_length</span> {
-                    <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid data view length&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Invalid data view length&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="ident">view_byte_length</span>
@@ -1187,10 +1217,12 @@
         <span class="kw">if</span> <span class="ident">buffer_obj</span>
             .<span class="ident">borrow</span>()
             .<span class="ident">as_array_buffer</span>()
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;buffer must be an ArrayBuffer&quot;</span>))<span class="question-mark">?</span>
             .<span class="ident">is_detached_buffer</span>()
         {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer can&#39;t be detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">obj</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(
@@ -1223,7 +1255,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_buffer</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
@@ -1231,7 +1263,7 @@
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="kw">let</span> <span class="ident">buffer</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">clone</span>();
@@ -1252,7 +1284,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_length</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
@@ -1260,7 +1292,7 @@
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">borrow</span>();
@@ -1269,7 +1301,9 @@
             .<span class="ident">expect</span>(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">borrow</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="comment">// 6. Let size be O.[[ByteLength]].</span>
         <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">byte_length</span>;
@@ -1291,7 +1325,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_byte_offset</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="ident">_args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(O, [[DataView]]).</span>
@@ -1299,7 +1333,7 @@
         <span class="kw">let</span> <span class="ident">dataview</span> <span class="op">=</span> <span class="ident">dataview</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.</span>
         <span class="comment">// 4. Let buffer be O.[[ViewedArrayBuffer]].</span>
         <span class="kw">let</span> <span class="ident">buffer_borrow</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">viewed_array_buffer</span>.<span class="ident">borrow</span>();
@@ -1308,7 +1342,9 @@
             .<span class="ident">expect</span>(<span class="string">&quot;DataView must be constructed with an ArrayBuffer&quot;</span>);
         <span class="comment">// 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">borrow</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="comment">// 6. Let offset be O.[[ByteOffset]].</span>
         <span class="kw">let</span> <span class="ident">offset</span> <span class="op">=</span> <span class="ident">dataview</span>.<span class="ident">byte_offset</span>;
@@ -1339,7 +1375,7 @@
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).</span>
         <span class="kw">let</span> <span class="ident">get_index</span> <span class="op">=</span> <span class="ident">request_index</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -1355,7 +1391,9 @@
 
         <span class="comment">// 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
         <span class="comment">// 7. Let viewOffset be view.[[ByteOffset]].</span>
         <span class="kw">let</span> <span class="ident">view_offset</span> <span class="op">=</span> <span class="ident">view</span>.<span class="ident">byte_offset</span>;
@@ -1368,7 +1406,9 @@
 
         <span class="comment">// 10. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">element_size</span> <span class="op">&gt;</span> <span class="ident">view_size</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Offset is outside the bounds of the DataView&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Offset is outside the bounds of the DataView&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 11. Let bufferIndex be getIndex + viewOffset.</span>
@@ -1698,7 +1738,7 @@
         <span class="kw">let</span> <span class="ident">view</span> <span class="op">=</span> <span class="ident">view</span>
             .<span class="ident">as_ref</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_data_view</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a DataView&quot;</span>))<span class="question-mark">?</span>;
         <span class="comment">// 3. Let getIndex be ? ToIndex(requestIndex).</span>
         <span class="kw">let</span> <span class="ident">get_index</span> <span class="op">=</span> <span class="ident">request_index</span>.<span class="ident">to_index</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
 
@@ -1721,7 +1761,9 @@
 
         <span class="comment">// 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">buffer</span>.<span class="ident">is_detached_buffer</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;ArrayBuffer is detached&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 9. Let viewOffset be view.[[ByteOffset]].</span>
@@ -1735,7 +1777,9 @@
 
         <span class="comment">// 12. If getIndex + elementSize &gt; viewSize, throw a RangeError exception.</span>
         <span class="kw">if</span> <span class="ident">get_index</span> <span class="op">+</span> <span class="ident">element_size</span> <span class="op">&gt;</span> <span class="ident">view_size</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Offset is outside the bounds of DataView&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Offset is outside the bounds of DataView&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 13. Let bufferIndex be getIndex + viewOffset.</span>

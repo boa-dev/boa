@@ -1209,6 +1209,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">string::is_trimmable_whitespace</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -1389,11 +1390,15 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue</span>
-    <span class="kw">fn</span> <span class="ident">this_number_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">this_number_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">f64</span><span class="op">&gt;</span> {
         <span class="ident">value</span>
             .<span class="ident">as_number</span>()
             .<span class="ident">or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">value</span>.<span class="ident">as_object</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_number</span>()))
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a number&quot;</span>))
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a number&quot;</span>)
+                    .<span class="ident">into</span>()
+            })
     }
 
     <span class="doccomment">/// `Number.prototype.toExponential( [fractionDigits] )`</span>
@@ -1413,7 +1418,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
             <span class="prelude-val">None</span> <span class="op">|</span> <span class="prelude-val">Some</span>(<span class="ident">JsValue::Undefined</span>) =&gt; <span class="prelude-val">None</span>,
             <span class="comment">// 2. Let f be ? ToIntegerOrInfinity(fractionDigits).</span>
@@ -1433,8 +1438,9 @@
                 <span class="ident">f64_to_exponential_with_precision</span>(<span class="ident">this_num</span>, <span class="ident">precision</span> <span class="kw">as</span> <span class="ident">usize</span>)
             }
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_range_error</span>(<span class="string">&quot;toExponential() argument must be between 0 and 100&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;toExponential() argument must be between 0 and 100&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
@@ -1457,7 +1463,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let this_num be ? thisNumberValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let f be ? ToIntegerOrInfinity(fractionDigits).</span>
         <span class="comment">// 3. Assert: If fractionDigits is undefined, then f is 0.</span>
@@ -1468,7 +1474,8 @@
             .<span class="ident">as_integer</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">contains</span>(<span class="ident">i</span>))
             .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                <span class="ident">context</span>.<span class="ident">construct_range_error</span>(<span class="string">&quot;toFixed() digits argument must be between 0 and 100&quot;</span>)
+                <span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;toFixed() digits argument must be between 0 and 100&quot;</span>)
             })<span class="question-mark">?</span> <span class="kw">as</span> <span class="ident">usize</span>;
 
         <span class="comment">// 6. If x is not finite, return ! Number::toString(x).</span>
@@ -1502,9 +1509,9 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_locale_string</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">this_str_num</span> <span class="op">=</span> <span class="ident">this_num</span>.<span class="ident">to_string</span>();
         <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_str_num</span>))
     }
@@ -1513,7 +1520,6 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// This function traverses a string representing a number,</span>
     <span class="doccomment">/// returning the floored log10 of this number.</span>
-    <span class="doccomment">///</span>
     <span class="kw">fn</span> <span class="ident">flt_str_to_exp</span>(<span class="ident">flt</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">i32</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">non_zero_encountered</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">dot_encountered</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -1547,7 +1553,6 @@
     <span class="doccomment">///   the exponent. The string is kept at an exact length of `precision`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// When this procedure returns, `digits` is exactly `precision` long.</span>
-    <span class="doccomment">///</span>
     <span class="kw">fn</span> <span class="ident">round_to_precision</span>(<span class="ident">digits</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>, <span class="ident">precision</span>: <span class="ident">usize</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">if</span> <span class="ident">digits</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">precision</span> {
             <span class="kw">let</span> <span class="ident">to_round</span> <span class="op">=</span> <span class="ident">digits</span>.<span class="ident">split_off</span>(<span class="ident">precision</span>);
@@ -1617,7 +1622,7 @@
         <span class="kw">let</span> <span class="ident">precision</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 1 &amp; 6</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">this_num</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
         <span class="comment">// 2</span>
         <span class="kw">if</span> <span class="ident">precision</span>.<span class="ident">is_undefined</span>() {
             <span class="kw">return</span> <span class="ident"><span class="self">Self</span>::to_string</span>(<span class="ident">this</span>, <span class="kw-2">&amp;</span>[], <span class="ident">context</span>);
@@ -1635,9 +1640,9 @@
             <span class="ident">IntegerOrInfinity::Integer</span>(<span class="ident">x</span>) <span class="kw">if</span> (<span class="number">1</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">x</span>) =&gt; <span class="ident">x</span> <span class="kw">as</span> <span class="ident">usize</span>,
             <span class="kw">_</span> =&gt; {
                 <span class="comment">// 5</span>
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_range_error</span>(
-                    <span class="string">&quot;precision must be an integer at least 1 and no greater than 100&quot;</span>,
-                );
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;precision must be an integer at least 1 and no greater than 100&quot;</span>)
+                    .<span class="ident">into</span>());
             }
         };
         <span class="kw">let</span> <span class="ident">precision_i32</span> <span class="op">=</span> <span class="ident">precision</span> <span class="kw">as</span> <span class="ident">i32</span>;
@@ -1867,7 +1872,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let x be ? thisNumberValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">radix</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">radix_number</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">radix</span>.<span class="ident">is_undefined</span>() {
@@ -1881,9 +1886,8 @@
                 <span class="comment">// 4. If radixNumber &lt; 2 or radixNumber &gt; 36, throw a RangeError exception.</span>
                 .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">i</span><span class="op">|</span> (<span class="number">2</span>..<span class="op">=</span><span class="number">36</span>).<span class="ident">contains</span>(<span class="ident">i</span>))
                 .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                    <span class="ident">context</span>.<span class="ident">construct_range_error</span>(
-                        <span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>,
-                    )
+                    <span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;radix must be an integer at least 2 and no greater than 36&quot;</span>)
                 })<span class="question-mark">?</span>
         } <span class="kw">as</span> <span class="ident">u8</span>;
 
@@ -1924,12 +1928,8 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>))
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">value_of</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident"><span class="self">Self</span>::this_number_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>))
     }
 
     <span class="doccomment">/// Builtin javascript &#39;parseInt(str, radix)&#39; function.</span>

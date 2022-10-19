@@ -584,11 +584,6 @@
 <span id="582">582</span>
 <span id="583">583</span>
 <span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Map` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The JavaScript `Map` class is a global object that is used in the construction of maps; which</span>
@@ -606,6 +601,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>,
         <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -712,8 +708,9 @@
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. If NewTarget is undefined, throw a TypeError exception.</span>
         <span class="kw">if</span> <span class="ident">new_target</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;calling a builtin Map constructor without new is forbidden&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;calling a builtin Map constructor without new is forbidden&quot;</span>)
+                .<span class="ident">into</span>());
         }
 
         <span class="comment">// 2. Let map be ? OrdinaryCreateFromConstructor(NewTarget, &quot;%Map.prototype%&quot;, « [[MapData]] »).</span>
@@ -797,11 +794,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.set</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/set</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">set</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
 
@@ -832,7 +825,9 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">this</span>.<span class="ident">clone</span>());
             }
         }
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `get Map.prototype.size`</span>
@@ -846,11 +841,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-get-map.prototype.size</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/size</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_size</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_size</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let M be the this value.</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
@@ -863,7 +854,9 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">len</span>().<span class="ident">into</span>());
             }
         }
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Map.prototype.delete( key )`</span>
@@ -877,11 +870,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.delete</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/delete</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">delete</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
 
         <span class="comment">// 1. Let M be the this value.</span>
@@ -897,7 +886,9 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">map</span>.<span class="ident">remove</span>(<span class="ident">key</span>).<span class="ident">is_some</span>().<span class="ident">into</span>());
             }
         }
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Map.prototype.get( key )`</span>
@@ -910,11 +901,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.get</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/get</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">JS_ZERO</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>);
 
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -941,7 +928,9 @@
             }
         }
 
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Map.prototype.clear( )`</span>
@@ -954,7 +943,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.clear</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/clear</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">clear</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let M be the this value.</span>
         <span class="comment">// 2. Perform ? RequireInternalSlot(M, [[MapData]]).</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
@@ -969,7 +958,9 @@
                 <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">JsValue::undefined</span>());
             }
         }
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Map.prototype.has( key )`</span>
@@ -982,11 +973,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-map.prototype.has</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map/has</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="kw">const</span> <span class="ident">JS_ZERO</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">JsValue::Rational</span>(<span class="number">0f64</span>);
 
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -1013,7 +1000,9 @@
             }
         }
 
-        <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+        <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+            .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Map&quot;</span>)
+            .<span class="ident">into</span>())
     }
 
     <span class="doccomment">/// `Map.prototype.forEach( callbackFn [ , thisArg ] )`</span>
@@ -1036,12 +1025,12 @@
         <span class="kw">let</span> <span class="ident">map</span> <span class="op">=</span> <span class="ident">this</span>
             .<span class="ident">as_object</span>()
             .<span class="ident">filter</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">is_map</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a Map&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a Map&quot;</span>))<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If IsCallable(callbackfn) is false, throw a TypeError exception.</span>
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
         <span class="kw">let</span> <span class="ident">callback</span> <span class="op">=</span> <span class="ident">callback</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">callback</span>.<span class="ident">display</span>()))
+            <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;{} is not a function&quot;</span>, <span class="ident">callback</span>.<span class="ident">display</span>()))
         })<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">this_arg</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">1</span>);
@@ -1124,7 +1113,7 @@
 ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
     <span class="comment">// 1. If IsCallable(adder) is false, throw a TypeError exception.</span>
     <span class="kw">let</span> <span class="ident">adder</span> <span class="op">=</span> <span class="ident">adder</span>.<span class="ident">as_callable</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>)
+        <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;property `set` of `NewTarget` is not callable&quot;</span>)
     })<span class="question-mark">?</span>;
 
     <span class="comment">// 2. Let iteratorRecord be ? GetIterator(iterable).</span>
@@ -1148,8 +1137,9 @@
         <span class="comment">// d. If Type(nextItem) is not Object, then</span>
         } <span class="kw">else</span> {
             <span class="comment">// i. Let error be ThrowCompletion(a newly created TypeError object).</span>
-            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="ident">context</span>
-                .<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>);
+            <span class="kw">let</span> <span class="ident">err</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;cannot get key and value from primitive item of `iterable`&quot;</span>)
+                .<span class="ident">into</span>());
 
             <span class="comment">// ii. Return ? IteratorClose(iteratorRecord, error).</span>
             <span class="kw">return</span> <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="ident">err</span>, <span class="ident">context</span>);

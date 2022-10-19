@@ -1015,6 +1015,29 @@
 <span id="1013">1013</span>
 <span id="1014">1014</span>
 <span id="1015">1015</span>
+<span id="1016">1016</span>
+<span id="1017">1017</span>
+<span id="1018">1018</span>
+<span id="1019">1019</span>
+<span id="1020">1020</span>
+<span id="1021">1021</span>
+<span id="1022">1022</span>
+<span id="1023">1023</span>
+<span id="1024">1024</span>
+<span id="1025">1025</span>
+<span id="1026">1026</span>
+<span id="1027">1027</span>
+<span id="1028">1028</span>
+<span id="1029">1029</span>
+<span id="1030">1030</span>
+<span id="1031">1031</span>
+<span id="1032">1032</span>
+<span id="1033">1033</span>
+<span id="1034">1034</span>
+<span id="1035">1035</span>
+<span id="1036">1036</span>
+<span id="1037">1037</span>
+<span id="1038">1038</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A UTF-16–encoded, reference counted, immutable string.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains the [`JsString`] type, the [`js_string`][crate::js_string] macro and the</span>
@@ -1072,7 +1095,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// You can create a `JsString` from a string literal, which completely skips the runtime</span>
-<span class="doccomment">/// conversion from [`&amp;str`] to [`&amp;\[u16\]`]:</span>
+<span class="doccomment">/// conversion from [`&amp;str`] to &lt;code&gt;[&amp;\[u16\]][slice]&lt;/code&gt;:</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// ```</span>
 <span class="doccomment">/// # use boa_engine::js_string;</span>
@@ -1272,7 +1295,7 @@
 }
 
 <span class="doccomment">/// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to</span>
-<span class="doccomment">/// a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].</span>
+<span class="doccomment">/// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].</span>
 <span class="kw">enum</span> <span class="ident">JsStringPtrKind</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="comment">// A string allocated on the heap.</span>
     <span class="ident">Heap</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="ident">RawJsString</span>),
@@ -1282,8 +1305,8 @@
 
 <span class="doccomment">/// A UTF-16–encoded, reference counted, immutable string.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This is pretty similar to a &lt;code&gt;[Rc][std::rc::Rc]\&lt;[\[u16\]][std::slice]\&gt;&lt;/code&gt;, but without</span>
-<span class="doccomment">/// the length metadata associated with the [`Rc`][std::rc::Rc] fat pointer. Instead, the length of</span>
+<span class="doccomment">/// This is pretty similar to a &lt;code&gt;[Rc][std::rc::Rc]\&lt;[\[u16\]][slice]\&gt;&lt;/code&gt;, but without</span>
+<span class="doccomment">/// the length metadata associated with the `Rc` fat pointer. Instead, the length of</span>
 <span class="doccomment">/// every string is stored on the heap, along with its reference counter and its data.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// We define some commonly used string constants in an interner. For these strings, we don&#39;t allocate</span>
@@ -1291,8 +1314,8 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// # Deref</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = [\[u16\]][std::slice]&gt;&lt;/code&gt;, inheriting all of</span>
-<span class="doccomment">/// [`\[u16\]`][std::slice]&#39;s methods.</span>
+<span class="doccomment">/// [`JsString`] implements &lt;code&gt;[Deref]&lt;Target = \[u16\]&gt;&lt;/code&gt;, inheriting all of</span>
+<span class="doccomment">/// &lt;code&gt;\[u16\]&lt;/code&gt;&#39;s methods.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsString</span> {
     <span class="ident">ptr</span>: <span class="ident">TaggedJsString</span>,
@@ -1304,7 +1327,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">JsString</span> {
-    <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][std::slice] slice of a [`JsString`]</span>
+    <span class="doccomment">/// Obtains the underlying [`&amp;[u16]`][slice] slice of a [`JsString`]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_slice</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">u16</span>] {
         <span class="self">self</span>
     }
@@ -1822,6 +1845,30 @@
     }
 }
 
+<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">JsString</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">let</span> <span class="ident">utf16</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">code_points</span>();
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">utf8</span> <span class="op">=</span> <span class="ident">other</span>.<span class="ident">chars</span>();
+
+        <span class="kw">for</span> <span class="ident">lhs</span> <span class="kw">in</span> <span class="ident">utf16</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">rhs</span>) <span class="op">=</span> <span class="ident">utf8</span>.<span class="ident">next</span>() {
+                <span class="kw">match</span> <span class="ident">lhs</span> {
+                    <span class="ident">CodePoint::Unicode</span>(<span class="ident">lhs</span>) <span class="kw">if</span> <span class="ident">lhs</span> <span class="op">==</span> <span class="ident">rhs</span> =&gt; <span class="kw">continue</span>,
+                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="bool-val">false</span>,
+                }
+            }
+            <span class="kw">return</span> <span class="bool-val">false</span>;
+        }
+        <span class="ident">utf8</span>.<span class="ident">next</span>().<span class="ident">is_none</span>()
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">str</span> {
+    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="ident">JsString</span>) -&gt; <span class="ident">bool</span> {
+        <span class="ident">other</span> <span class="op">==</span> <span class="self">self</span>
+    }
+}
+
 <span class="kw">impl</span> <span class="ident">PartialOrd</span> <span class="kw">for</span> <span class="ident">JsString</span> {
     <span class="kw">fn</span> <span class="ident">partial_cmp</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">other</span>: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">std::cmp::Ordering</span><span class="op">&gt;</span> {
         <span class="self">self</span>[..].<span class="ident">partial_cmp</span>(<span class="ident">other</span>)
@@ -1867,8 +1914,7 @@
     }
 }
 
-<span class="doccomment">/// Utility trait that adds a `UTF-16` escaped representation to every</span>
-<span class="doccomment">/// [`[u16]`][std::slice].</span>
+<span class="doccomment">/// Utility trait that adds a `UTF-16` escaped representation to every [`[u16]`][slice].</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">trait</span> <span class="ident">ToStringEscaped</span> {
     <span class="doccomment">/// Decodes `self` as an `UTF-16` encoded string, escaping any unpaired surrogates by its</span>
     <span class="doccomment">/// codepoint value.</span>

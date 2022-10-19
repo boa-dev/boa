@@ -188,6 +188,7 @@
 <span id="186">186</span>
 <span id="187">187</span>
 <span id="188">188</span>
+<span id="189">189</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Promise</span>, <span class="ident">PromiseCapability</span>};
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::promise</span>::{<span class="ident">ReactionRecord</span>, <span class="ident">ReactionType</span>},
@@ -244,9 +245,9 @@
                         }
                     },
                     <span class="comment">//   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).</span>
-                    <span class="prelude-val">Some</span>(<span class="ident">handler</span>) =&gt; {
-                        <span class="ident">handler</span>.<span class="ident">call_job_callback</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">argument</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)
-                    }
+                    <span class="prelude-val">Some</span>(<span class="ident">handler</span>) =&gt; <span class="ident">handler</span>
+                        .<span class="ident">call_job_callback</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::Undefined</span>, <span class="kw-2">&amp;</span>[<span class="ident">argument</span>.<span class="ident">clone</span>()], <span class="ident">context</span>)
+                        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>)),
                 };
 
                 <span class="kw">match</span> <span class="ident">promise_capability</span> {
@@ -336,6 +337,7 @@
 
                 <span class="comment">//    c. If thenCallResult is an abrupt completion, then</span>
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>) <span class="op">=</span> <span class="ident">then_call_result</span> {
+                    <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
                     <span class="comment">//    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).</span>
                     <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">call</span>(
                         <span class="kw-2">&amp;</span><span class="ident">resolving_functions</span>.<span class="ident">reject</span>,

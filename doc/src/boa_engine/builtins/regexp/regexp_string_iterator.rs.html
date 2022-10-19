@@ -170,6 +170,9 @@
 <span id="168">168</span>
 <span id="169">169</span>
 <span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `RegExp String Iterator` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A `RegExp` String Iterator is an object, that represents a specific iteration over some</span>
@@ -184,6 +187,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>, <span class="ident">regexp</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
@@ -257,7 +261,9 @@
         <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">iterator</span>
             .<span class="ident">as_mut</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_regexp_string_iterator_mut</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a RegExpStringIterator&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a RegExpStringIterator&quot;</span>)
+            })<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="ident">iterator</span>.<span class="ident">completed</span> {
             <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">create_iter_result_object</span>(
                 <span class="ident">JsValue::undefined</span>(),

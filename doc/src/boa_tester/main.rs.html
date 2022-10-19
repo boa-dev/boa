@@ -553,6 +553,7 @@
 <span id="551">551</span>
 <span id="552">552</span>
 <span id="553">553</span>
+<span id="554">554</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Test262 test runner</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This crate will run the full ECMAScript test suite (Test262) and report compliance of the</span>
@@ -632,6 +633,7 @@
 <span class="kw">use</span> <span class="ident">colored::Colorize</span>;
 <span class="kw">use</span> <span class="ident">fxhash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
 <span class="kw">use</span> <span class="ident">once_cell::sync::Lazy</span>;
+<span class="kw">use</span> <span class="ident">read::ErrorType</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">fs</span>,
@@ -1011,7 +1013,7 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>)]</span>
 <span class="kw">enum</span> <span class="ident">Outcome</span> {
     <span class="ident">Positive</span>,
-    <span class="ident">Negative</span> { <span class="ident">phase</span>: <span class="ident">Phase</span>, <span class="ident">error_type</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">str</span><span class="op">&gt;</span> },
+    <span class="ident">Negative</span> { <span class="ident">phase</span>: <span class="ident">Phase</span>, <span class="ident">error_type</span>: <span class="ident">ErrorType</span> },
 }
 
 <span class="kw">impl</span> <span class="ident">Default</span> <span class="kw">for</span> <span class="ident">Outcome</span> {

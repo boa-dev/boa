@@ -1,9 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thiserror-impl-1.0.30/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script>
-    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../thiserror_impl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a><h2 class="location"></h2>
-    </nav>
-    <nav class="sidebar"><a class="sidebar-logo" href="../../thiserror_impl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
-        </a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../thiserror_impl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/thiserror-impl-1.0.37/src/expand.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>expand.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../thiserror_impl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../thiserror_impl/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../thiserror_impl/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -525,6 +520,30 @@
 <span id="520">520</span>
 <span id="521">521</span>
 <span id="522">522</span>
+<span id="523">523</span>
+<span id="524">524</span>
+<span id="525">525</span>
+<span id="526">526</span>
+<span id="527">527</span>
+<span id="528">528</span>
+<span id="529">529</span>
+<span id="530">530</span>
+<span id="531">531</span>
+<span id="532">532</span>
+<span id="533">533</span>
+<span id="534">534</span>
+<span id="535">535</span>
+<span id="536">536</span>
+<span id="537">537</span>
+<span id="538">538</span>
+<span id="539">539</span>
+<span id="540">540</span>
+<span id="541">541</span>
+<span id="542">542</span>
+<span id="543">543</span>
+<span id="544">544</span>
+<span id="545">545</span>
+<span id="546">546</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::ast</span>::{<span class="ident">Enum</span>, <span class="ident">Field</span>, <span class="ident">Input</span>, <span class="ident">Struct</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::attr::Trait</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::generics::InferredBounds</span>;
@@ -580,51 +599,59 @@
     <span class="kw">let</span> <span class="ident">source_method</span> <span class="op">=</span> <span class="ident">source_body</span>.<span class="ident">map</span>(<span class="op">|</span><span class="ident">body</span><span class="op">|</span> {
         <span class="macro">quote!</span> {
             <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">std::option::Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="ident">thiserror::private::AsDynError</span>;
+                <span class="kw">use</span> <span class="ident">thiserror::__private::AsDynError</span>;
                 #<span class="ident">body</span>
             }
         }
     });
 
-    <span class="kw">let</span> <span class="ident">backtrace_method</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">backtrace_field</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">backtrace_field</span><span class="op">|</span> {
+    <span class="kw">let</span> <span class="ident">provide_method</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">backtrace_field</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">backtrace_field</span><span class="op">|</span> {
+        <span class="kw">let</span> <span class="ident">demand</span> <span class="op">=</span> <span class="macro">quote!</span>(<span class="ident">demand</span>);
         <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">backtrace_field</span>.<span class="ident">member</span>;
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">source_field</span>) <span class="op">=</span> <span class="ident">input</span>.<span class="ident">source_field</span>() {
             <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source_field</span>.<span class="ident">member</span>;
-            <span class="kw">let</span> <span class="ident">source_backtrace</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
+            <span class="kw">let</span> <span class="ident">source_provide</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
                 <span class="macro">quote_spanned!</span> {<span class="ident">source</span>.<span class="ident">span</span>()=&gt;
-                    <span class="self">self</span>.#<span class="ident">source</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>())
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">source</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">source</span> {
+                        <span class="ident">source</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
+                    }
                 }
             } <span class="kw">else</span> {
                 <span class="macro">quote_spanned!</span> {<span class="ident">source</span>.<span class="ident">span</span>()=&gt;
-                    <span class="self">self</span>.#<span class="ident">source</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>()
+                    <span class="self">self</span>.#<span class="ident">source</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
                 }
             };
-            <span class="kw">let</span> <span class="ident">combinator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">source</span> <span class="op">==</span> <span class="ident">backtrace</span> {
-                <span class="ident">source_backtrace</span>
+            <span class="kw">let</span> <span class="ident">self_provide</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">source</span> <span class="op">==</span> <span class="ident">backtrace</span> {
+                <span class="prelude-val">None</span>
             } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">backtrace_field</span>.<span class="ident">ty</span>) {
-                <span class="macro">quote!</span> {
-                    #<span class="ident">source_backtrace</span>.<span class="ident">or</span>(<span class="self">self</span>.#<span class="ident">backtrace</span>.<span class="ident">as_ref</span>())
-                }
+                <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">backtrace</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span> {
+                        #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
+                    }
+                })
             } <span class="kw">else</span> {
-                <span class="macro">quote!</span> {
-                    <span class="ident">std::option::Option::Some</span>(#<span class="ident">source_backtrace</span>.<span class="ident">unwrap_or</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span>))
-                }
+                <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
+                    #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span>);
+                })
             };
             <span class="macro">quote!</span> {
-                <span class="kw">use</span> <span class="ident">thiserror::private::AsDynError</span>;
-                #<span class="ident">combinator</span>
+                <span class="kw">use</span> <span class="ident">thiserror::__private::ThiserrorProvide</span>;
+                #<span class="ident">source_provide</span>
+                #<span class="ident">self_provide</span>
             }
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">backtrace_field</span>.<span class="ident">ty</span>) {
             <span class="macro">quote!</span> {
-                <span class="self">self</span>.#<span class="ident">backtrace</span>.<span class="ident">as_ref</span>()
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">backtrace</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span> {
+                    #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
+                }
             }
         } <span class="kw">else</span> {
             <span class="macro">quote!</span> {
-                <span class="ident">std::option::Option::Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span>)
+                #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.#<span class="ident">backtrace</span>);
             }
         };
         <span class="macro">quote!</span> {
-            <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">std::option::Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">provide</span><span class="op">&lt;</span><span class="lifetime">&#39;_demand</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_demand</span> <span class="self">self</span>, #<span class="ident">demand</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::any::Demand</span><span class="op">&lt;</span><span class="lifetime">&#39;_demand</span><span class="op">&gt;</span>) {
                 #<span class="ident">body</span>
             }
         }
@@ -642,7 +669,7 @@
         <span class="kw">let</span> <span class="ident">use_as_display</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">display</span>.<span class="ident">has_bonus_display</span> {
             <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-                <span class="kw">use</span> <span class="ident">thiserror::private</span>::{<span class="ident">DisplayAsDisplay</span>, <span class="ident">PathAsDisplay</span>};
+                <span class="kw">use</span> <span class="ident">thiserror::__private</span>::{<span class="ident">DisplayAsDisplay</span>, <span class="ident">PathAsDisplay</span>};
             })
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -704,7 +731,7 @@
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_qualifications</span>)]</span>
         <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">error_trait</span> <span class="kw">for</span> #<span class="ident">ty</span> #<span class="ident">ty_generics</span> #<span class="ident">error_where_clause</span> {
             #<span class="ident">source_method</span>
-            #<span class="ident">backtrace_method</span>
+            #<span class="ident">provide_method</span>
         }
         #<span class="ident">display_impl</span>
         #<span class="ident">from_impl</span>
@@ -753,7 +780,7 @@
         });
         <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
             <span class="kw">fn</span> <span class="ident">source</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">std::option::Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>(<span class="kw">dyn</span> <span class="ident">std::error::Error</span> <span class="op">+</span> <span class="lifetime">&#39;static</span>)<span class="op">&gt;</span> {
-                <span class="kw">use</span> <span class="ident">thiserror::private::AsDynError</span>;
+                <span class="kw">use</span> <span class="ident">thiserror::__private::AsDynError</span>;
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                 <span class="kw">match</span> <span class="self">self</span> {
                     #(#<span class="ident">arms</span>)<span class="op">*</span>
@@ -764,7 +791,8 @@
         <span class="prelude-val">None</span>
     };
 
-    <span class="kw">let</span> <span class="ident">backtrace_method</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">has_backtrace</span>() {
+    <span class="kw">let</span> <span class="ident">provide_method</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">input</span>.<span class="ident">has_backtrace</span>() {
+        <span class="kw">let</span> <span class="ident">demand</span> <span class="op">=</span> <span class="macro">quote!</span>(<span class="ident">demand</span>);
         <span class="kw">let</span> <span class="ident">arms</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">variants</span>.<span class="ident">iter</span>().<span class="ident">map</span>(<span class="op">|</span><span class="ident">variant</span><span class="op">|</span> {
             <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">variant</span>.<span class="ident">ident</span>;
             <span class="kw">match</span> (<span class="ident">variant</span>.<span class="ident">backtrace_field</span>(), <span class="ident">variant</span>.<span class="ident">source_field</span>()) {
@@ -774,22 +802,26 @@
                     <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">backtrace_field</span>.<span class="ident">member</span>;
                     <span class="kw">let</span> <span class="ident">source</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">source_field</span>.<span class="ident">member</span>;
                     <span class="kw">let</span> <span class="ident">varsource</span> <span class="op">=</span> <span class="macro">quote!</span>(<span class="ident">source</span>);
-                    <span class="kw">let</span> <span class="ident">source_backtrace</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
+                    <span class="kw">let</span> <span class="ident">source_provide</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
                         <span class="macro">quote_spanned!</span> {<span class="ident">source</span>.<span class="ident">span</span>()=&gt;
-                            #<span class="ident">varsource</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>())
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">source</span>) <span class="op">=</span> #<span class="ident">varsource</span> {
+                                <span class="ident">source</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
+                            }
                         }
                     } <span class="kw">else</span> {
                         <span class="macro">quote_spanned!</span> {<span class="ident">source</span>.<span class="ident">span</span>()=&gt;
-                            #<span class="ident">varsource</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>()
+                            #<span class="ident">varsource</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
                         }
                     };
-                    <span class="kw">let</span> <span class="ident">combinator</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">backtrace_field</span>.<span class="ident">ty</span>) {
+                    <span class="kw">let</span> <span class="ident">self_provide</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">backtrace_field</span>.<span class="ident">ty</span>) {
                         <span class="macro">quote!</span> {
-                            #<span class="ident">source_backtrace</span>.<span class="ident">or</span>(<span class="ident">backtrace</span>.<span class="ident">as_ref</span>())
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">backtrace</span>) <span class="op">=</span> <span class="ident">backtrace</span> {
+                                #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
+                            }
                         }
                     } <span class="kw">else</span> {
                         <span class="macro">quote!</span> {
-                            <span class="ident">std::option::Option::Some</span>(#<span class="ident">source_backtrace</span>.<span class="ident">unwrap_or</span>(<span class="ident">backtrace</span>))
+                            #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
                         }
                     };
                     <span class="macro">quote!</span> {
@@ -798,8 +830,9 @@
                             #<span class="ident">source</span>: #<span class="ident">varsource</span>,
                             ..
                         } =&gt; {
-                            <span class="kw">use</span> <span class="ident">thiserror::private::AsDynError</span>;
-                            #<span class="ident">combinator</span>
+                            <span class="kw">use</span> <span class="ident">thiserror::__private::ThiserrorProvide</span>;
+                            #<span class="ident">source_provide</span>
+                            #<span class="ident">self_provide</span>
                         }
                     }
                 }
@@ -808,40 +841,50 @@
                 {
                     <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">backtrace_field</span>.<span class="ident">member</span>;
                     <span class="kw">let</span> <span class="ident">varsource</span> <span class="op">=</span> <span class="macro">quote!</span>(<span class="ident">source</span>);
-                    <span class="kw">let</span> <span class="ident">source_backtrace</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
+                    <span class="kw">let</span> <span class="ident">source_provide</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">source_field</span>.<span class="ident">ty</span>) {
                         <span class="macro">quote_spanned!</span> {<span class="ident">backtrace</span>.<span class="ident">span</span>()=&gt;
-                            #<span class="ident">varsource</span>.<span class="ident">as_ref</span>().<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">source</span><span class="op">|</span> <span class="ident">source</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>())
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">source</span>) <span class="op">=</span> #<span class="ident">varsource</span> {
+                                <span class="ident">source</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
+                            }
                         }
                     } <span class="kw">else</span> {
                         <span class="macro">quote_spanned!</span> {<span class="ident">backtrace</span>.<span class="ident">span</span>()=&gt;
-                            #<span class="ident">varsource</span>.<span class="ident">as_dyn_error</span>().<span class="ident">backtrace</span>()
+                            #<span class="ident">varsource</span>.<span class="ident">thiserror_provide</span>(#<span class="ident">demand</span>);
                         }
                     };
                     <span class="macro">quote!</span> {
                         #<span class="ident">ty</span>::#<span class="ident">ident</span> {#<span class="ident">backtrace</span>: #<span class="ident">varsource</span>, ..} =&gt; {
-                            <span class="kw">use</span> <span class="ident">thiserror::private::AsDynError</span>;
-                            #<span class="ident">source_backtrace</span>
+                            <span class="kw">use</span> <span class="ident">thiserror::__private::ThiserrorProvide</span>;
+                            #<span class="ident">source_provide</span>
                         }
                     }
                 }
                 (<span class="prelude-val">Some</span>(<span class="ident">backtrace_field</span>), <span class="kw">_</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">backtrace</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">backtrace_field</span>.<span class="ident">member</span>;
                     <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">type_is_option</span>(<span class="ident">backtrace_field</span>.<span class="ident">ty</span>) {
-                        <span class="macro">quote!</span>(<span class="ident">backtrace</span>.<span class="ident">as_ref</span>())
+                        <span class="macro">quote!</span> {
+                            <span class="kw">if</span> <span class="kw">let</span> <span class="ident">std::option::Option::Some</span>(<span class="ident">backtrace</span>) <span class="op">=</span> <span class="ident">backtrace</span> {
+                                #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
+                            }
+                        }
                     } <span class="kw">else</span> {
-                        <span class="macro">quote!</span>(<span class="ident">std::option::Option::Some</span>(<span class="ident">backtrace</span>))
+                        <span class="macro">quote!</span> {
+                            #<span class="ident">demand</span>.<span class="ident">provide_ref</span>::<span class="op">&lt;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span>(<span class="ident">backtrace</span>);
+                        }
                     };
                     <span class="macro">quote!</span> {
-                        #<span class="ident">ty</span>::#<span class="ident">ident</span> {#<span class="ident">backtrace</span>: <span class="ident">backtrace</span>, ..} =&gt; #<span class="ident">body</span>,
+                        #<span class="ident">ty</span>::#<span class="ident">ident</span> {#<span class="ident">backtrace</span>: <span class="ident">backtrace</span>, ..} =&gt; {
+                            #<span class="ident">body</span>
+                        }
                     }
                 }
                 (<span class="prelude-val">None</span>, <span class="kw">_</span>) =&gt; <span class="macro">quote!</span> {
-                    #<span class="ident">ty</span>::#<span class="ident">ident</span> {..} =&gt; <span class="ident">std::option::Option::None</span>,
+                    #<span class="ident">ty</span>::#<span class="ident">ident</span> {..} =&gt; {}
                 },
             }
         });
         <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
-            <span class="kw">fn</span> <span class="ident">backtrace</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">std::option::Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">std::backtrace::Backtrace</span><span class="op">&gt;</span> {
+            <span class="kw">fn</span> <span class="ident">provide</span><span class="op">&lt;</span><span class="lifetime">&#39;_demand</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;_demand</span> <span class="self">self</span>, #<span class="ident">demand</span>: <span class="kw-2">&amp;mut</span> <span class="ident">std::any::Demand</span><span class="op">&lt;</span><span class="lifetime">&#39;_demand</span><span class="op">&gt;</span>) {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">deprecated</span>)]</span>
                 <span class="kw">match</span> <span class="self">self</span> {
                     #(#<span class="ident">arms</span>)<span class="op">*</span>
@@ -862,7 +905,7 @@
         }) {
             <span class="prelude-val">Some</span>(<span class="macro">quote!</span> {
                 <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_imports</span>)]</span>
-                <span class="kw">use</span> <span class="ident">thiserror::private</span>::{<span class="ident">DisplayAsDisplay</span>, <span class="ident">PathAsDisplay</span>};
+                <span class="kw">use</span> <span class="ident">thiserror::__private</span>::{<span class="ident">DisplayAsDisplay</span>, <span class="ident">PathAsDisplay</span>};
             })
         } <span class="kw">else</span> {
             <span class="prelude-val">None</span>
@@ -947,7 +990,7 @@
         <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">unused_qualifications</span>)]</span>
         <span class="kw">impl</span> #<span class="ident">impl_generics</span> #<span class="ident">error_trait</span> <span class="kw">for</span> #<span class="ident">ty</span> #<span class="ident">ty_generics</span> #<span class="ident">error_where_clause</span> {
             #<span class="ident">source_method</span>
-            #<span class="ident">backtrace_method</span>
+            #<span class="ident">provide_method</span>
         }
         #<span class="ident">display_impl</span>
         #(#<span class="ident">from_impls</span>)<span class="op">*</span>
@@ -1048,5 +1091,4 @@
     <span class="macro">quote!</span>(#<span class="ident">path</span> #<span class="ident">error</span>)
 }
 </code></pre></div>
-</section><section id="search" class="content hidden"></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="thiserror_impl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.61.0 (fe5b13d68 2022-05-18)" ></div>
-</body></html>
+</section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="thiserror_impl" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

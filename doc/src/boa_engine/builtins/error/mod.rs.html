@@ -189,6 +189,33 @@
 <span id="187">187</span>
 <span id="188">188</span>
 <span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Error` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Error objects are thrown when runtime errors occur.</span>
@@ -204,6 +231,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -235,6 +263,30 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident"><span class="self">self</span>::uri::UriError</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::JsArgs</span>;
+
+<span class="doccomment">/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This is used internally to convert between [`JsObject`] and</span>
+<span class="doccomment">/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`</span>
+<span class="doccomment">/// objects. However, the recommended way to create them is to construct a</span>
+<span class="doccomment">/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],</span>
+<span class="doccomment">/// which will assign its prototype, properties and kind automatically.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// For a description of every error kind and its usage, see</span>
+<span class="doccomment">/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-error-objects</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Copy</span>, <span class="ident">Clone</span>, <span class="ident">Eq</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ErrorKind</span> {
+    <span class="ident">Aggregate</span>,
+    <span class="ident">Error</span>,
+    <span class="ident">Eval</span>,
+    <span class="ident">Type</span>,
+    <span class="ident">Range</span>,
+    <span class="ident">Reference</span>,
+    <span class="ident">Syntax</span>,
+    <span class="ident">Uri</span>,
+}
 
 <span class="doccomment">/// Built-in `Error` object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
@@ -300,7 +352,7 @@
         <span class="comment">// 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, &quot;%Error.prototype%&quot;, « [[ErrorData]] »).</span>
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span>
             <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">StandardConstructors::error</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::error</span>());
+        <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="ident">JsObject::from_proto_and_data</span>(<span class="ident">prototype</span>, <span class="ident">ObjectData::error</span>(<span class="ident">ErrorKind::Error</span>));
 
         <span class="comment">// 3. If message is not undefined, then</span>
         <span class="kw">let</span> <span class="ident">message</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -340,7 +392,9 @@
             <span class="ident">o</span>
         <span class="comment">// 2. If Type(O) is not Object, throw a TypeError exception.</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;&#39;this&#39; is not an Object&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not an Object&quot;</span>)
+                .<span class="ident">into</span>());
         };
 
         <span class="comment">// 3. Let name be ? Get(O, &quot;name&quot;).</span>

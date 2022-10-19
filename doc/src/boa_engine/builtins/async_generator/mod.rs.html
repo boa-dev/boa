@@ -754,6 +754,23 @@
 <span id="752">752</span>
 <span id="753">753</span>
 <span id="754">754</span>
+<span id="755">755</span>
+<span id="756">756</span>
+<span id="757">757</span>
+<span id="758">758</span>
+<span id="759">759</span>
+<span id="760">760</span>
+<span id="761">761</span>
+<span id="762">762</span>
+<span id="763">763</span>
+<span id="764">764</span>
+<span id="765">765</span>
+<span id="766">766</span>
+<span id="767">767</span>
+<span id="768">768</span>
+<span id="769">769</span>
+<span id="770">770</span>
+<span id="771">771</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `AsyncGenerator` object.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -766,12 +783,13 @@
         <span class="ident">generator::GeneratorContext</span>, <span class="ident">iterable::create_iter_result_object</span>,
         <span class="ident">promise::if_abrupt_reject_promise</span>, <span class="ident">promise::PromiseCapability</span>, <span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>, <span class="ident">Promise</span>,
     },
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">FunctionBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>},
     <span class="ident">symbol::WellKnownSymbols</span>,
     <span class="ident">value::JsValue</span>,
     <span class="ident">vm::GeneratorResumeKind</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>,
+    <span class="ident">Context</span>, <span class="ident">JsError</span>, <span class="ident">JsResult</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -928,13 +946,17 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
         <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
 
@@ -1017,13 +1039,17 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
         <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
 
@@ -1101,13 +1127,17 @@
 
         <span class="comment">// 3. Let result be Completion(AsyncGeneratorValidate(generator, empty)).</span>
         <span class="comment">// 4. IfAbruptRejectPromise(result, promiseCapability).</span>
-        <span class="kw">let</span> <span class="ident">generator_object</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator_object</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator_object</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">generator_obj_mut</span> <span class="op">=</span> <span class="ident">generator_object</span>.<span class="ident">borrow_mut</span>();
-        <span class="kw">let</span> <span class="ident">generator</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-            <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+        <span class="kw">let</span> <span class="ident">generator</span>: <span class="ident">JsResult</span><span class="op">&lt;</span><span class="kw">_</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">generator_obj_mut</span>.<span class="ident">as_async_generator_mut</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;generator resumed on non generator object&quot;</span>)
+                .<span class="ident">into</span>()
         });
         <span class="macro">if_abrupt_reject_promise!</span>(<span class="ident">generator</span>, <span class="ident">promise_capability</span>, <span class="ident">context</span>);
 
@@ -1142,7 +1172,10 @@
         }
 
         <span class="comment">// 8. Let completion be ThrowCompletion(exception).</span>
-        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> (<span class="prelude-val">Err</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()), <span class="bool-val">false</span>);
+        <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> (
+            <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>())),
+            <span class="bool-val">false</span>,
+        );
 
         <span class="comment">// 9. Perform AsyncGeneratorEnqueue(generator, completion, promiseCapability).</span>
         <span class="ident">generator</span>.<span class="ident">enqueue</span>(<span class="ident">completion</span>.<span class="ident">clone</span>(), <span class="ident">promise_capability</span>.<span class="ident">clone</span>());
@@ -1212,11 +1245,11 @@
         <span class="comment">// 6. Let value be completion.[[Value]].</span>
         <span class="kw">match</span> <span class="ident">completion</span> {
             <span class="comment">// 7. If completion.[[Type]] is throw, then</span>
-            <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; {
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; {
                 <span class="comment">// a. Perform ! Call(promiseCapability.[[Reject]], undefined, « value »).</span>
                 <span class="ident">promise_capability</span>
                     .<span class="ident">reject</span>()
-                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">value</span>], <span class="ident">context</span>)
+                    .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>)], <span class="ident">context</span>)
                     .<span class="ident">expect</span>(<span class="string">&quot;cannot fail per spec&quot;</span>);
             }
             <span class="comment">// 8. Else,</span>
@@ -1295,6 +1328,7 @@
                 }
             }
             (<span class="prelude-val">Err</span>(<span class="ident">value</span>), <span class="kw">_</span>) =&gt; {
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">to_opaque</span>(<span class="ident">context</span>);
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">generator_resume_kind</span> <span class="op">=</span> <span class="ident">GeneratorResumeKind::Throw</span>;
             }
@@ -1411,7 +1445,7 @@
                 <span class="ident">gen</span>.<span class="ident">state</span> <span class="op">=</span> <span class="ident">AsyncGeneratorState::Completed</span>;
 
                 <span class="comment">// b. Let result be ThrowCompletion(reason).</span>
-                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>());
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>).<span class="ident">clone</span>()));
 
                 <span class="comment">// c. Perform AsyncGeneratorCompleteStep(generator, result, true).</span>
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">queue</span>.<span class="ident">pop_front</span>().<span class="ident">expect</span>(<span class="string">&quot;must have one entry&quot;</span>);

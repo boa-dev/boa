@@ -1940,8 +1940,6 @@
 <span id="1938">1938</span>
 <span id="1939">1939</span>
 <span id="1940">1940</span>
-<span id="1941">1941</span>
-<span id="1942">1942</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -1949,6 +1947,7 @@
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::BuiltIn</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">object</span>::{
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">ConstructorBuilder</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>,
@@ -1993,8 +1992,8 @@
 
 <span class="macro">macro_rules!</span> <span class="ident">getter_method</span> {
     (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>) =&gt; {{
-        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
+        <span class="kw">fn</span> <span class="ident">get_value</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">JsValue::new</span>(<span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>()))
         }
         <span class="ident">get_value</span>
     }};
@@ -2336,7 +2335,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsObject</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">args</span>[<span class="number">0</span>];
-        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>, <span class="ident">context</span>) {
+        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">dt</span>) =&gt; <span class="ident">dt</span>.<span class="number">0</span>,
             <span class="kw">_</span> =&gt; <span class="kw">match</span> <span class="ident">value</span>.<span class="ident">to_primitive</span>(<span class="ident">context</span>, <span class="ident">PreferredType::Default</span>)<span class="question-mark">?</span> {
                 <span class="ident">JsValue::String</span>(<span class="kw-2">ref</span> <span class="ident">str</span>) =&gt; <span class="ident">str</span>
@@ -2454,7 +2453,9 @@
         <span class="kw">let</span> <span class="ident">o</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">o</span>) <span class="op">=</span> <span class="ident">this</span>.<span class="ident">as_object</span>() {
             <span class="ident">o</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Date.prototype[@@toPrimitive] called on non object&quot;</span>);
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Date.prototype[@@toPrimitive] called on non object&quot;</span>)
+                .<span class="ident">into</span>());
         };
 
         <span class="kw">let</span> <span class="ident">hint</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>);
@@ -2470,8 +2471,9 @@
             <span class="prelude-val">Some</span>(<span class="ident">number</span>) <span class="kw">if</span> <span class="ident">number</span> <span class="op">==</span> <span class="macro">utf16!</span>(<span class="string">&quot;number&quot;</span>) =&gt; <span class="ident">PreferredType::Number</span>,
             <span class="comment">// 5. Else, throw a TypeError exception.</span>
             <span class="kw">_</span> =&gt; {
-                <span class="kw">return</span> <span class="ident">context</span>
-                    .<span class="ident">throw_type_error</span>(<span class="string">&quot;Date.prototype[@@toPrimitive] called with invalid hint&quot;</span>)
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="string">&quot;Date.prototype[@@toPrimitive] called with invalid hint&quot;</span>)
+                    .<span class="ident">into</span>())
             }
         };
 
@@ -2649,10 +2651,10 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">get_timezone_offset</span>(
         <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
         <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+        <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If t is NaN, return NaN.</span>
         <span class="kw">if</span> <span class="ident">t</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
@@ -2798,7 +2800,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setDate</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_date</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let dt be ? ToNumber(date).</span>
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">args</span>
@@ -2837,7 +2839,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).</span>
         <span class="kw">if</span> <span class="ident">t</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
@@ -2895,7 +2897,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setHours</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_hours</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let h be ? ToNumber(hour).</span>
         <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">args</span>
@@ -2954,7 +2956,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Set ms to ? ToNumber(ms).</span>
         <span class="kw">let</span> <span class="ident">ms</span> <span class="op">=</span> <span class="ident">args</span>
@@ -2992,7 +2994,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let m be ? ToNumber(min).</span>
         <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3040,7 +3042,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setMonth</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_month</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let m be ? ToNumber(month).</span>
         <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3085,7 +3087,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be LocalTime(? thisTimeValue(this value)).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let s be ? ToNumber(sec).</span>
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3126,7 +3128,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setYear</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_year</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If t is NaN, set t to +0𝔽; otherwise, set t to LocalTime(t).</span>
         <span class="kw">if</span> <span class="ident">t</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
@@ -3183,7 +3185,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/setTime</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_time</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Perform ? thisTimeValue(this value).</span>
-        <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let t be ? ToNumber(time).</span>
         <span class="kw">let</span> <span class="ident">t</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">get</span>(<span class="number">0</span>) {
@@ -3224,7 +3226,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let dt be ? ToNumber(date).</span>
         <span class="kw">let</span> <span class="ident">dt</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3263,7 +3265,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. If t is NaN, set t to +0𝔽.</span>
         <span class="kw">if</span> <span class="ident">t</span>.<span class="number">0</span>.<span class="ident">is_none</span>() {
@@ -3325,7 +3327,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let h be ? ToNumber(hour).</span>
         <span class="kw">let</span> <span class="ident">h</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3384,7 +3386,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let milli be ? ToNumber(ms).</span>
         <span class="kw">let</span> <span class="ident">ms</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3422,7 +3424,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let m be ? ToNumber(min).</span>
         <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3478,7 +3480,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let m be ? ToNumber(month).</span>
         <span class="kw">let</span> <span class="ident">m</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3525,7 +3527,7 @@
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let t be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">t</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Let s be ? ToNumber(sec).</span>
         <span class="kw">let</span> <span class="ident">s</span> <span class="op">=</span> <span class="ident">args</span>
@@ -3567,14 +3569,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.todatestring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toDateString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_date_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_date_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be this Date object.</span>
         <span class="comment">// 2. Let tv be ? thisTimeValue(O).</span>
-        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If tv is NaN, return &quot;Invalid Date&quot;.</span>
         <span class="comment">// 4. Let t be LocalTime(tv).</span>
@@ -3618,12 +3616,8 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.toisostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_iso_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>.<span class="number">0</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_iso_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>.<span class="number">0</span> {
             <span class="prelude-val">Ok</span>(<span class="ident">Utc::now</span>()
                 .<span class="ident">timezone</span>()
                 .<span class="ident">from_utc_datetime</span>(<span class="kw-2">&amp;</span><span class="ident">t</span>)
@@ -3631,7 +3625,9 @@
                 .<span class="ident">to_string</span>()
                 .<span class="ident">into</span>())
         } <span class="kw">else</span> {
-            <span class="ident">context</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Invalid time value&quot;</span>)
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;Invalid time value&quot;</span>)
+                .<span class="ident">into</span>())
         }
     }
 
@@ -3676,9 +3672,9 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.tostring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let tv be ? thisTimeValue(this value).</span>
-        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 2. Return ToDateString(tv).</span>
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">t</span>) <span class="op">=</span> <span class="ident">tv</span>.<span class="number">0</span> {
@@ -3705,14 +3701,10 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-date.prototype.totimestring</span>
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toTimeString</span>
     <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::wrong_self_convention</span>)]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time_string</span>(
-        <span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>,
-        <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>],
-        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_time_string</span>(<span class="ident">this</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="kw">_</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="kw">_</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Let O be this Date object.</span>
         <span class="comment">// 2. Let tv be ? thisTimeValue(O).</span>
-        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">tv</span> <span class="op">=</span> <span class="ident">this_time_value</span>(<span class="ident">this</span>)<span class="question-mark">?</span>;
 
         <span class="comment">// 3. If tv is NaN, return &quot;Invalid Date&quot;.</span>
         <span class="comment">// 4. Let t be LocalTime(tv).</span>
@@ -3878,11 +3870,15 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-thistimevalue</span>
 <span class="attribute">#[<span class="ident">inline</span>]</span>
-<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span> {
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">this_time_value</span>(<span class="ident">value</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">Date</span><span class="op">&gt;</span> {
     <span class="ident">value</span>
         .<span class="ident">as_object</span>()
         .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">borrow</span>().<span class="ident">as_date</span>().<span class="ident">copied</span>())
-        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;&#39;this&#39; is not a Date&quot;</span>))
+        .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+            <span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="string">&quot;&#39;this&#39; is not a Date&quot;</span>)
+                .<span class="ident">into</span>()
+        })
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

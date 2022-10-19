@@ -302,18 +302,25 @@
 <span id="300">300</span>
 <span id="301">301</span>
 <span id="302">302</span>
+<span id="303">303</span>
+<span id="304">304</span>
+<span id="305">305</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Traits and structs for implementing native classes.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Native classes are implemented through the [`Class`][class-trait] trait.</span>
 <span class="doccomment">//! ```</span>
-<span class="doccomment">//!# use boa_engine::{</span>
-<span class="doccomment">//!#    property::Attribute,</span>
-<span class="doccomment">//!#    class::{Class, ClassBuilder},</span>
-<span class="doccomment">//!#    Context, JsResult, JsValue,</span>
-<span class="doccomment">//!#    builtins::JsArgs,</span>
-<span class="doccomment">//!# };</span>
-<span class="doccomment">//!# use boa_gc::{Finalize, Trace};</span>
-<span class="doccomment">//!#</span>
+<span class="doccomment">//! # use boa_engine::{</span>
+<span class="doccomment">//! #    property::Attribute,</span>
+<span class="doccomment">//! #    class::{Class, ClassBuilder},</span>
+<span class="doccomment">//! #    Context, JsResult, JsValue,</span>
+<span class="doccomment">//! #    builtins::JsArgs,</span>
+<span class="doccomment">//! # };</span>
+<span class="doccomment">//! # use boa_gc::{Finalize, Trace};</span>
+<span class="doccomment">//! #</span>
 <span class="doccomment">//! // This does not have to be an enum it can also be a struct.</span>
 <span class="doccomment">//! #[derive(Debug, Trace, Finalize)]</span>
 <span class="doccomment">//! enum Animal {</span>
@@ -367,6 +374,7 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::NativeFunctionSignature</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">ConstructorBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">NativeObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PROTOTYPE</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
@@ -408,29 +416,35 @@
         <span class="self">Self</span>: <span class="ident">Sized</span>,
     {
         <span class="kw">if</span> <span class="ident">this</span>.<span class="ident">is_undefined</span>() {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;cannot call constructor of native class `{}` without new&quot;</span>,
-                <span class="ident">T::NAME</span>
-            ));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;cannot call constructor of native class `{}` without new&quot;</span>,
+                    <span class="ident">T::NAME</span>
+                ))
+                .<span class="ident">into</span>());
         }
 
         <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">get</span>(<span class="ident">T::NAME</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">class_constructor</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span> {
             <span class="ident">obj</span>
         } <span class="kw">else</span> {
-            <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
-                <span class="ident">T::NAME</span>
-            ));
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                    <span class="string">&quot;invalid constructor for native class `{}` &quot;</span>,
+                    <span class="ident">T::NAME</span>
+                ))
+                .<span class="ident">into</span>());
         };
         <span class="kw">let</span> <span class="ident">class_prototype</span> <span class="op">=</span>
             <span class="kw">if</span> <span class="kw">let</span> <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">obj</span>) <span class="op">=</span> <span class="ident">class_constructor</span>.<span class="ident">get</span>(<span class="ident">PROTOTYPE</span>, <span class="ident">context</span>)<span class="question-mark">?</span> {
                 <span class="ident">obj</span>.<span class="ident">clone</span>()
             } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                    <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
-                    <span class="ident">T::NAME</span>
-                ));
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                        <span class="string">&quot;invalid default prototype for native class `{}`&quot;</span>,
+                        <span class="ident">T::NAME</span>
+                    ))
+                    .<span class="ident">into</span>());
             };
 
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">this</span>

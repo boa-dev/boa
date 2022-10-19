@@ -809,9 +809,12 @@
 <span id="807">807</span>
 <span id="808">808</span>
 <span id="809">809</span>
+<span id="810">810</span>
+<span id="811">811</span>
+<span id="812">812</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environments::CompileTimeEnvironment</span>, <span class="ident">object::JsObject</span>, <span class="ident">syntax::ast::expression::Identifier</span>,
-    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
+    <span class="ident">environments::CompileTimeEnvironment</span>, <span class="ident">error::JsNativeError</span>, <span class="ident">object::JsObject</span>,
+    <span class="ident">syntax::ast::expression::Identifier</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 
@@ -967,17 +970,17 @@
     <span class="doccomment">///  - [ECMAScript specification][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-environment-records-getthisbinding</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">get_this_binding</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">JsNativeError</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: envRec.[[ThisBindingStatus]] is not lexical.</span>
         <span class="macro">debug_assert!</span>(<span class="self">self</span>.<span class="ident">this_binding_status</span> <span class="op">!</span><span class="op">=</span> <span class="ident">ThisBindingStatus::Lexical</span>);
 
         <span class="comment">// 2. If envRec.[[ThisBindingStatus]] is uninitialized, throw a ReferenceError exception.</span>
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">this_binding_status</span> <span class="op">==</span> <span class="ident">ThisBindingStatus::Uninitialized</span> {
-            <span class="kw">return</span> <span class="prelude-val">None</span>;
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>().<span class="ident">with_message</span>(<span class="string">&quot;Must call super constructor in derived class before accessing &#39;this&#39; or returning from derived constructor&quot;</span>))
+        } <span class="kw">else</span> {
+            <span class="comment">// 3. Return envRec.[[ThisValue]].</span>
+            <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">this</span>)
         }
-
-        <span class="comment">// 3. Return envRec.[[ThisValue]].</span>
-        <span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">this</span>)
     }
 }
 
@@ -1607,12 +1610,15 @@
 
     <span class="doccomment">/// Helper method to throws an error if the binding access is illegal.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">throw_mutate_immutable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">throw_mutate_immutable</span>(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
+    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">JsNativeError</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">mutate_immutable</span> {
-            <span class="ident">context</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
+            <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="macro">format!</span>(
                 <span class="string">&quot;cannot mutate an immutable binding &#39;{}&#39;&quot;</span>,
                 <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="self">self</span>.<span class="ident">name</span>.<span class="ident">sym</span>())
-            ))
+            )))
         } <span class="kw">else</span> {
             <span class="prelude-val">Ok</span>(())
         }

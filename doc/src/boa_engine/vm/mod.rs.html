@@ -2868,6 +2868,91 @@
 <span id="2866">2866</span>
 <span id="2867">2867</span>
 <span id="2868">2868</span>
+<span id="2869">2869</span>
+<span id="2870">2870</span>
+<span id="2871">2871</span>
+<span id="2872">2872</span>
+<span id="2873">2873</span>
+<span id="2874">2874</span>
+<span id="2875">2875</span>
+<span id="2876">2876</span>
+<span id="2877">2877</span>
+<span id="2878">2878</span>
+<span id="2879">2879</span>
+<span id="2880">2880</span>
+<span id="2881">2881</span>
+<span id="2882">2882</span>
+<span id="2883">2883</span>
+<span id="2884">2884</span>
+<span id="2885">2885</span>
+<span id="2886">2886</span>
+<span id="2887">2887</span>
+<span id="2888">2888</span>
+<span id="2889">2889</span>
+<span id="2890">2890</span>
+<span id="2891">2891</span>
+<span id="2892">2892</span>
+<span id="2893">2893</span>
+<span id="2894">2894</span>
+<span id="2895">2895</span>
+<span id="2896">2896</span>
+<span id="2897">2897</span>
+<span id="2898">2898</span>
+<span id="2899">2899</span>
+<span id="2900">2900</span>
+<span id="2901">2901</span>
+<span id="2902">2902</span>
+<span id="2903">2903</span>
+<span id="2904">2904</span>
+<span id="2905">2905</span>
+<span id="2906">2906</span>
+<span id="2907">2907</span>
+<span id="2908">2908</span>
+<span id="2909">2909</span>
+<span id="2910">2910</span>
+<span id="2911">2911</span>
+<span id="2912">2912</span>
+<span id="2913">2913</span>
+<span id="2914">2914</span>
+<span id="2915">2915</span>
+<span id="2916">2916</span>
+<span id="2917">2917</span>
+<span id="2918">2918</span>
+<span id="2919">2919</span>
+<span id="2920">2920</span>
+<span id="2921">2921</span>
+<span id="2922">2922</span>
+<span id="2923">2923</span>
+<span id="2924">2924</span>
+<span id="2925">2925</span>
+<span id="2926">2926</span>
+<span id="2927">2927</span>
+<span id="2928">2928</span>
+<span id="2929">2929</span>
+<span id="2930">2930</span>
+<span id="2931">2931</span>
+<span id="2932">2932</span>
+<span id="2933">2933</span>
+<span id="2934">2934</span>
+<span id="2935">2935</span>
+<span id="2936">2936</span>
+<span id="2937">2937</span>
+<span id="2938">2938</span>
+<span id="2939">2939</span>
+<span id="2940">2940</span>
+<span id="2941">2941</span>
+<span id="2942">2942</span>
+<span id="2943">2943</span>
+<span id="2944">2944</span>
+<span id="2945">2945</span>
+<span id="2946">2946</span>
+<span id="2947">2947</span>
+<span id="2948">2948</span>
+<span id="2949">2949</span>
+<span id="2950">2950</span>
+<span id="2951">2951</span>
+<span id="2952">2952</span>
+<span id="2953">2953</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -2880,6 +2965,7 @@
         <span class="ident">Array</span>, <span class="ident">ForInIterator</span>, <span class="ident">JsArgs</span>, <span class="ident">Number</span>, <span class="ident">Promise</span>,
     },
     <span class="ident">environments::EnvironmentSlots</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PrivateElement</span>},
     <span class="ident">property</span>::{<span class="ident">DescriptorKind</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyDescriptorBuilder</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">value::Numeric</span>,
@@ -2887,7 +2973,7 @@
         <span class="ident">call_frame::CatchAddresses</span>,
         <span class="ident">code_block</span>::{<span class="ident">initialize_instance_elements</span>, <span class="ident">Readable</span>},
     },
-    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsError</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner::ToInternedString</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -3075,8 +3161,9 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">superclass</span>) <span class="op">=</span> <span class="ident">superclass</span>.<span class="ident">as_constructor</span>() {
                     <span class="kw">let</span> <span class="ident">proto</span> <span class="op">=</span> <span class="ident">superclass</span>.<span class="ident">get</span>(<span class="string">&quot;prototype&quot;</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                     <span class="kw">if</span> <span class="op">!</span><span class="ident">proto</span>.<span class="ident">is_object</span>() <span class="op">&amp;&amp;</span> <span class="op">!</span><span class="ident">proto</span>.<span class="ident">is_null</span>() {
-                        <span class="kw">return</span> <span class="self">self</span>
-                            .<span class="ident">throw_type_error</span>(<span class="string">&quot;superclass prototype must be an object or null&quot;</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;superclass prototype must be an object or null&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
 
                     <span class="kw">let</span> <span class="ident">class</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
@@ -3101,7 +3188,9 @@
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">superclass</span>.<span class="ident">is_null</span>() {
                     <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">JsValue::Null</span>);
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;superclass must be a constructor&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;superclass must be a constructor&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::SetClassPrototype</span> =&gt; {
@@ -3256,10 +3345,12 @@
                 <span class="kw">let</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">rhs</span>.<span class="ident">is_object</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got {}&quot;</span>,
-                        <span class="ident">rhs</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
-                    ));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                            <span class="string">&quot;right-hand side of &#39;in&#39; should be an object, got {}&quot;</span>,
+                            <span class="ident">rhs</span>.<span class="ident">type_of</span>().<span class="ident">to_std_string_escaped</span>()
+                        ))
+                        .<span class="ident">into</span>());
                 }
                 <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">lhs</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">has_property</span>(<span class="kw-2">&amp;</span><span class="ident">rhs</span>, <span class="kw-2">&amp;</span><span class="ident">key</span>)<span class="question-mark">?</span>;
@@ -3439,17 +3530,21 @@
                                     <span class="self">self</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">get</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">global_object</span>().<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[])<span class="question-mark">?</span>
                                 }
                                 <span class="kw">_</span> =&gt; {
-                                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                                        <span class="string">&quot;{} is not defined&quot;</span>,
-                                        <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
-                                    ))
+                                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                                            <span class="string">&quot;{} is not defined&quot;</span>,
+                                            <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                        ))
+                                        .<span class="ident">into</span>())
                                 }
                             },
                             <span class="kw">_</span> =&gt; {
-                                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                                    <span class="string">&quot;{} is not defined&quot;</span>,
-                                    <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
-                                ))
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                                    .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                                        <span class="string">&quot;{} is not defined&quot;</span>,
+                                        <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                    ))
+                                    .<span class="ident">into</span>())
                             }
                         }
                     }
@@ -3464,7 +3559,9 @@
                         .<span class="ident">interner</span>()
                         .<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>().<span class="ident">sym</span>())
                         .<span class="ident">to_string</span>();
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(<span class="string">&quot;{name} is not initialized&quot;</span>,));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(<span class="string">&quot;{name} is not initialized&quot;</span>))
+                        .<span class="ident">into</span>());
                 };
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
@@ -3532,10 +3629,12 @@
                         <span class="kw">let</span> <span class="ident">exists</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">global_bindings_mut</span>().<span class="ident">contains_key</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>);
 
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">exists</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;assignment to undeclared variable {}&quot;</span>,
-                                <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
-                            ));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                                    <span class="string">&quot;assignment to undeclared variable {}&quot;</span>,
+                                    <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                ))
+                                .<span class="ident">into</span>());
                         }
 
                         <span class="kw">let</span> <span class="ident">success</span> <span class="op">=</span>
@@ -3546,10 +3645,12 @@
                             )<span class="question-mark">?</span>;
 
                         <span class="kw">if</span> <span class="op">!</span><span class="ident">success</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="macro">format!</span>(
-                                <span class="string">&quot;cannot set non-writable property: {}&quot;</span>,
-                                <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
-                            ));
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                                    <span class="string">&quot;cannot set non-writable property: {}&quot;</span>,
+                                    <span class="ident">key</span>.<span class="ident">to_std_string_escaped</span>()
+                                ))
+                                .<span class="ident">into</span>());
                         }
                     }
                 } <span class="kw">else</span> <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">put_value_if_initialized</span>(
@@ -3558,10 +3659,12 @@
                     <span class="ident">binding_locator</span>.<span class="ident">name</span>(),
                     <span class="ident">value</span>,
                 ) {
-                    <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="macro">format!</span>(
-                        <span class="string">&quot;cannot access &#39;{}&#39; before initialization&quot;</span>,
-                        <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>().<span class="ident">sym</span>())
-                    ))<span class="question-mark">?</span>;
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                        .<span class="ident">with_message</span>(<span class="macro">format!</span>(
+                            <span class="string">&quot;cannot access &#39;{}&#39; before initialization&quot;</span>,
+                            <span class="self">self</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>().<span class="ident">sym</span>())
+                        ))
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::Jump</span> =&gt; {
@@ -4032,7 +4135,9 @@
                                 .<span class="ident">set_private_element</span>(<span class="ident">name</span>.<span class="ident">sym</span>(), <span class="ident">PrivateElement::Field</span>(<span class="ident">value</span>));
                         }
                         <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Method</span>(<span class="kw">_</span>)) =&gt; {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;private method is not writable&quot;</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;private method is not writable&quot;</span>)
+                                .<span class="ident">into</span>());
                         }
                         <span class="prelude-val">Some</span>(<span class="ident">PrivateElement::Accessor</span> {
                             <span class="ident">setter</span>: <span class="prelude-val">Some</span>(<span class="ident">setter</span>),
@@ -4043,14 +4148,20 @@
                             <span class="ident">setter</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">object</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">value</span>], <span class="self">self</span>)<span class="question-mark">?</span>;
                         }
                         <span class="prelude-val">None</span> =&gt; {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;private field not defined&quot;</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;private field not defined&quot;</span>)
+                                .<span class="ident">into</span>());
                         }
                         <span class="kw">_</span> =&gt; {
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;private field defined without a setter&quot;</span>);
+                            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;private field defined without a setter&quot;</span>)
+                                .<span class="ident">into</span>());
                         }
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set private property on non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot set private property on non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::SetPrivateField</span> =&gt; {
@@ -4073,7 +4184,9 @@
                             .<span class="ident">set_private_element</span>(<span class="ident">name</span>.<span class="ident">sym</span>(), <span class="ident">PrivateElement::Field</span>(<span class="ident">value</span>));
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set private property on non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot set private property on non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::SetPrivateMethod</span> =&gt; {
@@ -4087,7 +4200,9 @@
                     <span class="ident">object_borrow_mut</span>
                         .<span class="ident">set_private_element</span>(<span class="ident">name</span>.<span class="ident">sym</span>(), <span class="ident">PrivateElement::Method</span>(<span class="ident">value</span>.<span class="ident">clone</span>()));
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set private setter on non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot set private setter on non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::SetPrivateSetter</span> =&gt; {
@@ -4100,7 +4215,9 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object_borrow_mut</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
                     <span class="ident">object_borrow_mut</span>.<span class="ident">set_private_element_setter</span>(<span class="ident">name</span>.<span class="ident">sym</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set private setter on non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot set private setter on non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::SetPrivateGetter</span> =&gt; {
@@ -4113,7 +4230,9 @@
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object_borrow_mut</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">borrow_mut</span>();
                     <span class="ident">object_borrow_mut</span>.<span class="ident">set_private_element_getter</span>(<span class="ident">name</span>.<span class="ident">sym</span>(), <span class="ident">value</span>.<span class="ident">clone</span>());
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot set private getter on non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot set private getter on non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::GetPrivateField</span> =&gt; {
@@ -4134,16 +4253,20 @@
                                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
                             }
                             <span class="ident">PrivateElement::Accessor</span> { .. } =&gt; {
-                                <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(
-                                    <span class="string">&quot;private property was defined without a getter&quot;</span>,
-                                );
+                                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                                    .<span class="ident">with_message</span>(<span class="string">&quot;private property was defined without a getter&quot;</span>)
+                                    .<span class="ident">into</span>());
                             }
                         }
                     } <span class="kw">else</span> {
-                        <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;private property does not exist&quot;</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;private property does not exist&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;cannot read private property from non-object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;cannot read private property from non-object&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
             }
             <span class="ident">Opcode::PushClassField</span> =&gt; {
@@ -4263,7 +4386,9 @@
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot delete property&quot;</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Cannot delete property&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
@@ -4274,7 +4399,9 @@
                     .<span class="ident">to_object</span>(<span class="self">self</span>)<span class="question-mark">?</span>
                     .<span class="ident">__delete__</span>(<span class="kw-2">&amp;</span><span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="self">self</span>)<span class="question-mark">?</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">result</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Cannot delete property&quot;</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Cannot delete property&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
@@ -4305,7 +4432,7 @@
             }
             <span class="ident">Opcode::Throw</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">value</span>));
             }
             <span class="ident">Opcode::TryStart</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
@@ -4388,7 +4515,7 @@
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::True</span>);
                     }
                     <span class="ident">FinallyReturn::Err</span> =&gt; {
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>());
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>()));
                     }
                 }
             }
@@ -4405,13 +4532,7 @@
                 <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">get_this_environment</span>();
                 <span class="kw">match</span> <span class="ident">env</span> {
                     <span class="ident">EnvironmentSlots::Function</span>(<span class="ident">env</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">env_b</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">borrow</span>();
-                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">this</span>) <span class="op">=</span> <span class="ident">env_b</span>.<span class="ident">get_this_binding</span>() {
-                            <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">this</span>);
-                        } <span class="kw">else</span> {
-                            <span class="ident">drop</span>(<span class="ident">env_b</span>);
-                            <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;Must call super constructor in derived class before accessing &#39;this&#39; or returning from derived constructor&quot;</span>);
-                        }
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">get_this_binding</span>()<span class="question-mark">?</span>);
                     }
                     <span class="ident">EnvironmentSlots::Global</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">realm</span>.<span class="ident">global_object</span>();
@@ -4420,32 +4541,21 @@
                 }
             }
             <span class="ident">Opcode::Super</span> =&gt; {
-                <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>
-                    .<span class="ident">realm</span>
-                    .<span class="ident">environments</span>
-                    .<span class="ident">get_this_environment</span>()
-                    .<span class="ident">as_function_slots</span>()
-                    .<span class="ident">expect</span>(<span class="string">&quot;super access must be in a function environment&quot;</span>);
-
-                <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">env</span>.<span class="ident">borrow</span>().<span class="ident">get_this_binding</span>().<span class="ident">is_some</span>() {
+                <span class="kw">let</span> <span class="ident">home</span> <span class="op">=</span> {
+                    <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="self">self</span>
+                        .<span class="ident">realm</span>
+                        .<span class="ident">environments</span>
+                        .<span class="ident">get_this_environment</span>()
+                        .<span class="ident">as_function_slots</span>()
+                        .<span class="ident">expect</span>(<span class="string">&quot;super access must be in a function environment&quot;</span>);
                     <span class="kw">let</span> <span class="ident">env</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">borrow</span>();
+                    <span class="kw">let</span> <span class="ident">this</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">get_this_binding</span>()<span class="question-mark">?</span>;
                     <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="ident">env</span>.<span class="ident">function_object</span>().<span class="ident">borrow</span>();
                     <span class="kw">let</span> <span class="ident">function</span> <span class="op">=</span> <span class="ident">function_object</span>
                         .<span class="ident">as_function</span>()
                         .<span class="ident">expect</span>(<span class="string">&quot;must be function object&quot;</span>);
-                    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">home_object</span> <span class="op">=</span> <span class="ident">function</span>.<span class="ident">get_home_object</span>().<span class="ident">cloned</span>();
 
-                    <span class="kw">if</span> <span class="ident">home_object</span>.<span class="ident">is_none</span>() {
-                        <span class="ident">home_object</span> <span class="op">=</span> <span class="ident">env</span>
-                            .<span class="ident">get_this_binding</span>()
-                            .<span class="ident">expect</span>(<span class="string">&quot;can not get `this` object&quot;</span>)
-                            .<span class="ident">as_object</span>()
-                            .<span class="ident">cloned</span>();
-                    }
-
-                    <span class="ident">home_object</span>
-                } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Must call super constructor in derived class before accessing &#39;this&#39; or returning from derived constructor&quot;</span>);
+                    <span class="ident">function</span>.<span class="ident">get_home_object</span>().<span class="ident">or</span>(<span class="ident">this</span>.<span class="ident">as_object</span>()).<span class="ident">cloned</span>()
                 };
 
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">home</span>) <span class="op">=</span> <span class="ident">home</span> {
@@ -4487,7 +4597,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -4502,7 +4614,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;this already initialized&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
@@ -4540,7 +4654,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -4555,7 +4671,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;this already initialized&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
@@ -4588,7 +4706,9 @@
                     .<span class="ident">expect</span>(<span class="string">&quot;function object must have prototype&quot;</span>);
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">super_constructor</span>.<span class="ident">is_constructor</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;super constructor object must be constructor&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">super_constructor</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="kw-2">&amp;</span><span class="ident">new_target</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -4602,7 +4722,9 @@
                     .<span class="ident">as_function_slots</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;super call must be in function environment&quot;</span>);
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">this_env</span>.<span class="ident">borrow_mut</span>().<span class="ident">bind_this_value</span>(<span class="kw-2">&amp;</span><span class="ident">result</span>) {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_reference_error</span>(<span class="string">&quot;this already initialized&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::reference</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;this already initialized&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
@@ -4649,7 +4771,9 @@
             }
             <span class="ident">Opcode::CallEval</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -4663,7 +4787,11 @@
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a callable function&quot;</span>)
+                            .<span class="ident">into</span>())
+                    }
                 };
 
                 <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.</span>
@@ -4686,7 +4814,9 @@
             }
             <span class="ident">Opcode::CallEvalSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
@@ -4706,7 +4836,11 @@
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a callable function&quot;</span>)
+                            .<span class="ident">into</span>())
+                    }
                 };
 
                 <span class="comment">// A native function with the name &quot;eval&quot; implies, that is this the built-in eval function.</span>
@@ -4729,7 +4863,9 @@
             }
             <span class="ident">Opcode::Call</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -4743,7 +4879,11 @@
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a callable function&quot;</span>)
+                            .<span class="ident">into</span>())
+                    }
                 };
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__call__</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -4752,7 +4892,9 @@
             }
             <span class="ident">Opcode::CallSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
 
                 <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
@@ -4772,7 +4914,11 @@
 
                 <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">func</span> {
                     <span class="ident">JsValue::Object</span>(<span class="kw-2">ref</span> <span class="ident">object</span>) <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">is_callable</span>() =&gt; <span class="ident">object</span>.<span class="ident">clone</span>(),
-                    <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;not a callable function&quot;</span>),
+                    <span class="kw">_</span> =&gt; {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a callable function&quot;</span>)
+                            .<span class="ident">into</span>())
+                    }
                 };
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">__call__</span>(<span class="kw-2">&amp;</span><span class="ident">this</span>, <span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -4781,7 +4927,9 @@
             }
             <span class="ident">Opcode::New</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="kw">let</span> <span class="ident">argument_count</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">arguments</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">argument_count</span> <span class="kw">as</span> <span class="ident">usize</span>);
@@ -4793,14 +4941,20 @@
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">func</span>
                     .<span class="ident">as_constructor</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;not a constructor&quot;</span>))
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a constructor&quot;</span>)
+                            .<span class="ident">into</span>()
+                    })
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cons</span><span class="op">|</span> <span class="ident">cons</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="ident">cons</span>, <span class="self">self</span>))<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
             <span class="ident">Opcode::NewSpread</span> =&gt; {
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack_size_limit</span> <span class="op">&lt;</span><span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">len</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_range_error</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::range</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Maximum call stack size exceeded&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="comment">// Get the arguments that are stored as an array object on the stack.</span>
                 <span class="kw">let</span> <span class="ident">arguments_array</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
@@ -4818,9 +4972,12 @@
 
                 <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">func</span>
                     .<span class="ident">as_constructor</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;not a constructor&quot;</span>))
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;not a constructor&quot;</span>)
+                            .<span class="ident">into</span>()
+                    })
                     .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">cons</span><span class="op">|</span> <span class="ident">cons</span>.<span class="ident">__construct__</span>(<span class="kw-2">&amp;</span><span class="ident">arguments</span>, <span class="ident">cons</span>, <span class="self">self</span>))<span class="question-mark">?</span>;
-
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">result</span>);
             }
             <span class="ident">Opcode::Return</span> =&gt; {
@@ -4927,7 +5084,9 @@
                     .<span class="ident">as_ref</span>()
                     .<span class="ident">map</span>(<span class="ident">PropertyDescriptor::expect_value</span>)
                     .<span class="ident">cloned</span>()
-                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;Could not find property `next`&quot;</span>))<span class="question-mark">?</span>;
+                    .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;Could not find property `next`&quot;</span>)
+                    })<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">iterator</span>);
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">next_method</span>);
@@ -5051,7 +5210,9 @@
                 <span class="kw">let</span> <span class="ident">next_method_object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">next_method</span>.<span class="ident">as_callable</span>() {
                     <span class="ident">object</span>
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;iterable next method not a function&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;iterable next method not a function&quot;</span>)
+                        .<span class="ident">into</span>());
                 };
                 <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="ident">next_method_object</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator</span>, <span class="kw-2">&amp;</span>[], <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -5066,7 +5227,9 @@
                 <span class="kw">let</span> <span class="ident">next_result</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next_result</span>) <span class="op">=</span> <span class="ident">next_result</span>.<span class="ident">as_object</span>() {
                     <span class="ident">IteratorResult::new</span>(<span class="ident">next_result</span>.<span class="ident">clone</span>())
                 } <span class="kw">else</span> {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;next value should be an object&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;next value should be an object&quot;</span>)
+                        .<span class="ident">into</span>());
                 };
 
                 <span class="kw">if</span> <span class="ident">next_result</span>.<span class="ident">complete</span>(<span class="self">self</span>)<span class="question-mark">?</span> {
@@ -5098,16 +5261,20 @@
             }
             <span class="ident">Opcode::RequireObjectCoercible</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">require_object_coercible</span>(<span class="self">self</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">value</span>.<span class="ident">require_object_coercible</span>()<span class="question-mark">?</span>;
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }
             <span class="ident">Opcode::ValueNotNullOrUndefined</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
                 <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Cannot destructure &#39;null&#39; value&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_undefined</span>() {
-                    <span class="kw">return</span> <span class="self">self</span>.<span class="ident">throw_type_error</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                        .<span class="ident">with_message</span>(<span class="string">&quot;Cannot destructure &#39;undefined&#39; value&quot;</span>)
+                        .<span class="ident">into</span>());
                 }
                 <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
             }
@@ -5151,7 +5318,7 @@
                 <span class="ident">GeneratorResumeKind::Normal</span> =&gt; <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>),
                 <span class="ident">GeneratorResumeKind::Throw</span> =&gt; {
                     <span class="kw">let</span> <span class="ident">received</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">received</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">received</span>));
                 }
                 <span class="ident">GeneratorResumeKind::Return</span> =&gt; {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">finally_left</span> <span class="op">=</span> <span class="bool-val">false</span>;
@@ -5178,7 +5345,7 @@
                 <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
 
                 <span class="kw">if</span> <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">generator_resume_kind</span> <span class="op">==</span> <span class="ident">GeneratorResumeKind::Throw</span> {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>);
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsError::from_opaque</span>(<span class="ident">value</span>));
                 }
 
                 <span class="kw">let</span> <span class="ident">completion</span> <span class="op">=</span> <span class="prelude-val">Ok</span>(<span class="ident">value</span>);
@@ -5206,9 +5373,11 @@
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">next</span>) <span class="op">=</span> <span class="ident">gen</span>.<span class="ident">queue</span>.<span class="ident">front</span>() {
                     <span class="kw">let</span> (<span class="ident">completion</span>, <span class="ident">r#return</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">next</span>.<span class="ident">completion</span>;
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">r#return</span> {
-                        <span class="kw">match</span> <span class="ident">completion</span> {
-                            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) <span class="op">|</span> <span class="prelude-val">Err</span>(<span class="ident">value</span>) =&gt; <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>),
-                        }
+                        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">completion</span> {
+                            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="ident">value</span>.<span class="ident">clone</span>(),
+                            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="ident">e</span>.<span class="ident">clone</span>().<span class="ident">to_opaque</span>(<span class="self">self</span>),
+                        };
+                        <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="bool-val">true</span>);
                     } <span class="kw">else</span> {
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">completion</span>.<span class="ident">clone</span>()<span class="question-mark">?</span>);
@@ -5239,7 +5408,8 @@
                         <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
                             <span class="self">self</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">next_method</span>, <span class="kw-2">&amp;</span><span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">received</span>])<span class="question-mark">?</span>;
                         <span class="kw">let</span> <span class="ident">result_object</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                            <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;generator next method returned non-object&quot;</span>)
+                            <span class="ident">JsNativeError::typ</span>()
+                                .<span class="ident">with_message</span>(<span class="string">&quot;generator next method returned non-object&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">result_object</span>.<span class="ident">get</span>(<span class="string">&quot;done&quot;</span>, <span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
                         <span class="kw">if</span> <span class="ident">done</span> {
@@ -5260,9 +5430,8 @@
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">throw</span>) <span class="op">=</span> <span class="ident">throw</span> {
                             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">throw</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">received</span>], <span class="self">self</span>)<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">result_object</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                <span class="self">self</span>.<span class="ident">construct_type_error</span>(
-                                    <span class="string">&quot;generator throw method returned non-object&quot;</span>,
-                                )
+                                <span class="ident">JsNativeError::typ</span>()
+                                    .<span class="ident">with_message</span>(<span class="string">&quot;generator throw method returned non-object&quot;</span>)
                             })<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">result_object</span>.<span class="ident">get</span>(<span class="string">&quot;done&quot;</span>, <span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
                             <span class="kw">if</span> <span class="ident">done</span> {
@@ -5282,9 +5451,9 @@
                         <span class="kw">let</span> <span class="ident">iterator_record</span> <span class="op">=</span>
                             <span class="ident">IteratorRecord::new</span>(<span class="ident">iterator</span>.<span class="ident">clone</span>(), <span class="ident">next_method</span>, <span class="ident">done</span>);
                         <span class="ident">iterator_record</span>.<span class="ident">close</span>(<span class="prelude-val">Ok</span>(<span class="ident">JsValue::Undefined</span>), <span class="self">self</span>)<span class="question-mark">?</span>;
-                        <span class="kw">let</span> <span class="ident">error</span> <span class="op">=</span>
-                            <span class="self">self</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;iterator does not have a throw method&quot;</span>);
-                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">error</span>);
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;iterator does not have a throw method&quot;</span>)
+                            .<span class="ident">into</span>());
                     }
                     <span class="ident">GeneratorResumeKind::Return</span> =&gt; {
                         <span class="kw">let</span> <span class="ident">r#return</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">get_method</span>(<span class="string">&quot;return&quot;</span>, <span class="self">self</span>)<span class="question-mark">?</span>;
@@ -5292,9 +5461,8 @@
                             <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span>
                                 <span class="ident">r#return</span>.<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">iterator</span>.<span class="ident">clone</span>().<span class="ident">into</span>(), <span class="kw-2">&amp;</span>[<span class="ident">received</span>], <span class="self">self</span>)<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">result_object</span> <span class="op">=</span> <span class="ident">result</span>.<span class="ident">as_object</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                                <span class="self">self</span>.<span class="ident">construct_type_error</span>(
-                                    <span class="string">&quot;generator return method returned non-object&quot;</span>,
-                                )
+                                <span class="ident">JsNativeError::typ</span>()
+                                    .<span class="ident">with_message</span>(<span class="string">&quot;generator return method returned non-object&quot;</span>)
                             })<span class="question-mark">?</span>;
                             <span class="kw">let</span> <span class="ident">done</span> <span class="op">=</span> <span class="ident">result_object</span>.<span class="ident">get</span>(<span class="string">&quot;done&quot;</span>, <span class="self">self</span>)<span class="question-mark">?</span>.<span class="ident">to_boolean</span>();
                             <span class="kw">if</span> <span class="ident">done</span> {
@@ -5612,12 +5780,14 @@
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">catch</span>.<span class="ident">pop</span>();
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">finally_return</span> <span class="op">=</span> <span class="ident">FinallyReturn::Err</span>;
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">thrown</span> <span class="op">=</span> <span class="bool-val">true</span>;
+                        <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="self">self</span>);
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">e</span>);
                     } <span class="kw">else</span> {
                         <span class="self">self</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">truncate</span>(<span class="ident">start_stack_size</span>);
 
                         <span class="comment">// Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).</span>
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">promise_capability</span>) <span class="op">=</span> <span class="ident">promise_capability</span> {
+                            <span class="kw">let</span> <span class="ident">e</span> <span class="op">=</span> <span class="ident">e</span>.<span class="ident">to_opaque</span>(<span class="self">self</span>);
                             <span class="ident">promise_capability</span>
                                 .<span class="ident">reject</span>()
                                 .<span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="ident">JsValue::undefined</span>(), <span class="kw-2">&amp;</span>[<span class="ident">e</span>.<span class="ident">clone</span>()], <span class="self">self</span>)

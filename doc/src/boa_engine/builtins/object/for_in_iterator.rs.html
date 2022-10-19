@@ -148,8 +148,10 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">function::make_builtin_fn</span>, <span class="ident">iterable::create_iter_result_object</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">property::PropertyKey</span>,
@@ -221,7 +223,7 @@
         <span class="kw">let</span> <span class="ident">iterator</span> <span class="op">=</span> <span class="ident">iterator</span>
             .<span class="ident">as_mut</span>()
             .<span class="ident">and_then</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">obj</span>.<span class="ident">as_for_in_iterator_mut</span>())
-            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;`this` is not a ForInIterator&quot;</span>))<span class="question-mark">?</span>;
+            .<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> <span class="ident">JsNativeError::typ</span>().<span class="ident">with_message</span>(<span class="string">&quot;`this` is not a ForInIterator&quot;</span>))<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">iterator</span>.<span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">loop</span> {
             <span class="kw">if</span> <span class="op">!</span><span class="ident">iterator</span>.<span class="ident">object_was_visited</span> {

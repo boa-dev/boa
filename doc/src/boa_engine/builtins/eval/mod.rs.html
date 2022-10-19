@@ -148,6 +148,7 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
+<span id="149">149</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `eval` function.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The `eval()` function evaluates JavaScript code represented as a string.</span>
@@ -161,9 +162,10 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins</span>::{<span class="ident">BuiltIn</span>, <span class="ident">JsArgs</span>},
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">object::FunctionBuilder</span>,
     <span class="ident">property::Attribute</span>,
-    <span class="ident">Context</span>, <span class="ident">JsValue</span>,
+    <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
@@ -198,7 +200,7 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-eval-x</span>
-    <span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">eval</span>(<span class="kw">_</span>: <span class="kw-2">&amp;</span><span class="ident">JsValue</span>, <span class="ident">args</span>: <span class="kw-2">&amp;</span>[<span class="ident">JsValue</span>], <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Return ? PerformEval(x, false, false).</span>
         <span class="ident"><span class="self">Self</span>::perform_eval</span>(<span class="ident">args</span>.<span class="ident">get_or_undefined</span>(<span class="number">0</span>), <span class="bool-val">false</span>, <span class="bool-val">false</span>, <span class="ident">context</span>)
     }
@@ -214,7 +216,7 @@
         <span class="ident">direct</span>: <span class="ident">bool</span>,
         <span class="ident">strict</span>: <span class="ident">bool</span>,
         <span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>,
-    ) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">JsValue</span>, <span class="ident">JsValue</span><span class="op">&gt;</span> {
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">JsValue</span><span class="op">&gt;</span> {
         <span class="comment">// 1. Assert: If direct is false, then strictCaller is also false.</span>
         <span class="macro">debug_assert!</span>(<span class="ident">direct</span> <span class="op">|</span><span class="op">|</span> <span class="op">!</span><span class="ident">strict</span>);
 
@@ -231,7 +233,7 @@
         <span class="comment">// Parse the script body and handle early errors (6 - 11)</span>
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">context</span>.<span class="ident">parse_eval</span>(<span class="ident">x</span>.<span class="ident">to_std_string_escaped</span>().<span class="ident">as_bytes</span>(), <span class="ident">direct</span>, <span class="ident">strict</span>) {
             <span class="prelude-val">Ok</span>(<span class="ident">body</span>) =&gt; <span class="ident">body</span>,
-            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()),
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">e</span>.<span class="ident">to_string</span>()).<span class="ident">into</span>()),
         };
 
         <span class="comment">// 12 - 13 are implicit in the call of `Context::compile_with_new_declarative`.</span>
@@ -257,8 +259,8 @@
                 .<span class="ident">has_lex_binding_until_function_environment</span>(<span class="kw-2">&amp;</span><span class="ident">vars</span>)
             {
                 <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">interner</span>().<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>());
-                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;variable declaration `{name}` in eval function already exists as lexically declaration&quot;</span>);
-                <span class="kw">return</span> <span class="ident">context</span>.<span class="ident">throw_syntax_error</span>(<span class="ident">msg</span>);
+                <span class="kw">let</span> <span class="ident">msg</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;variable declaration {name} in eval function already exists as a lexical variable&quot;</span>);
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="ident">msg</span>).<span class="ident">into</span>());
             }
 
             <span class="comment">// Compile and execute the eval statement list.</span>

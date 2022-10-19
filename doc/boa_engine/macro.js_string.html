@@ -17,7 +17,7 @@
 <span class="kw">let</span> <span class="ident">empty_str</span> <span class="op">=</span> <span class="macro">js_string!</span>();
 <span class="macro">assert!</span>(<span class="ident">empty_str</span>.<span class="ident">is_empty</span>());</code></pre></div>
 <p>You can create a <code>JsString</code> from a string literal, which completely skips the runtime
-conversion from <a href="https://doc.rust-lang.org/1.64.0/std/primitive.str.html" title="&amp;str"><code>&amp;str</code></a> to [<code>&amp;\[u16\]</code>]:</p>
+conversion from <a href="https://doc.rust-lang.org/1.64.0/std/primitive.str.html" title="&amp;str"><code>&amp;str</code></a> to <code><a href="https://doc.rust-lang.org/1.64.0/std/primitive.slice.html" title="slice">&amp;[u16]</a></code>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">let</span> <span class="ident">hw</span> <span class="op">=</span> <span class="macro">js_string!</span>(<span class="string">&quot;Hello, world!&quot;</span>);
 <span class="macro">assert_eq!</span>(<span class="kw-2">&amp;</span><span class="ident">hw</span>, <span class="macro">utf16!</span>(<span class="string">&quot;Hello, world!&quot;</span>));</code></pre></div>

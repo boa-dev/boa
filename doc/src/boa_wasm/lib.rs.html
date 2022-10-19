@@ -141,7 +141,7 @@
     <span class="comment">// Setup executor</span>
     <span class="ident">Context::default</span>()
         .<span class="ident">eval</span>(<span class="ident">src</span>)
-        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsValue::from</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught {}&quot;</span>, <span class="ident">e</span>.<span class="ident">display</span>())))
+        .<span class="ident">map_err</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">JsValue::from</span>(<span class="macro">format!</span>(<span class="string">&quot;Uncaught {e}&quot;</span>)))
         .<span class="ident">map</span>(<span class="op">|</span><span class="ident">v</span><span class="op">|</span> <span class="ident">v</span>.<span class="ident">display</span>().<span class="ident">to_string</span>())
 }
 </code></pre></div>

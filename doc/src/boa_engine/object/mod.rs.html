@@ -2254,6 +2254,12 @@
 <span id="2252">2252</span>
 <span id="2253">2253</span>
 <span id="2254">2254</span>
+<span id="2255">2255</span>
+<span id="2256">2256</span>
+<span id="2257">2257</span>
+<span id="2258">2258</span>
+<span id="2259">2259</span>
+<span id="2260">2260</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the Rust representation of a JavaScript object,</span>
 <span class="doccomment">//! see [`object::builtins`][builtins] for implementors.</span>
 <span class="doccomment">//!</span>
@@ -2286,6 +2292,7 @@
         <span class="ident">array::array_iterator::ArrayIterator</span>,
         <span class="ident">array_buffer::ArrayBuffer</span>,
         <span class="ident">async_generator::AsyncGenerator</span>,
+        <span class="ident">error::ErrorKind</span>,
         <span class="ident">function::arguments::Arguments</span>,
         <span class="ident">function</span>::{
             <span class="ident">arguments::ParameterMap</span>, <span class="ident">BoundFunction</span>, <span class="ident">Captures</span>, <span class="ident">ConstructorKind</span>, <span class="ident">Function</span>,
@@ -2305,6 +2312,7 @@
         <span class="ident">DataView</span>, <span class="ident">Date</span>, <span class="ident">Promise</span>, <span class="ident">RegExp</span>,
     },
     <span class="ident">context::intrinsics::StandardConstructor</span>,
+    <span class="ident">error::JsNativeError</span>,
     <span class="ident">js_string</span>,
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsSymbol</span>, <span class="ident">JsValue</span>,
@@ -2438,7 +2446,7 @@
     <span class="ident">StringIterator</span>(<span class="ident">StringIterator</span>),
     <span class="ident">Number</span>(<span class="ident">f64</span>),
     <span class="ident">Symbol</span>(<span class="ident">JsSymbol</span>),
-    <span class="ident">Error</span>,
+    <span class="ident">Error</span>(<span class="ident">ErrorKind</span>),
     <span class="ident">Ordinary</span>,
     <span class="ident">Proxy</span>(<span class="ident">Proxy</span>),
     <span class="ident">Date</span>(<span class="ident">Date</span>),
@@ -2482,7 +2490,7 @@
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Date</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Array</span>
-            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Error</span>
+            <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Error</span>(<span class="kw">_</span>)
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Ordinary</span>
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Global</span>
             <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Number</span>(<span class="kw">_</span>)
@@ -2709,9 +2717,9 @@
     }
 
     <span class="doccomment">/// Create the `Error` object data</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">error</span>() -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">error</span>(<span class="ident">error</span>: <span class="ident">ErrorKind</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
-            <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>,
+            <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>(<span class="ident">error</span>),
             <span class="ident">internal_methods</span>: <span class="kw-2">&amp;</span><span class="ident">ORDINARY_INTERNAL_METHODS</span>,
         }
     }
@@ -2815,7 +2823,7 @@
             <span class="ident"><span class="self">Self</span>::String</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;String&quot;</span>,
             <span class="ident"><span class="self">Self</span>::StringIterator</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;StringIterator&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Symbol</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Symbol&quot;</span>,
-            <span class="ident"><span class="self">Self</span>::Error</span> =&gt; <span class="string">&quot;Error&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Error</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Error&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Ordinary</span> =&gt; <span class="string">&quot;Ordinary&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Proxy</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Proxy&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Boolean</span>(<span class="kw">_</span>) =&gt; <span class="string">&quot;Boolean&quot;</span>,
@@ -3323,10 +3331,21 @@
         <span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="ident">data</span>,
             <span class="ident">ObjectData</span> {
-                <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>,
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>(<span class="kw">_</span>),
                 ..
             }
         )
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">as_error</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ErrorKind</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="self">self</span>.<span class="ident">data</span> {
+            <span class="ident">ObjectData</span> {
+                <span class="ident">kind</span>: <span class="ident">ObjectKind::Error</span>(<span class="ident">e</span>),
+                ..
+            } =&gt; <span class="prelude-val">Some</span>(<span class="ident">e</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
     }
 
     <span class="doccomment">/// Checks if it a Boolean object.</span>
@@ -3931,7 +3950,8 @@
                 <span class="ident">function</span>: <span class="ident">Box::new</span>(<span class="kw">move</span> <span class="op">|</span><span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">captures</span>: <span class="ident">Captures</span>, <span class="ident">context</span><span class="op">|</span> {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">as_mut_any</span>();
                     <span class="kw">let</span> <span class="ident">captures</span> <span class="op">=</span> <span class="ident">captures</span>.<span class="ident">downcast_mut</span>::<span class="op">&lt;</span><span class="ident">C</span><span class="op">&gt;</span>().<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
-                        <span class="ident">context</span>.<span class="ident">construct_type_error</span>(<span class="string">&quot;cannot downcast `Captures` to given type&quot;</span>)
+                        <span class="ident">JsNativeError::typ</span>()
+                            .<span class="ident">with_message</span>(<span class="string">&quot;cannot downcast `Captures` to given type&quot;</span>)
                     })<span class="question-mark">?</span>;
                     <span class="ident">function</span>(<span class="ident">this</span>, <span class="ident">args</span>, <span class="ident">captures</span>, <span class="ident">context</span>)
                 }),
@@ -4045,16 +4065,8 @@
 <span class="doccomment">/// # use boa_engine::{Context, JsValue, object::ObjectInitializer, property::Attribute};</span>
 <span class="doccomment">/// let mut context = Context::default();</span>
 <span class="doccomment">/// let object = ObjectInitializer::new(&amp;mut context)</span>
-<span class="doccomment">///     .property(</span>
-<span class="doccomment">///         &quot;hello&quot;,</span>
-<span class="doccomment">///         &quot;world&quot;,</span>
-<span class="doccomment">///         Attribute::all()</span>
-<span class="doccomment">///     )</span>
-<span class="doccomment">///     .property(</span>
-<span class="doccomment">///         1,</span>
-<span class="doccomment">///         1,</span>
-<span class="doccomment">///         Attribute::all()</span>
-<span class="doccomment">///     )</span>
+<span class="doccomment">///     .property(&quot;hello&quot;, &quot;world&quot;, Attribute::all())</span>
+<span class="doccomment">///     .property(1, 1, Attribute::all())</span>
 <span class="doccomment">///     .function(|_, _, _| Ok(JsValue::undefined()), &quot;func&quot;, 0)</span>
 <span class="doccomment">///     .build();</span>
 <span class="doccomment">/// ```</span>
