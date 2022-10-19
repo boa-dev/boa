@@ -24,7 +24,7 @@ impl Operation for SetName {
             {
                 let key: JsString = context
                     .interner()
-                    .resolve_expect(binding_locator.name())
+                    .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
                 let exists = context.global_bindings_mut().contains_key(&key);
 
@@ -56,7 +56,7 @@ impl Operation for SetName {
         ) {
             context.throw_reference_error(format!(
                 "cannot access '{}' before initialization",
-                context.interner().resolve_expect(binding_locator.name())
+                context.interner().resolve_expect(binding_locator.name().sym())
             ))?;
         }
         Ok(ShouldExit::False)

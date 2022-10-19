@@ -18,9 +18,9 @@ impl Operation for AssignPrivateField {
         let object = context.vm.pop();
         if let Some(object) = object.as_object() {
             let mut object_borrow_mut = object.borrow_mut();
-            match object_borrow_mut.get_private_element(name) {
+            match object_borrow_mut.get_private_element(name.sym()) {
                 Some(PrivateElement::Field(_)) => {
-                    object_borrow_mut.set_private_element(name, PrivateElement::Field(value));
+                    object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
                 }
                 Some(PrivateElement::Method(_)) => {
                     return context.throw_type_error("private method is not writable");
@@ -64,13 +64,13 @@ impl Operation for SetPrivateField {
             if let Some(PrivateElement::Accessor {
                 getter: _,
                 setter: Some(setter),
-            }) = object_borrow_mut.get_private_element(name)
+            }) = object_borrow_mut.get_private_element(name.sym())
             {
                 let setter = setter.clone();
                 drop(object_borrow_mut);
                 setter.call(&object.clone().into(), &[value], context)?;
             } else {
-                object_borrow_mut.set_private_element(name, PrivateElement::Field(value));
+                object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
             }
         } else {
             return context.throw_type_error("cannot set private property on non-object");
@@ -94,7 +94,7 @@ impl Operation for SetPrivateMethod {
         let object = context.vm.pop();
         if let Some(object) = object.as_object() {
             let mut object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element(name, PrivateElement::Method(value.clone()));
+            object_borrow_mut.set_private_element(name.sym(), PrivateElement::Method(value.clone()));
         } else {
             return context.throw_type_error("cannot set private setter on non-object");
         }
@@ -117,7 +117,7 @@ impl Operation for SetPrivateSetter {
         let object = context.vm.pop();
         if let Some(object) = object.as_object() {
             let mut object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element_setter(name, value.clone());
+            object_borrow_mut.set_private_element_setter(name.sym(), value.clone());
         } else {
             return context.throw_type_error("cannot set private setter on non-object");
         }
@@ -140,7 +140,7 @@ impl Operation for SetPrivateGetter {
         let object = context.vm.pop();
         if let Some(object) = object.as_object() {
             let mut object_borrow_mut = object.borrow_mut();
-            object_borrow_mut.set_private_element_getter(name, value.clone());
+            object_borrow_mut.set_private_element_getter(name.sym(), value.clone());
         } else {
             return context.throw_type_error("cannot set private getter on non-object");
         }

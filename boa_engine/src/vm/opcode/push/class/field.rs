@@ -69,7 +69,7 @@ impl Operation for PushClassFieldPrivate {
             .as_function_mut()
             .expect("class must be function object")
             .push_field_private(
-                name,
+                name.sym(),
                 JsFunction::from_object_unchecked(field_function_object.clone()),
             );
         Ok(ShouldExit::False)

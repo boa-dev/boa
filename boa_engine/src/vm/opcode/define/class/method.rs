@@ -28,7 +28,7 @@ impl Operation for DefineClassMethodByName {
             .expect("method must be function object")
             .set_home_object(object.clone());
         let name = context.vm.frame().code.names[index as usize];
-        let name = context.interner().resolve_expect(name);
+        let name = context.interner().resolve_expect(name.sym());
         object.__define_own_property__(
             name.into_common::<JsString>(false).into(),
             PropertyDescriptor::builder()

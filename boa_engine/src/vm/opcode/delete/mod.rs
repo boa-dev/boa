@@ -15,7 +15,7 @@ impl Operation for DeletePropertyByName {
         let key = context.vm.frame().code.names[index as usize];
         let key = context
             .interner()
-            .resolve_expect(key)
+            .resolve_expect(key.sym())
             .into_common::<JsString>(false)
             .into();
         let object = context.vm.pop();

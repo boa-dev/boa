@@ -24,7 +24,7 @@ impl Operation for DefVar {
         if binding_locator.is_global() {
             let key = context
                 .interner()
-                .resolve_expect(binding_locator.name())
+                .resolve_expect(binding_locator.name().sym())
                 .into_common(false);
             context.global_bindings_mut().entry(key).or_insert(
                 PropertyDescriptor::builder()
@@ -61,7 +61,7 @@ impl Operation for DefInitVar {
         if binding_locator.is_global() {
             let key = context
                 .interner()
-                .resolve_expect(binding_locator.name())
+                .resolve_expect(binding_locator.name().sym())
                 .into_common::<JsString>(false)
                 .into();
             crate::object::internal_methods::global::global_set_no_receiver(&key, value, context)?;

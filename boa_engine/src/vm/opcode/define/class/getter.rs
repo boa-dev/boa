@@ -26,7 +26,7 @@ impl Operation for DefineClassGetterByName {
         let name = context.vm.frame().code.names[index as usize];
         let name = context
             .interner()
-            .resolve_expect(name)
+            .resolve_expect(name.sym())
             .into_common::<JsString>(false)
             .into();
         let set = object

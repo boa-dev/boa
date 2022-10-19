@@ -26,7 +26,7 @@ impl Operation for GetName {
             } else {
                 let key: JsString = context
                     .interner()
-                    .resolve_expect(binding_locator.name())
+                    .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
                 match context.global_bindings_mut().get(&key) {
                     Some(desc) => match desc.kind() {
@@ -61,7 +61,7 @@ impl Operation for GetName {
         } else {
             let name = context
                 .interner()
-                .resolve_expect(binding_locator.name())
+                .resolve_expect(binding_locator.name().sym())
                 .to_string();
             return context.throw_reference_error(format!("{name} is not initialized"));
         };
@@ -92,7 +92,7 @@ impl Operation for GetNameOrUndefined {
             } else {
                 let key: JsString = context
                     .interner()
-                    .resolve_expect(binding_locator.name())
+                    .resolve_expect(binding_locator.name().sym())
                     .into_common(false);
                 match context.global_bindings_mut().get(&key) {
                     Some(desc) => match desc.kind() {

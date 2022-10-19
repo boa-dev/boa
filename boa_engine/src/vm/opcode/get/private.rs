@@ -17,7 +17,7 @@ impl Operation for GetPrivateField {
         let value = context.vm.pop();
         if let Some(object) = value.as_object() {
             let object_borrow_mut = object.borrow();
-            if let Some(element) = object_borrow_mut.get_private_element(name) {
+            if let Some(element) = object_borrow_mut.get_private_element(name.sym()) {
                 match element {
                     PrivateElement::Field(value) => context.vm.push(value),
                     PrivateElement::Method(method) => context.vm.push(method.clone()),
