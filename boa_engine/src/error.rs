@@ -504,7 +504,7 @@ impl JsNativeError {
         Self::new(JsNativeErrorKind::Uri, Box::default(), None)
     }
 
-    /// Appends a message to this error.
+    /// Sets the message of this error.
     ///
     /// # Examples
     ///
@@ -523,7 +523,7 @@ impl JsNativeError {
         self
     }
 
-    /// Appends a cause to this error.
+    /// Sets the cause of this error.
     ///
     /// # Examples
     ///
