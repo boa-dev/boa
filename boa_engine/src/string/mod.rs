@@ -55,7 +55,7 @@ use self::common::{COMMON_STRINGS, COMMON_STRINGS_CACHE, MAX_COMMON_STRING_LENGT
 ///
 ///
 /// You can create a `JsString` from a string literal, which completely skips the runtime
-/// conversion from [`&str`] to [`&\[u16\]`]:
+/// conversion from [`&str`] to <code>[&\[u16\]][slice]</code>:
 ///
 /// ```
 /// # use boa_engine::js_string;
@@ -255,7 +255,7 @@ impl TaggedJsString {
 }
 
 /// Enum representing either a reference to a heap allocated [`RawJsString`] or a static reference to
-/// a [`\[u16\]`][std::slice] inside [`COMMON_STRINGS`].
+/// a [`\[u16\]`][slice] inside [`COMMON_STRINGS`].
 enum JsStringPtrKind<'a> {
     // A string allocated on the heap.
     Heap(&'a mut RawJsString),
@@ -265,8 +265,8 @@ enum JsStringPtrKind<'a> {
 
 /// A UTF-16–encoded, reference counted, immutable string.
 ///
-/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][std::slice]\></code>, but without
-/// the length metadata associated with the [`Rc`][std::rc::Rc] fat pointer. Instead, the length of
+/// This is pretty similar to a <code>[Rc][std::rc::Rc]\<[\[u16\]][slice]\></code>, but without
+/// the length metadata associated with the `Rc` fat pointer. Instead, the length of
 /// every string is stored on the heap, along with its reference counter and its data.
 ///
 /// We define some commonly used string constants in an interner. For these strings, we don't allocate
@@ -274,8 +274,8 @@ enum JsStringPtrKind<'a> {
 ///
 /// # Deref
 ///
-/// [`JsString`] implements <code>[Deref]<Target = [\[u16\]][std::slice]></code>, inheriting all of
-/// [`\[u16\]`][std::slice]'s methods.
+/// [`JsString`] implements <code>[Deref]<Target = \[u16\]></code>, inheriting all of
+/// <code>\[u16\]</code>'s methods.
 #[derive(Finalize)]
 pub struct JsString {
     ptr: TaggedJsString,
@@ -287,7 +287,7 @@ unsafe impl Trace for JsString {
 }
 
 impl JsString {
-    /// Obtains the underlying [`&[u16]`][std::slice] slice of a [`JsString`]
+    /// Obtains the underlying [`&[u16]`][slice] slice of a [`JsString`]
     pub fn as_slice(&self) -> &[u16] {
         self
     }
@@ -805,6 +805,30 @@ impl<const N: usize> PartialEq<[u16; N]> for JsString {
     }
 }
 
+impl PartialEq<str> for JsString {
+    fn eq(&self, other: &str) -> bool {
+        let utf16 = self.code_points();
+        let mut utf8 = other.chars();
+
+        for lhs in utf16 {
+            if let Some(rhs) = utf8.next() {
+                match lhs {
+                    CodePoint::Unicode(lhs) if lhs == rhs => continue,
+                    _ => return false,
+                }
+            }
+            return false;
+        }
+        utf8.next().is_none()
+    }
+}
+
+impl PartialEq<JsString> for str {
+    fn eq(&self, other: &JsString) -> bool {
+        other == self
+    }
+}
+
 impl PartialOrd for JsString {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self[..].partial_cmp(other)
@@ -850,8 +874,7 @@ impl Utf16Trim for [u16] {
     }
 }
 
-/// Utility trait that adds a `UTF-16` escaped representation to every
-/// [`[u16]`][std::slice].
+/// Utility trait that adds a `UTF-16` escaped representation to every [`[u16]`][slice].
 pub(crate) trait ToStringEscaped {
     /// Decodes `self` as an `UTF-16` encoded string, escaping any unpaired surrogates by its
     /// codepoint value.

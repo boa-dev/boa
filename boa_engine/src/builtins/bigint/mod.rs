@@ -14,6 +14,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
     object::ConstructorBuilder,
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -84,7 +85,9 @@ impl BigInt {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is not undefined, throw a TypeError exception.
         if !new_target.is_undefined() {
-            return context.throw_type_error("BigInt is not a constructor");
+            return Err(JsNativeError::typ()
+                .with_message("BigInt is not a constructor")
+                .into());
         }
 
         let value = args.get_or_undefined(0);
@@ -94,7 +97,7 @@ impl BigInt {
 
         // 3. If Type(prim) is Number, return ? NumberToBigInt(prim).
         if let Some(number) = prim.as_number() {
-            return Self::number_to_bigint(number, context);
+            return Self::number_to_bigint(number);
         }
 
         // 4. Otherwise, return ? ToBigInt(value).
@@ -108,10 +111,12 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-numbertobigint
     #[inline]
-    fn number_to_bigint(number: f64, context: &mut Context) -> JsResult<JsValue> {
+    fn number_to_bigint(number: f64) -> JsResult<JsValue> {
         // 1. If IsIntegralNumber(number) is false, throw a RangeError exception.
         if number.is_nan() || number.is_infinite() || number.fract() != 0.0 {
-            return context.throw_range_error(format!("Cannot convert {number} to BigInt"));
+            return Err(JsNativeError::range()
+                .with_message(format!("Cannot convert {number} to BigInt"))
+                .into());
         }
 
         // 2. Return the BigInt value that represents ℝ(number).
@@ -129,7 +134,7 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbigintvalue
     #[inline]
-    fn this_bigint_value(value: &JsValue, context: &mut Context) -> JsResult<JsBigInt> {
+    fn this_bigint_value(value: &JsValue) -> JsResult<JsBigInt> {
         value
             // 1. If Type(value) is BigInt, return value.
             .as_bigint()
@@ -143,7 +148,11 @@ impl BigInt {
                     .and_then(|obj| obj.borrow().as_bigint().cloned())
             })
             // 3. Throw a TypeError exception.
-            .ok_or_else(|| context.construct_type_error("'this' is not a BigInt"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a BigInt")
+                    .into()
+            })
     }
 
     /// `BigInt.prototype.toString( [radix] )`
@@ -163,7 +172,7 @@ impl BigInt {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisBigIntValue(this value).
-        let x = Self::this_bigint_value(this, context)?;
+        let x = Self::this_bigint_value(this)?;
 
         let radix = args.get_or_undefined(0);
 
@@ -181,9 +190,9 @@ impl BigInt {
         let radix_mv = match radix_mv {
             IntegerOrInfinity::Integer(i) if (2..=36).contains(&i) => i,
             _ => {
-                return context.throw_range_error(
-                    "radix must be an integer at least 2 and no greater than 36",
-                )
+                return Err(JsNativeError::range()
+                    .with_message("radix must be an integer at least 2 and no greater than 36")
+                    .into())
             }
         };
 
@@ -209,12 +218,8 @@ impl BigInt {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-bigint.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(JsValue::new(Self::this_bigint_value(this, context)?))
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_bigint_value(this)?))
     }
 
     /// `BigInt.asIntN()`
@@ -232,16 +237,11 @@ impl BigInt {
         let (modulo, bits) = Self::calculate_as_uint_n(args, context)?;
 
         if bits > 0
-            && modulo
-                >= JsBigInt::pow(
-                    &JsBigInt::new(2),
-                    &JsBigInt::new(i64::from(bits) - 1),
-                    context,
-                )?
+            && modulo >= JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits) - 1))?
         {
             Ok(JsValue::new(JsBigInt::sub(
                 &modulo,
-                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)), context)?,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)))?,
             )))
         } else {
             Ok(JsValue::new(modulo))
@@ -282,7 +282,7 @@ impl BigInt {
         Ok((
             JsBigInt::mod_floor(
                 &bigint,
-                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)), context)?,
+                &JsBigInt::pow(&JsBigInt::new(2), &JsBigInt::new(i64::from(bits)))?,
             ),
             bits,
         ))

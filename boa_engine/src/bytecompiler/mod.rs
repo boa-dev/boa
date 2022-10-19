@@ -24,7 +24,7 @@ use crate::{
         Declaration, Expression, Statement, StatementList, StatementListItem,
     },
     vm::{BindingOpcode, CodeBlock, Opcode},
-    Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsNativeError, JsResult, JsString, JsValue,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -808,8 +808,7 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::Inc, &[]);
 
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
-                            self.context
-                                .construct_syntax_error("Invalid increment operand")
+                            JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
                         self.access_set(access, None, true)?;
                         None
@@ -818,9 +817,9 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Dec, &[]);
 
+                        // TODO: promote to an early error.
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
-                            self.context
-                                .construct_syntax_error("Invalid decrement operand")
+                            JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
                         self.access_set(access, None, true)?;
                         None
@@ -829,9 +828,9 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::IncPost, &[]);
 
+                        // TODO: promote to an early error.
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
-                            self.context
-                                .construct_syntax_error("Invalid increment operand")
+                            JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
                         self.access_set(access, None, false)?;
 
@@ -841,9 +840,9 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::DecPost, &[]);
 
+                        // TODO: promote to an early error.
                         let access = Self::compile_access(unary.target()).ok_or_else(|| {
-                            self.context
-                                .construct_syntax_error("Invalid decrement operand")
+                            JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
                         self.access_set(access, None, false)?;
 
@@ -1190,10 +1189,11 @@ impl<'b> ByteCompiler<'b> {
                             self.emit(Opcode::CopyDataProperties, &[0, 0]);
                             self.emit_opcode(Opcode::Pop);
                         }
+                        // TODO: Promote to early errors
                         PropertyDefinition::CoverInitializedName(_, _) => {
-                            return self.context.throw_syntax_error(
-                                "invalid assignment pattern in object literal",
-                            );
+                            return Err(JsNativeError::syntax()
+                                .with_message("invalid assignment pattern in object literal")
+                                .into())
                         }
                     }
                 }
@@ -1933,9 +1933,10 @@ impl<'b> ByteCompiler<'b> {
                                 emit_for_of_in_exit += 1;
                             }
                         }
+                        // TODO: promote to an early error.
                         let address = address_info
                             .ok_or_else(|| {
-                                self.context.construct_syntax_error(format!(
+                                JsNativeError::syntax().with_message(format!(
                                     "Cannot use the undeclared label '{}'",
                                     self.context.interner().resolve_expect(label_name)
                                 ))
@@ -1953,9 +1954,9 @@ impl<'b> ByteCompiler<'b> {
                     } else {
                         items
                             .next()
+                            // TODO: promote to an early error.
                             .ok_or_else(|| {
-                                self.context
-                                    .construct_syntax_error("continue must be inside loop")
+                                JsNativeError::syntax().with_message("continue must be inside loop")
                             })?
                             .start_address
                     };
@@ -1998,19 +1999,22 @@ impl<'b> ByteCompiler<'b> {
                             break;
                         }
                     }
+                    // TODO: promote to an early error.
                     if !found {
-                        return self.context.throw_syntax_error(format!(
-                            "Cannot use the undeclared label '{}'",
-                            self.interner().resolve_expect(label_name)
-                        ));
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!(
+                                "Cannot use the undeclared label '{}'",
+                                self.interner().resolve_expect(label_name)
+                            ))
+                            .into());
                     }
                 } else {
                     self.jump_info
                         .last_mut()
+                        // TODO: promote to an early error.
                         .ok_or_else(|| {
-                            self.context.construct_syntax_error(
-                                "unlabeled break must be inside loop or switch",
-                            )
+                            JsNativeError::syntax()
+                                .with_message("unlabeled break must be inside loop or switch")
                         })?
                         .breaks
                         .push(label);

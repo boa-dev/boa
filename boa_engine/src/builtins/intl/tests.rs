@@ -380,8 +380,9 @@ fn get_opt() {
     let maximum = 10.0;
     let fallback_val = 5.0;
     let fallback = Some(fallback_val);
-    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
-    assert_eq!(get_option_result, Ok(fallback));
+    let get_option_result =
+        default_number_option(&value, minimum, maximum, fallback, &mut context).unwrap();
+    assert_eq!(get_option_result, fallback);
 
     let value = JsValue::nan();
     let minimum = 1.0;
@@ -409,8 +410,9 @@ fn get_opt() {
     let minimum = 1.0;
     let maximum = 10.0;
     let fallback = Some(5.0);
-    let get_option_result = default_number_option(&value, minimum, maximum, fallback, &mut context);
-    assert_eq!(get_option_result, Ok(Some(value_f64)));
+    let get_option_result =
+        default_number_option(&value, minimum, maximum, fallback, &mut context).unwrap();
+    assert_eq!(get_option_result, Some(value_f64));
 
     let options = JsObject::empty();
     let property = "fractionalSecondDigits";
@@ -419,8 +421,8 @@ fn get_opt() {
     let fallback_val = 5.0;
     let fallback = Some(fallback_val);
     let get_option_result =
-        get_number_option(&options, property, minimum, maximum, fallback, &mut context);
-    assert_eq!(get_option_result, Ok(fallback));
+        get_number_option(&options, property, minimum, maximum, fallback, &mut context).unwrap();
+    assert_eq!(get_option_result, fallback);
 
     let options = JsObject::empty();
     let value_f64 = 8.0;
@@ -433,8 +435,8 @@ fn get_opt() {
     let maximum = 10.0;
     let fallback = Some(5.0);
     let get_option_result =
-        get_number_option(&options, property, minimum, maximum, fallback, &mut context);
-    assert_eq!(get_option_result, Ok(Some(value_f64)));
+        get_number_option(&options, property, minimum, maximum, fallback, &mut context).unwrap();
+    assert_eq!(get_option_result, Some(value_f64));
 }
 
 #[test]
@@ -475,16 +477,16 @@ fn to_date_time_opts() {
 
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
-        date_time_opts.get("year", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("year", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("month", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("month", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("day", &mut context),
-        Ok(numeric_jsstring)
+        date_time_opts.get("day", &mut context).unwrap(),
+        numeric_jsstring
     );
 
     let date_time_opts = to_date_time_options(
@@ -497,16 +499,16 @@ fn to_date_time_opts() {
 
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
-        date_time_opts.get("hour", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("hour", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("minute", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("minute", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("second", &mut context),
-        Ok(numeric_jsstring)
+        date_time_opts.get("second", &mut context).unwrap(),
+        numeric_jsstring
     );
 
     let date_time_opts = to_date_time_options(
@@ -519,27 +521,27 @@ fn to_date_time_opts() {
 
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
-        date_time_opts.get("year", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("year", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("month", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("month", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("day", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("day", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("hour", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("hour", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("minute", &mut context),
-        Ok(numeric_jsstring.clone())
+        date_time_opts.get("minute", &mut context).unwrap(),
+        numeric_jsstring.clone()
     );
     assert_eq!(
-        date_time_opts.get("second", &mut context),
-        Ok(numeric_jsstring)
+        date_time_opts.get("second", &mut context).unwrap(),
+        numeric_jsstring
     );
 }

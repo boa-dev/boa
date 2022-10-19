@@ -20,7 +20,7 @@ use self::consts::{
 use super::BuiltIn;
 use crate::{
     builtins::JsArgs, js_string, object::FunctionBuilder, property::Attribute, string::CodePoint,
-    Context, JsResult, JsString, JsValue,
+    Context, JsNativeError, JsResult, JsString, JsValue,
 };
 
 /// URI Handling Functions
@@ -111,11 +111,7 @@ impl Uri {
         let reserved_uri_set = is_uri_reserved_or_number_sign;
 
         // 3. Return ? Decode(uriString, reservedURISet).
-        Ok(JsValue::from(decode(
-            context,
-            &uri_string,
-            reserved_uri_set,
-        )?))
+        Ok(JsValue::from(decode(&uri_string, reserved_uri_set)?))
     }
 
     /// Builtin JavaScript `decodeURIComponent ( encodedURIComponent )` function.
@@ -145,7 +141,6 @@ impl Uri {
 
         // 3. Return ? Decode(componentString, reservedURIComponentSet).
         Ok(JsValue::from(decode(
-            context,
             &component_string,
             reserved_uri_component_set,
         )?))
@@ -177,11 +172,7 @@ impl Uri {
         let unescaped_uri_set = is_uri_reserved_or_uri_unescaped_or_number_sign;
 
         // 3. Return ? Encode(uriString, unescapedURISet).
-        Ok(JsValue::from(encode(
-            context,
-            &uri_string,
-            unescaped_uri_set,
-        )?))
+        Ok(JsValue::from(encode(&uri_string, unescaped_uri_set)?))
     }
 
     /// Builtin JavaScript `encodeURIComponent ( uriComponent )` function.
@@ -211,7 +202,6 @@ impl Uri {
 
         // 3. Return ? Encode(componentString, unescapedURIComponentSet).
         Ok(JsValue::from(encode(
-            context,
             &component_string,
             unescaped_uri_component_set,
         )?))
@@ -228,7 +218,7 @@ impl Uri {
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-encode
-fn encode<F>(context: &mut Context, string: &JsString, unescaped_set: F) -> JsResult<JsString>
+fn encode<F>(string: &JsString, unescaped_set: F) -> JsResult<JsString>
 where
     F: Fn(u16) -> bool,
 {
@@ -266,7 +256,9 @@ where
             let ch = if let CodePoint::Unicode(ch) = cp {
                 ch
             } else {
-                return Err(context.construct_uri_error("trying to encode an invalid string"));
+                return Err(JsNativeError::uri()
+                    .with_message("trying to encode an invalid string")
+                    .into());
             };
 
             // iii. Set k to k + cp.[[CodeUnitCount]].
@@ -302,7 +294,7 @@ where
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-decode
 #[allow(clippy::many_single_char_names)]
-fn decode<F>(context: &mut Context, string: &JsString, reserved_set: F) -> JsResult<JsString>
+fn decode<F>(string: &JsString, reserved_set: F) -> JsResult<JsString>
 where
     F: Fn(u16) -> bool,
 {
@@ -337,14 +329,17 @@ where
 
             // ii. If k + 2 ≥ strLen, throw a URIError exception.
             if k + 2 >= str_len {
-                context.throw_uri_error("invalid escape character found")?;
+                return Err(JsNativeError::uri()
+                    .with_message("invalid escape character found")
+                    .into());
             }
 
             // iii. If the code units at index (k + 1) and (k + 2) within string do not represent
             // hexadecimal digits, throw a URIError exception.
             // iv. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
-            let b = decode_hex_byte(string[k + 1], string[k + 2])
-                .ok_or_else(|| context.construct_uri_error("invalid hexadecimal digit found"))?;
+            let b = decode_hex_byte(string[k + 1], string[k + 2]).ok_or_else(|| {
+                JsNativeError::uri().with_message("invalid hexadecimal digit found")
+            })?;
 
             // v. Set k to k + 2.
             k += 2;
@@ -370,12 +365,16 @@ where
                 // viii. Else,
                 // 1. If n = 1 or n > 4, throw a URIError exception.
                 if n == 1 || n > 4 {
-                    context.throw_uri_error("invalid escaped character found")?;
+                    return Err(JsNativeError::uri()
+                        .with_message("invalid escaped character found")
+                        .into());
                 }
 
                 // 2. If k + (3 × (n - 1)) ≥ strLen, throw a URIError exception.
                 if k + (3 * (n - 1)) > str_len {
-                    context.throw_uri_error("non-terminated escape character found")?;
+                    return Err(JsNativeError::uri()
+                        .with_message("non-terminated escape character found")
+                        .into());
                 }
 
                 // 3. Let Octets be « B ».
@@ -389,14 +388,15 @@ where
 
                     // b. If the code unit at index k within string is not the code unit 0x0025 (PERCENT SIGN), throw a URIError exception.
                     if string[k] != 0x0025 {
-                        context
-                            .throw_uri_error("escape characters must be preceded with a % sign")?;
+                        return Err(JsNativeError::uri()
+                            .with_message("escape characters must be preceded with a % sign")
+                            .into());
                     }
 
                     // c. If the code units at index (k + 1) and (k + 2) within string do not represent hexadecimal digits, throw a URIError exception.
                     // d. Let B be the 8-bit value represented by the two hexadecimal digits at index (k + 1) and (k + 2).
                     let b = decode_hex_byte(string[k + 1], string[k + 2]).ok_or_else(|| {
-                        context.construct_uri_error("invalid hexadecimal digit found")
+                        JsNativeError::uri().with_message("invalid hexadecimal digit found")
                     })?;
 
                     // e. Set k to k + 2.
@@ -414,7 +414,9 @@ where
                 // 7. If Octets does not contain a valid UTF-8 encoding of a Unicode code point, throw a URIError exception.
                 match std::str::from_utf8(&octets) {
                     Err(_) => {
-                        return Err(context.construct_uri_error("invalid UTF-8 encoding found"))
+                        return Err(JsNativeError::uri()
+                            .with_message("invalid UTF-8 encoding found")
+                            .into())
                     }
                     Ok(v) => {
                         // 8. Let V be the code point obtained by applying the UTF-8 transformation to Octets, that is, from a List of octets into a 21-bit value.

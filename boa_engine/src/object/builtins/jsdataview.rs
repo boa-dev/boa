@@ -6,7 +6,7 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsArrayBuffer, JsObject, JsObjectType,
         ObjectData,
     },
-    Context, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -43,22 +43,25 @@ impl JsDataView {
     ) -> JsResult<Self> {
         let (byte_offset, byte_length) = {
             let borrowed_buffer = array_buffer.borrow();
-            let buffer = borrowed_buffer
-                .as_array_buffer()
-                .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
+            let buffer = borrowed_buffer.as_array_buffer().ok_or_else(|| {
+                JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
+            })?;
 
             let provided_offset = offset.unwrap_or(0_u64);
 
             // Check if buffer is detached.
             if buffer.is_detached_buffer() {
-                return context.throw_type_error("ArrayBuffer is detached");
+                return Err(JsNativeError::typ()
+                    .with_message("ArrayBuffer is detached")
+                    .into());
             };
 
             let array_buffer_length = buffer.array_buffer_byte_length();
 
             if provided_offset > array_buffer_length {
-                return context
-                    .throw_range_error("Provided offset is outside the bounds of the buffer");
+                return Err(JsNativeError::range()
+                    .with_message("Provided offset is outside the bounds of the buffer")
+                    .into());
             }
 
             let view_byte_length = if let Some(..) = byte_length {
@@ -67,7 +70,9 @@ impl JsDataView {
 
                 // Check that the provided length and offset does not exceed the bounds of the ArrayBuffer
                 if provided_offset + provided_length > array_buffer_length {
-                    return context.throw_range_error("Invalid data view length");
+                    return Err(JsNativeError::range()
+                        .with_message("Invalid data view length")
+                        .into());
                 }
 
                 provided_length
@@ -101,11 +106,13 @@ impl JsDataView {
     }
 
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_data_view() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not a DataView")
+            Err(JsNativeError::typ()
+                .with_message("object is not a DataView")
+                .into())
         }
     }
 

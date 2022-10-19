@@ -109,6 +109,7 @@ dependencies = [
  "static_assertions",
  "sys-locale",
  "tap",
+ "thiserror",
  "unicode-normalization",
 ]
 

@@ -4,7 +4,6 @@
 //!  - [ECMAScript specification][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-identifiers
-//!
 
 use crate::syntax::{
     ast::{expression::Identifier, Keyword},

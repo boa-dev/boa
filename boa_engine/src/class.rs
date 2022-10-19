@@ -2,14 +2,14 @@
 //!
 //! Native classes are implemented through the [`Class`][class-trait] trait.
 //! ```
-//!# use boa_engine::{
-//!#    property::Attribute,
-//!#    class::{Class, ClassBuilder},
-//!#    Context, JsResult, JsValue,
-//!#    builtins::JsArgs,
-//!# };
-//!# use boa_gc::{Finalize, Trace};
-//!#
+//! # use boa_engine::{
+//! #    property::Attribute,
+//! #    class::{Class, ClassBuilder},
+//! #    Context, JsResult, JsValue,
+//! #    builtins::JsArgs,
+//! # };
+//! # use boa_gc::{Finalize, Trace};
+//! #
 //! // This does not have to be an enum it can also be a struct.
 //! #[derive(Debug, Trace, Finalize)]
 //! enum Animal {
@@ -63,6 +63,7 @@
 
 use crate::{
     builtins::function::NativeFunctionSignature,
+    error::JsNativeError,
     object::{ConstructorBuilder, JsFunction, JsObject, NativeObject, ObjectData, PROTOTYPE},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsResult, JsValue,
@@ -104,29 +105,35 @@ impl<T: Class> ClassConstructor for T {
         Self: Sized,
     {
         if this.is_undefined() {
-            return context.throw_type_error(format!(
-                "cannot call constructor of native class `{}` without new",
-                T::NAME
-            ));
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "cannot call constructor of native class `{}` without new",
+                    T::NAME
+                ))
+                .into());
         }
 
         let class_constructor = context.global_object().clone().get(T::NAME, context)?;
         let class_constructor = if let JsValue::Object(ref obj) = class_constructor {
             obj
         } else {
-            return context.throw_type_error(format!(
-                "invalid constructor for native class `{}` ",
-                T::NAME
-            ));
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "invalid constructor for native class `{}` ",
+                    T::NAME
+                ))
+                .into());
         };
         let class_prototype =
             if let JsValue::Object(ref obj) = class_constructor.get(PROTOTYPE, context)? {
                 obj.clone()
             } else {
-                return context.throw_type_error(format!(
-                    "invalid default prototype for native class `{}`",
-                    T::NAME
-                ));
+                return Err(JsNativeError::typ()
+                    .with_message(format!(
+                        "invalid default prototype for native class `{}`",
+                        T::NAME
+                    ))
+                    .into());
             };
 
         let prototype = this

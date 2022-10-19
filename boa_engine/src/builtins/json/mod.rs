@@ -21,6 +21,7 @@ use std::{
 
 use crate::{
     builtins::BuiltIn,
+    error::JsNativeError,
     js_string,
     object::{JsObject, ObjectInitializer, RecursionLimiter},
     property::{Attribute, PropertyNameKind},
@@ -174,12 +175,12 @@ impl Json {
             .unwrap_or_default()
             .to_string(context)?
             .to_std_string()
-            .map_err(|e| context.construct_syntax_error(e.to_string()))?;
+            .map_err(|e| JsNativeError::syntax().with_message(e.to_string()))?;
 
         // 2. Parse ! StringToCodePoints(jsonString) as a JSON text as specified in ECMA-404.
         //    Throw a SyntaxError exception if it is not a valid JSON text as defined in that specification.
         if let Err(e) = serde_json::from_str::<serde_json::Value>(&json_string) {
-            return context.throw_syntax_error(e.to_string());
+            return Err(JsNativeError::syntax().with_message(e.to_string()).into());
         }
 
         // 3. Let scriptString be the string-concatenation of "(", jsonString, and ");".
@@ -550,7 +551,9 @@ impl Json {
 
         // 10. If Type(value) is BigInt, throw a TypeError exception.
         if value.is_bigint() {
-            return context.throw_type_error("cannot serialize bigint to JSON");
+            return Err(JsNativeError::typ()
+                .with_message("cannot serialize bigint to JSON")
+                .into());
         }
 
         // 11. If Type(value) is Object and IsCallable(value) is false, then
@@ -638,7 +641,9 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return context.throw_type_error("cyclic object value");
+            return Err(JsNativeError::typ()
+                .with_message("cyclic object value")
+                .into());
         }
 
         // 2. Append value to state.[[Stack]].
@@ -764,7 +769,9 @@ impl Json {
         // 1. If state.[[Stack]] contains value, throw a TypeError exception because the structure is cyclical.
         let limiter = RecursionLimiter::new(value);
         if limiter.live {
-            return context.throw_type_error("cyclic object value");
+            return Err(JsNativeError::typ()
+                .with_message("cyclic object value")
+                .into());
         }
 
         // 2. Append value to state.[[Stack]].

@@ -83,6 +83,7 @@ pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environments;
+pub mod error;
 pub mod job;
 pub mod object;
 pub mod property;
@@ -98,7 +99,11 @@ mod tests;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
-    pub use crate::{object::JsObject, Context, JsBigInt, JsResult, JsString, JsValue};
+    pub use crate::{
+        error::{JsError, JsNativeError, JsNativeErrorKind},
+        object::JsObject,
+        Context, JsBigInt, JsResult, JsString, JsValue,
+    };
 }
 
 use std::result::Result as StdResult;
@@ -106,11 +111,16 @@ use std::result::Result as StdResult;
 // Export things to root level
 #[doc(inline)]
 pub use crate::{
-    bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::JsValue,
+    bigint::JsBigInt,
+    context::Context,
+    error::{JsError, JsNativeError, JsNativeErrorKind},
+    string::JsString,
+    symbol::JsSymbol,
+    value::JsValue,
 };
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
-pub type JsResult<T> = StdResult<T, JsValue>;
+pub type JsResult<T> = StdResult<T, JsError>;
 
 /// Execute the code using an existing `Context`.
 ///
@@ -120,10 +130,9 @@ pub(crate) fn forward<S>(context: &mut Context, src: S) -> String
 where
     S: AsRef<[u8]>,
 {
-    context.eval(src.as_ref()).map_or_else(
-        |e| format!("Uncaught {}", e.display()),
-        |v| v.display().to_string(),
-    )
+    context
+        .eval(src.as_ref())
+        .map_or_else(|e| format!("Uncaught {}", e), |v| v.display().to_string())
 }
 
 /// Execute the code using an existing Context.
@@ -154,7 +163,7 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
 
     match Context::default().eval(src_bytes) {
         Ok(value) => value.display().to_string(),
-        Err(error) => error.display().to_string(),
+        Err(error) => error.to_string(),
     }
 }
 

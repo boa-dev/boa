@@ -1,5 +1,6 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -39,7 +40,7 @@ impl StringIterator {
         let string_iterator = string_iterator
             .as_mut()
             .and_then(|obj| obj.as_string_iterator_mut())
-            .ok_or_else(|| context.construct_type_error("`this` is not an ArrayIterator"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
 
         if string_iterator.string.is_undefined() {
             return Ok(create_iter_result_object(

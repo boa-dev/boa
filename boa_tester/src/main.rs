@@ -77,6 +77,7 @@ use clap::{ArgAction, Parser, ValueHint};
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
 use once_cell::sync::Lazy;
+use read::ErrorType;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -456,7 +457,7 @@ impl Test {
 #[derive(Debug, Clone)]
 enum Outcome {
     Positive,
-    Negative { phase: Phase, error_type: Box<str> },
+    Negative { phase: Phase, error_type: ErrorType },
 }
 
 impl Default for Outcome {

@@ -1,5 +1,6 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    error::JsNativeError,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -72,7 +73,7 @@ impl ArrayIterator {
         let array_iterator = array_iterator
             .as_mut()
             .and_then(|obj| obj.as_array_iterator_mut())
-            .ok_or_else(|| context.construct_type_error("`this` is not an ArrayIterator"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an ArrayIterator"))?;
         let index = array_iterator.next_index;
         if array_iterator.done {
             return Ok(create_iter_result_object(
@@ -84,9 +85,11 @@ impl ArrayIterator {
 
         let len = if let Some(f) = array_iterator.array.borrow().as_typed_array() {
             if f.is_detached() {
-                return context.throw_type_error(
-                    "Cannot get value from typed array that has a detached array buffer",
-                );
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "Cannot get value from typed array that has a detached array buffer",
+                    )
+                    .into());
             }
 
             f.array_length()

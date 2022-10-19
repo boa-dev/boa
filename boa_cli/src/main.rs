@@ -118,7 +118,6 @@ impl Opt {
 #[derive(Debug, Clone, ValueEnum)]
 enum DumpFormat {
     /// The different types of format available for dumping.
-    ///
     // NOTE: This can easily support other formats just by
     // adding a field to this enum and adding the necessary
     // implementation. Example: Toml, Html, etc.
@@ -204,7 +203,7 @@ pub fn main() -> Result<(), io::Error> {
         } else {
             match context.eval(&buffer) {
                 Ok(v) => println!("{}", v.display()),
-                Err(v) => eprintln!("Uncaught {}", v.display()),
+                Err(v) => eprintln!("Uncaught {v}"),
             }
         }
     }
@@ -251,11 +250,7 @@ pub fn main() -> Result<(), io::Error> {
                         match context.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
-                                eprintln!(
-                                    "{}: {}",
-                                    "Uncaught".red(),
-                                    v.display().to_string().red()
-                                );
+                                eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                             }
                         }
                     }

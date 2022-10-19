@@ -3,6 +3,7 @@
 use super::JsValue;
 use crate::{
     builtins::Array,
+    error::JsNativeError,
     property::{PropertyDescriptor, PropertyKey},
     Context, JsResult,
 };
@@ -49,9 +50,9 @@ impl JsValue {
                 .map(|i| Self::Integer(i as i32))
                 .or_else(|| num.as_f64().map(Self::Rational))
                 .ok_or_else(|| {
-                    context.construct_type_error(format!(
-                        "could not convert JSON number {num} to JsValue"
-                    ))
+                    JsNativeError::typ()
+                        .with_message(format!("could not convert JSON number {num} to JsValue"))
+                        .into()
                 }),
             Value::String(string) => Ok(Self::from(string.as_str())),
             Value::Array(vec) => {
@@ -111,7 +112,9 @@ impl JsValue {
             Self::String(string) => Ok(string.to_std_string_escaped().into()),
             &Self::Rational(rat) => Ok(rat.into()),
             &Self::Integer(int) => Ok(int.into()),
-            Self::BigInt(_bigint) => context.throw_type_error("cannot convert bigint to JSON"),
+            Self::BigInt(_bigint) => Err(JsNativeError::typ()
+                .with_message("cannot convert bigint to JSON")
+                .into()),
             Self::Object(obj) => {
                 if obj.is_array() {
                     let len = obj.length_of_array_like(context)?;
@@ -134,7 +137,9 @@ impl JsValue {
                             PropertyKey::String(string) => string.to_std_string_escaped(),
                             PropertyKey::Index(i) => i.to_string(),
                             PropertyKey::Symbol(_sym) => {
-                                return context.throw_type_error("cannot convert Symbol to JSON")
+                                return Err(JsNativeError::typ()
+                                    .with_message("cannot convert Symbol to JSON")
+                                    .into())
                             }
                         };
 
@@ -149,7 +154,9 @@ impl JsValue {
                     Ok(Value::Object(map))
                 }
             }
-            Self::Symbol(_sym) => context.throw_type_error("cannot convert Symbol to JSON"),
+            Self::Symbol(_sym) => Err(JsNativeError::typ()
+                .with_message("cannot convert Symbol to JSON")
+                .into()),
         }
     }
 }
@@ -198,7 +205,7 @@ mod tests {
             let phones = obj.get("phones", &mut context).unwrap();
             let phones = phones.as_object().unwrap();
 
-            let arr = JsArray::from_object(phones.clone(), &mut context).unwrap();
+            let arr = JsArray::from_object(phones.clone()).unwrap();
             assert_eq!(arr.at(0, &mut context).unwrap(), "+44 1234567".into());
             assert_eq!(arr.at(1, &mut context).unwrap(), JsValue::from(-45_i32));
             assert!(arr.at(2, &mut context).unwrap().is_object());

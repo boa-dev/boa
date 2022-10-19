@@ -2,6 +2,7 @@
 use crate::{
     builtins::map::{add_entries_from_iterable, ordered_map::OrderedMap},
     builtins::Map,
+    error::JsNativeError,
     object::{JsFunction, JsMapIterator, JsObject, JsObjectType, ObjectData},
     Context, JsResult, JsValue,
 };
@@ -31,7 +32,6 @@ use std::ops::Deref;
 /// map.set("Key-2", 10, context).unwrap();
 ///
 /// assert_eq!(map.get_size(context).unwrap(), 2.into());
-///
 /// ```
 ///
 /// Create a `JsMap` from a `JsArray`
@@ -51,15 +51,18 @@ use std::ops::Deref;
 /// let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
 ///
 /// // We create an push our `[key, value]` pair onto our array as a `JsArray`
-/// js_array.push(JsArray::from_iter(vec_one, context), context).unwrap();
+/// js_array
+///     .push(JsArray::from_iter(vec_one, context), context)
+///     .unwrap();
 ///
 /// // Create a `JsMap` from the `JsArray` using it's iterable property.
 /// let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context).unwrap();
 ///
-/// assert_eq!(js_iterable_map.get("first-key", context).unwrap(), "first-value".into());
-///
+/// assert_eq!(
+///     js_iterable_map.get("first-key", context).unwrap(),
+///     "first-value".into()
+/// );
 /// ```
-///
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsMap {
     inner: JsObject,
@@ -81,7 +84,6 @@ impl JsMap {
     ///
     /// // Create a new empty `JsMap`.
     /// let map = JsMap::new(context);
-    ///
     /// ```
     #[inline]
     pub fn new(context: &mut Context) -> Self {
@@ -106,13 +108,13 @@ impl JsMap {
     ///
     /// // Create a `[key, value]` pair of JsValues and add it to the `JsArray` as a `JsArray`
     /// let vec_one: Vec<JsValue> = vec![JsValue::new("first-key"), JsValue::new("first-value")];
-    /// js_array.push(JsArray::from_iter(vec_one, context), context).unwrap();
+    /// js_array
+    ///     .push(JsArray::from_iter(vec_one, context), context)
+    ///     .unwrap();
     ///
     /// // Create a `JsMap` from the `JsArray` using it's iterable property.
     /// let js_iterable_map = JsMap::from_js_iterable(&js_array.into(), context).unwrap();
-    ///
     /// ```
-    ///
     #[inline]
     pub fn from_js_iterable(iterable: &JsValue, context: &mut Context) -> JsResult<Self> {
         // Create a new map object.
@@ -145,12 +147,11 @@ impl JsMap {
     /// // `some_object` can be any JavaScript `Map` object.
     /// let some_object = JsObject::from_proto_and_data(
     ///     context.intrinsics().constructors().map().prototype(),
-    ///     ObjectData::map(OrderedMap::new())
+    ///     ObjectData::map(OrderedMap::new()),
     /// );
     ///
     /// // Create `JsMap` object with incoming object.
-    /// let js_map = JsMap::from_object(some_object, context).unwrap();
-    ///
+    /// let js_map = JsMap::from_object(some_object).unwrap();
     /// ```
     ///
     /// Invalid Example - returns a `TypeError` with the message "object is not a Map"
@@ -164,16 +165,17 @@ impl JsMap {
     ///
     /// let some_object = JsArray::new(context);
     ///
-    /// // Some object is an Array object, not a map object
-    /// assert!(JsMap::from_object(some_object.into(), context).is_err());
-    ///
+    /// // `some_object` is an Array object, not a map object
+    /// assert!(JsMap::from_object(some_object.into()).is_err());
     /// ```
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_map() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not a Map")
+            Err(JsNativeError::typ()
+                .with_message("object is not a Map")
+                .into())
         }
     }
 
@@ -192,7 +194,7 @@ impl JsMap {
         let iterator_record = Map::entries(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 
     /// Returns a new [`JsMapIterator`] object that yields the `key` for each element within the [`JsMap`] in insertion order.
@@ -201,7 +203,7 @@ impl JsMap {
         let iterator_record = Map::keys(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 
     /// Inserts a new entry into the [`JsMap`] object
@@ -223,7 +225,6 @@ impl JsMap {
     ///
     /// assert_eq!(js_map.get("foo", context).unwrap(), "bar".into());
     /// assert_eq!(js_map.get(2, context).unwrap(), 4.into())
-    ///
     /// ```
     #[inline]
     pub fn set<K, V>(&self, key: K, value: V, context: &mut Context) -> JsResult<JsValue>
@@ -257,7 +258,6 @@ impl JsMap {
     /// let map_size = js_map.get_size(context).unwrap();
     ///
     /// assert_eq!(map_size, 1.into());
-    ///
     /// ```
     #[inline]
     pub fn get_size(&self, context: &mut Context) -> JsResult<JsValue> {
@@ -284,7 +284,6 @@ impl JsMap {
     ///
     /// assert_eq!(js_map.get_size(context).unwrap(), 1.into());
     /// assert_eq!(js_map.get("foo", context).unwrap(), JsValue::undefined());
-    ///
     /// ```
     #[inline]
     pub fn delete<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
@@ -311,7 +310,6 @@ impl JsMap {
     /// let retrieved_value = js_map.get("foo", context).unwrap();
     ///
     /// assert_eq!(retrieved_value, "bar".into());
-    ///
     /// ```
     #[inline]
     pub fn get<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
@@ -340,7 +338,6 @@ impl JsMap {
     /// js_map.clear(context).unwrap();
     ///
     /// assert_eq!(js_map.get_size(context).unwrap(), 0.into());
-    ///
     /// ```
     #[inline]
     pub fn clear(&self, context: &mut Context) -> JsResult<JsValue> {
@@ -365,7 +362,6 @@ impl JsMap {
     /// let has_key = js_map.has("foo", context).unwrap();
     ///
     /// assert_eq!(has_key, true.into());
-    ///
     /// ```
     #[inline]
     pub fn has<T>(&self, key: T, context: &mut Context) -> JsResult<JsValue>
@@ -396,7 +392,7 @@ impl JsMap {
         let iterator_record = Map::values(&self.inner.clone().into(), &[], context)?
             .get_iterator(context, None, None)?;
         let map_iterator_object = iterator_record.iterator();
-        JsMapIterator::from_object(map_iterator_object.clone(), context)
+        JsMapIterator::from_object(map_iterator_object.clone())
     }
 }
 

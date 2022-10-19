@@ -4,6 +4,7 @@ use boa_gc::{Finalize, Trace};
 
 use crate::{
     builtins::Set,
+    error::JsNativeError,
     object::{JsFunction, JsObject, JsObjectType, JsSetIterator},
     Context, JsResult, JsValue,
 };
@@ -30,8 +31,8 @@ impl JsSet {
     ///
     /// Same as JavaScript's `set.size`.
     #[inline]
-    pub fn size(&self, context: &mut Context) -> JsResult<usize> {
-        Set::get_size(&self.inner.clone().into(), context)
+    pub fn size(&self) -> JsResult<usize> {
+        Set::get_size(&self.inner.clone().into())
     }
 
     /// Appends value to the Set object.
@@ -74,9 +75,10 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
+        // TODO: Make `delete` return a native `bool`
         match Set::delete(&self.inner.clone().into(), &[value.into()], context)? {
             JsValue::Boolean(bool) => Ok(bool),
-            _ => Err(JsValue::Undefined),
+            _ => unreachable!("`delete` must always return a bool"),
         }
     }
 
@@ -89,9 +91,10 @@ impl JsSet {
     where
         T: Into<JsValue>,
     {
+        // TODO: Make `has` return a native `bool`
         match Set::has(&self.inner.clone().into(), &[value.into()], context)? {
             JsValue::Boolean(bool) => Ok(bool),
-            _ => Err(JsValue::Undefined),
+            _ => unreachable!("`has` must always return a bool"),
         }
     }
 
@@ -104,7 +107,7 @@ impl JsSet {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
             .get_iterator(context, None, None)?;
 
-        JsSetIterator::from_object(iterator_object.iterator().clone(), context)
+        JsSetIterator::from_object(iterator_object.iterator().clone())
     }
 
     /// Alias for `Set.prototype.values()`
@@ -117,7 +120,7 @@ impl JsSet {
         let iterator_object = Set::values(&self.inner.clone().into(), &[JsValue::Null], context)?
             .get_iterator(context, None, None)?;
 
-        JsSetIterator::from_object(iterator_object.iterator().clone(), context)
+        JsSetIterator::from_object(iterator_object.iterator().clone())
     }
 
     /// Calls callbackFn once for each value present in the Set object,
@@ -141,11 +144,13 @@ impl JsSet {
 
     /// Utility: Creates `JsSet` from `JsObject`, if not a Set throw `TypeError`.
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_set() {
             Ok(Self { inner: object })
         } else {
-            context.throw_error("Object is not a Set")
+            Err(JsNativeError::typ()
+                .with_message("Object is not a Set")
+                .into())
         }
     }
 

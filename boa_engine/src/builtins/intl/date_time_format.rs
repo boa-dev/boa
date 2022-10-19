@@ -9,6 +9,7 @@
 
 use crate::{
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsFunction, JsObject,
@@ -205,13 +206,17 @@ pub(crate) fn to_date_time_options(
     // 9. If required is "date" and timeStyle is not undefined, then
     if required == &DateTimeReqs::Date && !time_style.is_undefined() {
         // a. Throw a TypeError exception.
-        return context.throw_type_error("'date' is required, but timeStyle was defined");
+        return Err(JsNativeError::typ()
+            .with_message("'date' is required, but timeStyle was defined")
+            .into());
     }
 
     // 10. If required is "time" and dateStyle is not undefined, then
     if required == &DateTimeReqs::Time && !date_style.is_undefined() {
         // a. Throw a TypeError exception.
-        return context.throw_type_error("'time' is required, but dateStyle was defined");
+        return Err(JsNativeError::typ()
+            .with_message("'time' is required, but dateStyle was defined")
+            .into());
     }
 
     // 11. If needDefaults is true and defaults is either "date" or "all", then

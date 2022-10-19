@@ -43,7 +43,14 @@ fn try_catch_finally_from_init() {
         }
     "#;
 
-    assert_eq!(Context::default().eval(source.as_bytes()), Err("h".into()));
+    assert_eq!(
+        Context::default()
+            .eval(source.as_bytes())
+            .unwrap_err()
+            .as_opaque()
+            .unwrap(),
+        &"h".into()
+    );
 }
 
 #[test]
@@ -61,8 +68,8 @@ fn multiple_catches() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::Undefined)
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::Undefined
     );
 }
 
@@ -80,8 +87,8 @@ fn use_last_expr_try_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::from("Hello!"))
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::from("Hello!")
     );
 }
 #[test]
@@ -98,8 +105,8 @@ fn use_last_expr_catch_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::from("Hello!"))
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::from("Hello!")
     );
 }
 
@@ -114,8 +121,8 @@ fn no_use_last_expr_finally_block() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::undefined())
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::undefined()
     );
 }
 
@@ -133,8 +140,8 @@ fn finally_block_binding_env() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::from("Hey hey people"))
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::from("Hey hey people")
     );
 }
 
@@ -152,8 +159,8 @@ fn run_super_method_in_object() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::from("super"))
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::from("super")
     );
 }
 
@@ -178,7 +185,7 @@ fn get_reference_by_super() {
     "#;
 
     assert_eq!(
-        Context::default().eval(source.as_bytes()),
-        Ok(JsValue::from("ab"))
+        Context::default().eval(source.as_bytes()).unwrap(),
+        JsValue::from("ab")
     );
 }

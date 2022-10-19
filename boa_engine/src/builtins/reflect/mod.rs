@@ -13,6 +13,7 @@
 use super::{Array, JsArgs};
 use crate::{
     builtins::{self, BuiltIn},
+    error::JsNativeError,
     object::ObjectInitializer,
     property::Attribute,
     symbol::WellKnownSymbols,
@@ -78,12 +79,14 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be a function"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be a function"))?;
         let this_arg = args.get_or_undefined(1);
         let args_list = args.get_or_undefined(2);
 
         if !target.is_callable() {
-            return context.throw_type_error("target must be a function");
+            return Err(JsNativeError::typ()
+                .with_message("target must be a function")
+                .into());
         }
         let args = args_list.create_list_from_array_like(&[], context)?;
         target.call(this_arg, &args, context)
@@ -106,14 +109,16 @@ impl Reflect {
         let target = args
             .get_or_undefined(0)
             .as_constructor()
-            .ok_or_else(|| context.construct_type_error("target must be a constructor"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be a constructor"))?;
 
         let new_target = if let Some(new_target) = args.get(2) {
             // 3. Else if IsConstructor(newTarget) is false, throw a TypeError exception.
             if let Some(new_target) = new_target.as_constructor() {
                 new_target
             } else {
-                return context.throw_type_error("newTarget must be a constructor");
+                return Err(JsNativeError::typ()
+                    .with_message("newTarget must be a constructor")
+                    .into());
             }
         } else {
             // 2. If newTarget is not present, set newTarget to target.
@@ -147,12 +152,14 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let prop_desc: JsValue = args
             .get(2)
             .and_then(|v| v.as_object().cloned())
-            .ok_or_else(|| context.construct_type_error("property descriptor must be an object"))?
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("property descriptor must be an object")
+            })?
             .into();
 
         target
@@ -176,7 +183,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
 
         Ok(target.__delete__(&key, context)?.into())
@@ -195,7 +202,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         // 2. Let key be ? ToPropertyKey(propertyKey).
         let key = args.get_or_undefined(1).to_property_key(context)?;
         // 3. If receiver is not present, then
@@ -231,7 +238,9 @@ impl Reflect {
                 context,
             )
         } else {
-            context.throw_type_error("target must be an object")
+            Err(JsNativeError::typ()
+                .with_message("target must be an object")
+                .into())
         }
     }
 
@@ -251,7 +260,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target
             .__get_prototype_of__(context)?
             .map_or(JsValue::Null, JsValue::new))
@@ -269,7 +278,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args
             .get(1)
             .unwrap_or(&JsValue::undefined())
@@ -293,7 +302,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         Ok(target.__is_extensible__(context)?.into())
     }
 
@@ -313,7 +322,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         let keys: Vec<JsValue> = target
             .__own_property_keys__(context)?
@@ -340,7 +349,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
 
         Ok(target.__prevent_extensions__(context)?.into())
     }
@@ -357,7 +366,7 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let key = args.get_or_undefined(1).to_property_key(context)?;
         let value = args.get_or_undefined(2);
         let receiver = if let Some(receiver) = args.get(3).cloned() {
@@ -386,11 +395,15 @@ impl Reflect {
         let target = args
             .get(0)
             .and_then(JsValue::as_object)
-            .ok_or_else(|| context.construct_type_error("target must be an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("target must be an object"))?;
         let proto = match args.get_or_undefined(1) {
             JsValue::Object(obj) => Some(obj.clone()),
             JsValue::Null => None,
-            _ => return context.throw_type_error("proto must be an object or null"),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("proto must be an object or null")
+                    .into())
+            }
         };
         Ok(target.__set_prototype_of__(proto, context)?.into())
     }

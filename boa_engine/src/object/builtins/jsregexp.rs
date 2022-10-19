@@ -2,7 +2,7 @@
 use crate::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},
-    Context, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -75,11 +75,13 @@ impl JsRegExp {
 
     /// Create a `JsRegExp` from a regular expression `JsObject`
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_regexp() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not a RegExp")
+            Err(JsNativeError::typ()
+                .with_message("object is not a RegExp")
+                .into())
         }
     }
 
@@ -210,11 +212,8 @@ impl JsRegExp {
                 None
             } else {
                 Some(
-                    JsArray::from_object(
-                        v.to_object(context).expect("v must be an array"),
-                        context,
-                    )
-                    .expect("from_object must not fail if v is an array object"),
+                    JsArray::from_object(v.to_object(context).expect("v must be an array"))
+                        .expect("from_object must not fail if v is an array object"),
                 )
             }
         })

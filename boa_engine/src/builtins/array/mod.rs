@@ -23,6 +23,7 @@ use crate::{
     builtins::BuiltIn,
     builtins::Number,
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -177,7 +178,9 @@ impl Array {
                     .expect("this ToUint32 call must not fail");
                 // ii. If SameValueZero(intLen, len) is false, throw a RangeError exception.
                 if !JsValue::same_value_zero(&int_len.into(), len) {
-                    return context.throw_range_error("invalid array length");
+                    return Err(JsNativeError::range()
+                        .with_message("invalid array length")
+                        .into());
                 }
                 int_len
             };
@@ -224,7 +227,9 @@ impl Array {
     ) -> JsResult<JsObject> {
         // 1. If length > 2^32 - 1, throw a RangeError exception.
         if length > 2u64.pow(32) - 1 {
-            return context.throw_range_error("array exceeded max size");
+            return Err(JsNativeError::range()
+                .with_message("array exceeded max size")
+                .into());
         }
         // 7. Return A.
         // 2. If proto is not present, set proto to %Array.prototype%.
@@ -382,7 +387,9 @@ impl Array {
             // 8. Return ? Construct(C, « 𝔽(length) »).
             c.construct(&[JsValue::new(length)], Some(c), context)
         } else {
-            context.throw_type_error("Symbol.species must be a constructor")
+            Err(JsNativeError::typ()
+                .with_message("Symbol.species must be a constructor")
+                .into())
         }
     }
 
@@ -414,10 +421,12 @@ impl Array {
             JsValue::Undefined => None,
             JsValue::Object(o) if o.is_callable() => Some(o),
             _ => {
-                return context.throw_type_error(format!(
-                    "{} is not a function",
-                    mapfn.type_of().to_std_string_escaped()
-                ))
+                return Err(JsNativeError::typ()
+                    .with_message(format!(
+                        "{} is not a function",
+                        mapfn.type_of().to_std_string_escaped()
+                    ))
+                    .into())
             }
         };
 
@@ -488,7 +497,9 @@ impl Array {
             // which is why it's safe to have this as the fallback return
             //
             // 1. Let error be ThrowCompletion(a newly created TypeError object).
-            let error = context.throw_type_error("Invalid array length");
+            let error = Err(JsNativeError::typ()
+                .with_message("Invalid array length")
+                .into());
 
             // 2. Return ? IteratorClose(iteratorRecord, error).
             iterator_record.close(error, context)
@@ -679,9 +690,11 @@ impl Array {
                 let len = item.length_of_array_like(context)?;
                 // iii. If n + len > 2^53 - 1, throw a TypeError exception.
                 if n + len > Number::MAX_SAFE_INTEGER as u64 {
-                    return context.throw_type_error(
-                        "length + number of arguments exceeds the max safe integer limit",
-                    );
+                    return Err(JsNativeError::typ()
+                        .with_message(
+                            "length + number of arguments exceeds the max safe integer limit",
+                        )
+                        .into());
                 }
                 // iv. Repeat, while k < len,
                 for k in 0..len {
@@ -705,7 +718,9 @@ impl Array {
                 // i. NOTE: E is added as a single item rather than spread.
                 // ii. If n ≥ 2^53 - 1, throw a TypeError exception.
                 if n >= Number::MAX_SAFE_INTEGER as u64 {
-                    return context.throw_type_error("length exceeds the max safe integer limit");
+                    return Err(JsNativeError::typ()
+                        .with_message("length exceeds the max safe integer limit")
+                        .into());
                 }
                 // iii. Perform ? CreateDataPropertyOrThrow(A, ! ToString(𝔽(n)), E).
                 arr.create_data_property_or_throw(n, item, context)?;
@@ -745,9 +760,11 @@ impl Array {
         let arg_count = args.len() as u64;
         // 4. If len + argCount > 2^53 - 1, throw a TypeError exception.
         if len + arg_count > 2u64.pow(53) - 1 {
-            return context.throw_type_error(
-                "the length + the number of arguments exceed the maximum safe integer limit",
-            );
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "the length + the number of arguments exceed the maximum safe integer limit",
+                )
+                .into());
         }
         // 5. For each element E of items, do
         for element in args.iter().cloned() {
@@ -822,7 +839,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.forEach: invalid callback function")
+            JsNativeError::typ().with_message("Array.prototype.forEach: invalid callback function")
         })?;
         // 4. Let k be 0.
         // 5. Repeat, while k < len,
@@ -1096,9 +1113,9 @@ impl Array {
         if arg_count > 0 {
             // a. If len + argCount > 2^53 - 1, throw a TypeError exception.
             if len + arg_count > 2u64.pow(53) - 1 {
-                return context.throw_type_error(
-                    "length + number of arguments exceeds the max safe integer limit",
-                );
+                return Err(JsNativeError::typ()
+                    .with_message("length + number of arguments exceeds the max safe integer limit")
+                    .into());
             }
             // b. Let k be len.
             let mut k = len;
@@ -1163,7 +1180,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.every: callback is not callable")
+            JsNativeError::typ().with_message("Array.prototype.every: callback is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1215,7 +1232,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.map: Callbackfn is not callable")
+            JsNativeError::typ().with_message("Array.prototype.map: Callbackfn is not callable")
         })?;
 
         // 4. Let A be ? ArraySpeciesCreate(O, len).
@@ -1423,7 +1440,7 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.find: predicate is not callable")
+            JsNativeError::typ().with_message("Array.prototype.find: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1480,7 +1497,8 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.findIndex: predicate is not callable")
+            JsNativeError::typ()
+                .with_message("Array.prototype.findIndex: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1531,7 +1549,7 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.findLast: predicate is not callable")
+            JsNativeError::typ().with_message("Array.prototype.findLast: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1583,7 +1601,8 @@ impl Array {
 
         // 3. If IsCallable(predicate) is false, throw a TypeError exception.
         let predicate = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.findLastIndex: predicate is not callable")
+            JsNativeError::typ()
+                .with_message("Array.prototype.findLastIndex: predicate is not callable")
         })?;
 
         let this_arg = args.get_or_undefined(1);
@@ -1688,7 +1707,7 @@ impl Array {
 
         // 3. If ! IsCallable(mapperFunction) is false, throw a TypeError exception.
         let mapper_function = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("flatMap mapper function is not callable")
+            JsNativeError::typ().with_message("flatMap mapper function is not callable")
         })?;
 
         // 4. Let A be ? ArraySpeciesCreate(O, 0).
@@ -1804,8 +1823,9 @@ impl Array {
                 } else {
                     // 1. If targetIndex >= 2^53 - 1, throw a TypeError exception
                     if target_index >= Number::MAX_SAFE_INTEGER as u64 {
-                        return context
-                            .throw_type_error("Target index exceeded max safe integer value");
+                        return Err(JsNativeError::typ()
+                            .with_message("Target index exceeded max safe integer value")
+                            .into());
                     }
 
                     // 2. Perform ? CreateDataPropertyOrThrow(target, targetIndex, element)
@@ -2075,7 +2095,9 @@ impl Array {
 
         // 10. If len + insertCount - actualDeleteCount > 2^53 - 1, throw a TypeError exception.
         if len + insert_count - actual_delete_count > Number::MAX_SAFE_INTEGER as u64 {
-            return context.throw_type_error("Target splice exceeded max safe integer value");
+            return Err(JsNativeError::typ()
+                .with_message("Target splice exceeded max safe integer value")
+                .into());
         }
 
         // 11. Let A be ? ArraySpeciesCreate(O, actualDeleteCount).
@@ -2217,7 +2239,7 @@ impl Array {
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.filter: `callback` must be callable")
+            JsNativeError::typ().with_message("Array.prototype.filter: `callback` must be callable")
         })?;
         let this_arg = args.get_or_undefined(1);
 
@@ -2281,7 +2303,7 @@ impl Array {
         let len = o.length_of_array_like(context)?;
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error("Array.prototype.some: callback is not callable")
+            JsNativeError::typ().with_message("Array.prototype.some: callback is not callable")
         })?;
 
         // 4. Let k be 0.
@@ -2332,9 +2354,9 @@ impl Array {
             JsValue::Object(ref obj) if obj.is_callable() => Some(obj),
             JsValue::Undefined => None,
             _ => {
-                return context.throw_type_error(
-                    "The comparison function must be either a function or undefined",
-                )
+                return Err(JsNativeError::typ()
+                    .with_message("The comparison function must be either a function or undefined")
+                    .into())
             }
         };
 
@@ -2466,15 +2488,17 @@ impl Array {
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context
-                .construct_type_error("Array.prototype.reduce: callback function is not callable")
+            JsNativeError::typ()
+                .with_message("Array.prototype.reduce: callback function is not callable")
         })?;
 
         // 4. If len = 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
-            return context.throw_type_error(
-                "Array.prototype.reduce: called on an empty array and with no initial value",
-            );
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Array.prototype.reduce: called on an empty array and with no initial value",
+                )
+                .into());
         }
 
         // 5. Let k be 0.
@@ -2506,9 +2530,9 @@ impl Array {
             }
             // c. If kPresent is false, throw a TypeError exception.
             if !k_present {
-                return context.throw_type_error(
+                return Err(JsNativeError::typ().with_message(
                     "Array.prototype.reduce: called on an empty array and with no initial value",
-                );
+                ).into());
             }
         }
 
@@ -2561,16 +2585,15 @@ impl Array {
 
         // 3. If IsCallable(callbackfn) is false, throw a TypeError exception.
         let callback = args.get_or_undefined(0).as_callable().ok_or_else(|| {
-            context.construct_type_error(
-                "Array.prototype.reduceRight: callback function is not callable",
-            )
+            JsNativeError::typ()
+                .with_message("Array.prototype.reduceRight: callback function is not callable")
         })?;
 
         // 4. If len is 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
-            return context.throw_type_error(
+            return Err(JsNativeError::typ().with_message(
                 "Array.prototype.reduceRight: called on an empty array and with no initial value",
-            );
+            ).into());
         }
 
         // 5. Let k be len - 1.
@@ -2601,9 +2624,9 @@ impl Array {
             }
             // c. If kPresent is false, throw a TypeError exception.
             if !k_present {
-                return context.throw_type_error(
+                return Err(JsNativeError::typ().with_message(
                     "Array.prototype.reduceRight: called on an empty array and with no initial value",
-                );
+                ).into());
             }
         }
 

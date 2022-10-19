@@ -19,7 +19,7 @@ use crate::{
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct AggregateError;
@@ -73,7 +73,7 @@ impl AggregateError {
             StandardConstructors::aggregate_error,
             context,
         )?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Aggregate));
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(1);

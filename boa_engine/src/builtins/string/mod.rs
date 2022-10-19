@@ -17,6 +17,7 @@ use super::JsArgs;
 use crate::{
     builtins::{string::string_iterator::StringIterator, Array, BuiltIn, Number, RegExp},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
@@ -207,7 +208,7 @@ impl String {
     /// - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#thisstringvalue
-    fn this_string_value(this: &JsValue, context: &mut Context) -> JsResult<JsString> {
+    fn this_string_value(this: &JsValue) -> JsResult<JsString> {
         // 1. If Type(value) is String, return value.
         this.as_string()
             .cloned()
@@ -217,7 +218,11 @@ impl String {
             //     c. Return s.
             .or_else(|| this.as_object().and_then(|obj| obj.borrow().as_string()))
             // 3. Throw a TypeError exception.
-            .ok_or_else(|| context.construct_type_error("'this' is not a string"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a string")
+                    .into()
+            })
     }
 
     /// `String.fromCodePoint(num1[, ...[, numN]])`
@@ -247,12 +252,16 @@ impl String {
 
             // b. If ! IsIntegralNumber(nextCP) is false, throw a RangeError exception.
             if !Number::is_float_integer(nextcp) {
-                return Err(context.construct_range_error(format!("invalid code point: {nextcp}")));
+                return Err(JsNativeError::range()
+                    .with_message(format!("invalid code point: {nextcp}"))
+                    .into());
             }
 
             // c. If ℝ(nextCP) < 0 or ℝ(nextCP) > 0x10FFFF, throw a RangeError exception.
             if nextcp < 0.0 || nextcp > f64::from(0x10FFFF) {
-                return Err(context.construct_range_error(format!("invalid code point: {nextcp}")));
+                return Err(JsNativeError::range()
+                    .with_message(format!("invalid code point: {nextcp}"))
+                    .into());
             }
 
             let nextcp =
@@ -375,13 +384,9 @@ impl String {
     /// [spec]: https://tc39.es/ecma262/#sec-string.prototype.tostring
     #[allow(clippy::wrong_self_convention)]
     #[inline]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? thisStringValue(this value).
-        Ok(Self::this_string_value(this, context)?.into())
+        Ok(Self::this_string_value(this)?.into())
     }
 
     /// `String.prototype.charAt( index )`
@@ -406,7 +411,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -439,7 +444,7 @@ impl String {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/at
     pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let s = this.to_string(context)?;
@@ -484,7 +489,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -527,7 +532,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -566,7 +571,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let mut string = this.to_string(context)?;
@@ -600,7 +605,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -628,10 +633,12 @@ impl String {
             // 5. If n is 0, return the empty String.
             IntegerOrInfinity::Integer(n) if n == 0 => Ok(js_string!().into()),
             // 4. If n < 0 or n is +∞, throw a RangeError exception.
-            _ => context.throw_range_error(
-                "repeat count must be a positive finite number \
+            _ => Err(JsNativeError::range()
+                .with_message(
+                    "repeat count must be a positive finite number \
                         that doesn't overflow the maximum string length (2^32 - 1)",
-            ),
+                )
+                .into()),
         }
     }
 
@@ -651,7 +658,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -716,7 +723,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -726,9 +733,9 @@ impl String {
         // 3. Let isRegExp be ? IsRegExp(searchString).
         // 4. If isRegExp is true, throw a TypeError exception.
         if is_reg_exp(search_string, context)? {
-            context.throw_type_error(
+            return Err(JsNativeError::typ().with_message(
                 "First argument to String.prototype.startsWith must not be a regular expression",
-            )?;
+            ).into());
         }
 
         // 5. Let searchStr be ? ToString(searchString).
@@ -785,7 +792,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -794,9 +801,9 @@ impl String {
             // 3. Let isRegExp be ? IsRegExp(searchString).
             // 4. If isRegExp is true, throw a TypeError exception.
             search_string if is_reg_exp(search_string, context)? => {
-                return context.throw_type_error(
+                return Err(JsNativeError::typ().with_message(
                     "First argument to String.prototype.endsWith must not be a regular expression",
-                );
+                ).into());
             }
             // 5. Let searchStr be ? ToString(searchString).
             search_string => search_string.to_string(context)?,
@@ -851,7 +858,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -859,10 +866,10 @@ impl String {
         let search_str = match args.get_or_undefined(0) {
             // 3. Let isRegExp be ? IsRegExp(searchString).
             search_string if is_reg_exp(search_string, context)? => {
-                return context.throw_type_error(
+                return Err(JsNativeError::typ().with_message(
                     // 4. If isRegExp is true, throw a TypeError exception.
                     "First argument to String.prototype.includes must not be a regular expression",
-                );
+                ).into());
             }
             // 5. Let searchStr be ? ToString(searchString).
             search_string => search_string.to_string(context)?,
@@ -903,7 +910,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        this.require_object_coercible(context)?;
+        this.require_object_coercible()?;
 
         let search_value = args.get_or_undefined(0);
 
@@ -1013,7 +1020,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let o = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible()?;
 
         let search_value = args.get_or_undefined(0);
         let replace_value = args.get_or_undefined(1);
@@ -1028,13 +1035,13 @@ impl String {
                     let flags = obj.get("flags", context)?;
 
                     // ii. Perform ? RequireObjectCoercible(flags).
-                    flags.require_object_coercible(context)?;
+                    flags.require_object_coercible()?;
 
                     // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                    if !flags.to_string(context)?.contains(&('g' as u16)) {
-                        return context.throw_type_error(
+                    if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                        return Err(JsNativeError::typ().with_message(
                             "String.prototype.replaceAll called with a non-global RegExp argument",
-                        );
+                        ).into());
                     }
                 }
             }
@@ -1170,7 +1177,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1214,7 +1221,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1282,7 +1289,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let o = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible()?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
@@ -1394,7 +1401,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         let max_length = args.get_or_undefined(0);
         let fill_string = args.get_or_undefined(1);
@@ -1421,7 +1428,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         let max_length = args.get_or_undefined(0);
         let fill_string = args.get_or_undefined(1);
@@ -1445,7 +1452,7 @@ impl String {
     pub(crate) fn trim(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, start+end).
-        let object = this.require_object_coercible(context)?;
+        let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
         Ok(js_string!(string.trim()).into())
     }
@@ -1469,7 +1476,7 @@ impl String {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, start).
-        let object = this.require_object_coercible(context)?;
+        let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
         Ok(js_string!(string.trim_start()).into())
     }
@@ -1493,7 +1500,7 @@ impl String {
     ) -> JsResult<JsValue> {
         // 1. Let S be the this value.
         // 2. Return ? TrimString(S, end).
-        let object = this.require_object_coercible(context)?;
+        let object = this.require_object_coercible()?;
         let string = object.to_string(context)?;
         Ok(js_string!(string.trim_end()).into())
     }
@@ -1515,7 +1522,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1578,7 +1585,7 @@ impl String {
         // Comments below are an adaptation of the `String.prototype.toLowerCase` documentation.
 
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1633,7 +1640,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1683,7 +1690,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let string = this.to_string(context)?;
@@ -1746,7 +1753,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         let separator = args.get_or_undefined(0);
         let limit = args.get_or_undefined(1);
@@ -1862,10 +1869,10 @@ impl String {
     pub(crate) fn value_of(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Return ? thisStringValue(this value).
-        Self::this_string_value(this, context).map(JsValue::from)
+        Self::this_string_value(this).map(JsValue::from)
     }
 
     /// `String.prototype.matchAll( regexp )`
@@ -1886,7 +1893,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let o = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible()?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);
@@ -1899,13 +1906,15 @@ impl String {
                     let flags = regexp_obj.get("flags", context)?;
 
                     // ii. Perform ? RequireObjectCoercible(flags).
-                    flags.require_object_coercible(context)?;
+                    flags.require_object_coercible()?;
 
                     // iii. If ? ToString(flags) does not contain "g", throw a TypeError exception.
-                    if !flags.to_string(context)?.contains(&('g' as u16)) {
-                        return context.throw_type_error(
+                    if !flags.to_string(context)?.contains(&u16::from(b'g')) {
+                        return Err(JsNativeError::typ()
+                        .with_message(
                             "String.prototype.matchAll called with a non-global RegExp argument",
-                        );
+                        )
+                        .into());
                     }
                 }
             }
@@ -1952,7 +1961,7 @@ impl String {
             Nfkd,
         }
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. Let S be ? ToString(O).
         let s = this.to_string(context)?;
@@ -1974,9 +1983,9 @@ impl String {
             ntype if &ntype == utf16!("NFKD") => Normalization::Nfkd,
             // 5. If f is not one of "NFC", "NFD", "NFKC", or "NFKD", throw a RangeError exception.
             _ => {
-                return context.throw_range_error(
-                    "The normalization form should be one of NFC, NFD, NFKC, NFKD.",
-                )
+                return Err(JsNativeError::range()
+                    .with_message("The normalization form should be one of NFC, NFD, NFKC, NFKD.")
+                    .into());
             }
         };
 
@@ -2045,7 +2054,7 @@ impl String {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let o = this.require_object_coercible(context)?;
+        let o = this.require_object_coercible()?;
 
         // 2. If regexp is neither undefined nor null, then
         let regexp = args.get_or_undefined(0);

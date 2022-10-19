@@ -20,6 +20,7 @@ use crate::{
         Array, ArrayIterator, BuiltIn, JsArgs,
     },
     context::intrinsics::{StandardConstructor, StandardConstructors},
+    error::JsNativeError,
     js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
@@ -121,10 +122,12 @@ macro_rules! typed_array {
             ) -> JsResult<JsValue> {
                 // 1. If NewTarget is undefined, throw a TypeError exception.
                 if new_target.is_undefined() {
-                    return context.throw_type_error(concat!(
-                        "new target was undefined when constructing an ",
-                        $name
-                    ));
+                    return Err(JsNativeError::typ()
+                        .with_message(concat!(
+                            "new target was undefined when constructing an ",
+                            $name
+                        ))
+                        .into());
                 }
 
                 // 2. Let constructorName be the String value of the Constructor Name value specified in Table 72 for this TypedArray constructor.
@@ -380,13 +383,11 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%
-    fn constructor(
-        _new_target: &JsValue,
-        _args: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    fn constructor(_new_target: &JsValue, _args: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Throw a TypeError exception.
-        context.throw_type_error("the TypedArray constructor should never be called directly")
+        Err(JsNativeError::typ()
+            .with_message("the TypedArray constructor should never be called directly")
+            .into())
     }
 
     /// `23.2.2.1 %TypedArray%.from ( source [ , mapfn [ , thisArg ] ] )`
@@ -401,8 +402,9 @@ impl TypedArray {
         let constructor = match this.as_object() {
             Some(obj) if obj.is_constructor() => obj,
             _ => {
-                return context
-                    .throw_type_error("TypedArray.from called on non-constructable value")
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.from called on non-constructable value")
+                    .into())
             }
         };
 
@@ -415,8 +417,9 @@ impl TypedArray {
                 Some(obj) if obj.is_callable() => Some(obj),
                 // a. If IsCallable(mapfn) is false, throw a TypeError exception.
                 _ => {
-                    return context
-                        .throw_type_error("TypedArray.from called with non-callable mapfn")
+                    return Err(JsNativeError::typ()
+                        .with_message("TypedArray.from called with non-callable mapfn")
+                        .into())
                 }
             },
         };
@@ -511,7 +514,9 @@ impl TypedArray {
         let constructor = match this.as_object() {
             Some(obj) if obj.is_constructor() => obj,
             _ => {
-                return context.throw_type_error("TypedArray.of called on non-constructable value")
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.of called on non-constructable value")
+                    .into())
             }
         };
 
@@ -552,15 +557,17 @@ impl TypedArray {
     pub(crate) fn at(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -597,17 +604,17 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.buffer
-    fn buffer(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn buffer(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let typed_array = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. Return buffer.
@@ -622,21 +629,17 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.bytelength
-    pub(crate) fn byte_length(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn byte_length(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let typed_array = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.
@@ -655,21 +658,17 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.byteoffset
-    pub(crate) fn byte_offset(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn byte_offset(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let typed_array = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.
@@ -690,19 +689,21 @@ impl TypedArray {
     /// [spec]: https://tc39.es/ecma262/#sec-%typedarray%.prototype.copywithin
     fn copy_within(this: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         let len = {
             let obj_borrow = obj.borrow();
-            let o = obj_borrow
-                .as_typed_array()
-                .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+            let o = obj_borrow.as_typed_array().ok_or_else(|| {
+                JsNativeError::typ().with_message("Value is not a typed array object")
+            })?;
 
             // 2. Perform ? ValidateTypedArray(O).
             if o.is_detached() {
-                return context.throw_type_error("Buffer of the typed array is detached");
+                return Err(JsNativeError::typ()
+                    .with_message("Buffer of the typed array is detached")
+                    .into());
             }
 
             // 3. Let len be O.[[ArrayLength]].
@@ -757,9 +758,9 @@ impl TypedArray {
         let count = std::cmp::min(r#final - from, len - to);
 
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 17. If count > 0, then
         if count > 0 {
@@ -767,7 +768,9 @@ impl TypedArray {
             // b. Let buffer be O.[[ViewedArrayBuffer]].
             // c. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             if o.is_detached() {
-                return context.throw_type_error("Buffer of the typed array is detached");
+                return Err(JsNativeError::typ()
+                    .with_message("Buffer of the typed array is detached")
+                    .into());
             }
 
             // d. Let typedArrayName be the String value of O.[[TypedArrayName]].
@@ -860,15 +863,17 @@ impl TypedArray {
     fn entries(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let o = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.borrow()
             .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a typed array object"))?
             .is_detached()
         {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Return CreateArrayIterator(O, key+value).
@@ -892,15 +897,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -910,9 +917,11 @@ impl TypedArray {
         let callback_fn = match args.get_or_undefined(0).as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.every called with non-callable callback function",
-                )
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.every called with non-callable callback function",
+                    )
+                    .into())
             }
         };
 
@@ -955,15 +964,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1008,7 +1019,9 @@ impl TypedArray {
 
         // 14. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 15. Repeat, while k < final,
@@ -1039,29 +1052,32 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
-            Some(obj) if obj.is_callable() => obj,
-            _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.filter called with non-callable callback function",
-                )
-            }
-        };
+        let callback_fn =
+            match args.get_or_undefined(0).as_object() {
+                Some(obj) if obj.is_callable() => obj,
+                _ => return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.filter called with non-callable callback function",
+                    )
+                    .into()),
+            };
 
         // 5. Let kept be a new empty List.
         let mut kept = Vec::new();
@@ -1124,15 +1140,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1142,9 +1160,11 @@ impl TypedArray {
         let predicate = match args.get_or_undefined(0).as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.find called with non-callable predicate function",
-                )
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.find called with non-callable predicate function",
+                    )
+                    .into())
             }
         };
 
@@ -1186,28 +1206,31 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
         // 4. If IsCallable(predicate) is false, throw a TypeError exception.
-        let predicate =
-            match args.get_or_undefined(0).as_object() {
-                Some(obj) if obj.is_callable() => obj,
-                _ => return context.throw_type_error(
+        let predicate = match args.get_or_undefined(0).as_object() {
+            Some(obj) if obj.is_callable() => obj,
+            _ => return Err(JsNativeError::typ()
+                .with_message(
                     "TypedArray.prototype.findindex called with non-callable predicate function",
-                ),
-            };
+                )
+                .into()),
+        };
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -1247,29 +1270,32 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
-            Some(obj) if obj.is_callable() => obj,
-            _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.foreach called with non-callable callback function",
-                )
-            }
-        };
+        let callback_fn =
+            match args.get_or_undefined(0).as_object() {
+                Some(obj) if obj.is_callable() => obj,
+                _ => return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.foreach called with non-callable callback function",
+                    )
+                    .into()),
+            };
 
         // 5. Let k be 0.
         // 6. Repeat, while k < len,
@@ -1303,15 +1329,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1380,15 +1408,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1466,15 +1496,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1523,15 +1555,17 @@ impl TypedArray {
     pub(crate) fn keys(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let o = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.borrow()
             .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a typed array object"))?
             .is_detached()
         {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Return CreateArrayIterator(O, key).
@@ -1555,15 +1589,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1626,21 +1662,17 @@ impl TypedArray {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-get-%typedarray%.prototype.length
-    pub(crate) fn length(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
+    pub(crate) fn length(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has [[ViewedArrayBuffer]] and [[ArrayLength]] internal slots.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let typed_array = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let typed_array = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         // 5. If IsDetachedBuffer(buffer) is true, return +0𝔽.
@@ -1666,15 +1698,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1684,9 +1718,11 @@ impl TypedArray {
         let callback_fn = match args.get_or_undefined(0).as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.map called with non-callable callback function",
-                )
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.map called with non-callable callback function",
+                    )
+                    .into())
             }
         };
 
@@ -1728,34 +1764,38 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length();
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn = match args.get_or_undefined(0).as_object() {
-            Some(obj) if obj.is_callable() => obj,
-            _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.reduce called with non-callable callback function",
-                )
-            }
-        };
+        let callback_fn =
+            match args.get_or_undefined(0).as_object() {
+                Some(obj) if obj.is_callable() => obj,
+                _ => return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.reduce called with non-callable callback function",
+                    )
+                    .into()),
+            };
 
         // 5. If len = 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
-            return context
-                .throw_type_error("Typed array length is 0 and initial value is not present");
+            return Err(JsNativeError::typ()
+                .with_message("Typed array length is 0 and initial value is not present")
+                .into());
         }
 
         // 6. Let k be 0.
@@ -1809,33 +1849,37 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
         let len = o.array_length() as i64;
 
         // 4. If IsCallable(callbackfn) is false, throw a TypeError exception.
-        let callback_fn =
-            match args.get_or_undefined(0).as_object() {
-                Some(obj) if obj.is_callable() => obj,
-                _ => return context.throw_type_error(
+        let callback_fn = match args.get_or_undefined(0).as_object() {
+            Some(obj) if obj.is_callable() => obj,
+            _ => return Err(JsNativeError::typ()
+                .with_message(
                     "TypedArray.prototype.reduceright called with non-callable callback function",
-                ),
-            };
+                )
+                .into()),
+        };
 
         // 5. If len = 0 and initialValue is not present, throw a TypeError exception.
         if len == 0 && args.get(1).is_none() {
-            return context
-                .throw_type_error("Typed array length is 0 and initial value is not present");
+            return Err(JsNativeError::typ()
+                .with_message("Typed array length is 0 and initial value is not present")
+                .into());
         }
 
         // 6. Let k be len - 1.
@@ -1893,15 +1937,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -1954,10 +2000,12 @@ impl TypedArray {
         // 2. Perform ? RequireInternalSlot(target, [[TypedArrayName]]).
         // 3. Assert: target has a [[ViewedArrayBuffer]] internal slot.
         let target = this.as_object().ok_or_else(|| {
-            context.construct_type_error("TypedArray.set must be called on typed array object")
+            JsNativeError::typ().with_message("TypedArray.set must be called on typed array object")
         })?;
         if !target.is_typed_array() {
-            return context.throw_type_error("TypedArray.set must be called on typed array object");
+            return Err(JsNativeError::typ()
+                .with_message("TypedArray.set must be called on typed array object")
+                .into());
         }
 
         // 4. Let targetOffset be ? ToIntegerOrInfinity(offset).
@@ -1966,10 +2014,14 @@ impl TypedArray {
         // 5. If targetOffset < 0, throw a RangeError exception.
         match target_offset {
             IntegerOrInfinity::Integer(i) if i < 0 => {
-                return context.throw_range_error("TypedArray.set called with negative offset")
+                return Err(JsNativeError::range()
+                    .with_message("TypedArray.set called with negative offset")
+                    .into())
             }
             IntegerOrInfinity::NegativeInfinity => {
-                return context.throw_range_error("TypedArray.set called with negative offset")
+                return Err(JsNativeError::range()
+                    .with_message("TypedArray.set called with negative offset")
+                    .into())
             }
             _ => {}
         }
@@ -2017,7 +2069,9 @@ impl TypedArray {
         // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
         if target_array.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
         let target_buffer_obj = target_array
             .viewed_array_buffer()
@@ -2029,7 +2083,9 @@ impl TypedArray {
         // 4. Let srcBuffer be source.[[ViewedArrayBuffer]].
         // 5. If IsDetachedBuffer(srcBuffer) is true, throw a TypeError exception.
         if source_array.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
         let mut src_buffer_obj = source_array
             .viewed_array_buffer()
@@ -2063,23 +2119,27 @@ impl TypedArray {
         let target_offset = match target_offset {
             IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
             IntegerOrInfinity::PositiveInfinity => {
-                return context.throw_range_error("Target offset cannot be Infinity");
+                return Err(JsNativeError::range()
+                    .with_message("Target offset cannot be Infinity")
+                    .into());
             }
             _ => unreachable!(),
         };
 
         // 16. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
-            return context.throw_range_error(
-                "Source typed array and target offset longer than target typed array",
-            );
+            return Err(JsNativeError::range()
+                .with_message("Source typed array and target offset longer than target typed array")
+                .into());
         }
 
         // 17. If target.[[ContentType]] ≠ source.[[ContentType]], throw a TypeError exception.
         if target_name.content_type() != src_name.content_type() {
-            return context.throw_type_error(
-                "Source typed array and target typed array have different content types",
-            );
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Source typed array and target typed array have different content types",
+                )
+                .into());
         }
 
         // TODO: Shared Array Buffer
@@ -2227,7 +2287,9 @@ impl TypedArray {
         // 1. Let targetBuffer be target.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
         if target_array.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let targetLength be target.[[ArrayLength]].
@@ -2252,7 +2314,9 @@ impl TypedArray {
         let target_offset = match target_offset {
             // 10. If targetOffset is +∞, throw a RangeError exception.
             IntegerOrInfinity::PositiveInfinity => {
-                return context.throw_range_error("Target offset cannot be Infinity")
+                return Err(JsNativeError::range()
+                    .with_message("Target offset cannot be Infinity")
+                    .into())
             }
             IntegerOrInfinity::Integer(i) if i >= 0 => i as u64,
             _ => unreachable!(),
@@ -2260,9 +2324,9 @@ impl TypedArray {
 
         // 11. If srcLength + targetOffset > targetLength, throw a RangeError exception.
         if src_length + target_offset > target_length {
-            return context.throw_range_error(
-                "Source object and target offset longer than target typed array",
-            );
+            return Err(JsNativeError::range()
+                .with_message("Source object and target offset longer than target typed array")
+                .into());
         }
 
         // 12. Let targetByteIndex be targetOffset × targetElementSize + targetByteOffset.
@@ -2298,7 +2362,9 @@ impl TypedArray {
 
             // e. If IsDetachedBuffer(targetBuffer) is true, throw a TypeError exception.
             if target_buffer.is_detached_buffer() {
-                return context.throw_type_error("Cannot set value on detached array buffer");
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot set value on detached array buffer")
+                    .into());
             }
 
             // f. Perform SetValueInBuffer(targetBuffer, targetByteIndex, targetType, value, true, Unordered).
@@ -2334,15 +2400,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -2391,7 +2459,9 @@ impl TypedArray {
         if count > 0 {
             // a. If IsDetachedBuffer(O.[[ViewedArrayBuffer]]) is true, throw a TypeError exception.
             if o.is_detached() {
-                return context.throw_type_error("Buffer of the typed array is detached");
+                return Err(JsNativeError::typ()
+                    .with_message("Buffer of the typed array is detached")
+                    .into());
             }
 
             // b. Let srcName be the String value of O.[[TypedArrayName]].
@@ -2503,15 +2573,17 @@ impl TypedArray {
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Let len be O.[[ArrayLength]].
@@ -2521,9 +2593,11 @@ impl TypedArray {
         let callback_fn = match args.get_or_undefined(0).as_object() {
             Some(obj) if obj.is_callable() => obj,
             _ => {
-                return context.throw_type_error(
-                    "TypedArray.prototype.some called with non-callable callback function",
-                )
+                return Err(JsNativeError::typ()
+                    .with_message(
+                        "TypedArray.prototype.some called with non-callable callback function",
+                    )
+                    .into())
             }
         };
 
@@ -2568,37 +2642,41 @@ impl TypedArray {
             None | Some(JsValue::Undefined) => None,
             Some(JsValue::Object(obj)) if obj.is_callable() => Some(obj),
             _ => {
-                return context
-                    .throw_type_error("TypedArray.sort called with non-callable comparefn")
+                return Err(JsNativeError::typ()
+                    .with_message("TypedArray.sort called with non-callable comparefn")
+                    .into())
             }
         };
 
         // 2. Let obj be the this value.
         let obj = this.as_object().ok_or_else(|| {
-            context.construct_type_error("TypedArray.sort must be called on typed array object")
+            JsNativeError::typ()
+                .with_message("TypedArray.sort must be called on typed array object")
         })?;
 
         // 4. Let buffer be obj.[[ViewedArrayBuffer]].
         // 5. Let len be obj.[[ArrayLength]].
-        let (buffer, len) = {
-            // 3. Perform ? ValidateTypedArray(obj).
-            let obj_borrow = obj.borrow();
-            let o = obj_borrow.as_typed_array().ok_or_else(|| {
-                context.construct_type_error("TypedArray.sort must be called on typed array object")
-            })?;
-            if o.is_detached() {
-                return context.throw_type_error(
+        let (buffer, len) =
+            {
+                // 3. Perform ? ValidateTypedArray(obj).
+                let obj_borrow = obj.borrow();
+                let o = obj_borrow.as_typed_array().ok_or_else(|| {
+                    JsNativeError::typ()
+                        .with_message("TypedArray.sort must be called on typed array object")
+                })?;
+                if o.is_detached() {
+                    return Err(JsNativeError::typ().with_message(
                     "TypedArray.sort called on typed array object with detached array buffer",
-                );
-            }
+                ).into());
+                }
 
-            (
-                o.viewed_array_buffer()
-                    .expect("Already checked for detached buffer")
-                    .clone(),
-                o.array_length(),
-            )
-        };
+                (
+                    o.viewed_array_buffer()
+                        .expect("Already checked for detached buffer")
+                        .clone(),
+                    o.array_length(),
+                )
+            };
 
         // 4. Let items be a new empty List.
         let mut items = Vec::with_capacity(len as usize);
@@ -2641,8 +2719,9 @@ impl TypedArray {
                     .expect("Must be array buffer")
                     .is_detached_buffer()
                 {
-                    return context
-                        .throw_type_error("Cannot sort typed array with detached buffer");
+                    return Err(JsNativeError::typ()
+                        .with_message("Cannot sort typed array with detached buffer")
+                        .into());
                 }
 
                 // c. If v is NaN, return +0𝔽.
@@ -2778,13 +2857,13 @@ impl TypedArray {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[TypedArrayName]]).
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
-        let obj = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let obj = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         let obj_borrow = obj.borrow();
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
 
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer = o
@@ -2862,15 +2941,17 @@ impl TypedArray {
     fn values(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? ValidateTypedArray(O).
-        let o = this
-            .as_object()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = this.as_object().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.borrow()
             .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?
+            .ok_or_else(|| JsNativeError::typ().with_message("Value is not a typed array object"))?
             .is_detached()
         {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. Return CreateArrayIterator(O, value).
@@ -2948,8 +3029,9 @@ impl TypedArray {
             .content_type()
             != typed_array_name.content_type()
         {
-            return context
-                .throw_type_error("New typed array has different context type than exemplar");
+            return Err(JsNativeError::typ()
+                .with_message("New typed array has different context type than exemplar")
+                .into());
         }
 
         // 6. Return result.
@@ -2972,11 +3054,13 @@ impl TypedArray {
 
         let obj_borrow = new_typed_array.borrow();
         // 2. Perform ? ValidateTypedArray(newTypedArray).
-        let o = obj_borrow
-            .as_typed_array()
-            .ok_or_else(|| context.construct_type_error("Value is not a typed array object"))?;
+        let o = obj_borrow.as_typed_array().ok_or_else(|| {
+            JsNativeError::typ().with_message("Value is not a typed array object")
+        })?;
         if o.is_detached() {
-            return context.throw_type_error("Buffer of the typed array is detached");
+            return Err(JsNativeError::typ()
+                .with_message("Buffer of the typed array is detached")
+                .into());
         }
 
         // 3. If argumentList is a List of a single Number, then
@@ -2984,8 +3068,9 @@ impl TypedArray {
             if let Some(number) = args[0].as_number() {
                 // a. If newTypedArray.[[ArrayLength]] < ℝ(argumentList[0]), throw a TypeError exception.
                 if (o.array_length() as f64) < number {
-                    return context
-                        .throw_type_error("New typed array length is smaller than expected");
+                    return Err(JsNativeError::typ()
+                        .with_message("New typed array length is smaller than expected")
+                        .into());
                 }
             }
         }
@@ -3133,7 +3218,9 @@ impl TypedArray {
         // 1. Let srcData be srcArray.[[ViewedArrayBuffer]].
         // 2. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.
         if src_array.is_detached() {
-            return context.throw_type_error("Cannot initialize typed array from detached buffer");
+            return Err(JsNativeError::typ()
+                .with_message("Cannot initialize typed array from detached buffer")
+                .into());
         }
         let src_data_obj = src_array
             .viewed_array_buffer()
@@ -3191,14 +3278,16 @@ impl TypedArray {
 
             // b. If IsDetachedBuffer(srcData) is true, throw a TypeError exception.
             if src_data.is_detached_buffer() {
-                return context
-                    .throw_type_error("Cannot initialize typed array from detached buffer");
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot initialize typed array from detached buffer")
+                    .into());
             }
 
             // c. If srcArray.[[ContentType]] ≠ O.[[ContentType]], throw a TypeError exception.
             if src_name.content_type() != constructor_name.content_type() {
-                return context
-                    .throw_type_error("Cannot initialize typed array from different content type");
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot initialize typed array from different content type")
+                    .into());
             }
 
             // d. Let srcByteIndex be srcByteOffset.
@@ -3283,7 +3372,9 @@ impl TypedArray {
 
         // 4. If offset modulo elementSize ≠ 0, throw a RangeError exception.
         if offset % constructor_name.element_size() != 0 {
-            return context.throw_range_error("Invalid length for typed array");
+            return Err(JsNativeError::range()
+                .with_message("Invalid length for typed array")
+                .into());
         }
 
         let buffer_byte_length = {
@@ -3294,8 +3385,9 @@ impl TypedArray {
 
             // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             if buffer_array.is_detached_buffer() {
-                return context
-                    .throw_type_error("Cannot construct typed array from detached buffer");
+                return Err(JsNativeError::typ()
+                    .with_message("Cannot construct typed array from detached buffer")
+                    .into());
             }
 
             // 7. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
@@ -3306,7 +3398,9 @@ impl TypedArray {
         let new_byte_length = if length.is_undefined() {
             // a. If bufferByteLength modulo elementSize ≠ 0, throw a RangeError exception.
             if buffer_byte_length % constructor_name.element_size() != 0 {
-                return context.throw_range_error("Invalid length for typed array");
+                return Err(JsNativeError::range()
+                    .with_message("Invalid length for typed array")
+                    .into());
             }
 
             // b. Let newByteLength be bufferByteLength - offset.
@@ -3314,7 +3408,9 @@ impl TypedArray {
 
             // c. If newByteLength < 0, throw a RangeError exception.
             if new_byte_length < 0 {
-                return context.throw_range_error("Invalid length for typed array");
+                return Err(JsNativeError::range()
+                    .with_message("Invalid length for typed array")
+                    .into());
             }
 
             new_byte_length as u64
@@ -3328,7 +3424,9 @@ impl TypedArray {
 
             // b. If offset + newByteLength > bufferByteLength, throw a RangeError exception.
             if offset + new_byte_length > buffer_byte_length {
-                return context.throw_range_error("Invalid length for typed array");
+                return Err(JsNativeError::range()
+                    .with_message("Invalid length for typed array")
+                    .into());
             }
 
             new_byte_length

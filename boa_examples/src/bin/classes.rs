@@ -2,6 +2,7 @@
 use boa_engine::{
     builtins::JsArgs,
     class::{Class, ClassBuilder},
+    error::JsNativeError,
     property::Attribute,
     Context, JsResult, JsString, JsValue,
 };
@@ -29,7 +30,7 @@ struct Person {
 // or any function that matches the required signature.
 impl Person {
     /// Says hello if `this` is a `Person`
-    fn say_hello(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -45,7 +46,9 @@ impl Person {
         }
         // If `this` was not an object or the type of `this` was not a native object `Person`,
         // we throw a `TypeError`.
-        context.throw_type_error("'this' is not a Person object")
+        Err(JsNativeError::typ()
+            .with_message("'this' is not a Person object")
+            .into())
     }
 }
 
