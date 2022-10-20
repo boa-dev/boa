@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     property::DescriptorKind,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsString, JsValue,
@@ -38,17 +39,18 @@ impl Operation for GetName {
                             context.call(&get, &context.global_object().clone().into(), &[])?
                         }
                         _ => {
-                            return context.throw_reference_error(format!(
-                                "{} is not defined",
-                                key.to_std_string_escaped()
-                            ))
+                            return Err(JsNativeError::reference()
+                                .with_message(format!(
+                                    "{} is not defined",
+                                    key.to_std_string_escaped()
+                                ))
+                                .into())
                         }
                     },
                     _ => {
-                        return context.throw_reference_error(format!(
-                            "{} is not defined",
-                            key.to_std_string_escaped()
-                        ))
+                        return Err(JsNativeError::reference()
+                            .with_message(format!("{} is not defined", key.to_std_string_escaped()))
+                            .into())
                     }
                 }
             }
@@ -63,7 +65,9 @@ impl Operation for GetName {
                 .interner()
                 .resolve_expect(binding_locator.name().sym())
                 .to_string();
-            return context.throw_reference_error(format!("{name} is not initialized"));
+            return Err(JsNativeError::reference()
+                .with_message(format!("{name} is not initialized"))
+                .into());
         };
 
         context.vm.push(value);

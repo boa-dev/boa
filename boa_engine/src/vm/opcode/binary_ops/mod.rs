@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -67,10 +68,12 @@ impl Operation for In {
         let lhs = context.vm.pop();
 
         if !rhs.is_object() {
-            return context.throw_type_error(format!(
-                "right-hand side of 'in' should be an object, got {}",
-                rhs.type_of().to_std_string_escaped()
-            ));
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "right-hand side of 'in' should be an object, got {}",
+                    rhs.type_of().to_std_string_escaped()
+                ))
+                .into());
         }
         let key = lhs.to_property_key(context)?;
         let value = context.has_property(&rhs, &key)?;

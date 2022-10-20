@@ -3,12 +3,13 @@ use crate::{
         async_generator::{AsyncGenerator, AsyncGeneratorState},
         iterable::IteratorRecord,
     },
+    error::JsNativeError,
     vm::{
         call_frame::{FinallyReturn, GeneratorResumeKind},
         opcode::Operation,
         ShouldExit,
     },
-    Context, JsResult, JsValue,
+    Context, JsError, JsResult, JsValue,
 };
 
 pub(crate) mod yield_stm;
@@ -26,7 +27,7 @@ impl Operation for GeneratorNext {
             GeneratorResumeKind::Normal => Ok(ShouldExit::False),
             GeneratorResumeKind::Throw => {
                 let received = context.vm.pop();
-                Err(received)
+                Err(JsError::from_opaque(received))
             }
             GeneratorResumeKind::Return => {
                 let mut finally_left = false;
@@ -63,7 +64,7 @@ impl Operation for AsyncGeneratorNext {
         let value = context.vm.pop();
 
         if context.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-            return Err(value);
+            return Err(JsError::from_opaque(value));
         }
 
         let completion = Ok(value);
@@ -91,9 +92,11 @@ impl Operation for AsyncGeneratorNext {
         if let Some(next) = gen.queue.front() {
             let (completion, r#return) = &next.completion;
             if *r#return {
-                match completion {
-                    Ok(value) | Err(value) => context.vm.push(value),
-                }
+                let value = match completion {
+                    Ok(value) => value.clone(),
+                    Err(e) => e.clone().to_opaque(context),
+                };
+                context.vm.push(value);
                 context.vm.push(true);
             } else {
                 context.vm.push(completion.clone()?);
@@ -133,7 +136,7 @@ impl Operation for GeneratorNextDelegate {
             GeneratorResumeKind::Normal => {
                 let result = context.call(&next_method, &iterator.clone().into(), &[received])?;
                 let result_object = result.as_object().ok_or_else(|| {
-                    context.construct_type_error("generator next method returned non-object")
+                    JsNativeError::typ().with_message("generator next method returned non-object")
                 })?;
                 let done = result_object.get("done", context)?.to_boolean();
                 if done {
@@ -154,7 +157,8 @@ impl Operation for GeneratorNextDelegate {
                 if let Some(throw) = throw {
                     let result = throw.call(&iterator.clone().into(), &[received], context)?;
                     let result_object = result.as_object().ok_or_else(|| {
-                        context.construct_type_error("generator throw method returned non-object")
+                        JsNativeError::typ()
+                            .with_message("generator throw method returned non-object")
                     })?;
                     let done = result_object.get("done", context)?.to_boolean();
                     if done {
@@ -173,15 +177,18 @@ impl Operation for GeneratorNextDelegate {
                 context.vm.frame_mut().pc = done_address as usize;
                 let iterator_record = IteratorRecord::new(iterator.clone(), next_method, done);
                 iterator_record.close(Ok(JsValue::Undefined), context)?;
-                let error = context.construct_type_error("iterator does not have a throw method");
-                Err(error)
+
+                Err(JsNativeError::typ()
+                    .with_message("iterator does not have a throw method")
+                    .into())
             }
             GeneratorResumeKind::Return => {
                 let r#return = iterator.get_method("return", context)?;
                 if let Some(r#return) = r#return {
                     let result = r#return.call(&iterator.clone().into(), &[received], context)?;
                     let result_object = result.as_object().ok_or_else(|| {
-                        context.construct_type_error("generator return method returned non-object")
+                        JsNativeError::typ()
+                            .with_message("generator return method returned non-object")
                     })?;
                     let done = result_object.get("done", context)?.to_boolean();
                     if done {

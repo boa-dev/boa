@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     object::PrivateElement,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -29,15 +30,20 @@ impl Operation for GetPrivateField {
                         context.vm.push(value);
                     }
                     PrivateElement::Accessor { .. } => {
-                        return context
-                            .throw_type_error("private property was defined without a getter");
+                        return Err(JsNativeError::typ()
+                            .with_message("private property was defined without a getter")
+                            .into());
                     }
                 }
             } else {
-                return context.throw_type_error("private property does not exist");
+                return Err(JsNativeError::typ()
+                    .with_message("private property does not exist")
+                    .into());
             }
         } else {
-            return context.throw_type_error("cannot read private property from non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot read private property from non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }

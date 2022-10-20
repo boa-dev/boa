@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -12,7 +13,9 @@ impl Operation for New {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -24,7 +27,11 @@ impl Operation for New {
 
         let result = func
             .as_constructor()
-            .ok_or_else(|| context.construct_type_error("not a constructor"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("not a constructor")
+                    .into()
+            })
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);
@@ -41,7 +48,9 @@ impl Operation for NewSpread {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         // Get the arguments that are stored as an array object on the stack.
         let arguments_array = context.vm.pop();
@@ -59,7 +68,11 @@ impl Operation for NewSpread {
 
         let result = func
             .as_constructor()
-            .ok_or_else(|| context.construct_type_error("not a constructor"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("not a constructor")
+                    .into()
+            })
             .and_then(|cons| cons.__construct__(&arguments, cons, context))?;
 
         context.vm.push(result);

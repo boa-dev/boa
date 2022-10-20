@@ -1,5 +1,6 @@
 use crate::{
     builtins::function::Function,
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
@@ -13,7 +14,9 @@ impl Operation for CallEval {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -27,7 +30,11 @@ impl Operation for CallEval {
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => return context.throw_type_error("not a callable function"),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("not a callable function")
+                    .into())
+            }
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
@@ -59,7 +66,9 @@ impl Operation for CallEvalSpread {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
 
         // Get the arguments that are stored as an array object on the stack.
@@ -79,7 +88,11 @@ impl Operation for CallEvalSpread {
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => return context.throw_type_error("not a callable function"),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("not a callable function")
+                    .into())
+            }
         };
 
         // A native function with the name "eval" implies, that is this the built-in eval function.
@@ -111,7 +124,9 @@ impl Operation for Call {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
         let argument_count = context.vm.read::<u32>();
         let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -125,7 +140,11 @@ impl Operation for Call {
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => return context.throw_type_error("not a callable function"),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("not a callable function")
+                    .into())
+            }
         };
 
         let result = object.__call__(&this, &arguments, context)?;
@@ -144,7 +163,9 @@ impl Operation for CallSpread {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         if context.vm.stack_size_limit <= context.vm.stack.len() {
-            return context.throw_range_error("Maximum call stack size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum call stack size exceeded")
+                .into());
         }
 
         // Get the arguments that are stored as an array object on the stack.
@@ -164,7 +185,11 @@ impl Operation for CallSpread {
 
         let object = match func {
             JsValue::Object(ref object) if object.is_callable() => object.clone(),
-            _ => return context.throw_type_error("not a callable function"),
+            _ => {
+                return Err(JsNativeError::typ()
+                    .with_message("not a callable function")
+                    .into())
+            }
         };
 
         let result = object.__call__(&this, &arguments, context)?;

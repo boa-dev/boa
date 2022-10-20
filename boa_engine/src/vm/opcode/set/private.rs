@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     object::PrivateElement,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
@@ -23,7 +24,9 @@ impl Operation for AssignPrivateField {
                     object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
                 }
                 Some(PrivateElement::Method(_)) => {
-                    return context.throw_type_error("private method is not writable");
+                    return Err(JsNativeError::typ()
+                        .with_message("private method is not writable")
+                        .into());
                 }
                 Some(PrivateElement::Accessor {
                     setter: Some(setter),
@@ -34,14 +37,20 @@ impl Operation for AssignPrivateField {
                     setter.call(&object.clone().into(), &[value], context)?;
                 }
                 None => {
-                    return context.throw_type_error("private field not defined");
+                    return Err(JsNativeError::typ()
+                        .with_message("private field not defined")
+                        .into());
                 }
                 _ => {
-                    return context.throw_type_error("private field defined without a setter");
+                    return Err(JsNativeError::typ()
+                        .with_message("private field defined without a setter")
+                        .into());
                 }
             }
         } else {
-            return context.throw_type_error("cannot set private property on non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot set private property on non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }
@@ -73,7 +82,9 @@ impl Operation for SetPrivateField {
                 object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
             }
         } else {
-            return context.throw_type_error("cannot set private property on non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot set private property on non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }
@@ -97,7 +108,9 @@ impl Operation for SetPrivateMethod {
             object_borrow_mut
                 .set_private_element(name.sym(), PrivateElement::Method(value.clone()));
         } else {
-            return context.throw_type_error("cannot set private setter on non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot set private setter on non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }
@@ -120,7 +133,9 @@ impl Operation for SetPrivateSetter {
             let mut object_borrow_mut = object.borrow_mut();
             object_borrow_mut.set_private_element_setter(name.sym(), value.clone());
         } else {
-            return context.throw_type_error("cannot set private setter on non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot set private setter on non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }
@@ -143,7 +158,9 @@ impl Operation for SetPrivateGetter {
             let mut object_borrow_mut = object.borrow_mut();
             object_borrow_mut.set_private_element_getter(name.sym(), value.clone());
         } else {
-            return context.throw_type_error("cannot set private getter on non-object");
+            return Err(JsNativeError::typ()
+                .with_message("cannot set private getter on non-object")
+                .into());
         }
         Ok(ShouldExit::False)
     }

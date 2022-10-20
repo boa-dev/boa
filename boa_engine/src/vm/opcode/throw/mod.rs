@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, ShouldExit},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -12,6 +12,6 @@ impl Operation for Throw {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
-        Err(value)
+        Err(JsError::from_opaque(value))
     }
 }

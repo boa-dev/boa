@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -13,10 +14,14 @@ impl Operation for ValueNotNullOrUndefined {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         if value.is_null() {
-            return context.throw_type_error("Cannot destructure 'null' value");
+            return Err(JsNativeError::typ()
+                .with_message("Cannot destructure 'null' value")
+                .into());
         }
         if value.is_undefined() {
-            return context.throw_type_error("Cannot destructure 'undefined' value");
+            return Err(JsNativeError::typ()
+                .with_message("Cannot destructure 'undefined' value")
+                .into());
         }
         context.vm.push(value);
         Ok(ShouldExit::False)

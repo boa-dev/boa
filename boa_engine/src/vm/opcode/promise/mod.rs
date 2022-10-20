@@ -1,6 +1,6 @@
 use crate::{
     vm::{opcode::Operation, FinallyReturn, ShouldExit},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -43,7 +43,7 @@ impl Operation for FinallyEnd {
                 Ok(ShouldExit::False)
             }
             FinallyReturn::Ok => Ok(ShouldExit::True),
-            FinallyReturn::Err => Err(context.vm.pop()),
+            FinallyReturn::Err => Err(JsError::from_opaque(context.vm.pop())),
         }
     }
 }

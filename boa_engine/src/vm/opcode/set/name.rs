@@ -1,4 +1,5 @@
 use crate::{
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsString,
 };
@@ -29,10 +30,12 @@ impl Operation for SetName {
                 let exists = context.global_bindings_mut().contains_key(&key);
 
                 if !exists && context.vm.frame().code.strict {
-                    return context.throw_reference_error(format!(
-                        "assignment to undeclared variable {}",
-                        key.to_std_string_escaped()
-                    ));
+                    return Err(JsNativeError::reference()
+                        .with_message(format!(
+                            "assignment to undeclared variable {}",
+                            key.to_std_string_escaped()
+                        ))
+                        .into());
                 }
 
                 let success = crate::object::internal_methods::global::global_set_no_receiver(
@@ -42,10 +45,12 @@ impl Operation for SetName {
                 )?;
 
                 if !success && context.vm.frame().code.strict {
-                    return context.throw_type_error(format!(
-                        "cannot set non-writable property: {}",
-                        key.to_std_string_escaped()
-                    ));
+                    return Err(JsNativeError::typ()
+                        .with_message(format!(
+                            "cannot set non-writable property: {}",
+                            key.to_std_string_escaped()
+                        ))
+                        .into());
                 }
             }
         } else if !context.realm.environments.put_value_if_initialized(
@@ -54,12 +59,14 @@ impl Operation for SetName {
             binding_locator.name(),
             value,
         ) {
-            context.throw_reference_error(format!(
-                "cannot access '{}' before initialization",
-                context
-                    .interner()
-                    .resolve_expect(binding_locator.name().sym())
-            ))?;
+            return Err(JsNativeError::reference()
+                .with_message(format!(
+                    "cannot access '{}' before initialization",
+                    context
+                        .interner()
+                        .resolve_expect(binding_locator.name().sym())
+                ))
+                .into());
         }
         Ok(ShouldExit::False)
     }

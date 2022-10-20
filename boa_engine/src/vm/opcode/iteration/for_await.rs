@@ -1,5 +1,6 @@
 use crate::{
     builtins::iterable::IteratorResult,
+    error::JsNativeError,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult,
 };
@@ -21,7 +22,9 @@ impl Operation for ForAwaitOfLoopIterate {
         let next_method_object = if let Some(object) = next_method.as_callable() {
             object
         } else {
-            return context.throw_type_error("iterable next method not a function");
+            return Err(JsNativeError::typ()
+                .with_message("iterable next method not a function")
+                .into());
         };
         let iterator = context.vm.pop();
         let next_result = next_method_object.call(&iterator, &[], context)?;
@@ -46,7 +49,9 @@ impl Operation for ForAwaitOfLoopNext {
         let next_result = if let Some(next_result) = next_result.as_object() {
             IteratorResult::new(next_result.clone())
         } else {
-            return context.throw_type_error("next value should be an object");
+            return Err(JsNativeError::typ()
+                .with_message("next value should be an object")
+                .into());
         };
 
         if next_result.complete(context)? {

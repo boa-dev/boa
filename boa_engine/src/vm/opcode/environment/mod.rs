@@ -1,5 +1,6 @@
 use crate::{
     environments::EnvironmentSlots,
+    error::JsNativeError,
     vm::{code_block::initialize_instance_elements, opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
 };
@@ -14,15 +15,7 @@ impl Operation for This {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let env = context.realm.environments.get_this_environment();
         match env {
-            EnvironmentSlots::Function(env) => {
-                let env_b = env.borrow();
-                if let Some(this) = env_b.get_this_binding() {
-                    context.vm.push(this);
-                } else {
-                    drop(env_b);
-                    return context.throw_reference_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
-                }
-            }
+            EnvironmentSlots::Function(env) => context.vm.push(env.borrow().get_this_binding()?),
             EnvironmentSlots::Global => {
                 let this = context.realm.global_object();
                 context.vm.push(this.clone());
@@ -40,32 +33,21 @@ impl Operation for Super {
     const INSTRUCTION: &'static str = "INST - Super";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let env = context
-            .realm
-            .environments
-            .get_this_environment()
-            .as_function_slots()
-            .expect("super access must be in a function environment");
-
-        let home = if env.borrow().get_this_binding().is_some() {
+        let home = {
+            let env = context
+                .realm
+                .environments
+                .get_this_environment()
+                .as_function_slots()
+                .expect("super access must be in a function environment");
             let env = env.borrow();
+            let this = env.get_this_binding()?;
             let function_object = env.function_object().borrow();
             let function = function_object
                 .as_function()
                 .expect("must be function object");
-            let mut home_object = function.get_home_object().cloned();
 
-            if home_object.is_none() {
-                home_object = env
-                    .get_this_binding()
-                    .expect("can not get `this` object")
-                    .as_object()
-                    .cloned();
-            }
-
-            home_object
-        } else {
-            return context.throw_range_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
+            function.get_home_object().or(this.as_object()).cloned()
         };
 
         if let Some(home) = home {
@@ -117,7 +99,9 @@ impl Operation for SuperCall {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            return context.throw_type_error("super constructor object must be constructor");
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
@@ -132,7 +116,9 @@ impl Operation for SuperCall {
             .expect("super call must be in function environment");
 
         if !this_env.borrow_mut().bind_this_value(&result) {
-            return context.throw_reference_error("this already initialized");
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
         context.vm.push(result);
         Ok(ShouldExit::False)
@@ -180,7 +166,9 @@ impl Operation for SuperCallSpread {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            return context.throw_type_error("super constructor object must be constructor");
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
@@ -195,7 +183,9 @@ impl Operation for SuperCallSpread {
             .expect("super call must be in function environment");
 
         if !this_env.borrow_mut().bind_this_value(&result) {
-            return context.throw_reference_error("this already initialized");
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
         context.vm.push(result);
         Ok(ShouldExit::False)
@@ -238,7 +228,9 @@ impl Operation for SuperCallDerived {
             .expect("function object must have prototype");
 
         if !super_constructor.is_constructor() {
-            return context.throw_type_error("super constructor object must be constructor");
+            return Err(JsNativeError::typ()
+                .with_message("super constructor object must be constructor")
+                .into());
         }
 
         let result = super_constructor.__construct__(&arguments, &new_target, context)?;
@@ -252,7 +244,9 @@ impl Operation for SuperCallDerived {
             .as_function_slots()
             .expect("super call must be in function environment");
         if !this_env.borrow_mut().bind_this_value(&result) {
-            return context.throw_reference_error("this already initialized");
+            return Err(JsNativeError::reference()
+                .with_message("this already initialized")
+                .into());
         }
 
         context.vm.push(result);

@@ -1,5 +1,6 @@
 use crate::{
     builtins::{iterable::IteratorRecord, ForInIterator},
+    error::JsNativeError,
     property::PropertyDescriptor,
     vm::{opcode::Operation, ShouldExit},
     Context, JsResult, JsValue,
@@ -28,7 +29,7 @@ impl Operation for ForInLoopInitIterator {
             .as_ref()
             .map(PropertyDescriptor::expect_value)
             .cloned()
-            .ok_or_else(|| context.construct_type_error("Could not find property `next`"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("Could not find property `next`"))?;
 
         context.vm.push(iterator);
         context.vm.push(next_method);
