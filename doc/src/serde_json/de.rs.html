@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/de.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>de.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -2601,17 +2601,6 @@
 <span id="2601">2601</span>
 <span id="2602">2602</span>
 <span id="2603">2603</span>
-<span id="2604">2604</span>
-<span id="2605">2605</span>
-<span id="2606">2606</span>
-<span id="2607">2607</span>
-<span id="2608">2608</span>
-<span id="2609">2609</span>
-<span id="2610">2610</span>
-<span id="2611">2611</span>
-<span id="2612">2612</span>
-<span id="2613">2613</span>
-<span id="2614">2614</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Deserialize JSON data to a Rust data structure.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error</span>::{<span class="ident">Error</span>, <span class="ident">ErrorCode</span>, <span class="prelude-ty">Result</span>};
@@ -2628,7 +2617,7 @@
 <span class="kw">use</span> <span class="ident">core::result</span>;
 <span class="kw">use</span> <span class="ident">core::str::FromStr</span>;
 <span class="kw">use</span> <span class="ident">serde::de</span>::{<span class="self">self</span>, <span class="ident">Expected</span>, <span class="ident">Unexpected</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">forward_to_deserialize_any</span>, <span class="ident">serde_if_integer128</span>};
+<span class="kw">use</span> <span class="ident">serde::forward_to_deserialize_any</span>;
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::number::NumberDeserializer</span>;
@@ -2949,31 +2938,25 @@
         }
     }
 
-    <span class="macro">serde_if_integer128!</span> {
-        <span class="kw">fn</span> <span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-            <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">next_char_or_null</span>()) {
-                <span class="string">b&#39;0&#39;</span> =&gt; {
-                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;0&#39;</span>);
-                    <span class="comment">// There can be only one leading &#39;0&#39;.</span>
-                    <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">peek_or_null</span>()) {
-                        <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
-                            <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::InvalidNumber</span>))
-                        }
-                        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
-                    }
-                }
-                <span class="ident">c</span> @ <span class="string">b&#39;1&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
-                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>);
-                    <span class="kw">while</span> <span class="kw">let</span> <span class="ident">c</span> @ <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">=</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">peek_or_null</span>()) {
-                        <span class="self">self</span>.<span class="ident">eat_char</span>();
-                        <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>);
-                    }
-                    <span class="prelude-val">Ok</span>(())
-                }
-                <span class="kw">_</span> =&gt; {
-                    <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::InvalidNumber</span>))
+    <span class="kw">fn</span> <span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">buf</span>: <span class="kw-2">&amp;mut</span> <span class="ident">String</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">next_char_or_null</span>()) {
+            <span class="string">b&#39;0&#39;</span> =&gt; {
+                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;0&#39;</span>);
+                <span class="comment">// There can be only one leading &#39;0&#39;.</span>
+                <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">peek_or_null</span>()) {
+                    <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::InvalidNumber</span>)),
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
                 }
             }
+            <span class="ident">c</span> @ <span class="string">b&#39;1&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> =&gt; {
+                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>);
+                <span class="kw">while</span> <span class="kw">let</span> <span class="ident">c</span> @ <span class="string">b&#39;0&#39;</span>..<span class="op">=</span><span class="string">b&#39;9&#39;</span> <span class="op">=</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">peek_or_null</span>()) {
+                    <span class="self">self</span>.<span class="ident">eat_char</span>();
+                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="ident">c</span> <span class="kw">as</span> <span class="ident">char</span>);
+                }
+                <span class="prelude-val">Ok</span>(())
+            }
+            <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::InvalidNumber</span>)),
         }
     }
 
@@ -4051,67 +4034,65 @@
         <span class="ident">val</span>
     }
 
-    <span class="macro">serde_if_integer128!</span> {
-        <span class="kw">fn</span> <span class="ident">deserialize_i128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+    <span class="kw">fn</span> <span class="ident">deserialize_i128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
 
-            <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">parse_whitespace</span>()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">eat_char</span>();
-                    <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;-&#39;</span>);
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::EofWhileParsingValue</span>));
-                }
-            };
+        <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">parse_whitespace</span>()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">eat_char</span>();
+                <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;-&#39;</span>);
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::EofWhileParsingValue</span>));
+            }
+        };
 
-            <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+        <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
 
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">parse</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">int</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_i128</span>(<span class="ident">int</span>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
-                }
-            };
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">parse</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">int</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_i128</span>(<span class="ident">int</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
+            }
+        };
 
-            <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">fix_position</span>(<span class="ident">err</span>)),
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">fix_position</span>(<span class="ident">err</span>)),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">deserialize_u128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">parse_whitespace</span>()) {
+            <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
+            }
+            <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
+            <span class="prelude-val">None</span> =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::EofWhileParsingValue</span>));
             }
         }
 
-        <span class="kw">fn</span> <span class="ident">deserialize_u128</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>
-        <span class="kw">where</span>
-            <span class="ident">V</span>: <span class="ident">de::Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;de</span><span class="op">&gt;</span>,
-        {
-            <span class="kw">match</span> <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">parse_whitespace</span>()) {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;-&#39;</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
-                }
-                <span class="prelude-val">Some</span>(<span class="kw">_</span>) =&gt; {}
-                <span class="prelude-val">None</span> =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">peek_error</span>(<span class="ident">ErrorCode::EofWhileParsingValue</span>));
-                }
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
+        <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
+
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">parse</span>() {
+            <span class="prelude-val">Ok</span>(<span class="ident">int</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_u128</span>(<span class="ident">int</span>),
+            <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
             }
+        };
 
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::new</span>();
-            <span class="macro">tri!</span>(<span class="self">self</span>.<span class="ident">scan_integer128</span>(<span class="kw-2">&amp;mut</span> <span class="ident">buf</span>));
-
-            <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">buf</span>.<span class="ident">parse</span>() {
-                <span class="prelude-val">Ok</span>(<span class="ident">int</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_u128</span>(<span class="ident">int</span>),
-                <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; {
-                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">error</span>(<span class="ident">ErrorCode::NumberOutOfRange</span>));
-                }
-            };
-
-            <span class="kw">match</span> <span class="ident">value</span> {
-                <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>),
-                <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">fix_position</span>(<span class="ident">err</span>)),
-            }
+        <span class="kw">match</span> <span class="ident">value</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">value</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">value</span>),
+            <span class="prelude-val">Err</span>(<span class="ident">err</span>) =&gt; <span class="prelude-val">Err</span>(<span class="self">self</span>.<span class="ident">fix_position</span>(<span class="ident">err</span>)),
         }
     }
 
@@ -4778,15 +4759,12 @@
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_i16</span> =&gt; <span class="ident">visit_i16</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_i32</span> =&gt; <span class="ident">visit_i32</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_i64</span> =&gt; <span class="ident">visit_i64</span>);
+    <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u8</span> =&gt; <span class="ident">visit_u8</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u16</span> =&gt; <span class="ident">visit_u16</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u32</span> =&gt; <span class="ident">visit_u32</span>);
     <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u64</span> =&gt; <span class="ident">visit_u64</span>);
-
-    <span class="macro">serde_if_integer128!</span> {
-        <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
-        <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
-    }
+    <span class="macro">deserialize_integer_key!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">deserialize_option</span><span class="op">&lt;</span><span class="ident">V</span><span class="op">&gt;</span>(<span class="self">self</span>, <span class="ident">visitor</span>: <span class="ident">V</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">V::Value</span><span class="op">&gt;</span>

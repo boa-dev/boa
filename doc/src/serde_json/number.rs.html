@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.86/src/number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/home/runner/.cargo/registry/src/github.com-1ecc6299db9ec823/serde_json-1.0.87/src/number.rs`."><meta name="keywords" content="rust, rustlang, rust-lang"><title>number.rs - source</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script defer src="../../source-script.js"></script><script defer src="../../source-files.js"></script><script defer src="../../main.js"></script><noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc source"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a><h2 class="location"></h2></nav><nav class="sidebar"><a class="sidebar-logo" href="../../serde_json/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div></a></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../serde_json/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><div id="help-button" title="help" tabindex="-1"><button type="button">?</button></div><div id="settings-menu" tabindex="-1"><a href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></div></form></nav></div><section id="main-content" class="content"><div class="example-wrap"><pre class="line-numbers"><span id="1">1</span>
 <span id="2">2</span>
 <span id="3">3</span>
 <span id="4">4</span>
@@ -743,27 +743,6 @@
 <span id="743">743</span>
 <span id="744">744</span>
 <span id="745">745</span>
-<span id="746">746</span>
-<span id="747">747</span>
-<span id="748">748</span>
-<span id="749">749</span>
-<span id="750">750</span>
-<span id="751">751</span>
-<span id="752">752</span>
-<span id="753">753</span>
-<span id="754">754</span>
-<span id="755">755</span>
-<span id="756">756</span>
-<span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::de::ParserNumber</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::error::Error</span>;
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
@@ -778,10 +757,7 @@
 <span class="kw">use</span> <span class="ident">serde::de</span>::{<span class="self">self</span>, <span class="ident">Unexpected</span>, <span class="ident">Visitor</span>};
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde::de</span>::{<span class="ident">IntoDeserializer</span>, <span class="ident">MapAccess</span>};
-<span class="kw">use</span> <span class="ident">serde</span>::{
-    <span class="ident">forward_to_deserialize_any</span>, <span class="ident">serde_if_integer128</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>,
-    <span class="ident">Serializer</span>,
-};
+<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">forward_to_deserialize_any</span>, <span class="ident">Deserialize</span>, <span class="ident">Deserializer</span>, <span class="ident">Serialize</span>, <span class="ident">Serializer</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const</span> <span class="ident">TOKEN</span>: <span class="kw-2">&amp;</span><span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;$serde_json::private::Number&quot;</span>;
@@ -1306,17 +1282,14 @@
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> =&gt; <span class="ident">visit_i16</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> =&gt; <span class="ident">visit_i32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> =&gt; <span class="ident">visit_i64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> =&gt; <span class="ident">visit_u8</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> =&gt; <span class="ident">visit_u16</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> =&gt; <span class="ident">visit_u32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> =&gt; <span class="ident">visit_u64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> =&gt; <span class="ident">visit_f32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> =&gt; <span class="ident">visit_f64</span>);
-
-    <span class="macro">serde_if_integer128!</span> {
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
-    }
 
     <span class="macro">forward_to_deserialize_any!</span> {
         <span class="ident">bool</span> <span class="ident">char</span> <span class="ident">str</span> <span class="ident">string</span> <span class="ident">bytes</span> <span class="ident">byte_buf</span> <span class="ident">option</span> <span class="ident">unit</span> <span class="ident">unit_struct</span>
@@ -1334,17 +1307,14 @@
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i16</span> =&gt; <span class="ident">visit_i16</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i32</span> =&gt; <span class="ident">visit_i32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i64</span> =&gt; <span class="ident">visit_i64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u8</span> =&gt; <span class="ident">visit_u8</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u16</span> =&gt; <span class="ident">visit_u16</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u32</span> =&gt; <span class="ident">visit_u32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u64</span> =&gt; <span class="ident">visit_u64</span>);
+    <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f32</span> =&gt; <span class="ident">visit_f32</span>);
     <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_f64</span> =&gt; <span class="ident">visit_f64</span>);
-
-    <span class="macro">serde_if_integer128!</span> {
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_i128</span> =&gt; <span class="ident">visit_i128</span>);
-        <span class="macro">deserialize_number!</span>(<span class="ident">deserialize_u128</span> =&gt; <span class="ident">visit_u128</span>);
-    }
 
     <span class="macro">forward_to_deserialize_any!</span> {
         <span class="ident">bool</span> <span class="ident">char</span> <span class="ident">str</span> <span class="ident">string</span> <span class="ident">bytes</span> <span class="ident">byte_buf</span> <span class="ident">option</span> <span class="ident">unit</span> <span class="ident">unit_struct</span>
@@ -1497,21 +1467,9 @@
 <span class="macro">impl_from_signed!</span>(<span class="ident">i8</span>, <span class="ident">i16</span>, <span class="ident">i32</span>, <span class="ident">i64</span>, <span class="ident">isize</span>);
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
-<span class="macro">serde_if_integer128!</span> {
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">i128</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">i</span>: <span class="ident">i128</span>) -&gt; <span class="self">Self</span> {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">itoa::Buffer::new</span>().<span class="ident">format</span>(<span class="ident">i</span>).<span class="ident">to_owned</span>();
-            <span class="ident">Number</span> { <span class="ident">n</span> }
-        }
-    }
-
-    <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">u128</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Number</span> {
-        <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">u</span>: <span class="ident">u128</span>) -&gt; <span class="self">Self</span> {
-            <span class="kw">let</span> <span class="ident">n</span> <span class="op">=</span> <span class="ident">itoa::Buffer::new</span>().<span class="ident">format</span>(<span class="ident">u</span>).<span class="ident">to_owned</span>();
-            <span class="ident">Number</span> { <span class="ident">n</span> }
-        }
-    }
-}
+<span class="macro">impl_from_unsigned!</span>(<span class="ident">u128</span>);
+<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>)]</span>
+<span class="macro">impl_from_signed!</span>(<span class="ident">i128</span>);
 
 <span class="kw">impl</span> <span class="ident">Number</span> {
     <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">not</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;arbitrary_precision&quot;</span>))]</span>
