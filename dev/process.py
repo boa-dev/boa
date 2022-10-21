@@ -4,14 +4,14 @@ from datetime import datetime, timezone
 def new_valid_bench(bench):
     # This runs showed to be a clear outliers
     outliers = [
-        "76a27ce2a5ac953c18fcc9f9376fe9e44af61a0e",
-        "f685a6757dffbc5267fb3b21091e6cc66c706184",
-        "6093a6689983a8c6bd83cfa93445784ac9b300a8",
-        "0027f26d21f8e7b013391a7c87b778b73d732d35",
-        "55e85adbc5af7da4d0474a948b6a00c9890aafb7",
-        "9f6aa1972ce37f10ac15d71a46a616b0652a2786",
-        "ab4d2899d5dc44c91c80729d9cd19e0f8904fd28",
-
+        "13df9a1984d729328fda88ca9432a84eb4990d3b",
+        "71daf2a06ca411ab821931d4202875be1b0b4026",
+        "518bad810974aa4cf6fcd3d864756f298d1b204d",
+        "39cd3b8bdffada751621132de1f8b65d04627d6d",
+        "a2a33e749fa201205bb10a828afd24a3919fb4d6",
+        "fcf456e5ded032841e9c89255ef820070e3120e1",
+        "099154cb34c4f7fec6cf8d45f1f96b6797e10dd4",
+        "b0cf873a466bf3c71d258b20c81103f1ca696e97",
     ]
 
     date = datetime.strptime(bench["commit"]["timestamp"], "%Y-%m-%dT%H:%M:%S%z")
