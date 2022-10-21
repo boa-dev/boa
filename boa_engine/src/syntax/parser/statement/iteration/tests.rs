@@ -37,8 +37,7 @@ fn check_do_while() {
                     )),
                 ))]
                 .into(),
-            )
-            .into(),
+            ),
             Literal::from(true).into(),
         ))
         .into()],
@@ -83,8 +82,7 @@ fn check_do_while_semicolon_insertion() {
                         )),
                     ))]
                     .into(),
-                )
-                .into(),
+                ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
                     Unary::new(
@@ -133,29 +131,25 @@ fn check_do_while_semicolon_insertion_no_space() {
             .into(),
             Statement::DoWhileLoop(DoWhileLoop::new(
                 Statement::Block(
-                    vec![
-                        StatementListItem::Statement(Statement::Expression(Expression::from(
-                            Call::new(
-                                PropertyAccess::new(
-                                    Identifier::new(
-                                        interner.get_or_intern_static("console", utf16!("console")),
-                                    )
-                                    .into(),
-                                    interner.get_or_intern_static("log", utf16!("log")),
+                    vec![StatementListItem::Statement(Statement::Expression(
+                        Expression::from(Call::new(
+                            PropertyAccess::new(
+                                Identifier::new(
+                                    interner.get_or_intern_static("console", utf16!("console")),
                                 )
                                 .into(),
-                                vec![Literal::from(
-                                    interner.get_or_intern_static("hello", utf16!("hello")),
-                                )
-                                .into()]
-                                .into(),
-                            ),
-                        )))
-                        .into(),
-                    ]
+                                interner.get_or_intern_static("log", utf16!("log")),
+                            )
+                            .into(),
+                            vec![Literal::from(
+                                interner.get_or_intern_static("hello", utf16!("hello")),
+                            )
+                            .into()]
+                            .into(),
+                        )),
+                    ))]
                     .into(),
-                )
-                .into(),
+                ),
                 Binary::new(
                     RelationalOp::LessThan.into(),
                     Unary::new(

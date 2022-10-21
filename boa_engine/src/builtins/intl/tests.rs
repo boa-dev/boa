@@ -17,14 +17,14 @@ fn best_avail_loc() {
     let no_extensions_locale = "en-US";
     let available_locales = Vec::new();
     assert_eq!(
-        best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, no_extensions_locale),
         None
     );
 
     let no_extensions_locale = "de-DE";
-    let available_locales = vec![no_extensions_locale.clone()];
+    let available_locales = vec![no_extensions_locale];
     assert_eq!(
-        best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, no_extensions_locale),
         Some(no_extensions_locale)
     );
 
@@ -32,16 +32,16 @@ fn best_avail_loc() {
     let no_extensions_locale = locale_part.to_string() + "-CA";
     let available_locales = vec![locale_part];
     assert_eq!(
-        best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, &no_extensions_locale),
         Some(locale_part)
     );
 
     let ja_kana_t = "ja-Kana-JP-t";
     let ja_kana = "ja-Kana-JP";
     let no_extensions_locale = "ja-Kana-JP-t-it-latn-it";
-    let available_locales = vec![ja_kana_t, ja_kana.clone()];
+    let available_locales = vec![ja_kana_t, ja_kana];
     assert_eq!(
-        best_available_locale(&available_locales, &no_extensions_locale,),
+        best_available_locale(&available_locales, no_extensions_locale),
         Some(ja_kana)
     );
 }
@@ -98,21 +98,21 @@ fn insert_unicode_ext() {
     let locale = "hu-HU";
     let ext = "";
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
+        insert_unicode_extension_and_canonicalize(locale, ext, &canonicalizer),
         locale
     );
 
     let locale = "hu-HU";
     let ext = "-u-hc-h12";
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
+        insert_unicode_extension_and_canonicalize(locale, ext, &canonicalizer),
         "hu-HU-u-hc-h12"
     );
 
     let locale = "hu-HU-x-PRIVATE";
     let ext = "-u-hc-h12";
     assert_eq!(
-        insert_unicode_extension_and_canonicalize(&locale, &ext, &canonicalizer),
+        insert_unicode_extension_and_canonicalize(locale, ext, &canonicalizer),
         "hu-HU-u-hc-h12-x-private"
     );
 }
@@ -120,7 +120,7 @@ fn insert_unicode_ext() {
 #[test]
 fn uni_ext_comp() {
     let ext = "-u-ca-japanese-hc-h12";
-    let components = unicode_extension_components(&ext);
+    let components = unicode_extension_components(ext);
     assert!(components.attributes.is_empty());
     assert_eq!(components.keywords.len(), 2);
     assert_eq!(components.keywords[0].key, "ca");
@@ -129,7 +129,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[1].value, "h12");
 
     let ext = "-u-alias-co-phonebk-ka-shifted";
-    let components = unicode_extension_components(&ext);
+    let components = unicode_extension_components(ext);
     assert_eq!(components.attributes, vec![String::from("alias")]);
     assert_eq!(components.keywords.len(), 2);
     assert_eq!(components.keywords[0].key, "co");
@@ -138,7 +138,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[1].value, "shifted");
 
     let ext = "-u-ca-buddhist-kk-nu-thai";
-    let components = unicode_extension_components(&ext);
+    let components = unicode_extension_components(ext);
     assert!(components.attributes.is_empty());
     assert_eq!(components.keywords.len(), 3);
     assert_eq!(components.keywords[0].key, "ca");
@@ -149,7 +149,7 @@ fn uni_ext_comp() {
     assert_eq!(components.keywords[2].value, "thai");
 
     let ext = "-u-ca-islamic-civil";
-    let components = unicode_extension_components(&ext);
+    let components = unicode_extension_components(ext);
     assert!(components.attributes.is_empty());
     assert_eq!(components.keywords.len(), 1);
     assert_eq!(components.keywords[0].key, "ca");
@@ -478,11 +478,11 @@ fn to_date_time_opts() {
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
         date_time_opts.get("year", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("month", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("day", &mut context).unwrap(),
@@ -500,11 +500,11 @@ fn to_date_time_opts() {
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
         date_time_opts.get("hour", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("minute", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("second", &mut context).unwrap(),
@@ -522,23 +522,23 @@ fn to_date_time_opts() {
     let numeric_jsstring = JsValue::String("numeric".into());
     assert_eq!(
         date_time_opts.get("year", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("month", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("day", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("hour", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("minute", &mut context).unwrap(),
-        numeric_jsstring.clone()
+        numeric_jsstring
     );
     assert_eq!(
         date_time_opts.get("second", &mut context).unwrap(),
