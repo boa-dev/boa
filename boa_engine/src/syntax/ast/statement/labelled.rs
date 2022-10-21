@@ -8,7 +8,7 @@ use super::Statement;
 ///
 /// Semantically, a [`Labelled`] statement should only wrap [`Statement`] nodes. However,
 /// old ECMAScript implementations supported [labelled function declarations][label-fn] as an extension
-/// of the grammar. In the ECMAScript 2015 spec, the production of [`LabelledStatement`] was
+/// of the grammar. In the ECMAScript 2015 spec, the production of `LabelledStatement` was
 /// modified to include labelled [`Function`]s as a valid node.
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LabelledItem
