@@ -13,6 +13,7 @@ index.js
 dev/bench/data.js
 [0-9].js
 [0-9][0-9].js
+[0-9][0-9][0-9].js
 *node_modules_monaco-editor_esm_vs_*.js
 *_pkg_index_js.js
 doc
