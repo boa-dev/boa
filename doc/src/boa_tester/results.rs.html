@@ -515,8 +515,6 @@
 <span id="513">513</span>
 <span id="514">514</span>
 <span id="515">515</span>
-<span id="516">516</span>
-<span id="517">517</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::SuiteResult</span>;
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 <span class="kw">use</span> <span class="ident">std</span>::{
@@ -794,8 +792,6 @@
                 <span class="kw">if</span> <span class="ident">diff</span> <span class="op">==</span> <span class="number">0</span> { <span class="string">&quot;&quot;</span> } <span class="kw">else</span> { <span class="string">&quot;**&quot;</span> }
             )
         }
-
-        <span class="macro">println!</span>(<span class="string">&quot;#### VM implementation&quot;</span>);
 
         <span class="macro">println!</span>(<span class="string">&quot;| Test result | main count | PR count | difference |&quot;</span>);
         <span class="macro">println!</span>(<span class="string">&quot;| :---------: | :----------: | :------: | :--------: |&quot;</span>);
