@@ -251,7 +251,8 @@ impl Context {
     /// This is more efficient that creating a closure function, since this does not allocate,
     /// it is just a function pointer.
     ///
-    /// The function will be both `constructable` (call with `new`).
+    /// The function will be both `constructable` (call with `new <name>()`) and `callable` (call
+    /// with `<name>()`).
     ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
