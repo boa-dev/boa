@@ -1,0 +1,11 @@
+#cloud-config
+cloud_config_modules:
+  - runcmd
+
+cloud_final_modules:
+  - scripts-user
+
+runcmd:
+  - dnf upgrade --refresh -y
+  - dnf install --refresh git -y
+  - git clone

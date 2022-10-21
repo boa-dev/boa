@@ -6,29 +6,14 @@ on:
       - main
 
 jobs:
-  runBenchmark:
-    if: contains(github.event.pull_request.labels.*.name, 'run-benchmark')
-    name: run benchmark
+  create_droplet:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
         with:
-          fetch-depth: 0
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      - uses: boa-dev/criterion-compare-action@v3.2.2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branchName: ${{ github.base_ref }}
-          cwd: ./boa_engine
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Prepare user-data file
+        run: ./prepare-benchmark-userdata.sh
+      - name: Create droplet
+        run: doctl compute droplet create $GITHUB_SHA --size g-2vcpu-8gb --image rockylinux-9-x64 --user-data-file ./benchmark-setup.yml
