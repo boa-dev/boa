@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `ConcatToString` implements the Opcode Operation for `Opcode::ConcatToString`
+///
+/// Operation:
+///  - Concat multiple stack objects into a string.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ConcatToString;
 

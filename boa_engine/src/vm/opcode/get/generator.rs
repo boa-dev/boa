@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `GetGenerator` implements the Opcode Operation for `Opcode::GetGenerator`
+///
+/// Operation:
+///  - Get generator function from the pre-compiled inner functions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetGenerator;
 
@@ -19,6 +23,10 @@ impl Operation for GetGenerator {
     }
 }
 
+/// `GetGeneratorAsync` implements the Opcode Operation for `Opcode::GetGeneratorAsync`
+///
+/// Operation:
+///  - Get async generator function from the pre-compiled inner functions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetGeneratorAsync;
 

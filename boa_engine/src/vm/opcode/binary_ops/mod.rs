@@ -10,6 +10,10 @@ pub(crate) mod macro_defined;
 pub(crate) use logical::*;
 pub(crate) use macro_defined::*;
 
+/// `NotEq` implements the Opcode Operation for `Opcode::NotEq`
+///
+/// Operation:
+///  - Binary `!=` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct NotEq;
 
@@ -26,6 +30,10 @@ impl Operation for NotEq {
     }
 }
 
+/// `StrictEq` implements the Opcode Operation for `Opcode::StrictEq`
+///
+/// Operation:
+///  - Binary `===` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct StrictEq;
 
@@ -41,6 +49,10 @@ impl Operation for StrictEq {
     }
 }
 
+/// `StrictNotEq` implements the Opcode Operation for `Opcode::StrictNotEq`
+///
+/// Operation:
+///  - Binary `!==` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct StrictNotEq;
 
@@ -56,6 +68,10 @@ impl Operation for StrictNotEq {
     }
 }
 
+/// `In` implements the Opcode Operation for `Opcode::In`
+///
+/// Operation:
+///  - Binary `in` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct In;
 
@@ -82,6 +98,10 @@ impl Operation for In {
     }
 }
 
+/// `InstanceOf` implements the Opcode Operation for `Opcode::InstanceOf`
+///
+/// Operation:
+///  - Binary `instanceof` operation
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct InstanceOf;
 

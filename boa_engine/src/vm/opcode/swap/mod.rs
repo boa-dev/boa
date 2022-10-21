@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Swap` implements the Opcode Operation for `Opcode::Swap`
+///
+/// Operation:
+///  - Swap the top two values on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Swap;
 

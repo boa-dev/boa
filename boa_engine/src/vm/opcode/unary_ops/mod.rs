@@ -8,10 +8,18 @@ use std::ops::Neg as StdNeg;
 
 pub(crate) mod decrement;
 pub(crate) mod increment;
+pub(crate) mod logical;
+pub(crate) mod void;
 
 pub(crate) use decrement::*;
 pub(crate) use increment::*;
+pub(crate) use logical::*;
+pub(crate) use void::*;
 
+/// `TypeOf` implements the Opcode Operation for `Opcode::TypeOf`
+///
+/// Operation:
+///  - Unary `typeof` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct TypeOf;
 
@@ -26,6 +34,10 @@ impl Operation for TypeOf {
     }
 }
 
+/// `Pos` implements the Opcode Operation for `Opcode::Pos`
+///
+/// Operation:
+///  - Unary `+` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Pos;
 
@@ -41,6 +53,10 @@ impl Operation for Pos {
     }
 }
 
+/// `Neg` implements the Opcode Operation for `Opcode::Neg`
+///
+/// Operation:
+///  - Unary `-` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Neg;
 
@@ -58,6 +74,10 @@ impl Operation for Neg {
     }
 }
 
+/// `BitNot` implements the Opcode Operation for `Opcode::BitNot`
+///
+/// Operation:
+///  - Unary bitwise `~` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct BitNot;
 

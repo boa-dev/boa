@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Dup` implements the Opcode Operation for `Opcode::Dup`
+///
+/// Operation:
+///  - Push a copy of the top value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Dup;
 

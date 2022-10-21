@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushLiteral` implements the Opcode Operation for `Opcode::PushLiteral`
+///
+/// Operation:
+///  - Push literal value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushLiteral;
 

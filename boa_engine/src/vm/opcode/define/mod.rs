@@ -10,6 +10,10 @@ pub(crate) mod own_property;
 pub(crate) use class::*;
 pub(crate) use own_property::*;
 
+/// `DefVar` implements the Opcode Operation for `Opcode::DefVar`
+///
+/// Operation:
+///  - Declare `var` type variable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefVar;
 
@@ -45,6 +49,10 @@ impl Operation for DefVar {
     }
 }
 
+/// `DefInitVar` implements the Opcode Operation for `Opcode::DefInitVar`
+///
+/// Operation:
+///  - Declare and initialize a function argument.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefInitVar;
 
@@ -76,6 +84,10 @@ impl Operation for DefInitVar {
     }
 }
 
+/// `DefLet` implements the Opcode Operation for `Opcode::DefLet`
+///
+/// Operation:
+///  - Declare `let` type variable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefLet;
 
@@ -96,7 +108,11 @@ impl Operation for DefLet {
 }
 
 macro_rules! implement_declaritives {
-    ($name:ident) => {
+    ($name:ident, $doc_string:literal) => {
+        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
+        #[doc= "\n"]
+        #[doc="Operation:\n"]
+        #[doc= concat!(" - ", $doc_string)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub(crate) struct $name;
 
@@ -119,6 +135,6 @@ macro_rules! implement_declaritives {
     };
 }
 
-implement_declaritives!(DefInitLet);
-implement_declaritives!(DefInitConst);
-implement_declaritives!(DefInitArg);
+implement_declaritives!(DefInitLet, "Declare and initialize `let` type variable");
+implement_declaritives!(DefInitConst, "Declare and initialize `const` type variable");
+implement_declaritives!(DefInitArg, "Declare and initialize function arguments");

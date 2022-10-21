@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `AssignPrivateField` implements the Opcode Operation for `Opcode::AssignPrivateField`
+///
+/// Operation:
+///  - Assign the value of a private property of an object by it's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct AssignPrivateField;
 
@@ -56,6 +60,10 @@ impl Operation for AssignPrivateField {
     }
 }
 
+/// `SetPrivateField` implements the Opcode Operation for `Opcode::SetPrivateField`
+///
+/// Operation:
+///  - Set a private property of a class constructor by it's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPrivateField;
 
@@ -90,6 +98,10 @@ impl Operation for SetPrivateField {
     }
 }
 
+/// `SetPrivateMethod` implements the Opcode Operation for `Opcode::SetPrivateMethod`
+///
+/// Operation:
+///  - Set a private method of a class constructor by it's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPrivateMethod;
 
@@ -116,6 +128,10 @@ impl Operation for SetPrivateMethod {
     }
 }
 
+/// `SetPrivateSetter` implements the Opcode Operation for `Opcode::SetPrivateSetter`
+///
+/// Operation:
+///  - Set a private setter property of a class constructor by it's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPrivateSetter;
 
@@ -141,6 +157,10 @@ impl Operation for SetPrivateSetter {
     }
 }
 
+/// `SetPrivateGetter` implements the Opcode Operation for `Opcode::SetPrivateGetter`
+///
+/// Operation:
+///  - Set a private getter property of a class constructor by it's name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPrivateGetter;
 

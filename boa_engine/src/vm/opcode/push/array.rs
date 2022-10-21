@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushNewArray` implements the Opcode Operation for `Opcode::PushNewArray`
+///
+/// Operation:
+///  - Push an empty array value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushNewArray;
 
@@ -19,6 +23,10 @@ impl Operation for PushNewArray {
     }
 }
 
+/// `PushValueToArray` implements the Opcode Operation for `Opcode::PushValueToArray`
+///
+/// Operation:
+///  - Push a value to an array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushValueToArray;
 
@@ -40,6 +48,10 @@ impl Operation for PushValueToArray {
     }
 }
 
+/// `PushEllisionToArray` implements the Opcode Operation for `Opcode::PushEllisionToArray`
+///
+/// Operation:
+///  - Push an empty element/hole to an array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushElisionToArray;
 
@@ -61,6 +73,10 @@ impl Operation for PushElisionToArray {
     }
 }
 
+/// `PushIteratorToArray` implements the Opcode Operation for `Opcode::PushIteratorToArray`
+///
+/// Operation:
+///  - Push all iterator values to an array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushIteratorToArray;
 

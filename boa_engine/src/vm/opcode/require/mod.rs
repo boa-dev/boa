@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `RequireObjectCoercible` implements the Opcode Operation for `Opcode::RequireObjectCoercible`
+///
+/// Operation:
+///  - Call `RequireObjectCoercible` on the stack value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct RequireObjectCoercible;
 

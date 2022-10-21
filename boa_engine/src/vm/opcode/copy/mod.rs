@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `CopyDataProperties` implements the Opcode Operation for `Opcode::CopyDataProperties`
+///
+/// Operation:
+///  - Copy all properties of one object to another object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CopyDataProperties;
 

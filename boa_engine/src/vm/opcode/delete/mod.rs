@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`
+///
+/// Operation:
+///  - Deletes a property by name of an object
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DeletePropertyByName;
 
@@ -31,6 +35,10 @@ impl Operation for DeletePropertyByName {
     }
 }
 
+/// `DeletePropertyByValue` implements the Opcode Operation for `Opcode::DeletePropertyByValue`
+///
+/// Operation:
+///  - Deletes a property by value of an object
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DeletePropertyByValue;
 

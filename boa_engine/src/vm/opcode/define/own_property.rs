@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`
+///
+/// Operation:
+///  - Defines a own property of an object by name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineOwnPropertyByName;
 
@@ -39,6 +43,10 @@ impl Operation for DefineOwnPropertyByName {
     }
 }
 
+/// `DefineOwnPropertyByValue` implements the Opcode Operation for `Opcode::DefineOwnPropertyByValue`
+///
+/// Operation:
+///  - Defines a own property of an object by value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineOwnPropertyByValue;
 

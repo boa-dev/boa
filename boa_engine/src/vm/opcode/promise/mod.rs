@@ -3,6 +3,10 @@ use crate::{
     Context, JsError, JsResult,
 };
 
+/// `FinallyStart` implements the Opcode Operation for `Opcode::FinallyStart`
+///
+/// Operation:
+///  - Start of a finally block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct FinallyStart;
 
@@ -21,6 +25,10 @@ impl Operation for FinallyStart {
     }
 }
 
+/// `FinallyEnd` implements the Opcode Operation for `Opcode::FinallyEnd`
+///
+/// Operation:
+///  - End of a finally block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct FinallyEnd;
 
@@ -48,6 +56,10 @@ impl Operation for FinallyEnd {
     }
 }
 
+/// `FinallySetJump` implements the Opcode Operation for `Opcode::FinallySetJump`
+///
+/// Operation:
+///  - Set the address for a finally jump.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct FinallySetJump;
 

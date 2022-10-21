@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `RestParameterInit` implements the Opcode Operation for `Opcode::RestParameterInit`
+///
+/// Operation:
+///  - Initialize the rest parameter value of a function from the remaining arguments.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct RestParameterInit;
 
@@ -34,6 +38,10 @@ impl Operation for RestParameterInit {
     }
 }
 
+/// `RestParameterPop` implements the Opcode Operation for `Opcode::RestParameterPop`
+///
+/// Operation:
+///  - Pop the remaining arguments of a function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct RestParameterPop;
 

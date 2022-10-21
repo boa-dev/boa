@@ -6,6 +6,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `ForInLoopInitIterator` implements the Opcode Operation for `Opcode::ForInLoopInitIterator`
+///
+/// Operation:
+///  - Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ForInLoopInitIterator;
 
@@ -38,6 +42,10 @@ impl Operation for ForInLoopInitIterator {
     }
 }
 
+/// `ForInLoopNext` implements the Opcode Operation for `Opcode::ForInLoopNext`
+///
+/// Operation:
+///  - Move to the next value in a for..in loop or jump to exit of the loop if done.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ForInLoopNext;
 

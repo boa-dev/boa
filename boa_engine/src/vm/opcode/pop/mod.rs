@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Pop` implements the Opcode Operation for `Opcode::Pop`
+///
+/// Operation:
+///  - Pop the top value from the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Pop;
 
@@ -16,6 +20,10 @@ impl Operation for Pop {
     }
 }
 
+/// `PopIfThrown` implements the Opcode Operation for `Opcode::PopIfThrown`
+///
+/// Operation:
+///  - Pop the top value from the stack if the last try block has thrown a value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PopIfThrown;
 
@@ -33,6 +41,10 @@ impl Operation for PopIfThrown {
     }
 }
 
+/// `PopEnvironment` implements the Opcode Operation for `Opcode::PopEnvironment`
+///
+/// Operation:
+///  - Pop the current environment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PopEnvironment;
 
@@ -48,6 +60,10 @@ impl Operation for PopEnvironment {
     }
 }
 
+/// `PopReturnAdd` implements the Opcode Operation for `Opcode::PopReturnAdd`
+///
+/// Operation:
+///  - Add one to the pop on return count.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PopOnReturnAdd;
 
@@ -61,6 +77,10 @@ impl Operation for PopOnReturnAdd {
     }
 }
 
+/// `PopOnReturnSub` implements the Opcode Operation for `Opcode::PopOnReturnSub`
+///
+/// Operation:
+///  - Subtract one from the pop on return count.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PopOnReturnSub;
 

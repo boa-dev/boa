@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`
+///
+/// Operation:
+///  - Get function from the pre-compiled inner functions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetFunction;
 
@@ -19,6 +23,10 @@ impl Operation for GetFunction {
     }
 }
 
+/// `GetFunctionAsync` implements the Opcode Operation for `Opcode::GetFunctionAsync`
+///
+/// Operation:
+///  - Get async function from the pre-compiled inner functions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetFunctionAsync;
 

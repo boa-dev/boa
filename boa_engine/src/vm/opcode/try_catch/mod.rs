@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `TryStart` implements the Opcode Operation for `Opcode::TryStart`
+///
+/// Operation:
+///  - Start of a try block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct TryStart;
 
@@ -29,6 +33,10 @@ impl Operation for TryStart {
     }
 }
 
+/// `TryEnd` implements the Opcode Operation for `Opcode::TryEnd`
+///
+/// Operation:
+///  - End of a try block
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct TryEnd;
 
@@ -67,6 +75,10 @@ impl Operation for TryEnd {
     }
 }
 
+/// `CatchStart` implements the Opcode Operation for `Opcode::CatchStart`
+///
+/// Operation:
+///  - Start of a catch block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CatchStart;
 
@@ -89,6 +101,10 @@ impl Operation for CatchStart {
     }
 }
 
+/// `CatchEnd` implements the Opcode Operation for `Opcode::CatchEnd`
+///
+/// Operation:
+///  - End of a catch block.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CatchEnd;
 
@@ -127,6 +143,10 @@ impl Operation for CatchEnd {
     }
 }
 
+/// `CatchEnd2` implements the Opcode Operation for `Opcode::CatchEnd2`
+///
+/// Operation:
+///  - End of a catch block
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CatchEnd2;
 

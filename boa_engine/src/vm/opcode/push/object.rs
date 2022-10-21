@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushEmptyObject` implements the Opcode Operation for `Opcode::PushEmptyObject`
+///
+/// Operation:
+///  - Push empty object `{}` value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushEmptyObject;
 

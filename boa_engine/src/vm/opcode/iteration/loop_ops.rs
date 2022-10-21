@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `LoopStart` implements the Opcode Operation for `Opcode::LoopStart`
+///
+/// Operation:
+///  - Push loop start marker.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct LoopStart;
 
@@ -17,6 +21,10 @@ impl Operation for LoopStart {
     }
 }
 
+/// `LoopContinue` implements the Opcode Operation for `Opcode::LoopContinue`
+///
+/// Operation:
+///  - Clean up environments when a loop continues.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct LoopContinue;
 
@@ -40,6 +48,10 @@ impl Operation for LoopContinue {
     }
 }
 
+/// `LoopEnd` implements the Opcode Operation for `Opcode::LoopEnd`
+///
+/// Operation:
+///  - Clean up enviroments at the end of a lopp.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct LoopEnd;
 

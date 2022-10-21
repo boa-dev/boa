@@ -2,69 +2,103 @@
 use crate::{vm::ShouldExit, Context, JsResult};
 
 // Operation modules
-pub(crate) mod await_stm;
-pub(crate) mod binary_ops;
-pub(crate) mod call;
-pub(crate) mod concat;
-pub(crate) mod copy;
-pub(crate) mod define;
-pub(crate) mod delete;
-pub(crate) mod dup;
-pub(crate) mod environment;
-pub(crate) mod generator;
-pub(crate) mod get;
-pub(crate) mod iteration;
-pub(crate) mod jump;
-pub(crate) mod new;
-pub(crate) mod nop;
-pub(crate) mod pop;
-pub(crate) mod promise;
-pub(crate) mod push;
-pub(crate) mod require;
-pub(crate) mod rest_parameter;
-pub(crate) mod return_stm;
-pub(crate) mod set;
-pub(crate) mod swap;
-pub(crate) mod switch;
-pub(crate) mod throw;
-pub(crate) mod to;
-pub(crate) mod try_catch;
-pub(crate) mod unary_ops;
-pub(crate) mod value;
-pub(crate) mod void;
+mod await_stm;
+mod binary_ops;
+mod call;
+mod concat;
+mod copy;
+mod define;
+mod delete;
+mod dup;
+mod environment;
+mod generator;
+mod get;
+mod iteration;
+mod jump;
+mod new;
+mod nop;
+mod pop;
+mod promise;
+mod push;
+mod require;
+mod rest_parameter;
+mod return_stm;
+mod set;
+mod swap;
+mod switch;
+mod throw;
+mod to;
+mod try_catch;
+mod unary_ops;
+mod value;
 
 // Operation structs
+#[doc(inline)]
 pub(crate) use await_stm::*;
+#[doc(inline)]
 pub(crate) use binary_ops::*;
+#[doc(inline)]
 pub(crate) use call::*;
+#[doc(inline)]
 pub(crate) use concat::*;
+#[doc(inline)]
 pub(crate) use copy::*;
+#[doc(inline)]
 pub(crate) use define::*;
+#[doc(inline)]
 pub(crate) use delete::*;
+#[doc(inline)]
 pub(crate) use dup::*;
+#[doc(inline)]
 pub(crate) use environment::*;
+#[doc(inline)]
 pub(crate) use generator::*;
+#[doc(inline)]
 pub(crate) use get::*;
+#[doc(inline)]
 pub(crate) use iteration::*;
+#[doc(inline)]
 pub(crate) use jump::*;
+#[doc(inline)]
 pub(crate) use new::*;
+#[doc(inline)]
 pub(crate) use nop::*;
+#[doc(inline)]
 pub(crate) use pop::*;
+#[doc(inline)]
 pub(crate) use promise::*;
+#[doc(inline)]
 pub(crate) use push::*;
+#[doc(inline)]
 pub(crate) use require::*;
+#[doc(inline)]
 pub(crate) use rest_parameter::*;
+#[doc(inline)]
 pub(crate) use return_stm::*;
+#[doc(inline)]
 pub(crate) use set::*;
+#[doc(inline)]
 pub(crate) use swap::*;
+#[doc(inline)]
 pub(crate) use switch::*;
+#[doc(inline)]
 pub(crate) use throw::*;
+#[doc(inline)]
 pub(crate) use to::*;
+#[doc(inline)]
 pub(crate) use try_catch::*;
+#[doc(inline)]
 pub(crate) use unary_ops::*;
+#[doc(inline)]
 pub(crate) use value::*;
-pub(crate) use void::*;
 
+/// The `Operation` trait implements the execution code along with the
+/// identifying Name and Instruction value for an Boa Opcode
+///
+///
+/// This trait should be implemented for a struct that corresponds with
+/// any arm of the `OpCode` enum.
+///
 pub(crate) trait Operation {
     const NAME: &'static str;
     const INSTRUCTION: &'static str;

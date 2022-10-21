@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushDeclarativeEnvironment` implements the Opcode Operation for `Opcode::PushDeclarativeEnvironment`
+///
+/// Operation:
+///  - Push a declarative environment
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushDeclarativeEnvironment;
 
@@ -26,6 +30,10 @@ impl Operation for PushDeclarativeEnvironment {
     }
 }
 
+/// `PushFunctionEnvironment` implements the Opcode Operation for `Opcode::PushFunctionEnvironment`
+///
+/// Operation:
+///  - Push a function environment.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushFunctionEnvironment;
 

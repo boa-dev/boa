@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `SetPropertyByName` implements the Opcode Operation for `Opcode::SetPropertyByName`
+///
+/// Operation:
+///  - Sets a property by name of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertyByName;
 
@@ -34,6 +38,10 @@ impl Operation for SetPropertyByName {
     }
 }
 
+/// `SetPropertyByValue` implements the Opcode Operation for `Opcode::SetPropertyByValue`
+///
+/// Operation:
+///  - Sets a property by value of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertyByValue;
 
@@ -57,6 +65,10 @@ impl Operation for SetPropertyByValue {
     }
 }
 
+/// `SetPropertyGetterByName` implements the Opcode Operation for `Opcode::SetPropertyGetterByName`
+///
+/// Operation:
+///  - Sets a getter property by name of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertyGetterByName;
 
@@ -94,6 +106,10 @@ impl Operation for SetPropertyGetterByName {
     }
 }
 
+/// `SetPropertyGetterByValue` implements the Opcode Operation for `Opcode::SetPropertyGetterByValue`
+///
+/// Operation:
+///  - Sets a getter property by value of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertyGetterByValue;
 
@@ -126,6 +142,10 @@ impl Operation for SetPropertyGetterByValue {
     }
 }
 
+/// `SetPropertySetterByName` implements the Opcode Operation for `Opcode::SetPropertySetterByName`
+///
+/// Operation:
+///  - Sets a setter property by name of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertySetterByName;
 
@@ -163,6 +183,10 @@ impl Operation for SetPropertySetterByName {
     }
 }
 
+/// `SetPropertySetterByValue` implements the Opcode Operation for `Opcode::SetPropertySetterByValue`
+///
+/// Operation:
+///  - Sets a setter property by value of an object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetPropertySetterByValue;
 

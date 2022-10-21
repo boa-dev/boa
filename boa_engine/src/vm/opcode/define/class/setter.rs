@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `DefineClassSetterByName` implements the Opcode Operation for `Opcode::DefineClassSetterByName`
+///
+/// Operation:
+///  - Defines a class setter by name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassSetterByName;
 
@@ -48,6 +52,10 @@ impl Operation for DefineClassSetterByName {
     }
 }
 
+/// `DefineClassSetterByValue` implements the Opcode Operation for `Opcode::DefineClassSetterByValue`
+///
+/// Operation:
+///  - Defines a class setter by value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassSetterByValue;
 

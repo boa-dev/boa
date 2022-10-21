@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Nop` implements the Opcode Operation for `Opcode::Nop`
+///
+/// Operation:
+///  - No-operation instruction, does nothing
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Nop;
 

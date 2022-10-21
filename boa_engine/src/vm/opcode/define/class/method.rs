@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `DefineClassMethodByName` implements the Opcode Operation for `Opcode::DefineClassMethodByName`
+///
+/// Operation:
+///  - Defines a class method by name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassMethodByName;
 
@@ -43,6 +47,10 @@ impl Operation for DefineClassMethodByName {
     }
 }
 
+/// `DefineClassMethodByValue` implements the Opcode Operation for `Opcode::DefineClassMethodByValue`
+///
+/// Operation:
+///  - Defines a class method by value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassMethodByValue;
 

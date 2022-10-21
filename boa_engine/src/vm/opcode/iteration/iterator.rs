@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `IteratorNext` implements the Opcode Operation for `Opcode::IteratorNext`
+///
+/// Operation:
+///  - Advance the iterator by one and put the value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct IteratorNext;
 
@@ -38,6 +42,10 @@ impl Operation for IteratorNext {
     }
 }
 
+/// `IteratorClose` implements the Opcode Operation for `Opcode::IteratorClose`
+///
+/// Operation:
+///  - Close an iterator
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct IteratorClose;
 
@@ -62,6 +70,10 @@ impl Operation for IteratorClose {
     }
 }
 
+/// `IteratorToArray` implements the Opcode Operation for `Opcode::IteratorToArray`
+///
+/// Operation:
+///  - Consume the iterator and construct and array with all the values.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct IteratorToArray;
 

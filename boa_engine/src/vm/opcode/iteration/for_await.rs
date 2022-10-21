@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `ForAwaitOfLoopIterate` implements the Opcode Operation for `Opcode::ForAwaitOfLoopIterator`
+///
+/// Operation:
+///  - Move to the next value in a for await..of loop.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ForAwaitOfLoopIterate;
 
@@ -35,6 +39,10 @@ impl Operation for ForAwaitOfLoopIterate {
     }
 }
 
+/// `ForAwaitOfLoopNext` implements the Opcode Operation for `Opcode::ForAwaitOfLoopNext`
+///
+/// Operation:
+///  - Get the value from a for await..of loop next result.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ForAwaitOfLoopNext;
 

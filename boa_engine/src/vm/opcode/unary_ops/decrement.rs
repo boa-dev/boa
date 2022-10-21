@@ -4,6 +4,10 @@ use crate::{
     Context, JsBigInt, JsResult,
 };
 
+/// `Dec` implements the Opcode Operation for `Opcode::Dec`
+///
+/// Operation:
+///  - Unary `--` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Dec;
 
@@ -23,6 +27,10 @@ impl Operation for Dec {
     }
 }
 
+/// `DecPost` implements the Opcode Operation for `Opcode::DecPost`
+///
+/// Operation:
+///  - Unary postfix `--` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DecPost;
 

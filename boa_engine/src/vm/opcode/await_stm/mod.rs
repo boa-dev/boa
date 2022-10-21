@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `Await` implements the Opcode Operation for `Opcode::Await`
+///
+/// Operation:
+///  - Stops the current Async function and schedules it to resume later.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Await;
 

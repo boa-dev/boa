@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Jump` implements the Opcode Operation for `Opcode::Jump`
+///
+/// Operation:
+///  - Unconditional jump to address.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Jump;
 
@@ -17,6 +21,10 @@ impl Operation for Jump {
     }
 }
 
+/// `JumpIfFalse` implements the Opcode Operation for `Opcode::JumpIfFalse`
+///
+/// Operation:
+///  - Conditional jump to address.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct JumpIfFalse;
 
@@ -33,6 +41,10 @@ impl Operation for JumpIfFalse {
     }
 }
 
+/// `JumpIfNotUndefined` implements the Opcode Operation for `Opcode::JumpIfNotUndefined`
+///
+/// Operation:
+///  - Conditional jump to address.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct JumpIfNotUndefined;
 

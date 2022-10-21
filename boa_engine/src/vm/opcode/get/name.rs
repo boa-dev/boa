@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult, JsString, JsValue,
 };
 
+/// `GetName` implements the Opcode Operation for `Opcode::GetName`
+///
+/// Operation:
+///  - Find a binding on the environment chain and push its value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetName;
 
@@ -75,6 +79,10 @@ impl Operation for GetName {
     }
 }
 
+/// `GetNameOrUndefined` implements the Opcode Operation for `Opcode::GetNameOrUndefined`
+///
+/// Operation:
+///  - Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetNameOrUndefined;
 

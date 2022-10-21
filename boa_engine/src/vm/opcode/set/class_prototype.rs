@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`
+///
+/// Operation:
+///  - Set the prototype of a class object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetClassPrototype;
 

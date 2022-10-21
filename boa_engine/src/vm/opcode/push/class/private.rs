@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushClassPrivateMethod` implements the Opcode Operation for `Opcode::PushClassPrivateMethod`
+///
+/// Operation:
+///  - Push a private method to the class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassPrivateMethod;
 
@@ -28,6 +32,10 @@ impl Operation for PushClassPrivateMethod {
     }
 }
 
+/// `PushClassPrivateGetter` implements the Opcode Operation for `Opcode::PushClassPrivateGetter`
+///
+/// Operation:
+///  - Push a private getter to the class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassPrivateGetter;
 
@@ -58,6 +66,10 @@ impl Operation for PushClassPrivateGetter {
     }
 }
 
+/// `PushClassPrivateSetter` implements the Opcode Operation for `Opcode::PushClassPrivateSetter`
+///
+/// Operation:
+///  - Push a private setter to the class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassPrivateSetter;
 

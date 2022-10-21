@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `GetPrivateField` implements the Opcode Operation for `Opcode::GetPrivateField`
+///
+/// Operation:
+///  - Get a private property by name from an object an push it on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetPrivateField;
 

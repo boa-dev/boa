@@ -11,6 +11,10 @@ pub(crate) mod private;
 pub(crate) use field::*;
 pub(crate) use private::*;
 
+/// `PushClassPrototype` implements the Opcode Operation for `Opcode::PushClassPrototype`
+///
+/// Operation:
+///  - Get the prototype of a superclass and push it on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassPrototype;
 

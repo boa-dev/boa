@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `SetName` implements the Opcode Operation for `Opcode::SetName`
+///
+/// Operation:
+///  - Find a binding on the environment chain and assign its value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetName;
 

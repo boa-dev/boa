@@ -15,6 +15,11 @@ use crate::{
 pub(crate) mod yield_stm;
 
 pub(crate) use yield_stm::*;
+
+/// `GeneratorNext` implements the Opcode Operation for `Opcode::GeneratorNext`
+///
+/// Operation:
+///  - Resumes the current generator function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GeneratorNext;
 
@@ -53,6 +58,10 @@ impl Operation for GeneratorNext {
     }
 }
 
+/// `AsyncGeneratorNext` implements the Opcode Operation for `Opcode::AsyncGeneratorNext`
+///
+/// Operation:
+///  - Resumes the current generator function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct AsyncGeneratorNext;
 
@@ -113,6 +122,10 @@ impl Operation for AsyncGeneratorNext {
     }
 }
 
+/// `GeneratorNextDelegate` implements the Opcode Operation for `Opcode::GeneratorNextDelegate`
+///
+/// Operation:
+///  - Delegates the current generator function another generator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GeneratorNextDelegate;
 

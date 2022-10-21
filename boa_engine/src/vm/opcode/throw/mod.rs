@@ -3,6 +3,10 @@ use crate::{
     Context, JsError, JsResult,
 };
 
+/// `Throw` implements the Opcode Operation for `Opcode::Throw`
+///
+/// Operation:
+///  - Throw exception.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Throw;
 

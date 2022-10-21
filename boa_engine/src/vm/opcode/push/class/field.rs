@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `PushClassField` implements the Opcode Operation for `Opcode::PushClassField`
+///
+/// Operation:
+///  - Push a field to a class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassField;
 
@@ -40,6 +44,10 @@ impl Operation for PushClassField {
     }
 }
 
+/// `PushClassFieldPrivate` implements the Opcode Operation for `Opcode::PushClassFieldPrivate`
+///
+/// Operation:
+///  - Push a private field to the class.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushClassFieldPrivate;
 

@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `InitIterator` implements the Opcode Operation for `Opcode::InitIterator`
+///
+/// Operation:
+///  - Initialize an iterator
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct InitIterator;
 
@@ -21,6 +25,10 @@ impl Operation for InitIterator {
     }
 }
 
+/// `InitIteratorAsync` implements the Opcode Operation for `Opcode::InitIteratorAsync`
+///
+/// Operation:
+///  - Initialize an async iterator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct InitIteratorAsync;
 

@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `ToBoolean` implements the Opcode Operation for `Opcode::ToBoolean`
+///
+/// Operation:
+///  - Pops value converts it to boolean and pushes it back.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ToBoolean;
 
@@ -17,6 +21,10 @@ impl Operation for ToBoolean {
     }
 }
 
+/// `ToPropertyKey` implements the Opcode Operation for `Opcode::ToPropertyKey`
+///
+/// Operation:
+///  - Call `ToPropertyKey` on the value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ToPropertyKey;
 

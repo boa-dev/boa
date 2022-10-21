@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `New` implements the Opcode Operation for `Opcode::New`
+///
+/// Operation:
+///  - Call construct on a function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct New;
 
@@ -39,6 +43,10 @@ impl Operation for New {
     }
 }
 
+/// `NewSpread` implements the Opcode Operation for `Opcode::NewSpread`
+///
+/// Operation:
+///  - Call construct on a function where the arguments contain spreads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct NewSpread;
 

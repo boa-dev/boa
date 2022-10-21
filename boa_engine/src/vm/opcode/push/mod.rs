@@ -20,7 +20,11 @@ pub(crate) use numbers::*;
 pub(crate) use object::*;
 
 macro_rules! implement_push_generics {
-    ($name:ident, $push_value:expr) => {
+    ($name:ident, $push_value:expr, $doc_string:literal) => {
+        #[doc= concat!("`", stringify!($name), "` implements the OpCode Operation for `Opcode::", stringify!($name), "`\n")]
+        #[doc= "\n"]
+        #[doc="Operation:\n"]
+        #[doc= concat!(" - ", $doc_string)]
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
         pub(crate) struct $name;
 
@@ -36,12 +40,28 @@ macro_rules! implement_push_generics {
     };
 }
 
-implement_push_generics!(PushUndefined, JsValue::undefined());
-implement_push_generics!(PushNull, JsValue::null());
-implement_push_generics!(PushTrue, true);
-implement_push_generics!(PushFalse, false);
-implement_push_generics!(PushZero, 0);
-implement_push_generics!(PushOne, 1);
-implement_push_generics!(PushNaN, JsValue::nan());
-implement_push_generics!(PushPositiveInfinity, JsValue::positive_infinity());
-implement_push_generics!(PushNegativeInfinity, JsValue::negative_infinity());
+implement_push_generics!(
+    PushUndefined,
+    JsValue::undefined(),
+    "Push integer `undefined` on the stack."
+);
+implement_push_generics!(
+    PushNull,
+    JsValue::null(),
+    "Push integer `null` on the stack."
+);
+implement_push_generics!(PushTrue, true, "Push integer `true` on the stack.");
+implement_push_generics!(PushFalse, false, "Push integer `false` on the stack.");
+implement_push_generics!(PushZero, 0, "Push integer `0` on the stack.");
+implement_push_generics!(PushOne, 1, "Push integer `1` on the stack.");
+implement_push_generics!(PushNaN, JsValue::nan(), "Push integer `NaN` on the stack.");
+implement_push_generics!(
+    PushPositiveInfinity,
+    JsValue::positive_infinity(),
+    "Push integer `Infinity` on the stack."
+);
+implement_push_generics!(
+    PushNegativeInfinity,
+    JsValue::negative_infinity(),
+    "Push integer `-Infinity` on the stack."
+);

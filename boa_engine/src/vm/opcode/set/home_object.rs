@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `SetHomeObject` implements the Opcode Operation for `Opcode::SetHomeObject`
+///
+/// Operation:
+///  - Set home object internal slot of a function object.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SetHomeObject;
 

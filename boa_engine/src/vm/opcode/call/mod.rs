@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `CallEval` implements the Opcode Operation for `Opcode::CallEval`
+///
+/// Operation:
+///  - Call a function named "eval".
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CallEval;
 
@@ -57,6 +61,10 @@ impl Operation for CallEval {
     }
 }
 
+/// `CallEvalSpread` implements the Opcode Operation for `Opcode::CallEvalSpread`
+///
+/// Operation:
+///  - Call a function named "eval" where the arguments contain spreads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct CallEvalSpread;
 
@@ -115,6 +123,10 @@ impl Operation for CallEvalSpread {
     }
 }
 
+/// `Call` implements the Opcode Operation for `Opcode::Call`
+///
+/// Operation:
+///  - Call a function
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Call;
 

@@ -5,6 +5,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `This` implements the Opcode Operation for `Opcode::This`
+///
+/// Operation:
+///  - Pushes `this` value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct This;
 
@@ -25,6 +29,10 @@ impl Operation for This {
     }
 }
 
+/// `Super` implements the Opcode Operation for `Opcode::Super`
+///
+/// Operation:
+///  - Pushes the current `super` value to the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Super;
 
@@ -63,6 +71,10 @@ impl Operation for Super {
     }
 }
 
+/// `SuperCall` implements the Opcode Operation for `Opcode::SuperCall`
+///
+/// Operation:
+///  - Execute the `super()` method.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SuperCall;
 
@@ -125,6 +137,10 @@ impl Operation for SuperCall {
     }
 }
 
+/// `SuperCallSpread` implements the Opcode Operation for `Opcode::SuperCallSpread`
+///
+/// Operation:
+///  - Execute the `super()` method where the arguments contain spreads.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SuperCallSpread;
 
@@ -192,6 +208,10 @@ impl Operation for SuperCallSpread {
     }
 }
 
+/// `SuperCallDerived` implements the Opcode Operation for `Opcode::SuperCallDerived`
+///
+/// Operation:
+///  - Execute the `super()` method when no constructor of the class is defined.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct SuperCallDerived;
 

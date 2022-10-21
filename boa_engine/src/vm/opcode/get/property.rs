@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `GetPropertyByName` implements the Opcode Operation for `Opcode::GetPropertyByName`
+///
+/// Operation:
+///  - Get a property by name from an object an push it on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetPropertyByName;
 
@@ -34,6 +38,10 @@ impl Operation for GetPropertyByName {
     }
 }
 
+/// `GetPropertyByValue` implements the Opcode Operation for `Opcode::GetPropertyByValue`
+///
+/// Operation:
+///  - Get a property by value from an object an push it on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetPropertyByValue;
 
@@ -58,6 +66,10 @@ impl Operation for GetPropertyByValue {
     }
 }
 
+/// `GetPropertyByValuePush` implements the Opcode Operation for `Opcode::GetPropertyByValuePush`
+///
+/// Operation:
+///  - Get a property by value from an object an push the key and value on the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct GetPropertyByValuePush;
 

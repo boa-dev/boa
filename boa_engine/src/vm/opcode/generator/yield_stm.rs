@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Yield` implements the Opcode Operation for `Opcode::Yield`
+///
+/// Operation:
+///  - Yield from the current execution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Yield;
 

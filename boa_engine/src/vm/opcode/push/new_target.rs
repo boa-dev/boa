@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `PushNewTarget` implements the Opcode Operation for `Opcode::PushNewTarget`
+///
+/// Operation:
+///  - Push the current new target to the stack.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct PushNewTarget;
 

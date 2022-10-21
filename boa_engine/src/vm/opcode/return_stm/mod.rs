@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `Return` implements the Opcode Operation for `Opcode::Return`
+///
+/// Operation:
+///  - Return from a function.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Return;
 

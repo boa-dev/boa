@@ -3,6 +3,10 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
+/// `Void` implements the Opcode Operation for `Opcode::Void`
+///
+/// Operation:
+///  - Unary `void` operator.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct Void;
 

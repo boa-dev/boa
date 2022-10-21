@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult,
 };
 
+/// `ValueNotNullOrUndefined` implements the Opcode Operation for `Opcode::ValueNotNullOrUndefined`
+///
+/// Operation:
+///  - Require the stack value to be neither null nor undefined.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct ValueNotNullOrUndefined;
 

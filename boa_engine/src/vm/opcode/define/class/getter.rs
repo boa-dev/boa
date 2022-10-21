@@ -4,6 +4,10 @@ use crate::{
     Context, JsResult, JsString,
 };
 
+/// `DefineClassGetterByName` implements the Opcode Operation for `Opcode::DefineClassGetterByName`
+///
+/// Operation:
+///  - Defines a class getter by name.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassGetterByName;
 
@@ -48,6 +52,10 @@ impl Operation for DefineClassGetterByName {
     }
 }
 
+/// `DefineClassGetterByValue` implements the Opcode Operation for `Opcode::DefineClassGetterByValue`
+///
+/// Operation:
+///  - Defines a class getter by value.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub(crate) struct DefineClassGetterByValue;
 
