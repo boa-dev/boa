@@ -111,6 +111,7 @@ impl ParseError {
     }
 
     /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
+    #[inline]
     pub(super) fn wrong_labelled_function_declaration(position: Position) -> Self {
         Self::General {
             message: "Labelled functions can only be declared at top level or inside a block",
