@@ -22,7 +22,7 @@ pub use self::{
     throw::Throw,
 };
 
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use rustc_hash::FxHashSet;
 use tap::Tap;
 
@@ -98,27 +98,6 @@ pub enum Statement {
 }
 
 impl Statement {
-    /// Creates a string of the value of the node with the given indentation. For example, an
-    /// indent level of 2 would produce this:
-    ///
-    /// ```js
-    ///         function hello() {
-    ///             console.log("hello");
-    ///         }
-    ///         hello();
-    ///         a = 2;
-    /// ```
-    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = match *self {
-            Self::Block(_) => String::new(),
-            _ => "    ".repeat(indentation),
-        };
-
-        buf.push_str(&self.to_no_indent_string(interner, indentation));
-
-        buf
-    }
-
     /// Implements the display formatting with indentation.
     ///
     /// This will not prefix the value with any indentation. If you want to prefix this with proper
@@ -302,8 +281,25 @@ impl Statement {
     }
 }
 
-impl ToInternedString for Statement {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for Statement {
+    /// Creates a string of the value of the node with the given indentation. For example, an
+    /// indent level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = match *self {
+            Self::Block(_) => String::new(),
+            _ => "    ".repeat(indentation),
+        };
+
+        buf.push_str(&self.to_no_indent_string(interner, indentation));
+
+        buf
     }
 }

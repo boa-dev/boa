@@ -1,8 +1,6 @@
-use boa_interner::{Interner, Sym, ToInternedString};
-
-use crate::syntax::ast::{function::Function, ContainsSymbol};
-
 use super::Statement;
+use crate::syntax::ast::{function::Function, ContainsSymbol};
+use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 /// The set of AST nodes that can be preceded by a label, as defined by the [spec].
 ///

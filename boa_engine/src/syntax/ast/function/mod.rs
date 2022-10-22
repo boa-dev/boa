@@ -15,7 +15,7 @@ pub use parameters::{FormalParameter, FormalParameterList};
 pub(crate) use parameters::FormalParameterListFlags;
 
 use crate::syntax::ast::{block_to_string, join_nodes, StatementList};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString};
 
 use super::expression::{Expression, Identifier};
 use super::{ContainsSymbol, Declaration};
@@ -46,6 +46,7 @@ pub struct Function {
 
 impl Function {
     /// Creates a new function expression
+    #[inline]
     pub(in crate::syntax) fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
@@ -59,22 +60,26 @@ impl Function {
     }
 
     /// Gets the name of the function declaration.
+    #[inline]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Gets the list of parameters of the function declaration.
+    #[inline]
     pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the function declaration.
+    #[inline]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
+}
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for Function {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function".to_owned();
         if let Some(name) = self.name {
             buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
@@ -89,19 +94,15 @@ impl Function {
     }
 }
 
-impl ToInternedString for Function {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
-}
-
 impl From<Function> for Expression {
+    #[inline]
     fn from(expr: Function) -> Self {
         Self::Function(expr)
     }
 }
 
 impl From<Function> for Declaration {
+    #[inline]
     fn from(f: Function) -> Self {
         Self::Function(f)
     }

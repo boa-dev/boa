@@ -1,13 +1,10 @@
 //! Statement list node.
 
-use std::cmp::Ordering;
-
-use crate::syntax::ast::{expression::Identifier, statement::Statement, ContainsSymbol};
-use boa_interner::{Interner, ToInternedString};
-
-use rustc_hash::FxHashSet;
-
 use super::{declaration::Binding, Declaration};
+use crate::syntax::ast::{expression::Identifier, statement::Statement, ContainsSymbol};
+use boa_interner::{Interner, ToIndentedString};
+use rustc_hash::FxHashSet;
+use std::cmp::Ordering;
 
 #[cfg(test)]
 mod tests;
@@ -33,46 +30,8 @@ impl StatementListItem {
             (_, _) => Ordering::Equal,
         }
     }
-}
 
-impl From<Statement> for StatementListItem {
-    fn from(stmt: Statement) -> Self {
-        StatementListItem::Statement(stmt)
-    }
-}
-
-impl From<Declaration> for StatementListItem {
-    fn from(decl: Declaration) -> Self {
-        StatementListItem::Declaration(decl)
-    }
-}
-
-impl StatementListItem {
-    /// Creates a string of the value of the node with the given indentation. For example, an
-    /// indent level of 2 would produce this:
-    ///
-    /// ```js
-    ///         function hello() {
-    ///             console.log("hello");
-    ///         }
-    ///         hello();
-    ///         a = 2;
-    /// ```
-    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = "    ".repeat(indentation);
-
-        match self {
-            StatementListItem::Statement(stmt) => {
-                buf.push_str(&stmt.to_no_indent_string(interner, indentation));
-            }
-            StatementListItem::Declaration(decl) => {
-                buf.push_str(&decl.to_indented_string(interner, indentation));
-            }
-        }
-
-        buf
-    }
-
+    #[inline]
     pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
         match self {
             StatementListItem::Statement(stmt) => stmt.var_declared_names(vars),
@@ -109,6 +68,47 @@ impl StatementListItem {
     }
 }
 
+impl ToIndentedString for StatementListItem {
+    /// Creates a string of the value of the node with the given indentation. For example, an
+    /// indent level of 2 would produce this:
+    ///
+    /// ```js
+    ///         function hello() {
+    ///             console.log("hello");
+    ///         }
+    ///         hello();
+    ///         a = 2;
+    /// ```
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = "    ".repeat(indentation);
+
+        match self {
+            StatementListItem::Statement(stmt) => {
+                buf.push_str(&stmt.to_no_indent_string(interner, indentation));
+            }
+            StatementListItem::Declaration(decl) => {
+                buf.push_str(&decl.to_indented_string(interner, indentation));
+            }
+        }
+
+        buf
+    }
+}
+
+impl From<Statement> for StatementListItem {
+    #[inline]
+    fn from(stmt: Statement) -> Self {
+        StatementListItem::Statement(stmt)
+    }
+}
+
+impl From<Declaration> for StatementListItem {
+    #[inline]
+    fn from(decl: Declaration) -> Self {
+        StatementListItem::Declaration(decl)
+    }
+}
+
 /// List of statements.
 ///
 /// More information:
@@ -141,19 +141,7 @@ impl StatementList {
         self.strict = strict;
     }
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = String::new();
-        // Print statements
-        for item in self.statements.iter() {
-            // We rely on the node to add the correct indent.
-            buf.push_str(&item.to_indented_string(interner, indentation));
-
-            buf.push('\n');
-        }
-        buf
-    }
-
+    #[inline]
     pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
         for stmt in &*self.statements {
             stmt.var_declared_names(vars);
@@ -250,6 +238,7 @@ impl StatementList {
 }
 
 impl From<Box<[StatementListItem]>> for StatementList {
+    #[inline]
     fn from(stm: Box<[StatementListItem]>) -> Self {
         Self {
             statements: stm,
@@ -259,6 +248,7 @@ impl From<Box<[StatementListItem]>> for StatementList {
 }
 
 impl From<Vec<StatementListItem>> for StatementList {
+    #[inline]
     fn from(stm: Vec<StatementListItem>) -> Self {
         Self {
             statements: stm.into(),
@@ -267,8 +257,16 @@ impl From<Vec<StatementListItem>> for StatementList {
     }
 }
 
-impl ToInternedString for StatementList {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for StatementList {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = String::new();
+        // Print statements
+        for item in self.statements.iter() {
+            // We rely on the node to add the correct indent.
+            buf.push_str(&item.to_indented_string(interner, indentation));
+
+            buf.push('\n');
+        }
+        buf
     }
 }

@@ -11,7 +11,7 @@ pub mod punctuator;
 pub mod statement;
 pub mod statement_list;
 
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 pub use self::{
     declaration::Declaration,

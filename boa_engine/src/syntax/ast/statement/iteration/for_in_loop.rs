@@ -3,7 +3,8 @@ use crate::syntax::ast::{
     statement::{iteration::IterableLoopInitializer, Statement},
     ContainsSymbol,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
+
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
@@ -13,6 +14,8 @@ pub struct ForInLoop {
 }
 
 impl ForInLoop {
+    /// Creates a new `ForInLoop`.
+    #[inline]
     pub fn new(init: IterableLoopInitializer, expr: Expression, body: Statement) -> Self {
         Self {
             init,
@@ -21,28 +24,22 @@ impl ForInLoop {
         }
     }
 
+    /// Gets the initializer of the for...in loop.
+    #[inline]
     pub fn init(&self) -> &IterableLoopInitializer {
         &self.init
     }
 
+    /// Gets the for...in loop expression.
+    #[inline]
     pub fn expr(&self) -> &Expression {
         &self.expr
     }
 
+    /// Gets the body of the for...in loop.
+    #[inline]
     pub fn body(&self) -> &Statement {
         &self.body
-    }
-
-    /// Converts the "for in" loop to a string with the given indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = format!(
-            "for ({} in {}) ",
-            self.init.to_interned_string(interner),
-            self.expr.to_interned_string(interner)
-        );
-        buf.push_str(&self.body().to_indented_string(interner, indentation));
-
-        buf
     }
 
     #[inline]
@@ -58,13 +55,21 @@ impl ForInLoop {
     }
 }
 
-impl ToInternedString for ForInLoop {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for ForInLoop {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = format!(
+            "for ({} in {}) ",
+            self.init.to_interned_string(interner),
+            self.expr.to_interned_string(interner)
+        );
+        buf.push_str(&self.body().to_indented_string(interner, indentation));
+
+        buf
     }
 }
 
 impl From<ForInLoop> for Statement {
+    #[inline]
     fn from(for_in: ForInLoop) -> Self {
         Self::ForInLoop(for_in)
     }

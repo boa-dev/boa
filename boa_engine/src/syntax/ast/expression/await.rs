@@ -3,7 +3,7 @@
 use crate::syntax::ast::ContainsSymbol;
 
 use super::Expression;
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// An await expression is used within an async function to pause execution and wait for a
 /// promise to resolve.

@@ -2,7 +2,7 @@ use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes, ContainsSymbol, StatementList,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
@@ -29,6 +29,7 @@ pub struct ArrowFunction {
 
 impl ArrowFunction {
     /// Creates a new `ArrowFunctionDecl` AST Expression.
+    #[inline]
     pub(in crate::syntax) fn new(
         name: Option<Identifier>,
         params: FormalParameterList,
@@ -42,38 +43,27 @@ impl ArrowFunction {
     }
 
     /// Gets the name of the function declaration.
+    #[inline]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Sets the name of the function declaration.
+    #[inline]
     pub fn set_name(&mut self, name: Option<Identifier>) {
         self.name = name;
     }
 
     /// Gets the list of parameters of the arrow function.
+    #[inline]
     pub(crate) fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the arrow function.
+    #[inline]
     pub(crate) fn body(&self) -> &StatementList {
         &self.body
-    }
-
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = format!("({}", join_nodes(interner, &self.parameters.parameters));
-        if self.body().statements().is_empty() {
-            buf.push_str(") => {}");
-        } else {
-            buf.push_str(&format!(
-                ") => {{\n{}{}}}",
-                self.body.to_indented_string(interner, indentation + 1),
-                "    ".repeat(indentation)
-            ));
-        }
-        buf
     }
 
     #[inline]
@@ -97,9 +87,19 @@ impl ArrowFunction {
     }
 }
 
-impl ToInternedString for ArrowFunction {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for ArrowFunction {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = format!("({}", join_nodes(interner, &self.parameters.parameters));
+        if self.body().statements().is_empty() {
+            buf.push_str(") => {}");
+        } else {
+            buf.push_str(&format!(
+                ") => {{\n{}{}}}",
+                self.body.to_indented_string(interner, indentation + 1),
+                "    ".repeat(indentation)
+            ));
+        }
+        buf
     }
 }
 

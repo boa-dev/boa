@@ -409,6 +409,12 @@ impl Interner {
     }
 }
 
+/// Implements the display formatting with indentation.
+pub trait ToIndentedString {
+    /// Converts the element to a string using an interner, with the given indentation.
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String;
+}
+
 /// Converts a given element to a string using an interner.
 pub trait ToInternedString {
     /// Converts a given element to a string using an interner.
@@ -417,9 +423,9 @@ pub trait ToInternedString {
 
 impl<T> ToInternedString for T
 where
-    T: std::fmt::Display,
+    T: ToIndentedString,
 {
-    fn to_interned_string(&self, _interner: &Interner) -> String {
-        self.to_string()
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        self.to_indented_string(interner, 0)
     }
 }

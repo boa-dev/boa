@@ -4,7 +4,7 @@ use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes, Declaration, StatementList,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
@@ -24,6 +24,7 @@ pub struct AsyncGenerator {
 
 impl AsyncGenerator {
     /// Creates a new async generator expression
+    #[inline]
     pub(in crate::syntax) fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
@@ -37,21 +38,26 @@ impl AsyncGenerator {
     }
 
     /// Gets the name of the async generator expression
+    #[inline]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Gets the list of parameters of the async generator expression
+    #[inline]
     pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the async generator expression
+    #[inline]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
+}
 
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for AsyncGenerator {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "async function*".to_owned();
         if let Some(name) = self.name {
             buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
@@ -66,19 +72,15 @@ impl AsyncGenerator {
     }
 }
 
-impl ToInternedString for AsyncGenerator {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
-}
-
 impl From<AsyncGenerator> for Expression {
+    #[inline]
     fn from(expr: AsyncGenerator) -> Self {
         Self::AsyncGenerator(expr)
     }
 }
 
 impl From<AsyncGenerator> for Declaration {
+    #[inline]
     fn from(f: AsyncGenerator) -> Self {
         Self::AsyncGenerator(f)
     }

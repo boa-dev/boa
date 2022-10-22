@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     statement::{iteration::IterableLoopInitializer, Statement},
     ContainsSymbol,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 #[cfg(feature = "deser")]
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,7 @@ pub struct ForOfLoop {
 
 impl ForOfLoop {
     /// Creates a new "for of" loop AST node.
+    #[inline]
     pub fn new(
         init: IterableLoopInitializer,
         iterable: Expression,
@@ -33,31 +34,28 @@ impl ForOfLoop {
         }
     }
 
+    /// Gets the initializer of the for...of loop.
+    #[inline]
     pub fn init(&self) -> &IterableLoopInitializer {
         &self.init
     }
 
+    /// Gets the iterable expression of the for...of loop.
+    #[inline]
     pub fn iterable(&self) -> &Expression {
         &self.iterable
     }
 
+    /// Gets the body to execute in the for...of loop.
+    #[inline]
     pub fn body(&self) -> &Statement {
         &self.body
     }
 
     /// Returns true if this "for...of" loop is an "for await...of" loop.
+    #[inline]
     pub(crate) fn r#await(&self) -> bool {
         self.r#await
-    }
-
-    /// Converts the "for of" loop to a string with the given indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        format!(
-            "for ({} of {}) {}",
-            self.init.to_interned_string(interner),
-            self.iterable.to_interned_string(interner),
-            self.body().to_indented_string(interner, indentation)
-        )
     }
 
     #[inline]
@@ -73,13 +71,19 @@ impl ForOfLoop {
     }
 }
 
-impl ToInternedString for ForOfLoop {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for ForOfLoop {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "for ({} of {}) {}",
+            self.init.to_interned_string(interner),
+            self.iterable.to_interned_string(interner),
+            self.body().to_indented_string(interner, indentation)
+        )
     }
 }
 
 impl From<ForOfLoop> for Statement {
+    #[inline]
     fn from(for_of: ForOfLoop) -> Self {
         Self::ForOfLoop(for_of)
     }

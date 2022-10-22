@@ -11,7 +11,7 @@ use crate::{
         ContainsSymbol, Declaration, StatementList,
     },
 };
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 use super::Function;
 
@@ -36,6 +36,7 @@ pub struct Class {
 
 impl Class {
     /// Creates a new class declaration.
+    #[inline]
     pub(in crate::syntax) fn new(
         name: Option<Identifier>,
         super_ref: Option<Expression>,
@@ -51,25 +52,30 @@ impl Class {
     }
 
     /// Returns the name of the class.
+    #[inline]
     pub(crate) fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Returns the super class ref of the class.
+    #[inline]
     pub(crate) fn super_ref(&self) -> Option<&Expression> {
         self.super_ref.as_ref()
     }
 
     /// Returns the constructor of the class.
+    #[inline]
     pub(crate) fn constructor(&self) -> Option<&Function> {
         self.constructor.as_ref()
     }
 
     /// Gets the list of all fields defined on the class.
+    #[inline]
     pub(crate) fn elements(&self) -> &[ClassElement] {
         &self.elements
     }
 
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         matches!(self.name, Some(ref ident) if *ident == Sym::ARGUMENTS)
             || matches!(self.super_ref, Some(ref expr) if expr.contains_arguments())
@@ -88,9 +94,10 @@ impl Class {
         matches!(self.super_ref, Some(ref expr) if expr.contains(symbol))
             || self.elements.iter().any(|elem| elem.contains(symbol))
     }
+}
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
+impl ToIndentedString for Class {
+    fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let class_name = self.name.map_or(Cow::Borrowed(""), |s| {
             interner.resolve_expect(s.sym()).join(
                 Cow::Borrowed,
@@ -359,12 +366,6 @@ impl Class {
         }
         buf.push('}');
         buf
-    }
-}
-
-impl ToInternedString for Class {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
     }
 }
 

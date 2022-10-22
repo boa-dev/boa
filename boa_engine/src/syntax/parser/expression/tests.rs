@@ -148,8 +148,7 @@ fn check_numeric_operations() {
                 ArithmeticOp::Div.into(),
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
                 Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
-            ))
-            .into()]
+            ))]
             .into(),
         )))
         .into()],

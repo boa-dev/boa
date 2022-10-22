@@ -4,7 +4,7 @@ use crate::syntax::ast::{
     statement::Statement,
     ContainsSymbol, Expression,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// The `for` statement creates a loop that consists of three optional expressions.
 ///
@@ -26,6 +26,7 @@ pub struct ForLoop {
 
 impl ForLoop {
     /// Creates a new for loop AST node.
+    #[inline]
     pub(in crate::syntax) fn new(
         init: Option<ForLoopInitializer>,
         condition: Option<Expression>,
@@ -38,45 +39,27 @@ impl ForLoop {
     }
 
     /// Gets the initialization node.
+    #[inline]
     pub fn init(&self) -> Option<&ForLoopInitializer> {
         self.inner.init()
     }
 
     /// Gets the loop condition node.
+    #[inline]
     pub fn condition(&self) -> Option<&Expression> {
         self.inner.condition()
     }
 
     /// Gets the final expression node.
+    #[inline]
     pub fn final_expr(&self) -> Option<&Expression> {
         self.inner.final_expr()
     }
 
     /// Gets the body of the for loop.
+    #[inline]
     pub fn body(&self) -> &Statement {
         self.inner.body()
-    }
-
-    /// Converts the for loop to a string with the given indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = String::from("for (");
-        if let Some(init) = self.init() {
-            buf.push_str(&init.to_interned_string(interner));
-        }
-        buf.push_str("; ");
-        if let Some(condition) = self.condition() {
-            buf.push_str(&condition.to_interned_string(interner));
-        }
-        buf.push_str("; ");
-        if let Some(final_expr) = self.final_expr() {
-            buf.push_str(&final_expr.to_interned_string(interner));
-        }
-        buf.push_str(&format!(
-            ") {}",
-            self.inner.body().to_indented_string(interner, indentation)
-        ));
-
-        buf
     }
 
     #[inline]
@@ -98,13 +81,31 @@ impl ForLoop {
     }
 }
 
-impl ToInternedString for ForLoop {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for ForLoop {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        let mut buf = String::from("for (");
+        if let Some(init) = self.init() {
+            buf.push_str(&init.to_interned_string(interner));
+        }
+        buf.push_str("; ");
+        if let Some(condition) = self.condition() {
+            buf.push_str(&condition.to_interned_string(interner));
+        }
+        buf.push_str("; ");
+        if let Some(final_expr) = self.final_expr() {
+            buf.push_str(&final_expr.to_interned_string(interner));
+        }
+        buf.push_str(&format!(
+            ") {}",
+            self.inner.body().to_indented_string(interner, indentation)
+        ));
+
+        buf
     }
 }
 
 impl From<ForLoop> for Statement {
+    #[inline]
     fn from(for_loop: ForLoop) -> Self {
         Self::ForLoop(for_loop)
     }
@@ -122,6 +123,7 @@ struct InnerForLoop {
 
 impl InnerForLoop {
     /// Creates a new inner for loop.
+    #[inline]
     fn new(
         init: Option<ForLoopInitializer>,
         condition: Option<Expression>,
@@ -137,21 +139,25 @@ impl InnerForLoop {
     }
 
     /// Gets the initialization node.
+    #[inline]
     fn init(&self) -> Option<&ForLoopInitializer> {
         self.init.as_ref()
     }
 
     /// Gets the loop condition node.
+    #[inline]
     fn condition(&self) -> Option<&Expression> {
         self.condition.as_ref()
     }
 
     /// Gets the final expression node.
+    #[inline]
     fn final_expr(&self) -> Option<&Expression> {
         self.final_expr.as_ref()
     }
 
     /// Gets the body of the for loop.
+    #[inline]
     fn body(&self) -> &Statement {
         &self.body
     }
@@ -213,18 +219,21 @@ impl ToInternedString for ForLoopInitializer {
 }
 
 impl From<Expression> for ForLoopInitializer {
+    #[inline]
     fn from(expr: Expression) -> Self {
         ForLoopInitializer::Expression(expr)
     }
 }
 
 impl From<LexicalDeclaration> for ForLoopInitializer {
+    #[inline]
     fn from(list: LexicalDeclaration) -> Self {
         ForLoopInitializer::Lexical(list)
     }
 }
 
 impl From<VarDeclaration> for ForLoopInitializer {
+    #[inline]
     fn from(list: VarDeclaration) -> Self {
         ForLoopInitializer::Var(list)
     }
