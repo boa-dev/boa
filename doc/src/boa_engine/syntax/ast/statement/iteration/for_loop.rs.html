@@ -231,13 +231,22 @@
 <span id="229">229</span>
 <span id="230">230</span>
 <span id="231">231</span>
+<span id="232">232</span>
+<span id="233">233</span>
+<span id="234">234</span>
+<span id="235">235</span>
+<span id="236">236</span>
+<span id="237">237</span>
+<span id="238">238</span>
+<span id="239">239</span>
+<span id="240">240</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">declaration</span>::{<span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>, <span class="ident">Variable</span>},
     <span class="ident">expression::Identifier</span>,
     <span class="ident">statement::Statement</span>,
     <span class="ident">ContainsSymbol</span>, <span class="ident">Expression</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
 <span class="doccomment">/// The `for` statement creates a loop that consists of three optional expressions.</span>
 <span class="doccomment">///</span>
@@ -259,6 +268,7 @@
 
 <span class="kw">impl</span> <span class="ident">ForLoop</span> {
     <span class="doccomment">/// Creates a new for loop AST node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ForLoopInitializer</span><span class="op">&gt;</span>,
         <span class="ident">condition</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
@@ -271,45 +281,27 @@
     }
 
     <span class="doccomment">/// Gets the initialization node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ForLoopInitializer</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">init</span>()
     }
 
     <span class="doccomment">/// Gets the loop condition node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">condition</span>()
     }
 
     <span class="doccomment">/// Gets the final expression node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">final_expr</span>()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Statement</span> {
         <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>()
-    }
-
-    <span class="doccomment">/// Converts the for loop to a string with the given indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;for (&quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">init</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;; &quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">condition</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;; &quot;</span>);
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">final_expr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">final_expr</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">final_expr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
-        }
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-            <span class="string">&quot;) {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
-        ));
-
-        <span class="ident">buf</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -331,13 +323,31 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">ForLoop</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="ident">String::from</span>(<span class="string">&quot;for (&quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">init</span>() {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">init</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
+        }
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;; &quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">condition</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">condition</span>() {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">condition</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
+        }
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;; &quot;</span>);
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">final_expr</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">final_expr</span>() {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">final_expr</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>));
+        }
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+            <span class="string">&quot;) {}&quot;</span>,
+            <span class="self">self</span>.<span class="ident">inner</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+        ));
+
+        <span class="ident">buf</span>
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ForLoop</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">for_loop</span>: <span class="ident">ForLoop</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::ForLoop</span>(<span class="ident">for_loop</span>)
     }
@@ -355,6 +365,7 @@
 
 <span class="kw">impl</span> <span class="ident">InnerForLoop</span> {
     <span class="doccomment">/// Creates a new inner for loop.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ForLoopInitializer</span><span class="op">&gt;</span>,
         <span class="ident">condition</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
@@ -370,21 +381,25 @@
     }
 
     <span class="doccomment">/// Gets the initialization node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">init</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">ForLoopInitializer</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the loop condition node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the final expression node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">final_expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">final_expr</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the body of the for loop.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Statement</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
     }
@@ -446,18 +461,21 @@
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ForLoopInitializer</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">expr</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ForLoopInitializer::Expression</span>(<span class="ident">expr</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">LexicalDeclaration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ForLoopInitializer</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">LexicalDeclaration</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ForLoopInitializer::Lexical</span>(<span class="ident">list</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">VarDeclaration</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ForLoopInitializer</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">VarDeclaration</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">ForLoopInitializer::Var</span>(<span class="ident">list</span>)
     }

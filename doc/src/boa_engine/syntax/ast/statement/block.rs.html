@@ -107,14 +107,11 @@
 <span id="105">105</span>
 <span id="106">106</span>
 <span id="107">107</span>
-<span id="108">108</span>
-<span id="109">109</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block AST node.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">StatementList</span>};
-
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Statement</span>;
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">StatementList</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
 
 <span class="doccomment">/// A `block` statement (or compound statement in other languages) is used to group zero or</span>
 <span class="doccomment">/// more statements.</span>
@@ -140,23 +137,15 @@
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
     <span class="doccomment">/// Gets the list of statements and declarations in this block.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">statement_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">statements</span>
     }
 
     <span class="doccomment">/// Get the lexically declared names of the block.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">lexically_declared_names</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span>(<span class="ident">Identifier</span>, <span class="ident">bool</span>)<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">lexically_declared_names</span>()
-    }
-
-    <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="macro">format!</span>(
-            <span class="string">&quot;{{\n{}{}}}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">statements</span>
-                .<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>),
-            <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
-        )
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -174,6 +163,7 @@
 <span class="kw">where</span>
     <span class="ident">T</span>: <span class="ident">Into</span><span class="op">&lt;</span><span class="ident">StatementList</span><span class="op">&gt;</span>,
 {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">statements</span>: <span class="ident">list</span>.<span class="ident">into</span>(),
@@ -181,13 +171,19 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Block</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Block</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="macro">format!</span>(
+            <span class="string">&quot;{{\n{}{}}}&quot;</span>,
+            <span class="self">self</span>.<span class="ident">statements</span>
+                .<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>),
+            <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
+        )
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Block</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">block</span>: <span class="ident">Block</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Block</span>(<span class="ident">block</span>)
     }

@@ -88,13 +88,14 @@
 <span id="86">86</span>
 <span id="87">87</span>
 <span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">block_to_string</span>,
     <span class="ident">expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>},
     <span class="ident">join_nodes</span>, <span class="ident">Declaration</span>, <span class="ident">StatementList</span>,
 };
 
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::FormalParameterList</span>;
 
@@ -116,6 +117,7 @@
 
 <span class="kw">impl</span> <span class="ident">Generator</span> {
     <span class="doccomment">/// Creates a new generator expression</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
         <span class="ident">parameters</span>: <span class="ident">FormalParameterList</span>,
@@ -129,22 +131,26 @@
     }
 
     <span class="doccomment">/// Gets the name of the generator declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">name</span>
     }
 
     <span class="doccomment">/// Gets the list of parameters of the generator declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>
     }
 
     <span class="doccomment">/// Gets the body of the generator declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
     }
+}
 
-    <span class="doccomment">/// Converts the generator expresion Expression to a string with indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Generator</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;function*&quot;</span>.<span class="ident">to_owned</span>();
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">name</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span> {
             <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot; {}&quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">name</span>.<span class="ident">sym</span>())));
@@ -159,19 +165,15 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Generator</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
-    }
-}
-
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Generator</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">expr</span>: <span class="ident">Generator</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="ident">expr</span>)
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Generator</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">f</span>: <span class="ident">Generator</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Generator</span>(<span class="ident">f</span>)
     }

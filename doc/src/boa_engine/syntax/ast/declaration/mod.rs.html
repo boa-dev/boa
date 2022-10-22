@@ -148,19 +148,13 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-<span id="149">149</span>
-<span id="150">150</span>
-<span id="151">151</span>
-<span id="152">152</span>
-<span id="153">153</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
-<span class="kw">use</span> <span class="ident">tap::Tap</span>;
-
-<span class="kw">use</span> <span class="kw">super</span>::{
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression::Identifier</span>,
     <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
     <span class="ident">ContainsSymbol</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">tap::Tap</span>;
 
 <span class="kw">mod</span> <span class="ident">variable</span>;
 
@@ -189,17 +183,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Declaration</span> {
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">af</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">ag</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>).<span class="ident">tap_mut</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;;&#39;</span>)),
-        }
-    }
-
     <span class="doccomment">/// Return the lexically declared names of a `Declaration`.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// The returned list may contain duplicates.</span>
@@ -301,9 +284,16 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Declaration</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Declaration::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">f</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident">Declaration::Generator</span>(<span class="ident">g</span>) =&gt; <span class="ident">g</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">af</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">ag</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
+            <span class="ident">Declaration::Lexical</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>).<span class="ident">tap_mut</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;;&#39;</span>)),
+        }
     }
 }
 </code></pre></div>

@@ -305,10 +305,6 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-<span id="306">306</span>
-<span id="307">307</span>
-<span id="308">308</span>
-<span id="309">309</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Statement` node.</span>
 
 <span class="kw">mod</span> <span class="ident">block</span>;
@@ -333,7 +329,7 @@
     <span class="ident">throw::Throw</span>,
 };
 
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">tap::Tap</span>;
 
@@ -409,27 +405,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Statement</span> {
-    <span class="doccomment">/// Creates a string of the value of the node with the given indentation. For example, an</span>
-    <span class="doccomment">/// indent level of 2 would produce this:</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// ```js</span>
-    <span class="doccomment">///         function hello() {</span>
-    <span class="doccomment">///             console.log(&quot;hello&quot;);</span>
-    <span class="doccomment">///         }</span>
-    <span class="doccomment">///         hello();</span>
-    <span class="doccomment">///         a = 2;</span>
-    <span class="doccomment">/// ```</span>
-    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw">_</span>) =&gt; <span class="ident">String::new</span>(),
-            <span class="kw">_</span> =&gt; <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>),
-        };
-
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
-
-        <span class="ident">buf</span>
-    }
-
     <span class="doccomment">/// Implements the display formatting with indentation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will not prefix the value with any indentation. If you want to prefix this with proper</span>
@@ -613,9 +588,26 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Statement</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Statement</span> {
+    <span class="doccomment">/// Creates a string of the value of the node with the given indentation. For example, an</span>
+    <span class="doccomment">/// indent level of 2 would produce this:</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// ```js</span>
+    <span class="doccomment">///         function hello() {</span>
+    <span class="doccomment">///             console.log(&quot;hello&quot;);</span>
+    <span class="doccomment">///         }</span>
+    <span class="doccomment">///         hello();</span>
+    <span class="doccomment">///         a = 2;</span>
+    <span class="doccomment">/// ```</span>
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">match</span> <span class="kw-2">*</span><span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Block</span>(<span class="kw">_</span>) =&gt; <span class="ident">String::new</span>(),
+            <span class="kw">_</span> =&gt; <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>),
+        };
+
+        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
+
+        <span class="ident">buf</span>
     }
 }
 </code></pre></div>

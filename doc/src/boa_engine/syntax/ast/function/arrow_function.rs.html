@@ -130,7 +130,7 @@
     <span class="ident">expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>},
     <span class="ident">join_nodes</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">StatementList</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::FormalParameterList</span>;
 
@@ -157,6 +157,7 @@
 
 <span class="kw">impl</span> <span class="ident">ArrowFunction</span> {
     <span class="doccomment">/// Creates a new `ArrowFunctionDecl` AST Expression.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
         <span class="ident">params</span>: <span class="ident">FormalParameterList</span>,
@@ -170,38 +171,27 @@
     }
 
     <span class="doccomment">/// Gets the name of the function declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">name</span>
     }
 
     <span class="doccomment">/// Sets the name of the function declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_name</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>) {
         <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="ident">name</span>;
     }
 
     <span class="doccomment">/// Gets the list of parameters of the arrow function.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">parameters</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>
     }
 
     <span class="doccomment">/// Gets the body of the arrow function.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">StatementList</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
-    }
-
-    <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({}&quot;</span>, <span class="ident">join_nodes</span>(<span class="ident">interner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">parameters</span>));
-        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">statements</span>().<span class="ident">is_empty</span>() {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;) =&gt; {}&quot;</span>);
-        } <span class="kw">else</span> {
-            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;) =&gt; {{\n{}{}}}&quot;</span>,
-                <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>),
-                <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
-            ));
-        }
-        <span class="ident">buf</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -225,9 +215,19 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ArrowFunction</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">ArrowFunction</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="macro">format!</span>(<span class="string">&quot;({}&quot;</span>, <span class="ident">join_nodes</span>(<span class="ident">interner</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>.<span class="ident">parameters</span>));
+        <span class="kw">if</span> <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">statements</span>().<span class="ident">is_empty</span>() {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="string">&quot;) =&gt; {}&quot;</span>);
+        } <span class="kw">else</span> {
+            <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+                <span class="string">&quot;) =&gt; {{\n{}{}}}&quot;</span>,
+                <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span> <span class="op">+</span> <span class="number">1</span>),
+                <span class="string">&quot;    &quot;</span>.<span class="ident">repeat</span>(<span class="ident">indentation</span>)
+            ));
+        }
+        <span class="ident">buf</span>
     }
 }
 

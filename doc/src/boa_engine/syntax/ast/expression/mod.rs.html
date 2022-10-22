@@ -283,13 +283,7 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
-<span id="284">284</span>
-<span id="285">285</span>
-<span id="286">286</span>
-<span id="287">287</span>
-<span id="288">288</span>
-<span id="289">289</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">access</span>::{<span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>, <span class="ident">SuperPropertyAccess</span>},
@@ -433,12 +427,6 @@
 }
 
 <span class="kw">impl</span> <span class="ident">Expression</span> {
-    <span class="doccomment">/// Creates a string of the value of the expression with the given indentation.</span>
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
-    }
-
     <span class="doccomment">/// Implements the display formatting with indentation.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// This will not prefix the value with any indentation. If you want to prefix this with proper</span>
@@ -572,10 +560,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Expression</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
     }
 }
 </code></pre></div>

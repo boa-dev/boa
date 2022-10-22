@@ -425,6 +425,12 @@
 <span id="423">423</span>
 <span id="424">424</span>
 <span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
 </pre><pre class="rust"><code><span class="doccomment">//! String interner for Boa.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! The idea behind using a string interner is that in most of the code, strings such as</span>
@@ -836,6 +842,12 @@
     }
 }
 
+<span class="doccomment">/// Implements the display formatting with indentation.</span>
+<span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToIndentedString</span> {
+    <span class="doccomment">/// Converts the element to a string using an interner, with the given indentation.</span>
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span>;
+}
+
 <span class="doccomment">/// Converts a given element to a string using an interner.</span>
 <span class="kw">pub</span> <span class="kw">trait</span> <span class="ident">ToInternedString</span> {
     <span class="doccomment">/// Converts a given element to a string using an interner.</span>
@@ -844,10 +856,10 @@
 
 <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">T</span>
 <span class="kw">where</span>
-    <span class="ident">T</span>: <span class="ident">std::fmt::Display</span>,
+    <span class="ident">T</span>: <span class="ident">ToIndentedString</span>,
 {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_string</span>()
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
     }
 }
 </code></pre></div>

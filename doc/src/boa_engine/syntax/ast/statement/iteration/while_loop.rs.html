@@ -66,8 +66,13 @@
 <span id="64">64</span>
 <span id="65">65</span>
 <span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">ContainsSymbol</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
+
 <span class="doccomment">/// The `while` statement creates a loop that executes a specified statement as long as the</span>
 <span class="doccomment">/// test condition evaluates to `true`.</span>
 <span class="doccomment">///</span>
@@ -87,14 +92,8 @@
 }
 
 <span class="kw">impl</span> <span class="ident">WhileLoop</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Statement</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
-    }
     <span class="doccomment">/// Creates a `WhileLoop` AST node.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">condition</span>: <span class="ident">Expression</span>, <span class="ident">body</span>: <span class="ident">Statement</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">condition</span>,
@@ -102,15 +101,19 @@
         }
     }
 
-    <span class="doccomment">/// Converts the while loop to a string with the given indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="macro">format!</span>(
-            <span class="string">&quot;while ({}) {}&quot;</span>,
-            <span class="self">self</span>.<span class="ident">condition</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
-            <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
-        )
+    <span class="doccomment">/// Gets the condition of the while loop.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">condition</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
     }
 
+    <span class="doccomment">/// Gets the body of the while loop.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">body</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Statement</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains_arguments</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>()
     }
@@ -121,13 +124,18 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">WhileLoop</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">WhileLoop</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+        <span class="macro">format!</span>(
+            <span class="string">&quot;while ({}) {}&quot;</span>,
+            <span class="self">self</span>.<span class="ident">condition</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
+        )
     }
 }
 
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">WhileLoop</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">while_loop</span>: <span class="ident">WhileLoop</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::WhileLoop</span>(<span class="ident">while_loop</span>)
     }

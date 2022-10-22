@@ -547,6 +547,7 @@
 <span id="545">545</span>
 <span id="546">546</span>
 <span id="547">547</span>
+<span id="548">548</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -560,7 +561,7 @@
         <span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">StatementList</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Function</span>;
 
@@ -585,6 +586,7 @@
 
 <span class="kw">impl</span> <span class="ident">Class</span> {
     <span class="doccomment">/// Creates a new class declaration.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(
         <span class="ident">name</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
         <span class="ident">super_ref</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
@@ -600,25 +602,30 @@
     }
 
     <span class="doccomment">/// Returns the name of the class.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">name</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">name</span>
     }
 
     <span class="doccomment">/// Returns the super class ref of the class.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">super_ref</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">super_ref</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Returns the constructor of the class.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Function</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">constructor</span>.<span class="ident">as_ref</span>()
     }
 
     <span class="doccomment">/// Gets the list of all fields defined on the class.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">elements</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ClassElement</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">elements</span>
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">name</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>)
             <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">super_ref</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">contains_arguments</span>())
@@ -637,9 +644,10 @@
         <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">super_ref</span>, <span class="prelude-val">Some</span>(<span class="kw-2">ref</span> <span class="ident">expr</span>) <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">elements</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">elem</span><span class="op">|</span> <span class="ident">elem</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
     }
+}
 
-    <span class="doccomment">/// Implements the display formatting with indentation.</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indent_n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
+<span class="kw">impl</span> <span class="ident">ToIndentedString</span> <span class="kw">for</span> <span class="ident">Class</span> {
+    <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indent_n</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">class_name</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">name</span>.<span class="ident">map_or</span>(<span class="ident">Cow::Borrowed</span>(<span class="string">&quot;&quot;</span>), <span class="op">|</span><span class="ident">s</span><span class="op">|</span> {
             <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">s</span>.<span class="ident">sym</span>()).<span class="ident">join</span>(
                 <span class="ident">Cow::Borrowed</span>,
@@ -908,12 +916,6 @@
         }
         <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;}&#39;</span>);
         <span class="ident">buf</span>
-    }
-}
-
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Class</span> {
-    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="self">self</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>)
     }
 }
 
