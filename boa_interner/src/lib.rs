@@ -421,15 +421,6 @@ pub trait ToInternedString {
     fn to_interned_string(&self, interner: &Interner) -> String;
 }
 
-// impl<T> ToInternedString for T
-// where
-//     T: std::fmt::Display,
-// {
-//     fn to_interned_string(&self, _interner: &Interner) -> String {
-//         self.to_string()
-//     }
-// }
-
 impl<T> ToInternedString for T
 where
     T: ToIndentedString,
