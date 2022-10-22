@@ -10,6 +10,7 @@ use crate::{
         Array, ForInIterator, JsArgs, Number, Promise,
     },
     environments::EnvironmentSlots,
+    error::JsNativeError,
     object::{FunctionBuilder, JsFunction, JsObject, ObjectData, PrivateElement},
     property::{DescriptorKind, PropertyDescriptor, PropertyDescriptorBuilder, PropertyKey},
     value::Numeric,
@@ -17,7 +18,7 @@ use crate::{
         call_frame::CatchAddresses,
         code_block::{initialize_instance_elements, Readable},
     },
-    Context, JsBigInt, JsResult, JsString, JsValue,
+    Context, JsBigInt, JsError, JsResult, JsString, JsValue,
 };
 use boa_interner::ToInternedString;
 use boa_profiler::Profiler;
@@ -205,8 +206,9 @@ impl Context {
                 if let Some(superclass) = superclass.as_constructor() {
                     let proto = superclass.get("prototype", self)?;
                     if !proto.is_object() && !proto.is_null() {
-                        return self
-                            .throw_type_error("superclass prototype must be an object or null");
+                        return Err(JsNativeError::typ()
+                            .with_message("superclass prototype must be an object or null")
+                            .into());
                     }
 
                     let class = self.vm.pop();
@@ -231,7 +233,9 @@ impl Context {
                 } else if superclass.is_null() {
                     self.vm.push(JsValue::Null);
                 } else {
-                    return self.throw_type_error("superclass must be a constructor");
+                    return Err(JsNativeError::typ()
+                        .with_message("superclass must be a constructor")
+                        .into());
                 }
             }
             Opcode::SetClassPrototype => {
@@ -386,10 +390,12 @@ impl Context {
                 let lhs = self.vm.pop();
 
                 if !rhs.is_object() {
-                    return self.throw_type_error(format!(
-                        "right-hand side of 'in' should be an object, got {}",
-                        rhs.type_of()
-                    ));
+                    return Err(JsNativeError::typ()
+                        .with_message(format!(
+                            "right-hand side of 'in' should be an object, got {}",
+                            rhs.type_of().to_std_string_escaped()
+                        ))
+                        .into());
                 }
                 let key = lhs.to_property_key(self)?;
                 let value = self.has_property(&rhs, &key)?;
@@ -480,8 +486,8 @@ impl Context {
                 if binding_locator.is_global() {
                     let key = self
                         .interner()
-                        .resolve_expect(binding_locator.name())
-                        .into();
+                        .resolve_expect(binding_locator.name().sym())
+                        .into_common(false);
                     self.global_bindings_mut().entry(key).or_insert(
                         PropertyDescriptor::builder()
                             .value(JsValue::Undefined)
@@ -507,7 +513,8 @@ impl Context {
                 if binding_locator.is_global() {
                     let key = self
                         .interner()
-                        .resolve_expect(binding_locator.name())
+                        .resolve_expect(binding_locator.name().sym())
+                        .into_common::<JsString>(false)
                         .into();
                     crate::object::internal_methods::global::global_set_no_receiver(
                         &key, value, self,
@@ -554,8 +561,8 @@ impl Context {
                     } else {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
-                            .into();
+                            .resolve_expect(binding_locator.name().sym())
+                            .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
                                 DescriptorKind::Data {
@@ -568,12 +575,21 @@ impl Context {
                                     self.call(&get, &self.global_object().clone().into(), &[])?
                                 }
                                 _ => {
-                                    return self
-                                        .throw_reference_error(format!("{key} is not defined"))
+                                    return Err(JsNativeError::reference()
+                                        .with_message(format!(
+                                            "{} is not defined",
+                                            key.to_std_string_escaped()
+                                        ))
+                                        .into())
                                 }
                             },
                             _ => {
-                                return self.throw_reference_error(format!("{key} is not defined"))
+                                return Err(JsNativeError::reference()
+                                    .with_message(format!(
+                                        "{} is not defined",
+                                        key.to_std_string_escaped()
+                                    ))
+                                    .into())
                             }
                         }
                     }
@@ -584,9 +600,13 @@ impl Context {
                 ) {
                     value
                 } else {
-                    let name =
-                        JsString::from(self.interner().resolve_expect(binding_locator.name()));
-                    return self.throw_reference_error(format!("{name} is not initialized"));
+                    let name = self
+                        .interner()
+                        .resolve_expect(binding_locator.name().sym())
+                        .to_string();
+                    return Err(JsNativeError::reference()
+                        .with_message(format!("{name} is not initialized"))
+                        .into());
                 };
 
                 self.vm.push(value);
@@ -605,8 +625,8 @@ impl Context {
                     } else {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
-                            .into();
+                            .resolve_expect(binding_locator.name().sym())
+                            .into_common(false);
                         match self.global_bindings_mut().get(&key) {
                             Some(desc) => match desc.kind() {
                                 DescriptorKind::Data {
@@ -649,14 +669,17 @@ impl Context {
                     {
                         let key: JsString = self
                             .interner()
-                            .resolve_expect(binding_locator.name())
-                            .into();
+                            .resolve_expect(binding_locator.name().sym())
+                            .into_common(false);
                         let exists = self.global_bindings_mut().contains_key(&key);
 
                         if !exists && self.vm.frame().code.strict {
-                            return self.throw_reference_error(format!(
-                                "assignment to undeclared variable {key}"
-                            ));
+                            return Err(JsNativeError::reference()
+                                .with_message(format!(
+                                    "assignment to undeclared variable {}",
+                                    key.to_std_string_escaped()
+                                ))
+                                .into());
                         }
 
                         let success =
@@ -667,9 +690,12 @@ impl Context {
                             )?;
 
                         if !success && self.vm.frame().code.strict {
-                            return self.throw_type_error(format!(
-                                "cannot set non-writable property: {key}",
-                            ));
+                            return Err(JsNativeError::typ()
+                                .with_message(format!(
+                                    "cannot set non-writable property: {}",
+                                    key.to_std_string_escaped()
+                                ))
+                                .into());
                         }
                     }
                 } else if !self.realm.environments.put_value_if_initialized(
@@ -678,10 +704,12 @@ impl Context {
                     binding_locator.name(),
                     value,
                 ) {
-                    self.throw_reference_error(format!(
-                        "cannot access '{}' before initialization",
-                        self.interner().resolve_expect(binding_locator.name())
-                    ))?;
+                    return Err(JsNativeError::reference()
+                        .with_message(format!(
+                            "cannot access '{}' before initialization",
+                            self.interner().resolve_expect(binding_locator.name().sym())
+                        ))
+                        .into());
                 }
             }
             Opcode::Jump => {
@@ -741,7 +769,11 @@ impl Context {
                 };
 
                 let name = self.vm.frame().code.names[index as usize];
-                let name: PropertyKey = self.interner().resolve_expect(name).into();
+                let name: PropertyKey = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let result = object.get(name, self)?;
 
                 self.vm.push(result);
@@ -787,7 +819,11 @@ impl Context {
                 };
 
                 let name = self.vm.frame().code.names[index as usize];
-                let name: PropertyKey = self.interner().resolve_expect(name).into();
+                let name: PropertyKey = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
 
                 object.set(name, value, self.vm.frame().code.strict, self)?;
             }
@@ -801,7 +837,10 @@ impl Context {
                     object.to_object(self)?
                 };
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name);
+                let name = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false);
                 object.__define_own_property__(
                     name.into(),
                     PropertyDescriptor::builder()
@@ -830,9 +869,9 @@ impl Context {
                     .expect("method must be function object")
                     .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name);
+                let name = self.interner().resolve_expect(name.sym());
                 object.__define_own_property__(
-                    name.into(),
+                    name.into_common::<JsString>(false).into(),
                     PropertyDescriptor::builder()
                         .value(value)
                         .writable(true)
@@ -910,7 +949,11 @@ impl Context {
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name).into();
+                let name = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -940,7 +983,11 @@ impl Context {
                     .expect("method must be function object")
                     .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name).into();
+                let name = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let set = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -1014,7 +1061,11 @@ impl Context {
                 let value = self.vm.pop();
                 let object = object.to_object(self)?;
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name).into();
+                let name = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -1044,7 +1095,11 @@ impl Context {
                     .expect("method must be function object")
                     .set_home_object(object.clone());
                 let name = self.vm.frame().code.names[index as usize];
-                let name = self.interner().resolve_expect(name).into();
+                let name = self
+                    .interner()
+                    .resolve_expect(name.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let get = object
                     .__get_own_property__(&name, self)?
                     .as_ref()
@@ -1119,13 +1174,15 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    match object_borrow_mut.get_private_element(name) {
+                    match object_borrow_mut.get_private_element(name.sym()) {
                         Some(PrivateElement::Field(_)) => {
                             object_borrow_mut
-                                .set_private_element(name, PrivateElement::Field(value));
+                                .set_private_element(name.sym(), PrivateElement::Field(value));
                         }
                         Some(PrivateElement::Method(_)) => {
-                            return self.throw_type_error("private method is not writable");
+                            return Err(JsNativeError::typ()
+                                .with_message("private method is not writable")
+                                .into());
                         }
                         Some(PrivateElement::Accessor {
                             setter: Some(setter),
@@ -1136,14 +1193,20 @@ impl Context {
                             setter.call(&object.clone().into(), &[value], self)?;
                         }
                         None => {
-                            return self.throw_type_error("private field not defined");
+                            return Err(JsNativeError::typ()
+                                .with_message("private field not defined")
+                                .into());
                         }
                         _ => {
-                            return self.throw_type_error("private field defined without a setter");
+                            return Err(JsNativeError::typ()
+                                .with_message("private field defined without a setter")
+                                .into());
                         }
                     }
                 } else {
-                    return self.throw_type_error("cannot set private property on non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot set private property on non-object")
+                        .into());
                 }
             }
             Opcode::SetPrivateField => {
@@ -1156,16 +1219,19 @@ impl Context {
                     if let Some(PrivateElement::Accessor {
                         getter: _,
                         setter: Some(setter),
-                    }) = object_borrow_mut.get_private_element(name)
+                    }) = object_borrow_mut.get_private_element(name.sym())
                     {
                         let setter = setter.clone();
                         drop(object_borrow_mut);
                         setter.call(&object.clone().into(), &[value], self)?;
                     } else {
-                        object_borrow_mut.set_private_element(name, PrivateElement::Field(value));
+                        object_borrow_mut
+                            .set_private_element(name.sym(), PrivateElement::Field(value));
                     }
                 } else {
-                    return self.throw_type_error("cannot set private property on non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot set private property on non-object")
+                        .into());
                 }
             }
             Opcode::SetPrivateMethod => {
@@ -1177,9 +1243,11 @@ impl Context {
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
                     object_borrow_mut
-                        .set_private_element(name, PrivateElement::Method(value.clone()));
+                        .set_private_element(name.sym(), PrivateElement::Method(value.clone()));
                 } else {
-                    return self.throw_type_error("cannot set private setter on non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot set private setter on non-object")
+                        .into());
                 }
             }
             Opcode::SetPrivateSetter => {
@@ -1190,9 +1258,11 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    object_borrow_mut.set_private_element_setter(name, value.clone());
+                    object_borrow_mut.set_private_element_setter(name.sym(), value.clone());
                 } else {
-                    return self.throw_type_error("cannot set private setter on non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot set private setter on non-object")
+                        .into());
                 }
             }
             Opcode::SetPrivateGetter => {
@@ -1203,9 +1273,11 @@ impl Context {
                 let object = self.vm.pop();
                 if let Some(object) = object.as_object() {
                     let mut object_borrow_mut = object.borrow_mut();
-                    object_borrow_mut.set_private_element_getter(name, value.clone());
+                    object_borrow_mut.set_private_element_getter(name.sym(), value.clone());
                 } else {
-                    return self.throw_type_error("cannot set private getter on non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot set private getter on non-object")
+                        .into());
                 }
             }
             Opcode::GetPrivateField => {
@@ -1214,7 +1286,7 @@ impl Context {
                 let value = self.vm.pop();
                 if let Some(object) = value.as_object() {
                     let object_borrow_mut = object.borrow();
-                    if let Some(element) = object_borrow_mut.get_private_element(name) {
+                    if let Some(element) = object_borrow_mut.get_private_element(name.sym()) {
                         match element {
                             PrivateElement::Field(value) => self.vm.push(value),
                             PrivateElement::Method(method) => self.vm.push(method.clone()),
@@ -1226,16 +1298,20 @@ impl Context {
                                 self.vm.push(value);
                             }
                             PrivateElement::Accessor { .. } => {
-                                return self.throw_type_error(
-                                    "private property was defined without a getter",
-                                );
+                                return Err(JsNativeError::typ()
+                                    .with_message("private property was defined without a getter")
+                                    .into());
                             }
                         }
                     } else {
-                        return self.throw_type_error("private property does not exist");
+                        return Err(JsNativeError::typ()
+                            .with_message("private property does not exist")
+                            .into());
                     }
                 } else {
-                    return self.throw_type_error("cannot read private property from non-object");
+                    return Err(JsNativeError::typ()
+                        .with_message("cannot read private property from non-object")
+                        .into());
                 }
             }
             Opcode::PushClassField => {
@@ -1286,7 +1362,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_field_private(
-                        name,
+                        name.sym(),
                         JsFunction::from_object_unchecked(field_function_object.clone()),
                     );
             }
@@ -1303,7 +1379,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_private_method(
-                        name,
+                        name.sym(),
                         PrivateElement::Accessor {
                             getter: Some(getter_object.clone()),
                             setter: None,
@@ -1323,7 +1399,7 @@ impl Context {
                     .as_function_mut()
                     .expect("class must be function object")
                     .push_private_method(
-                        name,
+                        name.sym(),
                         PrivateElement::Accessor {
                             getter: None,
                             setter: Some(setter_object.clone()),
@@ -1342,16 +1418,22 @@ impl Context {
                     .borrow_mut()
                     .as_function_mut()
                     .expect("class must be function object")
-                    .push_private_method(name, PrivateElement::Method(method_object.clone()));
+                    .push_private_method(name.sym(), PrivateElement::Method(method_object.clone()));
             }
             Opcode::DeletePropertyByName => {
                 let index = self.vm.read::<u32>();
                 let key = self.vm.frame().code.names[index as usize];
-                let key = self.interner().resolve_expect(key).into();
+                let key = self
+                    .interner()
+                    .resolve_expect(key.sym())
+                    .into_common::<JsString>(false)
+                    .into();
                 let object = self.vm.pop();
                 let result = object.to_object(self)?.__delete__(&key, self)?;
                 if !result && self.vm.frame().code.strict {
-                    return Err(self.construct_type_error("Cannot delete property"));
+                    return Err(JsNativeError::typ()
+                        .with_message("Cannot delete property")
+                        .into());
                 }
                 self.vm.push(result);
             }
@@ -1362,7 +1444,9 @@ impl Context {
                     .to_object(self)?
                     .__delete__(&key.to_property_key(self)?, self)?;
                 if !result && self.vm.frame().code.strict {
-                    return Err(self.construct_type_error("Cannot delete property"));
+                    return Err(JsNativeError::typ()
+                        .with_message("Cannot delete property")
+                        .into());
                 }
                 self.vm.push(result);
             }
@@ -1393,7 +1477,7 @@ impl Context {
             }
             Opcode::Throw => {
                 let value = self.vm.pop();
-                return Err(value);
+                return Err(JsError::from_opaque(value));
             }
             Opcode::TryStart => {
                 let next = self.vm.read::<u32>();
@@ -1476,7 +1560,7 @@ impl Context {
                         return Ok(ShouldExit::True);
                     }
                     FinallyReturn::Err => {
-                        return Err(self.vm.pop());
+                        return Err(JsError::from_opaque(self.vm.pop()));
                     }
                 }
             }
@@ -1493,13 +1577,7 @@ impl Context {
                 let env = self.realm.environments.get_this_environment();
                 match env {
                     EnvironmentSlots::Function(env) => {
-                        let env_b = env.borrow();
-                        if let Some(this) = env_b.get_this_binding() {
-                            self.vm.push(this);
-                        } else {
-                            drop(env_b);
-                            return self.throw_reference_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
-                        }
+                        self.vm.push(env.borrow().get_this_binding()?);
                     }
                     EnvironmentSlots::Global => {
                         let this = self.realm.global_object();
@@ -1508,32 +1586,21 @@ impl Context {
                 }
             }
             Opcode::Super => {
-                let env = self
-                    .realm
-                    .environments
-                    .get_this_environment()
-                    .as_function_slots()
-                    .expect("super access must be in a function environment");
-
-                let home = if env.borrow().get_this_binding().is_some() {
+                let home = {
+                    let env = self
+                        .realm
+                        .environments
+                        .get_this_environment()
+                        .as_function_slots()
+                        .expect("super access must be in a function environment");
                     let env = env.borrow();
+                    let this = env.get_this_binding()?;
                     let function_object = env.function_object().borrow();
                     let function = function_object
                         .as_function()
                         .expect("must be function object");
-                    let mut home_object = function.get_home_object().cloned();
 
-                    if home_object.is_none() {
-                        home_object = env
-                            .get_this_binding()
-                            .expect("can not get `this` object")
-                            .as_object()
-                            .cloned();
-                    }
-
-                    home_object
-                } else {
-                    return self.throw_range_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor");
+                    function.get_home_object().or(this.as_object()).cloned()
                 };
 
                 if let Some(home) = home {
@@ -1575,7 +1642,9 @@ impl Context {
                     .expect("function object must have prototype");
 
                 if !super_constructor.is_constructor() {
-                    return self.throw_type_error("super constructor object must be constructor");
+                    return Err(JsNativeError::typ()
+                        .with_message("super constructor object must be constructor")
+                        .into());
                 }
 
                 let result = super_constructor.__construct__(&arguments, &new_target, self)?;
@@ -1590,7 +1659,9 @@ impl Context {
                     .expect("super call must be in function environment");
 
                 if !this_env.borrow_mut().bind_this_value(&result) {
-                    return self.throw_reference_error("this already initialized");
+                    return Err(JsNativeError::reference()
+                        .with_message("this already initialized")
+                        .into());
                 }
                 self.vm.push(result);
             }
@@ -1628,7 +1699,9 @@ impl Context {
                     .expect("function object must have prototype");
 
                 if !super_constructor.is_constructor() {
-                    return self.throw_type_error("super constructor object must be constructor");
+                    return Err(JsNativeError::typ()
+                        .with_message("super constructor object must be constructor")
+                        .into());
                 }
 
                 let result = super_constructor.__construct__(&arguments, &new_target, self)?;
@@ -1643,7 +1716,9 @@ impl Context {
                     .expect("super call must be in function environment");
 
                 if !this_env.borrow_mut().bind_this_value(&result) {
-                    return self.throw_reference_error("this already initialized");
+                    return Err(JsNativeError::reference()
+                        .with_message("this already initialized")
+                        .into());
                 }
                 self.vm.push(result);
             }
@@ -1676,7 +1751,9 @@ impl Context {
                     .expect("function object must have prototype");
 
                 if !super_constructor.is_constructor() {
-                    return self.throw_type_error("super constructor object must be constructor");
+                    return Err(JsNativeError::typ()
+                        .with_message("super constructor object must be constructor")
+                        .into());
                 }
 
                 let result = super_constructor.__construct__(&arguments, &new_target, self)?;
@@ -1690,7 +1767,9 @@ impl Context {
                     .as_function_slots()
                     .expect("super call must be in function environment");
                 if !this_env.borrow_mut().bind_this_value(&result) {
-                    return self.throw_reference_error("this already initialized");
+                    return Err(JsNativeError::reference()
+                        .with_message("this already initialized")
+                        .into());
                 }
 
                 self.vm.push(result);
@@ -1737,7 +1816,9 @@ impl Context {
             }
             Opcode::CallEval => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
                 let argument_count = self.vm.read::<u32>();
                 let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -1751,7 +1832,11 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return self.throw_type_error("not a callable function"),
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("not a callable function")
+                            .into())
+                    }
                 };
 
                 // A native function with the name "eval" implies, that is this the built-in eval function.
@@ -1774,7 +1859,9 @@ impl Context {
             }
             Opcode::CallEvalSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
 
                 // Get the arguments that are stored as an array object on the stack.
@@ -1794,7 +1881,11 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return self.throw_type_error("not a callable function"),
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("not a callable function")
+                            .into())
+                    }
                 };
 
                 // A native function with the name "eval" implies, that is this the built-in eval function.
@@ -1817,7 +1908,9 @@ impl Context {
             }
             Opcode::Call => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
                 let argument_count = self.vm.read::<u32>();
                 let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -1831,7 +1924,11 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return self.throw_type_error("not a callable function"),
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("not a callable function")
+                            .into())
+                    }
                 };
 
                 let result = object.__call__(&this, &arguments, self)?;
@@ -1840,7 +1937,9 @@ impl Context {
             }
             Opcode::CallSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
 
                 // Get the arguments that are stored as an array object on the stack.
@@ -1860,7 +1959,11 @@ impl Context {
 
                 let object = match func {
                     JsValue::Object(ref object) if object.is_callable() => object.clone(),
-                    _ => return self.throw_type_error("not a callable function"),
+                    _ => {
+                        return Err(JsNativeError::typ()
+                            .with_message("not a callable function")
+                            .into())
+                    }
                 };
 
                 let result = object.__call__(&this, &arguments, self)?;
@@ -1869,7 +1972,9 @@ impl Context {
             }
             Opcode::New => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
                 let argument_count = self.vm.read::<u32>();
                 let mut arguments = Vec::with_capacity(argument_count as usize);
@@ -1881,14 +1986,20 @@ impl Context {
 
                 let result = func
                     .as_constructor()
-                    .ok_or_else(|| self.construct_type_error("not a constructor"))
+                    .ok_or_else(|| {
+                        JsNativeError::typ()
+                            .with_message("not a constructor")
+                            .into()
+                    })
                     .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
 
                 self.vm.push(result);
             }
             Opcode::NewSpread => {
                 if self.vm.stack_size_limit <= self.vm.stack.len() {
-                    return self.throw_range_error("Maximum call stack size exceeded");
+                    return Err(JsNativeError::range()
+                        .with_message("Maximum call stack size exceeded")
+                        .into());
                 }
                 // Get the arguments that are stored as an array object on the stack.
                 let arguments_array = self.vm.pop();
@@ -1906,9 +2017,12 @@ impl Context {
 
                 let result = func
                     .as_constructor()
-                    .ok_or_else(|| self.construct_type_error("not a constructor"))
+                    .ok_or_else(|| {
+                        JsNativeError::typ()
+                            .with_message("not a constructor")
+                            .into()
+                    })
                     .and_then(|cons| cons.__construct__(&arguments, cons, self))?;
-
                 self.vm.push(result);
             }
             Opcode::Return => {
@@ -2015,7 +2129,9 @@ impl Context {
                     .as_ref()
                     .map(PropertyDescriptor::expect_value)
                     .cloned()
-                    .ok_or_else(|| self.construct_type_error("Could not find property `next`"))?;
+                    .ok_or_else(|| {
+                        JsNativeError::typ().with_message("Could not find property `next`")
+                    })?;
 
                 self.vm.push(iterator);
                 self.vm.push(next_method);
@@ -2139,7 +2255,9 @@ impl Context {
                 let next_method_object = if let Some(object) = next_method.as_callable() {
                     object
                 } else {
-                    return self.throw_type_error("iterable next method not a function");
+                    return Err(JsNativeError::typ()
+                        .with_message("iterable next method not a function")
+                        .into());
                 };
                 let iterator = self.vm.pop();
                 let next_result = next_method_object.call(&iterator, &[], self)?;
@@ -2154,7 +2272,9 @@ impl Context {
                 let next_result = if let Some(next_result) = next_result.as_object() {
                     IteratorResult::new(next_result.clone())
                 } else {
-                    return self.throw_type_error("next value should be an object");
+                    return Err(JsNativeError::typ()
+                        .with_message("next value should be an object")
+                        .into());
                 };
 
                 if next_result.complete(self)? {
@@ -2177,22 +2297,29 @@ impl Context {
                 }
                 strings.reverse();
                 let s = JsString::concat_array(
-                    &strings.iter().map(JsString::as_str).collect::<Vec<&str>>(),
+                    &strings
+                        .iter()
+                        .map(JsString::as_slice)
+                        .collect::<Vec<&[u16]>>(),
                 );
                 self.vm.push(s);
             }
             Opcode::RequireObjectCoercible => {
                 let value = self.vm.pop();
-                let value = value.require_object_coercible(self)?;
+                let value = value.require_object_coercible()?;
                 self.vm.push(value);
             }
             Opcode::ValueNotNullOrUndefined => {
                 let value = self.vm.pop();
                 if value.is_null() {
-                    return self.throw_type_error("Cannot destructure 'null' value");
+                    return Err(JsNativeError::typ()
+                        .with_message("Cannot destructure 'null' value")
+                        .into());
                 }
                 if value.is_undefined() {
-                    return self.throw_type_error("Cannot destructure 'undefined' value");
+                    return Err(JsNativeError::typ()
+                        .with_message("Cannot destructure 'undefined' value")
+                        .into());
                 }
                 self.vm.push(value);
             }
@@ -2236,7 +2363,7 @@ impl Context {
                 GeneratorResumeKind::Normal => return Ok(ShouldExit::False),
                 GeneratorResumeKind::Throw => {
                     let received = self.vm.pop();
-                    return Err(received);
+                    return Err(JsError::from_opaque(received));
                 }
                 GeneratorResumeKind::Return => {
                     let mut finally_left = false;
@@ -2263,7 +2390,7 @@ impl Context {
                 let value = self.vm.pop();
 
                 if self.vm.frame().generator_resume_kind == GeneratorResumeKind::Throw {
-                    return Err(value);
+                    return Err(JsError::from_opaque(value));
                 }
 
                 let completion = Ok(value);
@@ -2291,9 +2418,11 @@ impl Context {
                 if let Some(next) = gen.queue.front() {
                     let (completion, r#return) = &next.completion;
                     if *r#return {
-                        match completion {
-                            Ok(value) | Err(value) => self.vm.push(value),
-                        }
+                        let value = match completion {
+                            Ok(value) => value.clone(),
+                            Err(e) => e.clone().to_opaque(self),
+                        };
+                        self.vm.push(value);
                         self.vm.push(true);
                     } else {
                         self.vm.push(completion.clone()?);
@@ -2324,7 +2453,8 @@ impl Context {
                         let result =
                             self.call(&next_method, &iterator.clone().into(), &[received])?;
                         let result_object = result.as_object().ok_or_else(|| {
-                            self.construct_type_error("generator next method returned non-object")
+                            JsNativeError::typ()
+                                .with_message("generator next method returned non-object")
                         })?;
                         let done = result_object.get("done", self)?.to_boolean();
                         if done {
@@ -2345,9 +2475,8 @@ impl Context {
                         if let Some(throw) = throw {
                             let result = throw.call(&iterator.clone().into(), &[received], self)?;
                             let result_object = result.as_object().ok_or_else(|| {
-                                self.construct_type_error(
-                                    "generator throw method returned non-object",
-                                )
+                                JsNativeError::typ()
+                                    .with_message("generator throw method returned non-object")
                             })?;
                             let done = result_object.get("done", self)?.to_boolean();
                             if done {
@@ -2367,9 +2496,9 @@ impl Context {
                         let iterator_record =
                             IteratorRecord::new(iterator.clone(), next_method, done);
                         iterator_record.close(Ok(JsValue::Undefined), self)?;
-                        let error =
-                            self.construct_type_error("iterator does not have a throw method");
-                        return Err(error);
+                        return Err(JsNativeError::typ()
+                            .with_message("iterator does not have a throw method")
+                            .into());
                     }
                     GeneratorResumeKind::Return => {
                         let r#return = iterator.get_method("return", self)?;
@@ -2377,9 +2506,8 @@ impl Context {
                             let result =
                                 r#return.call(&iterator.clone().into(), &[received], self)?;
                             let result_object = result.as_object().ok_or_else(|| {
-                                self.construct_type_error(
-                                    "generator return method returned non-object",
-                                )
+                                JsNativeError::typ()
+                                    .with_message("generator return method returned non-object")
                             })?;
                             let done = result_object.get("done", self)?.to_boolean();
                             if done {
@@ -2697,12 +2825,14 @@ impl Context {
                         self.vm.frame_mut().catch.pop();
                         self.vm.frame_mut().finally_return = FinallyReturn::Err;
                         self.vm.frame_mut().thrown = true;
+                        let e = e.to_opaque(self);
                         self.vm.push(e);
                     } else {
                         self.vm.stack.truncate(start_stack_size);
 
                         // Step 3.f in [AsyncBlockStart](https://tc39.es/ecma262/#sec-asyncblockstart).
                         if let Some(promise_capability) = promise_capability {
+                            let e = e.to_opaque(self);
                             promise_capability
                                 .reject()
                                 .call(&JsValue::undefined(), &[e.clone()], self)

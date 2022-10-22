@@ -2,10 +2,11 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::AsyncFunctionDecl, Keyword},
+    ast::function::AsyncFunction,
+    ast::Keyword,
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -73,13 +74,9 @@ impl<R> TokenParser<R> for AsyncFunctionDeclaration
 where
     R: Read,
 {
-    type Output = AsyncFunctionDecl;
+    type Output = AsyncFunction;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect(
             (Keyword::Async, false),
             "async function declaration",
@@ -94,6 +91,6 @@ where
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(AsyncFunctionDecl::new(result.0, result.1, result.2))
+        Ok(AsyncFunction::new(Some(result.0), result.1, result.2))
     }
 }

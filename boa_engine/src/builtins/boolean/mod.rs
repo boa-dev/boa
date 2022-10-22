@@ -15,6 +15,7 @@ mod tests;
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -79,11 +80,15 @@ impl Boolean {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisbooleanvalue
-    fn this_boolean_value(value: &JsValue, context: &mut Context) -> JsResult<bool> {
+    fn this_boolean_value(value: &JsValue) -> JsResult<bool> {
         value
             .as_boolean()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_boolean()))
-            .ok_or_else(|| context.construct_type_error("'this' is not a boolean"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a boolean")
+                    .into()
+            })
     }
 
     /// The `toString()` method returns a string representing the specified `Boolean` object.
@@ -95,12 +100,8 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean-object
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/toString
     #[allow(clippy::wrong_self_convention)]
-    pub(crate) fn to_string(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        let boolean = Self::this_boolean_value(this, context)?;
+    pub(crate) fn to_string(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        let boolean = Self::this_boolean_value(this)?;
         Ok(JsValue::new(boolean.to_string()))
     }
 
@@ -113,11 +114,7 @@ impl Boolean {
     /// [spec]: https://tc39.es/ecma262/#sec-boolean.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Boolean/valueOf
     #[inline]
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(JsValue::new(Self::this_boolean_value(this, context)?))
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_boolean_value(this)?))
     }
 }

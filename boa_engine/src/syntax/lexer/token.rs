@@ -222,7 +222,7 @@ impl TokenKind {
         match *self {
             Self::BooleanLiteral(val) => val.to_string(),
             Self::EOF => "end of file".to_owned(),
-            Self::Identifier(ident) => interner.resolve_expect(ident).to_owned(),
+            Self::Identifier(ident) => interner.resolve_expect(ident).to_string(),
             Self::PrivateIdentifier(ident) => format!("#{}", interner.resolve_expect(ident)),
             Self::Keyword((word, _)) => word.to_string(),
             Self::NullLiteral => "null".to_owned(),
@@ -230,9 +230,9 @@ impl TokenKind {
             Self::NumericLiteral(Numeric::Integer(num)) => num.to_string(),
             Self::NumericLiteral(Numeric::BigInt(ref num)) => format!("{num}n"),
             Self::Punctuator(punc) => punc.to_string(),
-            Self::StringLiteral(lit) => interner.resolve_expect(lit).to_owned(),
+            Self::StringLiteral(lit) => interner.resolve_expect(lit).to_string(),
             Self::TemplateNoSubstitution(ts) | Self::TemplateMiddle(ts) => {
-                interner.resolve_expect(ts.as_raw()).to_owned()
+                interner.resolve_expect(ts.as_raw()).to_string()
             }
             Self::RegularExpressionLiteral(body, flags) => {
                 format!(

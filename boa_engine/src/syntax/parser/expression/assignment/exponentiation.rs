@@ -10,9 +10,11 @@
 use super::ParseError;
 use crate::syntax::{
     ast::{
-        node::{BinOp, Node},
-        op::NumOp,
-        Keyword, Punctuator,
+        expression::{
+            operator::{binary::op::ArithmeticOp, Binary},
+            Identifier,
+        },
+        Expression, Keyword, Punctuator,
     },
     lexer::TokenKind,
     parser::{
@@ -20,7 +22,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -34,7 +36,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ExponentiationExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::expression) struct ExponentiationExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -47,7 +49,7 @@ impl ExponentiationExpression {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -63,9 +65,9 @@ impl<R> TokenParser<R> for ExponentiationExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ExponentiationExpression", "Parsing");
 
         let next = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -89,7 +91,12 @@ where
         if let Some(tok) = cursor.peek(0, interner)? {
             if let TokenKind::Punctuator(Punctuator::Exp) = tok.kind() {
                 cursor.next(interner)?.expect("** token vanished"); // Consume the token.
-                return Ok(BinOp::new(NumOp::Exp, lhs, self.parse(cursor, interner)?).into());
+                return Ok(Binary::new(
+                    ArithmeticOp::Exp.into(),
+                    lhs,
+                    self.parse(cursor, interner)?,
+                )
+                .into());
             }
         }
         Ok(lhs)

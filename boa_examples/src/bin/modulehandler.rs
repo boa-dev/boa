@@ -39,7 +39,7 @@ fn require(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue
     let libfile = arg
         .to_string(ctx)
         .expect("Failed to convert to string")
-        .to_string();
+        .to_std_string_escaped();
 
     // Read the module source file
     println!("Loading: {}", libfile);

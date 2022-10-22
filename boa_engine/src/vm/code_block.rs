@@ -13,14 +13,16 @@ use crate::{
     },
     context::intrinsics::StandardConstructors,
     environments::{BindingLocator, CompileTimeEnvironment},
+    error::JsNativeError,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
     },
     property::PropertyDescriptor,
-    syntax::ast::node::FormalParameterList,
+    syntax::ast::{expression::Identifier, function::FormalParameterList},
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -81,7 +83,7 @@ pub struct CodeBlock {
 
     /// Property field names.
     #[unsafe_ignore_trace]
-    pub(crate) names: Vec<Sym>,
+    pub(crate) names: Vec<Identifier>,
 
     /// Locators for all bindings in the codeblock.
     #[unsafe_ignore_trace]
@@ -247,7 +249,7 @@ impl CodeBlock {
                 format!(
                     "{:04}: '{}'",
                     operand,
-                    interner.resolve_expect(self.bindings[operand as usize].name()),
+                    interner.resolve_expect(self.bindings[operand as usize].name().sym()),
                 )
             }
             Opcode::GetPropertyByName
@@ -273,7 +275,7 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!(
                     "{operand:04}: '{}'",
-                    interner.resolve_expect(self.names[operand as usize]),
+                    interner.resolve_expect(self.names[operand as usize].sym()),
                 )
             }
             Opcode::Pop
@@ -417,7 +419,7 @@ impl ToInternedString for CodeBlock {
             for (i, value) in self.literals.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: <{}> {}\n",
-                    value.type_of(),
+                    value.type_of().to_std_string_escaped(),
                     value.display()
                 ));
             }
@@ -430,7 +432,7 @@ impl ToInternedString for CodeBlock {
             for (i, binding_locator) in self.bindings.iter().enumerate() {
                 f.push_str(&format!(
                     "    {i:04}: {}\n",
-                    interner.resolve_expect(binding_locator.name())
+                    interner.resolve_expect(binding_locator.name().sym())
                 ));
             }
         }
@@ -476,7 +478,12 @@ pub(crate) fn create_function_object(
     let prototype = context.construct_object();
 
     let name_property = PropertyDescriptor::builder()
-        .value(context.interner().resolve_expect(code.name))
+        .value(
+            context
+                .interner()
+                .resolve_expect(code.name)
+                .into_common::<JsString>(false),
+        )
         .writable(false)
         .enumerable(false)
         .configurable(true)
@@ -528,7 +535,7 @@ pub(crate) fn create_function_object(
         .build();
 
     prototype
-        .define_property_or_throw("constructor", constructor_property, context)
+        .define_property_or_throw(js_string!("constructor"), constructor_property, context)
         .expect("failed to define the constructor property of the function");
 
     let prototype_property = PropertyDescriptor::builder()
@@ -539,14 +546,14 @@ pub(crate) fn create_function_object(
         .build();
 
     constructor
-        .define_property_or_throw("length", length_property, context)
+        .define_property_or_throw(js_string!("length"), length_property, context)
         .expect("failed to define the length property of the function");
     constructor
-        .define_property_or_throw("name", name_property, context)
+        .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the function");
     if !r#async {
         constructor
-            .define_property_or_throw("prototype", prototype_property, context)
+            .define_property_or_throw(js_string!("prototype"), prototype_property, context)
             .expect("failed to define the prototype property of the function");
     }
 
@@ -574,7 +581,12 @@ pub(crate) fn create_generator_function_object(
     };
 
     let name_property = PropertyDescriptor::builder()
-        .value(context.interner().resolve_expect(code.name))
+        .value(
+            context
+                .interner()
+                .resolve_expect(code.name)
+                .into_common::<JsString>(false),
+        )
         .writable(false)
         .enumerable(false)
         .configurable(true)
@@ -625,13 +637,13 @@ pub(crate) fn create_generator_function_object(
         .build();
 
     constructor
-        .define_property_or_throw("prototype", prototype_property, context)
+        .define_property_or_throw(js_string!("prototype"), prototype_property, context)
         .expect("failed to define the prototype property of the generator function");
     constructor
-        .define_property_or_throw("name", name_property, context)
+        .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the generator function");
     constructor
-        .define_property_or_throw("length", length_property, context)
+        .define_property_or_throw(js_string!("length"), length_property, context)
         .expect("failed to define the length property of the generator function");
 
     constructor
@@ -647,7 +659,9 @@ impl JsObject {
         let this_function_object = self.clone();
 
         if !self.is_callable() {
-            return context.throw_type_error("not a callable function");
+            return Err(JsNativeError::typ()
+                .with_message("not a callable function")
+                .into());
         }
 
         let object = self.borrow();
@@ -685,8 +699,9 @@ impl JsObject {
                 drop(object);
 
                 if code.is_class_constructor {
-                    return context
-                        .throw_type_error("Class constructor cannot be invoked without 'new'");
+                    return Err(JsNativeError::typ()
+                        .with_message("Class constructor cannot be invoked without 'new'")
+                        .into());
                 }
 
                 std::mem::swap(&mut environments, &mut context.realm.environments);
@@ -1226,7 +1241,9 @@ impl JsObject {
         };
 
         if !self.is_constructor() {
-            return context.throw_type_error("not a constructor function");
+            return Err(JsNativeError::typ()
+                .with_message("not a constructor function")
+                .into());
         }
 
         let object = self.borrow();
@@ -1248,9 +1265,11 @@ impl JsObject {
                         if constructor.expect("hmm").is_base() || val.is_undefined() {
                             create_this(context)
                         } else {
-                            context.throw_type_error(
-                                "Derived constructor can only return an Object or undefined",
-                            )
+                            Err(JsNativeError::typ()
+                                .with_message(
+                                    "Derived constructor can only return an Object or undefined",
+                                )
+                                .into())
                         }
                     }
                 }
@@ -1272,9 +1291,11 @@ impl JsObject {
                         if constructor.expect("hmma").is_base() || val.is_undefined() {
                             create_this(context)
                         } else {
-                            context.throw_type_error(
-                                "Derived constructor can only return an Object or undefined",
-                            )
+                            Err(JsNativeError::typ()
+                                .with_message(
+                                    "Derived constructor can only return an Object or undefined",
+                                )
+                                .into())
                         }
                     }
                 }
@@ -1339,8 +1360,8 @@ impl JsObject {
 
                 for param in code.params.parameters.iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
-                    arguments_in_parameter_names =
-                        arguments_in_parameter_names || param.names().contains(&Sym::ARGUMENTS);
+                    arguments_in_parameter_names = arguments_in_parameter_names
+                        || param.names().contains(&Sym::ARGUMENTS.into());
                     is_simple_parameter_list = is_simple_parameter_list
                         && !param.is_rest_param()
                         && param.is_identifier()
@@ -1424,22 +1445,21 @@ impl JsObject {
                 } else if let Some(this) = this {
                     Ok(this)
                 } else if !result.is_undefined() {
-                    context.throw_type_error("Function constructor must not return non-object")
+                    Err(JsNativeError::typ()
+                        .with_message("Function constructor must not return non-object")
+                        .into())
                 } else {
                     let function_env = environment
                         .slots()
                         .expect("must be function environment")
                         .as_function_slots()
                         .expect("must be function environment");
-                    if let Some(this_binding) = function_env.borrow().get_this_binding() {
-                        Ok(this_binding
-                            .as_object()
-                            .expect("this binding must be object")
-                            .clone())
-                    } else {
-                        //context.throw_type_error("Function constructor must not return non-object")
-                        context.throw_reference_error("Must call super constructor in derived class before accessing 'this' or returning from derived constructor")
-                    }
+                    Ok(function_env
+                        .borrow()
+                        .get_this_binding()?
+                        .as_object()
+                        .expect("this binding must be object")
+                        .clone())
                 }
             }
             Function::Generator { .. }

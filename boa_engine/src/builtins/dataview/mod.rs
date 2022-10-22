@@ -1,6 +1,7 @@
 use crate::{
     builtins::{array_buffer::SharedMemoryOrder, typed_array::TypedArrayKind, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
@@ -103,31 +104,36 @@ impl DataView {
         let buffer_obj = args
             .get_or_undefined(0)
             .as_object()
-            .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?;
 
         // 1. If NewTarget is undefined, throw a TypeError exception.
         let (offset, view_byte_length) = {
             if new_target.is_undefined() {
-                return context.throw_type_error("new target is undefined");
+                return Err(JsNativeError::typ()
+                    .with_message("new target is undefined")
+                    .into());
             }
             // 2. Perform ? RequireInternalSlot(buffer, [[ArrayBufferData]]).
             let buffer_borrow = buffer_obj.borrow();
-            let buffer = buffer_borrow
-                .as_array_buffer()
-                .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?;
+            let buffer = buffer_borrow.as_array_buffer().ok_or_else(|| {
+                JsNativeError::typ().with_message("buffer must be an ArrayBuffer")
+            })?;
 
             // 3. Let offset be ? ToIndex(byteOffset).
             let offset = args.get_or_undefined(1).to_index(context)?;
             // 4. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
             if buffer.is_detached_buffer() {
-                return context.throw_type_error("ArrayBuffer is detached");
+                return Err(JsNativeError::typ()
+                    .with_message("ArrayBuffer is detached")
+                    .into());
             }
             // 5. Let bufferByteLength be buffer.[[ArrayBufferByteLength]].
             let buffer_byte_length = buffer.array_buffer_byte_length();
             // 6. If offset > bufferByteLength, throw a RangeError exception.
             if offset > buffer_byte_length {
-                return context
-                    .throw_range_error("Start offset is outside the bounds of the buffer");
+                return Err(JsNativeError::range()
+                    .with_message("Start offset is outside the bounds of the buffer")
+                    .into());
             }
             // 7. If byteLength is undefined, then
             let view_byte_length = if byte_length.is_undefined() {
@@ -138,7 +144,9 @@ impl DataView {
                 let view_byte_length = byte_length.to_index(context)?;
                 // 8.b. If offset + viewByteLength > bufferByteLength, throw a RangeError exception.
                 if offset + view_byte_length > buffer_byte_length {
-                    return context.throw_range_error("Invalid data view length");
+                    return Err(JsNativeError::range()
+                        .with_message("Invalid data view length")
+                        .into());
                 }
 
                 view_byte_length
@@ -154,10 +162,12 @@ impl DataView {
         if buffer_obj
             .borrow()
             .as_array_buffer()
-            .ok_or_else(|| context.construct_type_error("buffer must be an ArrayBuffer"))?
+            .ok_or_else(|| JsNativeError::typ().with_message("buffer must be an ArrayBuffer"))?
             .is_detached_buffer()
         {
-            return context.throw_type_error("ArrayBuffer can't be detached");
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer can't be detached")
+                .into());
         }
 
         let obj = JsObject::from_proto_and_data(
@@ -190,7 +200,7 @@ impl DataView {
     pub(crate) fn get_buffer(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
@@ -198,7 +208,7 @@ impl DataView {
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
-            .ok_or_else(|| context.construct_type_error("`this` is not a DataView"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer = dataview.viewed_array_buffer.clone();
@@ -219,7 +229,7 @@ impl DataView {
     pub(crate) fn get_byte_length(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
@@ -227,7 +237,7 @@ impl DataView {
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
-            .ok_or_else(|| context.construct_type_error("`this` is not a DataView"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer_borrow = dataview.viewed_array_buffer.borrow();
@@ -236,7 +246,9 @@ impl DataView {
             .expect("DataView must be constructed with an ArrayBuffer");
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         if borrow.is_detached_buffer() {
-            return context.throw_type_error("ArrayBuffer is detached");
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer is detached")
+                .into());
         }
         // 6. Let size be O.[[ByteLength]].
         let size = dataview.byte_length;
@@ -258,7 +270,7 @@ impl DataView {
     pub(crate) fn get_byte_offset(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be the this value.
         // 2. Perform ? RequireInternalSlot(O, [[DataView]]).
@@ -266,7 +278,7 @@ impl DataView {
         let dataview = dataview
             .as_ref()
             .and_then(|obj| obj.as_data_view())
-            .ok_or_else(|| context.construct_type_error("`this` is not a DataView"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Assert: O has a [[ViewedArrayBuffer]] internal slot.
         // 4. Let buffer be O.[[ViewedArrayBuffer]].
         let buffer_borrow = dataview.viewed_array_buffer.borrow();
@@ -275,7 +287,9 @@ impl DataView {
             .expect("DataView must be constructed with an ArrayBuffer");
         // 5. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         if borrow.is_detached_buffer() {
-            return context.throw_type_error("ArrayBuffer is detached");
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer is detached")
+                .into());
         }
         // 6. Let offset be O.[[ByteOffset]].
         let offset = dataview.byte_offset;
@@ -306,7 +320,7 @@ impl DataView {
         let view = view
             .as_ref()
             .and_then(|obj| obj.as_data_view())
-            .ok_or_else(|| context.construct_type_error("`this` is not a DataView"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
 
@@ -322,7 +336,9 @@ impl DataView {
 
         // 6. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         if buffer.is_detached_buffer() {
-            return context.throw_type_error("ArrayBuffer is detached");
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer is detached")
+                .into());
         }
         // 7. Let viewOffset be view.[[ByteOffset]].
         let view_offset = view.byte_offset;
@@ -335,7 +351,9 @@ impl DataView {
 
         // 10. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
-            return context.throw_range_error("Offset is outside the bounds of the DataView");
+            return Err(JsNativeError::range()
+                .with_message("Offset is outside the bounds of the DataView")
+                .into());
         }
 
         // 11. Let bufferIndex be getIndex + viewOffset.
@@ -665,7 +683,7 @@ impl DataView {
         let view = view
             .as_ref()
             .and_then(|obj| obj.as_data_view())
-            .ok_or_else(|| context.construct_type_error("`this` is not a DataView"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a DataView"))?;
         // 3. Let getIndex be ? ToIndex(requestIndex).
         let get_index = request_index.to_index(context)?;
 
@@ -688,7 +706,9 @@ impl DataView {
 
         // 8. If IsDetachedBuffer(buffer) is true, throw a TypeError exception.
         if buffer.is_detached_buffer() {
-            return context.throw_type_error("ArrayBuffer is detached");
+            return Err(JsNativeError::typ()
+                .with_message("ArrayBuffer is detached")
+                .into());
         }
 
         // 9. Let viewOffset be view.[[ByteOffset]].
@@ -702,7 +722,9 @@ impl DataView {
 
         // 12. If getIndex + elementSize > viewSize, throw a RangeError exception.
         if get_index + element_size > view_size {
-            return context.throw_range_error("Offset is outside the bounds of DataView");
+            return Err(JsNativeError::range()
+                .with_message("Offset is outside the bounds of DataView")
+                .into());
         }
 
         // 13. Let bufferIndex be getIndex + viewOffset.

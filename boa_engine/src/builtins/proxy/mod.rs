@@ -12,6 +12,7 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
     object::{ConstructorBuilder, FunctionBuilder, JsFunction, JsObject, ObjectData},
     Context, JsResult, JsValue,
 };
@@ -58,9 +59,11 @@ impl Proxy {
     /// This is an internal method only built for usage in the proxy internal methods.
     ///
     /// It returns the (target, handler) of the proxy.
-    pub(crate) fn try_data(&self, context: &mut Context) -> JsResult<(JsObject, JsObject)> {
+    pub(crate) fn try_data(&self) -> JsResult<(JsObject, JsObject)> {
         self.data.clone().ok_or_else(|| {
-            context.construct_type_error("Proxy object has empty handler and target")
+            JsNativeError::typ()
+                .with_message("Proxy object has empty handler and target")
+                .into()
         })
     }
 
@@ -77,7 +80,9 @@ impl Proxy {
     ) -> JsResult<JsValue> {
         // 1. If NewTarget is undefined, throw a TypeError exception.
         if new_target.is_undefined() {
-            return context.throw_type_error("Proxy constructor called on undefined new target");
+            return Err(JsNativeError::typ()
+                .with_message("Proxy constructor called on undefined new target")
+                .into());
         }
 
         // 2. Return ? ProxyCreate(target, handler).
@@ -97,12 +102,12 @@ impl Proxy {
     ) -> JsResult<JsObject> {
         // 1. If Type(target) is not Object, throw a TypeError exception.
         let target = target.as_object().ok_or_else(|| {
-            context.construct_type_error("Proxy constructor called with non-object target")
+            JsNativeError::typ().with_message("Proxy constructor called with non-object target")
         })?;
 
         // 2. If Type(handler) is not Object, throw a TypeError exception.
         let handler = handler.as_object().ok_or_else(|| {
-            context.construct_type_error("Proxy constructor called with non-object handler")
+            JsNativeError::typ().with_message("Proxy constructor called with non-object handler")
         })?;
 
         // 3. Let P be ! MakeBasicObject(« [[ProxyHandler]], [[ProxyTarget]] »).

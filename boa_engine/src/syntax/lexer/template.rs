@@ -49,8 +49,8 @@ impl TemplateString {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-templatestrings
     pub fn to_owned_cooked(self, interner: &mut Interner) -> Result<Sym, Error> {
-        let mut cursor =
-            Cursor::with_position(interner.resolve_expect(self.raw).as_bytes(), self.start_pos);
+        let string = interner.resolve_expect(self.raw).to_string();
+        let mut cursor = Cursor::with_position(string.as_bytes(), self.start_pos);
         let mut buf: Vec<u16> = Vec::new();
 
         loop {
@@ -80,9 +80,7 @@ impl TemplateString {
             }
         }
 
-        let str = buf.to_string_lossy();
-
-        Ok(interner.get_or_intern(&str))
+        Ok(interner.get_or_intern(&buf[..]))
     }
 }
 
@@ -123,8 +121,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
             match ch {
                 // `
                 0x0060 => {
-                    let raw = buf.to_string_lossy();
-                    let raw_sym = interner.get_or_intern(raw);
+                    let raw_sym = interner.get_or_intern(&buf[..]);
                     let template_string = TemplateString::new(raw_sym, start_pos);
 
                     return Ok(Token::new(
@@ -134,8 +131,7 @@ impl<R> Tokenizer<R> for TemplateLiteral {
                 }
                 // $
                 0x0024 if cursor.next_is(b'{')? => {
-                    let raw = buf.to_string_lossy();
-                    let raw_sym = interner.get_or_intern(raw);
+                    let raw_sym = interner.get_or_intern(&buf[..]);
                     let template_string = TemplateString::new(raw_sym, start_pos);
 
                     return Ok(Token::new(

@@ -1,8 +1,12 @@
 use crate::syntax::{
-    ast::node::{FormalParameterList, FunctionDecl},
+    ast::{
+        function::{FormalParameterList, Function},
+        Declaration, StatementList,
+    },
     parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Function declaration parsing.
 #[test]
@@ -10,11 +14,15 @@ fn function_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "function hello() {}",
-        vec![FunctionDecl::new(
-            interner.get_or_intern_static("hello"),
+        vec![Declaration::Function(Function::new(
+            Some(
+                interner
+                    .get_or_intern_static("hello", utf16!("hello"))
+                    .into(),
+            ),
             FormalParameterList::default(),
-            vec![],
-        )
+            StatementList::default(),
+        ))
         .into()],
         interner,
     );
@@ -23,52 +31,58 @@ fn function_declaration() {
 /// Function declaration parsing with keywords.
 #[test]
 fn function_declaration_keywords() {
-    let genast = |keyword, interner: &mut Interner| {
-        vec![FunctionDecl::new(
-            interner.get_or_intern_static(keyword),
-            FormalParameterList::default(),
-            vec![],
-        )
-        .into()]
-    };
+    macro_rules! genast {
+        ($keyword:literal, $interner:expr) => {
+            vec![Declaration::Function(Function::new(
+                Some(
+                    $interner
+                        .get_or_intern_static($keyword, utf16!($keyword))
+                        .into(),
+                ),
+                FormalParameterList::default(),
+                StatementList::default(),
+            ))
+            .into()]
+        };
+    }
 
     let mut interner = Interner::default();
-    let ast = genast("yield", &mut interner);
+    let ast = genast!("yield", interner);
     check_parser("function yield() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("await", &mut interner);
+    let ast = genast!("await", interner);
     check_parser("function await() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("as", &mut interner);
+    let ast = genast!("as", interner);
     check_parser("function as() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("async", &mut interner);
+    let ast = genast!("async", interner);
     check_parser("function async() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("from", &mut interner);
+    let ast = genast!("from", interner);
     check_parser("function from() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("get", &mut interner);
+    let ast = genast!("get", interner);
     check_parser("function get() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("meta", &mut interner);
+    let ast = genast!("meta", interner);
     check_parser("function meta() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("of", &mut interner);
+    let ast = genast!("of", interner);
     check_parser("function of() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("set", &mut interner);
+    let ast = genast!("set", interner);
     check_parser("function set() {}", ast, interner);
 
     let mut interner = Interner::default();
-    let ast = genast("target", &mut interner);
+    let ast = genast!("target", interner);
     check_parser("function target() {}", ast, interner);
 }

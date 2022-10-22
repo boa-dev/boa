@@ -9,6 +9,7 @@ members = [
     "boa_unicode",
     "boa_wasm",
     "boa_examples",
+    "boa_macros",
 ]
 
 [workspace.package]
@@ -26,6 +27,7 @@ boa_interner = { version = "0.16.0", path = "boa_interner" }
 boa_gc = { version = "0.16.0", path = "boa_gc" }
 boa_profiler = { version = "0.16.0", path = "boa_profiler" }
 boa_unicode = { version = "0.16.0", path = "boa_unicode" }
+boa_macros = { version = "0.16.0", path = "boa_macros" }
 
 [workspace.metadata.workspaces]
 allow_branch = "main"

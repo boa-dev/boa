@@ -73,10 +73,11 @@ use self::{
 };
 use anyhow::{bail, Context};
 use bitflags::bitflags;
-use clap::Parser;
+use clap::{ArgAction, Parser, ValueHint};
 use colored::Colorize;
 use fxhash::{FxHashMap, FxHashSet};
 use once_cell::sync::Lazy;
+use read::ErrorType;
 use serde::{Deserialize, Serialize};
 use std::{
     fs,
@@ -194,41 +195,42 @@ static IGNORED: Lazy<Ignored> = Lazy::new(|| {
 
 /// Boa test262 tester
 #[derive(Debug, Parser)]
-#[clap(author, version, about, name = "Boa test262 tester")]
+#[command(author, version, about, name = "Boa test262 tester")]
 enum Cli {
     /// Run the test suite.
     Run {
         /// Whether to show verbose output.
-        #[clap(short, long, parse(from_occurrences))]
+        #[arg(short, long, action = ArgAction::Count)]
         verbose: u8,
 
         /// Path to the Test262 suite.
-        #[clap(long, parse(from_os_str), default_value = "./test262")]
+        #[arg(long, default_value = "./test262", value_hint = ValueHint::DirPath)]
         test262_path: PathBuf,
 
         /// Which specific test or test suite to run. Should be a path relative to the Test262 directory: e.g. "test/language/types/number"
-        #[clap(short, long, parse(from_os_str), default_value = "test")]
+        #[arg(short, long, default_value = "test", value_hint = ValueHint::AnyPath)]
         suite: PathBuf,
 
         /// Optional output folder for the full results information.
-        #[clap(short, long, parse(from_os_str))]
+        #[arg(short, long, value_hint = ValueHint::DirPath)]
         output: Option<PathBuf>,
 
         /// Execute tests serially
-        #[clap(short, long)]
+        #[arg(short, long)]
         disable_parallelism: bool,
     },
+    /// Compare two test suite results.
     Compare {
         /// Base results of the suite.
-        #[clap(parse(from_os_str))]
+        #[arg(value_hint = ValueHint::FilePath)]
         base: PathBuf,
 
         /// New results to compare.
-        #[clap(parse(from_os_str))]
+        #[arg(value_hint = ValueHint::FilePath)]
         new: PathBuf,
 
         /// Whether to use markdown output
-        #[clap(short, long)]
+        #[arg(short, long)]
         markdown: bool,
     },
 }
@@ -455,7 +457,7 @@ impl Test {
 #[derive(Debug, Clone)]
 enum Outcome {
     Positive,
-    Negative { phase: Phase, error_type: Box<str> },
+    Negative { phase: Phase, error_type: ErrorType },
 }
 
 impl Default for Outcome {

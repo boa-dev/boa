@@ -33,7 +33,30 @@ pub(super) struct MetaData {
 pub(super) struct Negative {
     pub(super) phase: Phase,
     #[serde(rename = "type")]
-    pub(super) error_type: Box<str>,
+    pub(super) error_type: ErrorType,
+}
+
+/// All possible error types
+#[derive(Debug, Copy, Clone, Deserialize, PartialEq, Eq)]
+#[allow(clippy::enum_variant_names)] // Better than appending `rename` to all variants
+pub(super) enum ErrorType {
+    Test262Error,
+    SyntaxError,
+    ReferenceError,
+    RangeError,
+    TypeError,
+}
+
+impl ErrorType {
+    pub(super) fn as_str(self) -> &'static str {
+        match self {
+            ErrorType::Test262Error => "Test262Error",
+            ErrorType::SyntaxError => "SyntaxError",
+            ErrorType::ReferenceError => "ReferenceError",
+            ErrorType::RangeError => "RangeError",
+            ErrorType::TypeError => "TypeError",
+        }
+    }
 }
 
 /// Individual test flag.

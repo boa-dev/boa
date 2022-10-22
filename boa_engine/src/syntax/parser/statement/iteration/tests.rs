@@ -1,15 +1,23 @@
 use crate::syntax::{
     ast::{
-        node::{
-            field::GetConstField, BinOp, Block, Break, Call, Declaration, DeclarationList,
-            DoWhileLoop, Identifier, UnaryOp, WhileLoop,
+        declaration::{VarDeclaration, Variable},
+        expression::{
+            access::PropertyAccess,
+            literal::Literal,
+            operator::{
+                assign::op::AssignOp, binary::op::RelationalOp, unary::op::UnaryOp, Assign, Binary,
+                Unary,
+            },
+            Call, Identifier,
         },
-        op::{self, AssignOp, CompOp},
-        Const,
+        statement::{Block, Break, DoWhileLoop, WhileLoop},
+        statement_list::StatementListItem,
+        Expression, Statement,
     },
     parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks do-while statement parsing.
 #[test]
@@ -19,15 +27,19 @@ fn check_do_while() {
         r#"do {
             a += 1;
         } while (true)"#,
-        vec![DoWhileLoop::new(
-            Block::from(vec![BinOp::new(
-                AssignOp::Add,
-                Identifier::new(interner.get_or_intern_static("a")),
-                Const::from(1),
-            )
-            .into()]),
-            Const::from(true),
-        )
+        vec![Statement::DoWhileLoop(DoWhileLoop::new(
+            Statement::Block(
+                vec![StatementListItem::Statement(Statement::Expression(
+                    Expression::from(Assign::new(
+                        AssignOp::Add,
+                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Literal::from(1).into(),
+                    )),
+                ))]
+                .into(),
+            ),
+            Literal::from(true).into(),
+        ))
         .into()],
         interner,
     );
@@ -41,40 +53,58 @@ fn check_do_while_semicolon_insertion() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10) console.log("end");"#,
         vec![
-            DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("i"),
-                    Some(Const::from(0).into()),
+            Statement::Var(VarDeclaration(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    Some(Literal::from(0).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DoWhileLoop::new(
-                Block::from(vec![Call::new(
-                    GetConstField::new(
-                        Identifier::new(interner.get_or_intern_static("console")),
-                        interner.get_or_intern_static("log"),
-                    ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+            Statement::DoWhileLoop(DoWhileLoop::new(
+                Statement::Block(
+                    vec![StatementListItem::Statement(Statement::Expression(
+                        Expression::from(Call::new(
+                            PropertyAccess::new(
+                                Identifier::new(
+                                    interner.get_or_intern_static("console", utf16!("console")),
+                                )
+                                .into(),
+                                interner.get_or_intern_static("log", utf16!("log")),
+                            )
+                            .into(),
+                            vec![Literal::from(
+                                interner.get_or_intern_static("hello", utf16!("hello")),
+                            )
+                            .into()]
+                            .into(),
+                        )),
+                    ))]
+                    .into(),
+                ),
+                Binary::new(
+                    RelationalOp::LessThan.into(),
+                    Unary::new(
+                        UnaryOp::IncrementPost,
+                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))).into(),
+                    )
+                    .into(),
+                    Literal::from(10).into(),
                 )
-                .into()]),
-                BinOp::new(
-                    CompOp::LessThan,
-                    UnaryOp::new(
-                        op::UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i")),
-                    ),
-                    Const::from(10),
-                ),
-            )
+                .into(),
+            ))
             .into(),
-            Call::new(
-                GetConstField::new(
-                    Identifier::new(interner.get_or_intern_static("console")),
-                    interner.get_or_intern_static("log"),
-                ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
-            )
+            Statement::Expression(Expression::from(Call::new(
+                PropertyAccess::new(
+                    Identifier::new(interner.get_or_intern_static("console", utf16!("console")))
+                        .into(),
+                    interner.get_or_intern_static("log", utf16!("log")),
+                )
+                .into(),
+                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
+                    .into(),
+            )))
             .into(),
         ],
         interner,
@@ -90,40 +120,58 @@ fn check_do_while_semicolon_insertion_no_space() {
         r#"var i = 0;
         do {console.log("hello");} while(i++ < 10)console.log("end");"#,
         vec![
-            DeclarationList::Var(
-                vec![Declaration::new_with_identifier(
-                    interner.get_or_intern_static("i"),
-                    Some(Const::from(0).into()),
+            Statement::Var(VarDeclaration(
+                vec![Variable::from_identifier(
+                    interner.get_or_intern_static("i", utf16!("i")).into(),
+                    Some(Literal::from(0).into()),
                 )]
-                .into(),
-            )
+                .try_into()
+                .unwrap(),
+            ))
             .into(),
-            DoWhileLoop::new(
-                Block::from(vec![Call::new(
-                    GetConstField::new(
-                        Identifier::new(interner.get_or_intern_static("console")),
-                        interner.get_or_intern_static("log"),
-                    ),
-                    vec![Const::from(interner.get_or_intern_static("hello")).into()],
+            Statement::DoWhileLoop(DoWhileLoop::new(
+                Statement::Block(
+                    vec![StatementListItem::Statement(Statement::Expression(
+                        Expression::from(Call::new(
+                            PropertyAccess::new(
+                                Identifier::new(
+                                    interner.get_or_intern_static("console", utf16!("console")),
+                                )
+                                .into(),
+                                interner.get_or_intern_static("log", utf16!("log")),
+                            )
+                            .into(),
+                            vec![Literal::from(
+                                interner.get_or_intern_static("hello", utf16!("hello")),
+                            )
+                            .into()]
+                            .into(),
+                        )),
+                    ))]
+                    .into(),
+                ),
+                Binary::new(
+                    RelationalOp::LessThan.into(),
+                    Unary::new(
+                        UnaryOp::IncrementPost,
+                        Identifier::new(interner.get_or_intern_static("i", utf16!("i"))).into(),
+                    )
+                    .into(),
+                    Literal::from(10).into(),
                 )
-                .into()]),
-                BinOp::new(
-                    CompOp::LessThan,
-                    UnaryOp::new(
-                        op::UnaryOp::IncrementPost,
-                        Identifier::new(interner.get_or_intern_static("i")),
-                    ),
-                    Const::from(10),
-                ),
-            )
+                .into(),
+            ))
             .into(),
-            Call::new(
-                GetConstField::new(
-                    Identifier::new(interner.get_or_intern_static("console")),
-                    interner.get_or_intern_static("log"),
-                ),
-                vec![Const::from(interner.get_or_intern_static("end")).into()],
-            )
+            Statement::Expression(Expression::from(Call::new(
+                PropertyAccess::new(
+                    Identifier::new(interner.get_or_intern_static("console", utf16!("console")))
+                        .into(),
+                    interner.get_or_intern_static("log", utf16!("log")),
+                )
+                .into(),
+                vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
+                    .into(),
+            )))
             .into(),
         ],
         interner,
@@ -147,7 +195,11 @@ fn while_spaces() {
         break;
 
         "#,
-        vec![WhileLoop::new(Const::from(true), Break::new(None)).into()],
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Break::new(None).into(),
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -169,10 +221,13 @@ fn do_while_spaces() {
         while (true)
 
         "#,
-        vec![DoWhileLoop::new(
-            Block::from(vec![Break::new(None).into()]),
-            Const::Bool(true),
-        )
+        vec![Statement::DoWhileLoop(DoWhileLoop::new(
+            Block::from(vec![StatementListItem::Statement(Statement::Break(
+                Break::new(None),
+            ))])
+            .into(),
+            Literal::Bool(true).into(),
+        ))
         .into()],
         Interner::default(),
     );

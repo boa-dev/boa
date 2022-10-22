@@ -13,11 +13,14 @@
 use crate::{
     builtins::BuiltIn,
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
     property::Attribute,
-    Context, JsResult, JsString, JsValue,
+    string::utf16,
+    Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
@@ -42,6 +45,30 @@ pub(crate) use self::syntax::SyntaxError;
 pub(crate) use self::uri::UriError;
 
 use super::JsArgs;
+
+/// The kind of a `NativeError` object, per the [ECMAScript spec][spec].
+///
+/// This is used internally to convert between [`JsObject`] and
+/// [`JsNativeError`] correctly, but it can also be used to manually create `Error`
+/// objects. However, the recommended way to create them is to construct a
+/// `JsNativeError` first, then call [`JsNativeError::to_opaque`],
+/// which will assign its prototype, properties and kind automatically.
+///
+/// For a description of every error kind and its usage, see
+/// [`JsNativeErrorKind`][crate::error::JsNativeErrorKind].
+///
+/// [spec]: https://tc39.es/ecma262/#sec-error-objects
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+pub enum ErrorKind {
+    Aggregate,
+    Error,
+    Eval,
+    Type,
+    Range,
+    Reference,
+    Syntax,
+    Uri,
+}
 
 /// Built-in `Error` object.
 #[derive(Debug, Clone, Copy)]
@@ -107,7 +134,7 @@ impl Error {
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%Error.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::error, context)?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Error));
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);
@@ -147,25 +174,27 @@ impl Error {
             o
         // 2. If Type(O) is not Object, throw a TypeError exception.
         } else {
-            return context.throw_type_error("'this' is not an Object");
+            return Err(JsNativeError::typ()
+                .with_message("'this' is not an Object")
+                .into());
         };
 
         // 3. Let name be ? Get(O, "name").
-        let name = o.get("name", context)?;
+        let name = o.get(js_string!("name"), context)?;
 
         // 4. If name is undefined, set name to "Error"; otherwise set name to ? ToString(name).
         let name = if name.is_undefined() {
-            JsString::new("Error")
+            js_string!("Error")
         } else {
             name.to_string(context)?
         };
 
         // 5. Let msg be ? Get(O, "message").
-        let msg = o.get("message", context)?;
+        let msg = o.get(js_string!("message"), context)?;
 
         // 6. If msg is undefined, set msg to the empty String; otherwise set msg to ? ToString(msg).
         let msg = if msg.is_undefined() {
-            JsString::empty()
+            js_string!()
         } else {
             msg.to_string(context)?
         };
@@ -182,6 +211,6 @@ impl Error {
 
         // 9. Return the string-concatenation of name, the code unit 0x003A (COLON),
         // the code unit 0x0020 (SPACE), and msg.
-        Ok(format!("{name}: {msg}").into())
+        Ok(js_string!(&name, utf16!(": "), &msg).into())
     }
 }

@@ -37,21 +37,17 @@ use self::{
     variable::VariableStatement,
 };
 use super::{
-    expression::PropertyName, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+    expression::PropertyName, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult,
+    TokenParser,
 };
 use crate::syntax::{
     ast::{
-        node::{
-            self,
-            declaration::{
-                BindingPatternTypeArray, BindingPatternTypeObject, DeclarationPattern,
-                DeclarationPatternArray, DeclarationPatternObject,
-            },
-        },
-        Keyword, Node, Punctuator,
+        self,
+        pattern::{PatternArray, PatternArrayElement, PatternObjectElement},
+        Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, Token, TokenKind},
-    parser::expression::{await_expr::AwaitExpression, BindingIdentifier, Initializer},
+    parser::expression::{BindingIdentifier, Initializer},
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
@@ -113,51 +109,44 @@ impl<R> TokenParser<R> for Statement
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Statement;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Statement", "Parsing");
         // TODO: add BreakableStatement and divide Whiles, fors and so on to another place.
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match tok.kind() {
-            TokenKind::Keyword((Keyword::Await, _)) => AwaitExpression::new(self.allow_yield)
-                .parse(cursor, interner)
-                .map(Node::from),
             TokenKind::Keyword((Keyword::If, _)) => {
                 IfStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Var, _)) => {
                 VariableStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::While, _)) => {
                 WhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Do, _)) => {
                 DoWhileStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::For, _)) => {
                 ForStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Return, _)) => {
                 if self.allow_return.0 {
                     ReturnStatement::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(ast::Statement::from)
                 } else {
                     Err(ParseError::unexpected(
                         tok.to_string(interner),
@@ -169,37 +158,37 @@ where
             TokenKind::Keyword((Keyword::Break, _)) => {
                 BreakStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Continue, _)) => {
                 ContinueStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Try, _)) => {
                 TryStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Throw, _)) => {
                 ThrowStatement::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Keyword((Keyword::Switch, _)) => {
                 SwitchStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 BlockStatement::new(self.allow_yield, self.allow_await, self.allow_return)
                     .parse(cursor, interner)
-                    .map(Node::from)
+                    .map(ast::Statement::from)
             }
             TokenKind::Punctuator(Punctuator::Semicolon) => {
                 // parse the EmptyStatement
                 cursor.next(interner).expect("semicolon disappeared");
-                Ok(Node::Empty)
+                Ok(ast::Statement::Empty)
             }
             TokenKind::Identifier(_) => {
                 // Labelled Statement check
@@ -214,7 +203,7 @@ where
                             self.allow_return,
                         )
                         .parse(cursor, interner)
-                        .map(Node::from);
+                        .map(ast::Statement::from);
                     }
                 }
 
@@ -268,7 +257,7 @@ impl<R> TokenParser<R> for StatementList
 where
     R: Read,
 {
-    type Output = node::StatementList;
+    type Output = ast::StatementList;
 
     /// The function parses a `node::StatementList` using the `StatementList`'s
     /// `break_nodes` to know when to terminate.
@@ -280,11 +269,7 @@ where
     ///
     /// Note that the last token which causes the parse to finish is not
     /// consumed.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("StatementList", "Parsing");
         let mut items = Vec::new();
 
@@ -304,7 +289,7 @@ where
             while cursor.next_if(Punctuator::Semicolon, interner)?.is_some() {}
         }
 
-        items.sort_by(Node::hoistable_order);
+        items.sort_by(ast::StatementListItem::hoistable_order);
 
         Ok(items.into())
     }
@@ -347,13 +332,9 @@ impl<R> TokenParser<R> for StatementListItem
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::StatementListItem;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("StatementListItem", "Parsing");
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -361,21 +342,24 @@ where
             TokenKind::Keyword((
                 Keyword::Function | Keyword::Class | Keyword::Const | Keyword::Let,
                 _,
-            )) => {
-                Declaration::new(self.allow_yield, self.allow_await, true).parse(cursor, interner)
-            }
+            )) => Declaration::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)
+                .map(ast::StatementListItem::from),
             TokenKind::Keyword((Keyword::Async, _)) => {
                 match cursor.peek(1, interner)?.map(Token::kind) {
                     Some(TokenKind::Keyword((Keyword::Function, _))) => {
-                        Declaration::new(self.allow_yield, self.allow_await, true)
+                        Declaration::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)
+                            .map(ast::StatementListItem::from)
                     }
                     _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                        .parse(cursor, interner),
+                        .parse(cursor, interner)
+                        .map(ast::StatementListItem::from),
                 }
             }
             _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return)
-                .parse(cursor, interner),
+                .parse(cursor, interner)
+                .map(ast::StatementListItem::from),
         }
     }
 }
@@ -410,13 +394,9 @@ impl<R> TokenParser<R> for ObjectBindingPattern
 where
     R: Read,
 {
-    type Output = Vec<BindingPatternTypeObject>;
+    type Output = Vec<PatternObjectElement>;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectBindingPattern", "Parsing");
 
         cursor.expect(
@@ -476,7 +456,7 @@ where
                         let property_name = PropertyName::new(self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         if let Some(name) = property_name.prop_name() {
-                            property_names.push(name);
+                            property_names.push(name.into());
                         }
                         cursor.expect(
                             TokenKind::Punctuator(Punctuator::Colon),
@@ -499,30 +479,18 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(
-                                                    BindingPatternTypeObject::BindingPattern {
-                                                        ident: property_name,
-                                                        pattern: DeclarationPattern::Object(
-                                                            DeclarationPatternObject::new(
-                                                                bindings, None,
-                                                            ),
-                                                        ),
-                                                        default_init: Some(init),
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::Pattern {
+                                                    name: property_name,
+                                                    pattern: bindings.into(),
+                                                    default_init: Some(init),
+                                                });
                                             }
                                             _ => {
-                                                patterns.push(
-                                                    BindingPatternTypeObject::BindingPattern {
-                                                        ident: property_name,
-                                                        pattern: DeclarationPattern::Object(
-                                                            DeclarationPatternObject::new(
-                                                                bindings, None,
-                                                            ),
-                                                        ),
-                                                        default_init: None,
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::Pattern {
+                                                    name: property_name,
+                                                    pattern: bindings.into(),
+                                                    default_init: None,
+                                                });
                                             }
                                         }
                                     }
@@ -544,30 +512,20 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(
-                                                    BindingPatternTypeObject::BindingPattern {
-                                                        ident: property_name,
-                                                        pattern: DeclarationPattern::Array(
-                                                            DeclarationPatternArray::new(
-                                                                bindings, None,
-                                                            ),
-                                                        ),
-                                                        default_init: Some(init),
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::Pattern {
+                                                    name: property_name,
+                                                    pattern: PatternArray::new(bindings.into())
+                                                        .into(),
+                                                    default_init: Some(init),
+                                                });
                                             }
                                             _ => {
-                                                patterns.push(
-                                                    BindingPatternTypeObject::BindingPattern {
-                                                        ident: property_name,
-                                                        pattern: DeclarationPattern::Array(
-                                                            DeclarationPatternArray::new(
-                                                                bindings, None,
-                                                            ),
-                                                        ),
-                                                        default_init: None,
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::Pattern {
+                                                    name: property_name,
+                                                    pattern: PatternArray::new(bindings.into())
+                                                        .into(),
+                                                    default_init: None,
+                                                });
                                             }
                                         }
                                     }
@@ -589,22 +547,18 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(
-                                                    BindingPatternTypeObject::SingleName {
-                                                        ident,
-                                                        property_name,
-                                                        default_init: Some(init),
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::SingleName {
+                                                    ident,
+                                                    name: property_name,
+                                                    default_init: Some(init),
+                                                });
                                             }
                                             _ => {
-                                                patterns.push(
-                                                    BindingPatternTypeObject::SingleName {
-                                                        ident,
-                                                        property_name,
-                                                        default_init: None,
-                                                    },
-                                                );
+                                                patterns.push(PatternObjectElement::SingleName {
+                                                    ident,
+                                                    name: property_name,
+                                                    default_init: None,
+                                                });
                                             }
                                         }
                                     }
@@ -624,16 +578,16 @@ where
                                     self.allow_await,
                                 )
                                 .parse(cursor, interner)?;
-                                patterns.push(BindingPatternTypeObject::SingleName {
+                                patterns.push(PatternObjectElement::SingleName {
                                     ident: name,
-                                    property_name: name.into(),
+                                    name: name.sym().into(),
                                     default_init: Some(init),
                                 });
                             }
                             _ => {
-                                patterns.push(BindingPatternTypeObject::SingleName {
+                                patterns.push(PatternObjectElement::SingleName {
                                     ident: name,
-                                    property_name: name.into(),
+                                    name: name.sym().into(),
                                     default_init: None,
                                 });
                             }
@@ -655,19 +609,19 @@ where
 
         if let Some(rest) = rest_property_name {
             if patterns.is_empty() {
-                Ok(vec![BindingPatternTypeObject::RestProperty {
+                Ok(vec![PatternObjectElement::RestProperty {
                     ident: rest,
                     excluded_keys: property_names,
                 }])
             } else {
-                patterns.push(BindingPatternTypeObject::RestProperty {
+                patterns.push(PatternObjectElement::RestProperty {
                     ident: rest,
                     excluded_keys: property_names,
                 });
                 Ok(patterns)
             }
         } else if patterns.is_empty() {
-            Ok(vec![BindingPatternTypeObject::Empty])
+            Ok(vec![PatternObjectElement::Empty])
         } else {
             Ok(patterns)
         }
@@ -704,13 +658,9 @@ impl<R> TokenParser<R> for ArrayBindingPattern
 where
     R: Read,
 {
-    type Output = Vec<BindingPatternTypeArray>;
+    type Output = Vec<PatternArrayElement>;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrayBindingPattern", "Parsing");
 
         cursor.expect(
@@ -743,7 +693,7 @@ where
                         interner,
                     )?;
                     if last_elision_or_first {
-                        patterns.push(BindingPatternTypeArray::Elision);
+                        patterns.push(PatternArrayElement::Elision);
                     } else {
                         last_elision_or_first = true;
                     }
@@ -765,26 +715,22 @@ where
                             let bindings =
                                 ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::BindingPatternRest {
-                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
-                                    bindings, None,
-                                )),
+                            patterns.push(PatternArrayElement::PatternRest {
+                                pattern: bindings.into(),
                             });
                         }
                         TokenKind::Punctuator(Punctuator::OpenBracket) => {
                             let bindings = Self::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::BindingPatternRest {
-                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
-                                    bindings, None,
-                                )),
+                            patterns.push(PatternArrayElement::PatternRest {
+                                pattern: bindings.into(),
                             });
                         }
                         _ => {
                             let rest_property_name =
                                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::SingleNameRest {
+                            patterns.push(PatternArrayElement::SingleNameRest {
                                 ident: rest_property_name,
                             });
                         }
@@ -812,18 +758,15 @@ where
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::BindingPattern {
-                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
-                                    bindings,
-                                    Some(default_init),
-                                )),
+                            patterns.push(PatternArrayElement::Pattern {
+                                pattern: bindings.into(),
+                                default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(BindingPatternTypeArray::BindingPattern {
-                                pattern: DeclarationPattern::Object(DeclarationPatternObject::new(
-                                    bindings, None,
-                                )),
+                            patterns.push(PatternArrayElement::Pattern {
+                                pattern: bindings.into(),
+                                default_init: None,
                             });
                         }
                     }
@@ -843,18 +786,15 @@ where
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::BindingPattern {
-                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
-                                    bindings,
-                                    Some(default_init),
-                                )),
+                            patterns.push(PatternArrayElement::Pattern {
+                                pattern: bindings.into(),
+                                default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(BindingPatternTypeArray::BindingPattern {
-                                pattern: DeclarationPattern::Array(DeclarationPatternArray::new(
-                                    bindings, None,
-                                )),
+                            patterns.push(PatternArrayElement::Pattern {
+                                pattern: bindings.into(),
+                                default_init: None,
                             });
                         }
                     }
@@ -877,13 +817,13 @@ where
                                 self.allow_await,
                             )
                             .parse(cursor, interner)?;
-                            patterns.push(BindingPatternTypeArray::SingleName {
+                            patterns.push(PatternArrayElement::SingleName {
                                 ident,
                                 default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(BindingPatternTypeArray::SingleName {
+                            patterns.push(PatternArrayElement::SingleName {
                                 ident,
                                 default_init: None,
                             });
@@ -900,7 +840,7 @@ where
                         interner,
                     )?;
                     if last_elision_or_first {
-                        patterns.push(BindingPatternTypeArray::Elision);
+                        patterns.push(PatternArrayElement::Elision);
                     } else {
                         last_elision_or_first = true;
                     }

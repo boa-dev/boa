@@ -4,12 +4,11 @@
 //!  - [ECMAScript specification][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-identifiers
-//!
 
 use crate::syntax::{
-    ast::{node::Identifier, Keyword},
+    ast::{expression::Identifier, Keyword},
     lexer::{Error as LexError, TokenKind},
-    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, TokenParser},
+    parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, ParseResult, TokenParser},
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -59,11 +58,7 @@ where
 {
     type Output = Identifier;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("IdentifierReference", "Parsing");
 
         let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -152,14 +147,10 @@ impl<R> TokenParser<R> for BindingIdentifier
 where
     R: Read,
 {
-    type Output = Sym;
+    type Output = Identifier;
 
     /// Strict mode parsing as per <https://tc39.es/ecma262/#sec-identifiers-static-semantics-early-errors>.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingIdentifier", "Parsing");
 
         let next_token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -184,7 +175,7 @@ where
                         next_token.span().start(),
                     ));
                 }
-                Ok(*ident)
+                Ok((*ident).into())
             }
             TokenKind::Keyword((Keyword::Let, _)) if cursor.strict_mode() => {
                 Err(ParseError::lex(LexError::Syntax(
@@ -192,7 +183,7 @@ where
                     next_token.span().start(),
                 )))
             }
-            TokenKind::Keyword((Keyword::Let, _)) => Ok(Sym::LET),
+            TokenKind::Keyword((Keyword::Let, _)) => Ok(Sym::LET.into()),
             TokenKind::Keyword((Keyword::Yield, _)) if self.allow_yield.0 => {
                 // Early Error: It is a Syntax Error if this production has a [Yield] parameter and StringValue of Identifier is "yield".
                 Err(ParseError::general(
@@ -207,10 +198,10 @@ where
                         next_token.span().start(),
                     ))
                 } else {
-                    Ok(Sym::YIELD)
+                    Ok(Sym::YIELD.into())
                 }
             }
-            TokenKind::Keyword((Keyword::Await, _)) if cursor.arrow() => Ok(Sym::AWAIT),
+            TokenKind::Keyword((Keyword::Await, _)) if cursor.arrow() => Ok(Sym::AWAIT.into()),
             TokenKind::Keyword((Keyword::Await, _)) if self.allow_await.0 => {
                 // Early Error: It is a Syntax Error if this production has an [Await] parameter and StringValue of Identifier is "await".
                 Err(ParseError::general(
@@ -218,9 +209,9 @@ where
                     next_token.span().start(),
                 ))
             }
-            TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => Ok(Sym::AWAIT),
-            TokenKind::Keyword((Keyword::Async, _)) => Ok(Sym::ASYNC),
-            TokenKind::Keyword((Keyword::Of, _)) => Ok(Sym::OF),
+            TokenKind::Keyword((Keyword::Await, _)) if !self.allow_await.0 => Ok(Sym::AWAIT.into()),
+            TokenKind::Keyword((Keyword::Async, _)) => Ok(Sym::ASYNC.into()),
+            TokenKind::Keyword((Keyword::Of, _)) => Ok(Sym::OF.into()),
             _ => Err(ParseError::expected(
                 ["identifier".to_owned()],
                 next_token.to_string(interner),

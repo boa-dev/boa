@@ -1,6 +1,7 @@
 //! This module implements a wrapper for the `MapIterator` object
 use crate::{
     builtins::map::map_iterator::MapIterator,
+    error::JsNativeError,
     object::{JsObject, JsObjectType},
     Context, JsResult, JsValue,
 };
@@ -17,11 +18,13 @@ pub struct JsMapIterator {
 impl JsMapIterator {
     /// Create a [`JsMapIterator`] from a [`JsObject`]. If object is not a `MapIterator`, throw `TypeError`
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_map_iterator() {
             Ok(Self { inner: object })
         } else {
-            context.throw_type_error("object is not a MapIterator")
+            Err(JsNativeError::typ()
+                .with_message("object is not a MapIterator")
+                .into())
         }
     }
 

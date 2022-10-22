@@ -11,9 +11,10 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
+    error::JsNativeError,
     object::FunctionBuilder,
     property::Attribute,
-    Context, JsValue,
+    Context, JsResult, JsValue,
 };
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;
@@ -48,7 +49,7 @@ impl Eval {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-eval-x
-    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> Result<JsValue, JsValue> {
+    fn eval(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Return ? PerformEval(x, false, false).
         Self::perform_eval(args.get_or_undefined(0), false, false, context)
     }
@@ -64,11 +65,9 @@ impl Eval {
         direct: bool,
         strict: bool,
         context: &mut Context,
-    ) -> Result<JsValue, JsValue> {
+    ) -> JsResult<JsValue> {
         // 1. Assert: If direct is false, then strictCaller is also false.
-        if !direct {
-            debug_assert!(!strict);
-        }
+        debug_assert!(direct || !strict);
 
         // 2. If Type(x) is not String, return x.
         let x = if let Some(x) = x.as_string() {
@@ -78,11 +77,12 @@ impl Eval {
         };
 
         // Because of implementation details the following code differs from the spec.
+        // TODO: rework parser to take an iterator of `u32` unicode codepoints
 
         // Parse the script body and handle early errors (6 - 11)
-        let body = match context.parse_eval(x.as_bytes(), direct, strict) {
+        let body = match context.parse_eval(x.to_std_string_escaped().as_bytes(), direct, strict) {
             Ok(body) => body,
-            Err(e) => return context.throw_syntax_error(e.to_string()),
+            Err(e) => return Err(JsNativeError::syntax().with_message(e.to_string()).into()),
         };
 
         // 12 - 13 are implicit in the call of `Context::compile_with_new_declarative`.
@@ -101,15 +101,15 @@ impl Eval {
 
             // Error if any var declaration in the eval code already exists as a let/const declaration in the current running environment.
             let mut vars = FxHashSet::default();
-            body.var_declared_names_new(&mut vars);
+            body.var_declared_names(&mut vars);
             if let Some(name) = context
                 .realm
                 .environments
                 .has_lex_binding_until_function_environment(&vars)
             {
-                let name = context.interner().resolve_expect(name);
-                let msg = format!("variable declaration {name} in eval function already exists as lexically declaration");
-                return context.throw_syntax_error(msg);
+                let name = context.interner().resolve_expect(name.sym());
+                let msg = format!("variable declaration {name} in eval function already exists as a lexical variable");
+                return Err(JsNativeError::syntax().with_message(msg).into());
             }
 
             // Compile and execute the eval statement list.

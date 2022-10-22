@@ -1,17 +1,24 @@
 use crate::syntax::{
     ast::{
-        node::{Block, Continue, WhileLoop},
-        Const,
+        expression::literal::Literal,
+        statement::{Block, Continue, WhileLoop},
+        statement_list::StatementListItem,
+        Statement,
     },
     parser::tests::check_parser,
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 #[test]
 fn inline() {
     check_parser(
         "while (true) continue;",
-        vec![WhileLoop::new(Const::from(true), Continue::new(None)).into()],
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Continue::new(None).into(),
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -21,7 +28,11 @@ fn new_line() {
     check_parser(
         "while (true)
             continue;",
-        vec![WhileLoop::new(Const::from(true), Continue::new(None)).into()],
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Continue::new(None).into(),
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -30,10 +41,13 @@ fn new_line() {
 fn inline_block_semicolon_insertion() {
     check_parser(
         "while (true) {continue}",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Continue::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -46,12 +60,13 @@ fn new_line_semicolon_insertion() {
         "while (true) {
             continue test
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![
-                Continue::new(interner.get_or_intern_static("test")).into()
-            ]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -61,10 +76,13 @@ fn new_line_semicolon_insertion() {
 fn inline_block() {
     check_parser(
         "while (true) {continue;}",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Continue::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -77,12 +95,13 @@ fn new_line_block() {
         "while (true) {
             continue test;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![
-                Continue::new(interner.get_or_intern_static("test")).into()
-            ]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(Some(interner.get_or_intern_static("test", utf16!("test")))),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -95,12 +114,15 @@ fn reserved_label() {
         "while (true) {
             continue await;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![
-                Continue::new(interner.get_or_intern_static("await")).into()
-            ]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(Some(
+                    interner.get_or_intern_static("await", utf16!("await")),
+                )),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -110,12 +132,15 @@ fn reserved_label() {
         "while (true) {
             continue yield;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![
-                Continue::new(interner.get_or_intern_static("yield")).into()
-            ]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(Some(
+                    interner.get_or_intern_static("yield", utf16!("yield")),
+                )),
+            ))])
+            .into(),
+        ))
         .into()],
         interner,
     );
@@ -127,10 +152,13 @@ fn new_line_block_empty() {
         "while (true) {
             continue;
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Continue::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );
@@ -142,10 +170,13 @@ fn new_line_block_empty_semicolon_insertion() {
         "while (true) {
             continue
         }",
-        vec![WhileLoop::new(
-            Const::from(true),
-            Block::from(vec![Continue::new(None).into()]),
-        )
+        vec![Statement::WhileLoop(WhileLoop::new(
+            Literal::from(true).into(),
+            Block::from(vec![StatementListItem::Statement(Statement::Continue(
+                Continue::new(None),
+            ))])
+            .into(),
+        ))
         .into()],
         Interner::default(),
     );

@@ -59,8 +59,8 @@
     rustdoc::missing_doc_code_examples
 )]
 
-use boa_engine::{syntax::ast::node::StatementList, Context};
-use clap::{ArgEnum, Parser};
+use boa_engine::{syntax::ast::StatementList, Context};
+use clap::{Parser, ValueEnum, ValueHint};
 use colored::{Color, Colorize};
 use rustyline::{config::Config, error::ReadlineError, EditMode, Editor};
 use std::{fs::read, fs::OpenOptions, io, path::PathBuf};
@@ -83,22 +83,28 @@ const READLINE_COLOR: Color = Color::Cyan;
 // https://docs.rs/structopt/0.3.11/structopt/#type-magic
 #[allow(clippy::option_option)]
 #[derive(Debug, Parser)]
-#[clap(author, version, about, name = "boa")]
+#[command(author, version, about, name = "boa")]
 struct Opt {
     /// The JavaScript file(s) to be evaluated.
-    #[clap(name = "FILE", parse(from_os_str))]
+    #[arg(name = "FILE", value_hint = ValueHint::FilePath)]
     files: Vec<PathBuf>,
 
     /// Dump the AST to stdout with the given format.
-    #[clap(long, short = 'a', value_name = "FORMAT", ignore_case = true, arg_enum)]
+    #[arg(
+        long,
+        short = 'a',
+        value_name = "FORMAT",
+        ignore_case = true,
+        value_enum
+    )]
     dump_ast: Option<Option<DumpFormat>>,
 
     /// Dump the AST to stdout with the given format.
-    #[clap(long = "trace", short = 't')]
+    #[arg(long, short)]
     trace: bool,
 
     /// Use vi mode in the REPL
-    #[clap(long = "vi")]
+    #[arg(long = "vi")]
     vi_mode: bool,
 }
 
@@ -109,10 +115,9 @@ impl Opt {
     }
 }
 
-#[derive(Debug, Clone, ArgEnum)]
+#[derive(Debug, Clone, ValueEnum)]
 enum DumpFormat {
     /// The different types of format available for dumping.
-    ///
     // NOTE: This can easily support other formats just by
     // adding a field to this enum and adding the necessary
     // implementation. Example: Toml, Html, etc.
@@ -198,7 +203,7 @@ pub fn main() -> Result<(), io::Error> {
         } else {
             match context.eval(&buffer) {
                 Ok(v) => println!("{}", v.display()),
-                Err(v) => eprintln!("Uncaught {}", v.display()),
+                Err(v) => eprintln!("Uncaught {v}"),
             }
         }
     }
@@ -245,11 +250,7 @@ pub fn main() -> Result<(), io::Error> {
                         match context.eval(line.trim_end()) {
                             Ok(v) => println!("{}", v.display()),
                             Err(v) => {
-                                eprintln!(
-                                    "{}: {}",
-                                    "Uncaught".red(),
-                                    v.display().to_string().red()
-                                );
+                                eprintln!("{}: {}", "Uncaught".red(), v.to_string().red());
                             }
                         }
                     }

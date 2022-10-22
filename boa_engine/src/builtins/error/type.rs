@@ -18,6 +18,7 @@
 use crate::{
     builtins::{function::Function, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, JsObject, ObjectData,
     },
@@ -27,7 +28,7 @@ use crate::{
 use boa_profiler::Profiler;
 use tap::{Conv, Pipe};
 
-use super::Error;
+use super::{Error, ErrorKind};
 
 /// JavaScript `TypeError` implementation.
 #[derive(Debug, Clone, Copy)]
@@ -74,7 +75,7 @@ impl TypeError {
         // 2. Let O be ? OrdinaryCreateFromConstructor(newTarget, "%NativeError.prototype%", « [[ErrorData]] »).
         let prototype =
             get_prototype_from_constructor(new_target, StandardConstructors::type_error, context)?;
-        let o = JsObject::from_proto_and_data(prototype, ObjectData::error());
+        let o = JsObject::from_proto_and_data(prototype, ObjectData::error(ErrorKind::Type));
 
         // 3. If message is not undefined, then
         let message = args.get_or_undefined(0);
@@ -95,8 +96,8 @@ impl TypeError {
 }
 
 pub(crate) fn create_throw_type_error(context: &mut Context) -> JsObject {
-    fn throw_type_error(_: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        context.throw_type_error("'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them")
+    fn throw_type_error(_: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Err(JsNativeError::typ().with_message("'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them").into())
     }
 
     let function = JsObject::from_proto_and_data(

@@ -1,8 +1,10 @@
 // NOTE: this example requires the `console` feature to run correctly.
 use boa_engine::{
+    builtins::JsArgs,
     class::{Class, ClassBuilder},
+    error::JsNativeError,
     property::Attribute,
-    Context, JsResult, JsValue,
+    Context, JsResult, JsString, JsValue,
 };
 
 use boa_gc::{Finalize, Trace};
@@ -17,7 +19,7 @@ use boa_gc::{Finalize, Trace};
 #[derive(Debug, Trace, Finalize)]
 struct Person {
     /// The name of the person.
-    name: String,
+    name: JsString,
     /// The age of the person.
     age: u32,
 }
@@ -28,7 +30,7 @@ struct Person {
 // or any function that matches the required signature.
 impl Person {
     /// Says hello if `this` is a `Person`
-    fn say_hello(this: &JsValue, _: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
+    fn say_hello(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
         // We check if this is an object.
         if let Some(object) = this.as_object() {
             // If it is we downcast the type to type `Person`.
@@ -36,7 +38,7 @@ impl Person {
                 // and print a message to stdout.
                 println!(
                     "Hello my name is {}, I'm {} years old",
-                    person.name,
+                    person.name.to_std_string_escaped(),
                     person.age // Here we can access the native rust fields of the struct.
                 );
                 return Ok(JsValue::undefined());
@@ -44,7 +46,9 @@ impl Person {
         }
         // If `this` was not an object or the type of `this` was not a native object `Person`,
         // we throw a `TypeError`.
-        context.throw_type_error("'this' is not a Person object")
+        Err(JsNativeError::typ()
+            .with_message("'this' is not a Person object")
+            .into())
     }
 }
 
@@ -64,11 +68,7 @@ impl Class for Person {
         // and then we call `to_string()`.
         //
         // This is equivalent to `String(arg)`.
-        let name = args
-            .get(0)
-            .cloned()
-            .unwrap_or_default()
-            .to_string(context)?;
+        let name = args.get_or_undefined(0).to_string(context)?;
         // We get the second argument. If it is unavailable we default to `undefined`,
         // and then we call `to_u32`.
         //
@@ -76,10 +76,7 @@ impl Class for Person {
         let age = args.get(1).cloned().unwrap_or_default().to_u32(context)?;
 
         // We construct a new native struct `Person`
-        let person = Person {
-            name: name.to_string(),
-            age,
-        };
+        let person = Person { name, age };
 
         Ok(person) // and we return it.
     }

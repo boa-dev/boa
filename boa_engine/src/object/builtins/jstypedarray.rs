@@ -1,5 +1,6 @@
 use crate::{
     builtins::typed_array::TypedArray,
+    error::JsNativeError,
     object::{JsArrayBuffer, JsFunction, JsObject, JsObjectType},
     value::IntoOrUndefined,
     Context, JsResult, JsString, JsValue,
@@ -18,13 +19,15 @@ impl JsTypedArray {
     ///
     /// This does not clone the fields of the typed array, it only does a shallow clone of the object.
     #[inline]
-    pub fn from_object(object: JsObject, context: &mut Context) -> JsResult<Self> {
+    pub fn from_object(object: JsObject) -> JsResult<Self> {
         if object.borrow().is_typed_array() {
             Ok(Self {
                 inner: object.into(),
             })
         } else {
-            context.throw_type_error("object is not a TypedArray")
+            Err(JsNativeError::typ()
+                .with_message("object is not a TypedArray")
+                .into())
         }
     }
 

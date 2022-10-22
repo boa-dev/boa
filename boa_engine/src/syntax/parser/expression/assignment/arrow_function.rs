@@ -10,11 +10,12 @@
 use super::AssignmentExpression;
 use crate::syntax::{
     ast::{
-        node::{
-            declaration::Declaration, ArrowFunctionDecl, FormalParameter, FormalParameterList,
-            FormalParameterListFlags, Node, Return, StatementList,
-        },
-        Punctuator,
+        self,
+        declaration::Variable,
+        expression::Identifier,
+        function::{FormalParameter, FormalParameterList, FormalParameterListFlags},
+        statement::Return,
+        Expression, Punctuator, StatementList,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
@@ -38,7 +39,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct ArrowFunction {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -53,7 +54,7 @@ impl ArrowFunction {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -71,13 +72,9 @@ impl<R> TokenParser<R> for ArrowFunction
 where
     R: Read,
 {
-    type Output = ArrowFunctionDecl;
+    type Output = ast::function::ArrowFunction;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -106,7 +103,7 @@ where
                 (
                     FormalParameterList::new(
                         Box::new([FormalParameter::new(
-                            Declaration::new_with_identifier(param, None),
+                            Variable::from_identifier(param, None),
                             false,
                         )]),
                         flags,
@@ -152,7 +149,7 @@ where
             params_start_position,
         )?;
 
-        Ok(ArrowFunctionDecl::new(self.name, params, body))
+        Ok(ast::function::ArrowFunction::new(self.name, params, body))
     }
 }
 
@@ -180,11 +177,7 @@ where
 {
     type Output = StatementList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         match cursor
             .peek(0, interner)?
             .ok_or(ParseError::AbruptEnd)?
@@ -196,9 +189,13 @@ where
                 cursor.expect(Punctuator::CloseBlock, "arrow function", interner)?;
                 Ok(body)
             }
-            _ => Ok(StatementList::from(vec![Return::new(
-                ExpressionBody::new(self.allow_in, false).parse(cursor, interner)?,
-                None,
+            _ => Ok(StatementList::from(vec![ast::Statement::Return(
+                Return::new(
+                    ExpressionBody::new(self.allow_in, false)
+                        .parse(cursor, interner)?
+                        .into(),
+                    None,
+                ),
             )
             .into()])),
         }
@@ -230,9 +227,9 @@ impl<R> TokenParser<R> for ExpressionBody
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         AssignmentExpression::new(None, self.allow_in, false, self.allow_await)
             .parse(cursor, interner)
     }

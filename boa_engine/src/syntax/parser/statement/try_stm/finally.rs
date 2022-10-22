@@ -1,7 +1,7 @@
 use crate::syntax::{
-    ast::{node, Keyword},
+    ast::{statement, Keyword},
     parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseError,
+        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
         TokenParser,
     },
 };
@@ -44,13 +44,9 @@ impl<R> TokenParser<R> for Finally
 where
     R: Read,
 {
-    type Output = node::Finally;
+    type Output = statement::Finally;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Finally", "Parsing");
         cursor.expect((Keyword::Finally, false), "try statement", interner)?;
         Ok(

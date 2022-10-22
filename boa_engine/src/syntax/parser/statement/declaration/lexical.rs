@@ -8,15 +8,7 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::syntax::{
-    ast::{
-        node::{
-            declaration::{
-                Declaration, DeclarationList, DeclarationPatternArray, DeclarationPatternObject,
-            },
-            DeclarationPattern, Node,
-        },
-        Keyword, Punctuator,
-    },
+    ast::{self, declaration::Variable, pattern::Pattern, Keyword, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
@@ -27,7 +19,7 @@ use crate::syntax::{
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
-use std::io::Read;
+use std::{convert::TryInto, io::Read};
 
 /// Parses a lexical declaration.
 ///
@@ -36,20 +28,20 @@ use std::io::Read;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-LexicalDeclaration
 #[derive(Debug, Clone, Copy)]
-pub(super) struct LexicalDeclaration {
+pub(in crate::syntax::parser) struct LexicalDeclaration {
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    const_init_required: bool,
+    loop_init: bool,
 }
 
 impl LexicalDeclaration {
     /// Creates a new `LexicalDeclaration` parser.
-    pub(super) fn new<I, Y, A>(
+    pub(in crate::syntax::parser) fn new<I, Y, A>(
         allow_in: I,
         allow_yield: Y,
         allow_await: A,
-        const_init_required: bool,
+        loop_init: bool,
     ) -> Self
     where
         I: Into<AllowIn>,
@@ -60,7 +52,7 @@ impl LexicalDeclaration {
             allow_in: allow_in.into(),
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
-            const_init_required,
+            loop_init,
         }
     }
 }
@@ -69,9 +61,9 @@ impl<R> TokenParser<R> for LexicalDeclaration
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::declaration::LexicalDeclaration;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalDeclaration", "Parsing");
         let tok = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
@@ -85,7 +77,7 @@ where
                 self.allow_yield,
                 self.allow_await,
                 true,
-                self.const_init_required,
+                self.loop_init,
             )
             .parse(cursor, interner),
             TokenKind::Keyword((Keyword::Let, false)) => BindingList::new(
@@ -93,7 +85,7 @@ where
                 self.allow_yield,
                 self.allow_await,
                 false,
-                self.const_init_required,
+                self.loop_init,
             )
             .parse(cursor, interner),
             _ => unreachable!("unknown token found: {:?}", tok),
@@ -116,7 +108,7 @@ struct BindingList {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
     is_const: bool,
-    const_init_required: bool,
+    loop_init: bool,
 }
 
 impl BindingList {
@@ -126,7 +118,7 @@ impl BindingList {
         allow_yield: Y,
         allow_await: A,
         is_const: bool,
-        const_init_required: bool,
+        loop_init: bool,
     ) -> Self
     where
         I: Into<AllowIn>,
@@ -138,7 +130,7 @@ impl BindingList {
             allow_yield: allow_yield.into(),
             allow_await: allow_await.into(),
             is_const,
-            const_init_required,
+            loop_init,
         }
     }
 }
@@ -147,42 +139,33 @@ impl<R> TokenParser<R> for BindingList
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::declaration::LexicalDeclaration;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("BindingList", "Parsing");
 
         // Create vectors to store the variable declarations
         // Const and Let signatures are slightly different, Const needs definitions, Lets don't
-        let mut let_decls = Vec::new();
-        let mut const_decls = Vec::new();
+        let mut decls = Vec::new();
 
         loop {
             let decl = LexicalBinding::new(self.allow_in, self.allow_yield, self.allow_await)
                 .parse(cursor, interner)?;
 
             if self.is_const {
-                if self.const_init_required {
-                    let init_is_some = match &decl {
-                        Declaration::Identifier { init, .. } if init.is_some() => true,
-                        Declaration::Pattern(p) if p.init().is_some() => true,
-                        _ => false,
-                    };
+                let init_is_some = decl.init().is_some();
 
-                    if init_is_some {
-                        const_decls.push(decl);
-                    } else {
-                        let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
-                        return Err(ParseError::general(
-                            "Expected initializer for const declaration",
-                            next.span().start(),
-                        ));
-                    }
+                if init_is_some || self.loop_init {
+                    decls.push(decl);
                 } else {
-                    const_decls.push(decl);
+                    let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
+                    return Err(ParseError::general(
+                        "Expected initializer for const declaration",
+                        next.span().start(),
+                    ));
                 }
             } else {
-                let_decls.push(decl);
+                decls.push(decl);
             }
 
             match cursor.peek_semicolon(interner)? {
@@ -208,6 +191,7 @@ where
                     // We discard the comma
                     let _comma = cursor.next(interner)?;
                 }
+                SemicolonResult::NotFound(_) if self.loop_init => break,
                 SemicolonResult::NotFound(_) => {
                     let next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
                     return Err(ParseError::expected(
@@ -220,10 +204,14 @@ where
             }
         }
 
+        let decls = decls
+            .try_into()
+            .expect("`LexicalBinding` must return at least one variable");
+
         if self.is_const {
-            Ok(DeclarationList::Const(const_decls.into()).into())
+            Ok(ast::declaration::LexicalDeclaration::Const(decls))
         } else {
-            Ok(DeclarationList::Let(let_decls.into()).into())
+            Ok(ast::declaration::LexicalDeclaration::Let(decls))
         }
     }
 }
@@ -260,13 +248,9 @@ impl<R> TokenParser<R> for LexicalBinding
 where
     R: Read,
 {
-    type Output = Declaration;
+    type Output = Variable;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("LexicalBinding", "Parsing");
 
         let peek_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -295,17 +279,16 @@ where
                     None
                 };
 
-                let declaration =
-                    DeclarationPattern::Object(DeclarationPatternObject::new(bindings, init));
+                let declaration = Pattern::Object(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET) {
+                if declaration.idents().contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
                     )));
                 }
 
-                Ok(Declaration::Pattern(declaration))
+                Ok(Variable::from_pattern(declaration, init))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let bindings = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
@@ -329,17 +312,16 @@ where
                     None
                 };
 
-                let declaration =
-                    DeclarationPattern::Array(DeclarationPatternArray::new(bindings, init));
+                let declaration = Pattern::Array(bindings.into());
 
-                if declaration.idents().contains(&Sym::LET) {
+                if declaration.idents().contains(&Sym::LET.into()) {
                     return Err(ParseError::lex(LexError::Syntax(
                         "'let' is disallowed as a lexically bound name".into(),
                         position,
                     )));
                 }
 
-                Ok(Declaration::Pattern(declaration))
+                Ok(Variable::from_pattern(declaration, init))
             }
             _ => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
@@ -355,8 +337,13 @@ where
                 let init = if let Some(t) = cursor.peek(0, interner)? {
                     if *t.kind() == TokenKind::Punctuator(Punctuator::Assign) {
                         Some(
-                            Initializer::new(Some(ident), true, self.allow_yield, self.allow_await)
-                                .parse(cursor, interner)?,
+                            Initializer::new(
+                                Some(ident),
+                                self.allow_in,
+                                self.allow_yield,
+                                self.allow_await,
+                            )
+                            .parse(cursor, interner)?,
                         )
                     } else {
                         None
@@ -364,7 +351,7 @@ where
                 } else {
                     None
                 };
-                Ok(Declaration::new_with_identifier(ident, init))
+                Ok(Variable::from_identifier(ident, init))
             }
         }
     }

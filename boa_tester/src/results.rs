@@ -276,8 +276,6 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             )
         }
 
-        println!("#### VM implementation");
-
         println!("| Test result | main count | PR count | difference |");
         println!("| :---------: | :----------: | :------: | :--------: |");
         println!(

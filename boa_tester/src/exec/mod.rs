@@ -2,13 +2,15 @@
 
 mod js262;
 
+use crate::read::ErrorType;
+
 use super::{
     Harness, Outcome, Phase, SuiteResult, Test, TestFlags, TestOutcomeResult, TestResult,
     TestSuite, IGNORED,
 };
 use boa_engine::{
     builtins::JsArgs, object::FunctionBuilder, property::Attribute, syntax::Parser, Context,
-    JsResult, JsValue,
+    JsNativeErrorKind, JsResult, JsValue,
 };
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use colored::Colorize;
@@ -181,7 +183,7 @@ impl Test {
                                 && matches!(*callback_obj.result.borrow(), Some(true) | None);
                             let text = match res {
                                 Ok(val) => val.display().to_string(),
-                                Err(e) => format!("Uncaught {}", e.display()),
+                                Err(e) => format!("Uncaught {e}",),
                             };
 
                             (passed, text)
@@ -191,11 +193,11 @@ impl Test {
                 }
                 Outcome::Negative {
                     phase: Phase::Parse | Phase::Early,
-                    ref error_type,
+                    error_type,
                 } => {
                     assert_eq!(
-                        error_type.as_ref(),
-                        "SyntaxError",
+                        error_type,
+                        ErrorType::SyntaxError,
                         "non-SyntaxError parsing/early error found in {}",
                         self.name
                     );
@@ -215,7 +217,7 @@ impl Test {
                 } => todo!("check module resolution errors"),
                 Outcome::Negative {
                     phase: Phase::Runtime,
-                    ref error_type,
+                    error_type,
                 } => {
                     let mut context = Context::default();
                     if let Err(e) = Parser::new(test_content.as_bytes()).parse_all(&mut context) {
@@ -226,13 +228,45 @@ impl Test {
                             Ok(_) => match context.eval(&test_content) {
                                 Ok(res) => (false, res.display().to_string()),
                                 Err(e) => {
-                                    let passed = e
-                                        .display()
-                                        .internals(true)
-                                        .to_string()
-                                        .contains(error_type.as_ref());
+                                    let passed = if let Ok(e) = e.try_native(&mut context) {
+                                        match &e.kind {
+                                            JsNativeErrorKind::Syntax
+                                                if error_type == ErrorType::SyntaxError =>
+                                            {
+                                                true
+                                            }
+                                            JsNativeErrorKind::Reference
+                                                if error_type == ErrorType::ReferenceError =>
+                                            {
+                                                true
+                                            }
+                                            JsNativeErrorKind::Range
+                                                if error_type == ErrorType::RangeError =>
+                                            {
+                                                true
+                                            }
+                                            JsNativeErrorKind::Type
+                                                if error_type == ErrorType::TypeError =>
+                                            {
+                                                true
+                                            }
+                                            _ => false,
+                                        }
+                                    } else {
+                                        e.as_opaque()
+                                            .expect("try_native cannot fail if e is not opaque")
+                                            .as_object()
+                                            .and_then(|o| o.get("constructor", &mut context).ok())
+                                            .as_ref()
+                                            .and_then(JsValue::as_object)
+                                            .and_then(|o| o.get("name", &mut context).ok())
+                                            .as_ref()
+                                            .and_then(JsValue::as_string)
+                                            .map(|s| s == error_type.as_str())
+                                            .unwrap_or_default()
+                                    };
 
-                                    (passed, format!("Uncaught {}", e.display()))
+                                    (passed, format!("Uncaught {e}"))
                                 }
                             },
                             Err(e) => (false, e),
@@ -331,15 +365,15 @@ impl Test {
 
         context
             .eval(harness.assert.as_ref())
-            .map_err(|e| format!("could not run assert.js:\n{}", e.display()))?;
+            .map_err(|e| format!("could not run assert.js:\n{e}"))?;
         context
             .eval(harness.sta.as_ref())
-            .map_err(|e| format!("could not run sta.js:\n{}", e.display()))?;
+            .map_err(|e| format!("could not run sta.js:\n{e}"))?;
 
         if self.flags.contains(TestFlags::ASYNC) {
             context
                 .eval(harness.doneprint_handle.as_ref())
-                .map_err(|e| format!("could not run doneprintHandle.js:\n{}", e.display()))?;
+                .map_err(|e| format!("could not run doneprintHandle.js:\n{e}"))?;
         }
 
         for include in self.includes.iter() {
@@ -351,12 +385,7 @@ impl Test {
                         .ok_or_else(|| format!("could not find the {include} include file."))?
                         .as_ref(),
                 )
-                .map_err(|e| {
-                    format!(
-                        "could not run the {include} include file:\nUncaught {}",
-                        e.display()
-                    )
-                })?;
+                .map_err(|e| format!("could not run the {include} include file:\nUncaught {e}"))?;
         }
 
         Ok(())
@@ -394,7 +423,8 @@ fn test262_print(
     _context: &mut Context,
 ) -> JsResult<JsValue> {
     if let Some(message) = args.get_or_undefined(0).as_string() {
-        *captures.result.borrow_mut() = Some(message.as_str() == "Test262:AsyncTestComplete");
+        *captures.result.borrow_mut() =
+            Some(message.to_std_string_escaped() == "Test262:AsyncTestComplete");
     } else {
         *captures.result.borrow_mut() = Some(false);
     }

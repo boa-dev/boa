@@ -13,15 +13,20 @@
 //! [spec]: https://tc39.es/ecma262/#sec-objects
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object
 
+use std::ops::Deref;
+
 use super::Array;
 use crate::{
     builtins::{map, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         IntegrityLevel, JsObject, ObjectData, ObjectKind,
     },
     property::{Attribute, PropertyDescriptor, PropertyKey, PropertyNameKind},
+    string::utf16,
     symbol::WellKnownSymbols,
     value::JsValue,
     Context, JsResult, JsString,
@@ -175,7 +180,7 @@ impl Object {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let O be ? RequireObjectCoercible(this value).
-        let this = this.require_object_coercible(context)?;
+        let this = this.require_object_coercible()?;
 
         // 2. If Type(proto) is neither Object nor Null, return undefined.
         let proto = match args.get_or_undefined(0) {
@@ -195,7 +200,9 @@ impl Object {
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
-            return context.throw_type_error("__proto__ called on null or undefined");
+            return Err(JsNativeError::typ()
+                .with_message("__proto__ called on null or undefined")
+                .into());
         }
 
         // 6. Return undefined.
@@ -224,8 +231,9 @@ impl Object {
 
         // 2. If IsCallable(getter) is false, throw a TypeError exception.
         if !getter.is_callable() {
-            return context
-                .throw_type_error("Object.prototype.__defineGetter__: Expecting function");
+            return Err(JsNativeError::typ()
+                .with_message("Object.prototype.__defineGetter__: Expecting function")
+                .into());
         }
 
         // 3. Let desc be PropertyDescriptor { [[Get]]: getter, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -266,8 +274,9 @@ impl Object {
 
         // 2. If IsCallable(setter) is false, throw a TypeError exception.
         if !setter.is_callable() {
-            return context
-                .throw_type_error("Object.prototype.__defineSetter__: Expecting function");
+            return Err(JsNativeError::typ()
+                .with_message("Object.prototype.__defineSetter__: Expecting function")
+                .into());
         }
 
         // 3. Let desc be PropertyDescriptor { [[Set]]: setter, [[Enumerable]]: true, [[Configurable]]: true }.
@@ -395,10 +404,12 @@ impl Object {
                 ObjectData::ordinary(),
             ),
             _ => {
-                return context.throw_type_error(format!(
-                    "Object prototype may only be an Object or null: {}",
-                    prototype.display()
-                ))
+                return Err(JsNativeError::typ()
+                    .with_message(format!(
+                        "Object prototype may only be an Object or null: {}",
+                        prototype.display()
+                    ))
+                    .into())
             }
         };
 
@@ -561,19 +572,25 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
-    pub fn get_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+    pub fn get_prototype_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if args.is_empty() {
-            return ctx.throw_type_error(
-                "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
-            );
+            return Err(JsNativeError::typ()
+                .with_message(
+                    "Object.getPrototypeOf: At least 1 argument required, but only 0 passed",
+                )
+                .into());
         }
 
         // 1. Let obj be ? ToObject(O).
-        let obj = args[0].clone().to_object(ctx)?;
+        let obj = args[0].clone().to_object(context)?;
 
         // 2. Return ? obj.[[GetPrototypeOf]]().
         Ok(obj
-            .__get_prototype_of__(ctx)?
+            .__get_prototype_of__(context)?
             .map_or(JsValue::Null, JsValue::new))
     }
 
@@ -582,12 +599,18 @@ impl Object {
     /// [More information][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-object.setprototypeof
-    pub fn set_prototype_of(_: &JsValue, args: &[JsValue], ctx: &mut Context) -> JsResult<JsValue> {
+    pub fn set_prototype_of(
+        _: &JsValue,
+        args: &[JsValue],
+        context: &mut Context,
+    ) -> JsResult<JsValue> {
         if args.len() < 2 {
-            return ctx.throw_type_error(format!(
-                "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
-                args.len()
-            ));
+            return Err(JsNativeError::typ()
+                .with_message(format!(
+                    "Object.setPrototypeOf: At least 2 arguments required, but only {} passed",
+                    args.len()
+                ))
+                .into());
         }
 
         // 1. Set O to ? RequireObjectCoercible(O).
@@ -595,7 +618,7 @@ impl Object {
             .get(0)
             .cloned()
             .unwrap_or_default()
-            .require_object_coercible(ctx)?
+            .require_object_coercible()?
             .clone();
 
         let proto = match args.get_or_undefined(1) {
@@ -603,8 +626,12 @@ impl Object {
             JsValue::Null => None,
             // 2. If Type(proto) is neither Object nor Null, throw a TypeError exception.
             val => {
-                return ctx
-                    .throw_type_error(format!("expected an object or null, got {}", val.type_of()))
+                return Err(JsNativeError::typ()
+                    .with_message(format!(
+                        "expected an object or null, got {}",
+                        val.type_of().to_std_string_escaped()
+                    ))
+                    .into())
             }
         };
 
@@ -616,11 +643,13 @@ impl Object {
         };
 
         // 4. Let status be ? O.[[SetPrototypeOf]](proto).
-        let status = obj.__set_prototype_of__(proto, ctx)?;
+        let status = obj.__set_prototype_of__(proto, context)?;
 
         // 5. If status is false, throw a TypeError exception.
         if !status {
-            return ctx.throw_type_error("can't set prototype of this object");
+            return Err(JsNativeError::typ()
+                .with_message("can't set prototype of this object")
+                .into());
         }
 
         // 6. Return O.
@@ -680,7 +709,9 @@ impl Object {
 
             Ok(object.clone().into())
         } else {
-            context.throw_type_error("Object.defineProperty called on non-object")
+            Err(JsNativeError::typ()
+                .with_message("Object.defineProperty called on non-object")
+                .into())
         }
     }
 
@@ -705,7 +736,9 @@ impl Object {
             object_define_properties(obj, props, context)?;
             Ok(arg.clone())
         } else {
-            context.throw_type_error("Expected an object")
+            Err(JsNativeError::typ()
+                .with_message("Expected an object")
+                .into())
         }
     }
 
@@ -747,8 +780,8 @@ impl Object {
 
         //  4. Let isArray be ? IsArray(O).
         //  5. If isArray is true, let builtinTag be "Array".
-        let builtin_tag = if JsValue::from(o.clone()).is_array(context)? {
-            "Array"
+        let builtin_tag = if o.is_array_abstract(context)? {
+            utf16!("Array")
         } else {
             // 6. Else if O has a [[ParameterMap]] internal slot, let builtinTag be "Arguments".
             // 7. Else if O has a [[Call]] internal method, let builtinTag be "Function".
@@ -761,16 +794,15 @@ impl Object {
             // 14. Else, let builtinTag be "Object".
             let o = o.borrow();
             match o.kind() {
-                ObjectKind::Array => "Array",
-                ObjectKind::Arguments(_) => "Arguments",
-                ObjectKind::Function(_) => "Function",
-                ObjectKind::Error => "Error",
-                ObjectKind::Boolean(_) => "Boolean",
-                ObjectKind::Number(_) => "Number",
-                ObjectKind::String(_) => "String",
-                ObjectKind::Date(_) => "Date",
-                ObjectKind::RegExp(_) => "RegExp",
-                _ => "Object",
+                ObjectKind::Arguments(_) => utf16!("Arguments"),
+                ObjectKind::Function(_) => utf16!("Function"),
+                ObjectKind::Error(_) => utf16!("Error"),
+                ObjectKind::Boolean(_) => utf16!("Boolean"),
+                ObjectKind::Number(_) => utf16!("Number"),
+                ObjectKind::String(_) => utf16!("String"),
+                ObjectKind::Date(_) => utf16!("Date"),
+                ObjectKind::RegExp(_) => utf16!("RegExp"),
+                _ => utf16!("Object"),
             }
         };
 
@@ -778,10 +810,10 @@ impl Object {
         let tag = o.get(WellKnownSymbols::to_string_tag(), context)?;
 
         // 16. If Type(tag) is not String, set tag to builtinTag.
-        let tag_str = tag.as_string().map_or(builtin_tag, JsString::as_str);
+        let tag_str = tag.as_string().map_or(builtin_tag, JsString::deref);
 
         // 17. Return the string-concatenation of "[object ", tag, and "]".
-        Ok(format!("[object {tag_str}]").into())
+        Ok(js_string!(utf16!("[object "), tag_str, utf16!("]")).into())
     }
 
     /// `Object.prototype.toLocaleString( [ reserved1 [ , reserved2 ] ] )`
@@ -1012,7 +1044,9 @@ impl Object {
             let status = o.set_integrity_level(IntegrityLevel::Sealed, context)?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return context.throw_type_error("cannot seal object");
+                return Err(JsNativeError::typ()
+                    .with_message("cannot seal object")
+                    .into());
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1057,7 +1091,9 @@ impl Object {
             let status = o.set_integrity_level(IntegrityLevel::Frozen, context)?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return context.throw_type_error("cannot freeze object");
+                return Err(JsNativeError::typ()
+                    .with_message("cannot freeze object")
+                    .into());
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1106,7 +1142,9 @@ impl Object {
             let status = o.__prevent_extensions__(context)?;
             // 3. If status is false, throw a TypeError exception.
             if !status {
-                return context.throw_type_error("cannot prevent extensions");
+                return Err(JsNativeError::typ()
+                    .with_message("cannot prevent extensions")
+                    .into());
             }
         }
         // 1. If Type(O) is not Object, return O.
@@ -1202,7 +1240,7 @@ impl Object {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/fromEntries
     pub fn from_entries(_: &JsValue, args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
         // 1. Perform ? RequireObjectCoercible(iterable).
-        let iterable = args.get_or_undefined(0).require_object_coercible(context)?;
+        let iterable = args.get_or_undefined(0).require_object_coercible()?;
 
         // 2. Let obj be ! OrdinaryObjectCreate(%Object.prototype%).
         // 3. Assert: obj is an extensible ordinary object with no own properties.

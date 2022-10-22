@@ -1,6 +1,6 @@
 //! This module implements the JavaScript bigint primitive rust type.
 
-use crate::{builtins::Number, Context, JsValue};
+use crate::{builtins::Number, error::JsNativeError, JsResult};
 use num_integer::Integer;
 use num_traits::{pow::Pow, FromPrimitive, One, ToPrimitive, Zero};
 use std::{
@@ -148,11 +148,13 @@ impl JsBigInt {
     }
 
     #[inline]
-    pub fn pow(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
+    pub fn pow(x: &Self, y: &Self) -> JsResult<Self> {
         let y = if let Some(y) = y.inner.to_biguint() {
             y
         } else {
-            return context.throw_range_error("BigInt negative exponent");
+            return Err(JsNativeError::range()
+                .with_message("BigInt negative exponent")
+                .into());
         };
 
         let num_bits = (x.inner.bits() as f64
@@ -161,14 +163,16 @@ impl JsBigInt {
             + 1f64;
 
         if num_bits > 1_000_000_000f64 {
-            return context.throw_range_error("Maximum BigInt size exceeded");
+            return Err(JsNativeError::range()
+                .with_message("Maximum BigInt size exceeded")
+                .into());
         }
 
         Ok(Self::new(x.inner.as_ref().clone().pow(y)))
     }
 
     #[inline]
-    pub fn shift_right(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
+    pub fn shift_right(x: &Self, y: &Self) -> JsResult<Self> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shr(n as usize)
@@ -178,12 +182,14 @@ impl JsBigInt {
 
             Ok(Self::new(inner))
         } else {
-            context.throw_range_error("Maximum BigInt size exceeded")
+            Err(JsNativeError::range()
+                .with_message("Maximum BigInt size exceeded")
+                .into())
         }
     }
 
     #[inline]
-    pub fn shift_left(x: &Self, y: &Self, context: &mut Context) -> Result<Self, JsValue> {
+    pub fn shift_left(x: &Self, y: &Self) -> JsResult<Self> {
         if let Some(n) = y.inner.to_i32() {
             let inner = if n > 0 {
                 x.inner.as_ref().clone().shl(n as usize)
@@ -193,7 +199,9 @@ impl JsBigInt {
 
             Ok(Self::new(inner))
         } else {
-            context.throw_range_error("Maximum BigInt size exceeded")
+            Err(JsNativeError::range()
+                .with_message("Maximum BigInt size exceeded")
+                .into())
         }
     }
 

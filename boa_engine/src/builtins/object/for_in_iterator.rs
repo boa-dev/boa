@@ -1,5 +1,6 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object},
+    error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     property::PropertyKey,
@@ -71,7 +72,7 @@ impl ForInIterator {
         let iterator = iterator
             .as_mut()
             .and_then(|obj| obj.as_for_in_iterator_mut())
-            .ok_or_else(|| context.construct_type_error("`this` is not a ForInIterator"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not a ForInIterator"))?;
         let mut object = iterator.object.to_object(context)?;
         loop {
             if !iterator.object_was_visited {
@@ -96,11 +97,7 @@ impl ForInIterator {
                     {
                         iterator.visited_keys.insert(r.clone());
                         if desc.expect_enumerable() {
-                            return Ok(create_iter_result_object(
-                                JsValue::new(r.to_string()),
-                                false,
-                                context,
-                            ));
+                            return Ok(create_iter_result_object(JsValue::new(r), false, context));
                         }
                     }
                 }

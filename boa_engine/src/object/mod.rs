@@ -1,4 +1,5 @@
-//! This module implements the Rust representation of a JavaScript object, see object::[builtins] for implementors.
+//! This module implements the Rust representation of a JavaScript object,
+//! see [`object::builtins`][builtins] for implementors.
 //!
 //! This module also provides helper objects for working with JavaScript objects.
 
@@ -29,6 +30,7 @@ use crate::{
         array::array_iterator::ArrayIterator,
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
+        error::ErrorKind,
         function::arguments::Arguments,
         function::{
             arguments::ParameterMap, BoundFunction, Captures, ConstructorKind, Function,
@@ -48,6 +50,8 @@ use crate::{
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
+    error::JsNativeError,
+    js_string,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -180,7 +184,7 @@ pub enum ObjectKind {
     StringIterator(StringIterator),
     Number(f64),
     Symbol(JsSymbol),
-    Error,
+    Error(ErrorKind),
     Ordinary,
     Proxy(Proxy),
     Date(Date),
@@ -224,7 +228,7 @@ unsafe impl Trace for ObjectKind {
             | Self::String(_)
             | Self::Date(_)
             | Self::Array
-            | Self::Error
+            | Self::Error(_)
             | Self::Ordinary
             | Self::Global
             | Self::Number(_)
@@ -451,9 +455,9 @@ impl ObjectData {
     }
 
     /// Create the `Error` object data
-    pub fn error() -> Self {
+    pub(crate) fn error(error: ErrorKind) -> Self {
         Self {
-            kind: ObjectKind::Error,
+            kind: ObjectKind::Error(error),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -557,7 +561,7 @@ impl Display for ObjectKind {
             Self::String(_) => "String",
             Self::StringIterator(_) => "StringIterator",
             Self::Symbol(_) => "Symbol",
-            Self::Error => "Error",
+            Self::Error(_) => "Error",
             Self::Ordinary => "Ordinary",
             Self::Proxy(_) => "Proxy",
             Self::Boolean(_) => "Boolean",
@@ -1065,10 +1069,21 @@ impl Object {
         matches!(
             self.data,
             ObjectData {
-                kind: ObjectKind::Error,
+                kind: ObjectKind::Error(_),
                 ..
             }
         )
+    }
+
+    #[inline]
+    pub fn as_error(&self) -> Option<ErrorKind> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Error(e),
+                ..
+            } => Some(e),
+            _ => None,
+        }
     }
 
     /// Checks if it a Boolean object.
@@ -1628,7 +1643,7 @@ impl<'context> FunctionBuilder<'context> {
                 function,
                 constructor: None,
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1646,7 +1661,7 @@ impl<'context> FunctionBuilder<'context> {
                 constructor: None,
                 captures: Captures::new(()),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1673,14 +1688,15 @@ impl<'context> FunctionBuilder<'context> {
                 function: Box::new(move |this, args, captures: Captures, context| {
                     let mut captures = captures.as_mut_any();
                     let captures = captures.downcast_mut::<C>().ok_or_else(|| {
-                        context.construct_type_error("cannot downcast `Captures` to given type")
+                        JsNativeError::typ()
+                            .with_message("cannot downcast `Captures` to given type")
                     })?;
                     function(this, args, captures, context)
                 }),
                 constructor: None,
                 captures: Captures::new(captures),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1692,9 +1708,9 @@ impl<'context> FunctionBuilder<'context> {
     #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
-        N: AsRef<str>,
+        N: Into<JsString>,
     {
-        self.name = name.as_ref().into();
+        self.name = name.into();
         self
     }
 
@@ -1787,16 +1803,8 @@ impl<'context> FunctionBuilder<'context> {
 /// # use boa_engine::{Context, JsValue, object::ObjectInitializer, property::Attribute};
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&mut context)
-///     .property(
-///         "hello",
-///         "world",
-///         Attribute::all()
-///     )
-///     .property(
-///         1,
-///         1,
-///         Attribute::all()
-///     )
+///     .property("hello", "world", Attribute::all())
+///     .property(1, 1, Attribute::all())
 ///     .function(|_, _, _| Ok(JsValue::undefined()), "func", 0)
 ///     .build();
 /// ```
@@ -1915,7 +1923,7 @@ impl<'context> ConstructorBuilder<'context> {
             object: JsObject::empty(),
             prototype: JsObject::empty(),
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,
@@ -1937,7 +1945,7 @@ impl<'context> ConstructorBuilder<'context> {
             has_prototype_property: true,
             prototype: standard_constructor.prototype,
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,

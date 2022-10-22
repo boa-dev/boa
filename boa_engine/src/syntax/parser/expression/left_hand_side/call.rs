@@ -10,9 +10,10 @@
 use super::arguments::Arguments;
 use crate::syntax::{
     ast::{
-        node::{
-            field::{get_private_field::GetPrivateField, GetConstField, GetField},
-            Call, Node,
+        self,
+        expression::{
+            access::{PrivatePropertyAccess, PropertyAccess},
+            Call,
         },
         Punctuator,
     },
@@ -36,12 +37,16 @@ use std::io::Read;
 pub(super) struct CallExpression {
     allow_yield: AllowYield,
     allow_await: AllowAwait,
-    first_member_expr: Node,
+    first_member_expr: ast::Expression,
 }
 
 impl CallExpression {
     /// Creates a new `CallExpression` parser.
-    pub(super) fn new<Y, A>(allow_yield: Y, allow_await: A, first_member_expr: Node) -> Self
+    pub(super) fn new<Y, A>(
+        allow_yield: Y,
+        allow_await: A,
+        first_member_expr: ast::Expression,
+    ) -> Self
     where
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -58,9 +63,9 @@ impl<R> TokenParser<R> for CallExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("CallExpression", "Parsing");
 
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -68,7 +73,7 @@ where
         let mut lhs = if token.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
             let args =
                 Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
-            Node::from(Call::new(self.first_member_expr, args))
+            Call::new(self.first_member_expr, args).into()
         } else {
             let next_token = cursor.next(interner)?.expect("token vanished");
             return Err(ParseError::expected(
@@ -85,30 +90,30 @@ where
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    lhs = Node::from(Call::new(lhs, args));
+                    lhs = ast::Expression::from(Call::new(lhs, args));
                 }
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
 
                     match cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
                         TokenKind::Identifier(name) => {
-                            lhs = GetConstField::new(lhs, *name).into();
+                            lhs = PropertyAccess::new(lhs, *name).into();
                         }
                         TokenKind::Keyword((kw, _)) => {
-                            lhs = GetConstField::new(lhs, kw.to_sym(interner)).into();
+                            lhs = PropertyAccess::new(lhs, kw.to_sym(interner)).into();
                         }
                         TokenKind::BooleanLiteral(true) => {
-                            lhs = GetConstField::new(lhs, Sym::TRUE).into();
+                            lhs = PropertyAccess::new(lhs, Sym::TRUE).into();
                         }
                         TokenKind::BooleanLiteral(false) => {
-                            lhs = GetConstField::new(lhs, Sym::FALSE).into();
+                            lhs = PropertyAccess::new(lhs, Sym::FALSE).into();
                         }
                         TokenKind::NullLiteral => {
-                            lhs = GetConstField::new(lhs, Sym::NULL).into();
+                            lhs = PropertyAccess::new(lhs, Sym::NULL).into();
                         }
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;
-                            lhs = GetPrivateField::new(lhs, *name).into();
+                            lhs = PrivatePropertyAccess::new(lhs, *name).into();
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -125,7 +130,7 @@ where
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression", interner)?;
-                    lhs = GetField::new(lhs, idx).into();
+                    lhs = PropertyAccess::new(lhs, idx).into();
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(
@@ -134,7 +139,8 @@ where
                         tok.span().start(),
                         lhs,
                     )
-                    .parse(cursor, interner)?;
+                    .parse(cursor, interner)?
+                    .into();
                 }
                 _ => break,
             }

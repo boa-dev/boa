@@ -16,11 +16,14 @@
 use crate::{
     builtins::{string::is_trimmable_whitespace, BuiltIn, JsArgs},
     context::intrinsics::StandardConstructors,
+    error::JsNativeError,
     object::{
         internal_methods::get_prototype_from_constructor, ConstructorBuilder, FunctionBuilder,
         JsObject, ObjectData,
     },
     property::Attribute,
+    string::utf16,
+    string::Utf16Trim,
     value::{AbstractRelation, IntegerOrInfinity, JsValue},
     Context, JsResult,
 };
@@ -130,7 +133,7 @@ impl Number {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER
     pub(crate) const MAX_SAFE_INTEGER: f64 = 9_007_199_254_740_991_f64;
 
-    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(253 - 1)`).
+    /// The `Number.MIN_SAFE_INTEGER` constant represents the minimum safe integer in JavaScript (`-(2^53 - 1)`).
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]
@@ -194,11 +197,15 @@ impl Number {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-thisnumbervalue
-    fn this_number_value(value: &JsValue, context: &mut Context) -> JsResult<f64> {
+    fn this_number_value(value: &JsValue) -> JsResult<f64> {
         value
             .as_number()
             .or_else(|| value.as_object().and_then(|obj| obj.borrow().as_number()))
-            .ok_or_else(|| context.construct_type_error("'this' is not a number"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("'this' is not a number")
+                    .into()
+            })
     }
 
     /// `Number.prototype.toExponential( [fractionDigits] )`
@@ -218,7 +225,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
         let precision = match args.get(0) {
             None | Some(JsValue::Undefined) => None,
             // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
@@ -238,8 +245,9 @@ impl Number {
                 f64_to_exponential_with_precision(this_num, precision as usize)
             }
             _ => {
-                return context
-                    .throw_range_error("toExponential() argument must be between 0 and 100")
+                return Err(JsNativeError::range()
+                    .with_message("toExponential() argument must be between 0 and 100")
+                    .into())
             }
         };
         Ok(JsValue::new(this_str_num))
@@ -262,7 +270,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let this_num be ? thisNumberValue(this value).
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
 
         // 2. Let f be ? ToIntegerOrInfinity(fractionDigits).
         // 3. Assert: If fractionDigits is undefined, then f is 0.
@@ -273,7 +281,8 @@ impl Number {
             .as_integer()
             .filter(|i| (0..=100).contains(i))
             .ok_or_else(|| {
-                context.construct_range_error("toFixed() digits argument must be between 0 and 100")
+                JsNativeError::range()
+                    .with_message("toFixed() digits argument must be between 0 and 100")
             })? as usize;
 
         // 6. If x is not finite, return ! Number::toString(x).
@@ -307,9 +316,9 @@ impl Number {
     pub(crate) fn to_locale_string(
         this: &JsValue,
         _: &[JsValue],
-        context: &mut Context,
+        _: &mut Context,
     ) -> JsResult<JsValue> {
-        let this_num = Self::this_number_value(this, context)?;
+        let this_num = Self::this_number_value(this)?;
         let this_str_num = this_num.to_string();
         Ok(JsValue::new(this_str_num))
     }
@@ -318,7 +327,6 @@ impl Number {
     ///
     /// This function traverses a string representing a number,
     /// returning the floored log10 of this number.
-    ///
     fn flt_str_to_exp(flt: &str) -> i32 {
         let mut non_zero_encountered = false;
         let mut dot_encountered = false;
@@ -352,7 +360,6 @@ impl Number {
     ///   the exponent. The string is kept at an exact length of `precision`.
     ///
     /// When this procedure returns, `digits` is exactly `precision` long.
-    ///
     fn round_to_precision(digits: &mut String, precision: usize) -> bool {
         if digits.len() > precision {
             let to_round = digits.split_off(precision);
@@ -422,7 +429,7 @@ impl Number {
         let precision = args.get_or_undefined(0);
 
         // 1 & 6
-        let mut this_num = Self::this_number_value(this, context)?;
+        let mut this_num = Self::this_number_value(this)?;
         // 2
         if precision.is_undefined() {
             return Self::to_string(this, &[], context);
@@ -440,9 +447,9 @@ impl Number {
             IntegerOrInfinity::Integer(x) if (1..=100).contains(&x) => x as usize,
             _ => {
                 // 5
-                return context.throw_range_error(
-                    "precision must be an integer at least 1 and no greater than 100",
-                );
+                return Err(JsNativeError::range()
+                    .with_message("precision must be an integer at least 1 and no greater than 100")
+                    .into());
             }
         };
         let precision_i32 = precision as i32;
@@ -672,7 +679,7 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         // 1. Let x be ? thisNumberValue(this value).
-        let x = Self::this_number_value(this, context)?;
+        let x = Self::this_number_value(this)?;
 
         let radix = args.get_or_undefined(0);
         let radix_number = if radix.is_undefined() {
@@ -686,9 +693,8 @@ impl Number {
                 // 4. If radixNumber < 2 or radixNumber > 36, throw a RangeError exception.
                 .filter(|i| (2..=36).contains(i))
                 .ok_or_else(|| {
-                    context.construct_range_error(
-                        "radix must be an integer at least 2 and no greater than 36",
-                    )
+                    JsNativeError::range()
+                        .with_message("radix must be an integer at least 2 and no greater than 36")
                 })?
         } as u8;
 
@@ -729,12 +735,8 @@ impl Number {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-number.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/valueOf
-    pub(crate) fn value_of(
-        this: &JsValue,
-        _: &[JsValue],
-        context: &mut Context,
-    ) -> JsResult<JsValue> {
-        Ok(JsValue::new(Self::this_number_value(this, context)?))
+    pub(crate) fn value_of(this: &JsValue, _: &[JsValue], _: &mut Context) -> JsResult<JsValue> {
+        Ok(JsValue::new(Self::this_number_value(this)?))
     }
 
     /// Builtin javascript 'parseInt(str, radix)' function.
@@ -761,12 +763,12 @@ impl Number {
             let input_string = val.to_string(context)?;
 
             // 2. Let S be ! TrimString(inputString, start).
-            let mut var_s = input_string.trim_start_matches(is_trimmable_whitespace);
+            let mut var_s = input_string.trim_start();
 
             // 3. Let sign be 1.
             // 4. If S is not empty and the first code unit of S is the code unit 0x002D (HYPHEN-MINUS),
             //    set sign to -1.
-            let sign = if !var_s.is_empty() && var_s.starts_with('\u{002D}') {
+            let sign = if !var_s.is_empty() && var_s.starts_with(utf16!("-")) {
                 -1
             } else {
                 1
@@ -774,10 +776,10 @@ impl Number {
 
             // 5. If S is not empty and the first code unit of S is the code unit 0x002B (PLUS SIGN) or
             //    the code unit 0x002D (HYPHEN-MINUS), remove the first code unit from S.
-            if !var_s.is_empty() {
-                var_s = var_s
-                    .strip_prefix(&['\u{002B}', '\u{002D}'][..])
-                    .unwrap_or(var_s);
+            if !var_s.is_empty()
+                && (var_s.starts_with(utf16!("+")) || var_s.starts_with(utf16!("-")))
+            {
+                var_s = &var_s[1..];
             }
 
             // 6. Let R be ℝ(? ToInt32(radix)).
@@ -810,23 +812,21 @@ impl Number {
             //         ii. Set R to 16.
             if strip_prefix
                 && var_s.len() >= 2
-                && (var_s.starts_with("0x") || var_s.starts_with("0X"))
+                && (var_s.starts_with(utf16!("0x")) || var_s.starts_with(utf16!("0X")))
             {
-                var_s = var_s.split_at(2).1;
+                var_s = &var_s[2..];
 
                 var_r = 16;
             }
 
             // 11. If S contains a code unit that is not a radix-R digit, let end be the index within S of the
             //     first such code unit; otherwise, let end be the length of S.
-            let end = if let Some(index) = var_s.find(|c: char| !c.is_digit(var_r as u32)) {
-                index
-            } else {
-                var_s.len()
-            };
+            let end = char::decode_utf16(var_s.iter().copied())
+                .position(|code| !code.map(|c| c.is_digit(var_r as u32)).unwrap_or_default())
+                .unwrap_or(var_s.len());
 
             // 12. Let Z be the substring of S from 0 to end.
-            let var_z = var_s.split_at(end).0;
+            let var_z = String::from_utf16_lossy(&var_s[..end]);
 
             // 13. If Z is empty, return NaN.
             if var_z.is_empty() {
@@ -839,8 +839,8 @@ impl Number {
             //     0 digit, at the option of the implementation; and if R is not 2, 4, 8, 10, 16, or 32, then
             //     mathInt may be an implementation-approximated value representing the integer value that is
             //     represented by Z in radix-R notation.)
-            let math_int = u64::from_str_radix(var_z, var_r as u32).map_or_else(
-                |_| f64::from_str_radix(var_z, var_r as u32).expect("invalid_float_conversion"),
+            let math_int = u64::from_str_radix(&var_z, var_r as u32).map_or_else(
+                |_| f64::from_str_radix(&var_z, var_r as u32).expect("invalid_float_conversion"),
                 |i| i as f64,
             );
 
@@ -884,7 +884,8 @@ impl Number {
         context: &mut Context,
     ) -> JsResult<JsValue> {
         if let Some(val) = args.get(0) {
-            let input_string = val.to_string(context)?;
+            // TODO: parse float with optimal utf16 algorithm
+            let input_string = val.to_string(context)?.to_std_string_escaped();
             let s = input_string.trim_start_matches(is_trimmable_whitespace);
             let s_prefix_lower = s.chars().take(4).collect::<String>().to_ascii_lowercase();
 

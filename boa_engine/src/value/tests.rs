@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 use super::*;
-use crate::{check_output, forward, forward_val, Context, TestAction};
+use crate::{check_output, forward, forward_val, string::utf16, Context, TestAction};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
@@ -279,7 +279,7 @@ fn add_number_and_string() {
 
     let value = forward_val(&mut context, "1 + \" + 2 = 3\"").unwrap();
     let value = value.to_string(&mut context).unwrap();
-    assert_eq!(value, "1 + 2 = 3");
+    assert_eq!(&value, utf16!("1 + 2 = 3"));
 }
 
 #[test]
@@ -288,7 +288,7 @@ fn add_string_and_string() {
 
     let value = forward_val(&mut context, "\"Hello\" + \", world\"").unwrap();
     let value = value.to_string(&mut context).unwrap();
-    assert_eq!(value, "Hello, world");
+    assert_eq!(&value, utf16!("Hello, world"));
 }
 
 #[test]
@@ -306,7 +306,7 @@ fn add_number_object_and_string_object() {
 
     let value = forward_val(&mut context, "new Number(10) + new String(\"0\")").unwrap();
     let value = value.to_string(&mut context).unwrap();
-    assert_eq!(value, "100");
+    assert_eq!(&value, utf16!("100"));
 }
 
 #[test]
@@ -539,46 +539,64 @@ fn to_integer_or_infinity() {
     let mut context = Context::default();
 
     assert_eq!(
-        JsValue::undefined().to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::undefined()
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::nan().to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::nan().to_integer_or_infinity(&mut context).unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::new(0.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
+        JsValue::new(0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
     assert_eq!(
-        JsValue::new(-0.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(0))
-    );
-
-    assert_eq!(
-        JsValue::new(f64::INFINITY).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::PositiveInfinity)
-    );
-    assert_eq!(
-        JsValue::new(f64::NEG_INFINITY).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::NegativeInfinity)
+        JsValue::new(-0.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(0)
     );
 
     assert_eq!(
-        JsValue::new(10).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(10))
+        JsValue::new(f64::INFINITY)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::PositiveInfinity
     );
     assert_eq!(
-        JsValue::new(11.0).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(11))
+        JsValue::new(f64::NEG_INFINITY)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::NegativeInfinity
+    );
+
+    assert_eq!(
+        JsValue::new(10)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(10)
     );
     assert_eq!(
-        JsValue::new("12").to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(12))
+        JsValue::new(11.0)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(11)
     );
     assert_eq!(
-        JsValue::new(true).to_integer_or_infinity(&mut context),
-        Ok(IntegerOrInfinity::Integer(1))
+        JsValue::new("12")
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(12)
+    );
+    assert_eq!(
+        JsValue::new(true)
+            .to_integer_or_infinity(&mut context)
+            .unwrap(),
+        IntegerOrInfinity::Integer(1)
     );
 }
 
@@ -679,7 +697,7 @@ mod cyclic_conversions {
 
         assert_eq!(
             forward(&mut context, src),
-            r#"Uncaught "TypeError": "cyclic object value""#,
+            "Uncaught TypeError: cyclic object value",
         );
     }
 
@@ -694,7 +712,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
-        assert_eq!(result, "[[],[]]",);
+        assert_eq!(result, utf16!("[[],[]]"));
     }
 
     // These tests don't throw errors. Instead we mirror Chrome / Firefox behavior for these
@@ -711,7 +729,7 @@ mod cyclic_conversions {
 
         let value = forward_val(&mut context, src).unwrap();
         let result = value.as_string().unwrap();
-        assert_eq!(result, "");
+        assert_eq!(result, utf16!(""));
     }
 
     #[test]

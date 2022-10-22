@@ -10,6 +10,8 @@ use crate::{
         number::{f64_to_int32, f64_to_uint32},
         Number,
     },
+    error::JsNativeError,
+    js_string,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyKey},
     symbol::{JsSymbol, WellKnownSymbols},
@@ -25,7 +27,6 @@ use std::{
     collections::HashSet,
     fmt::{self, Display},
     ops::Sub,
-    str::FromStr,
 };
 
 mod conversions;
@@ -64,7 +65,7 @@ pub enum JsValue {
     Undefined,
     /// `boolean` - A `true` / `false` value, for if a certain criteria is met.
     Boolean(bool),
-    /// `String` - A UTF-8 string, such as `"Hello, world"`.
+    /// `String` - A UTF-16 string, such as `"Hello, world"`.
     String(JsString),
     /// `Number` - A 64-bit floating point number, such as `3.1415`
     Rational(f64),
@@ -375,7 +376,9 @@ impl JsValue {
                 // v. If Type(result) is not Object, return result.
                 // vi. Throw a TypeError exception.
                 return if result.is_object() {
-                    context.throw_type_error("Symbol.toPrimitive cannot return an object")
+                    Err(JsNativeError::typ()
+                        .with_message("Symbol.toPrimitive cannot return an object")
+                        .into())
                 } else {
                     Ok(result)
                 };
@@ -403,28 +406,37 @@ impl JsValue {
     /// [spec]: https://tc39.es/ecma262/#sec-tobigint
     pub fn to_bigint(&self, context: &mut Context) -> JsResult<JsBigInt> {
         match self {
-            Self::Null => context.throw_type_error("cannot convert null to a BigInt"),
-            Self::Undefined => context.throw_type_error("cannot convert undefined to a BigInt"),
+            Self::Null => Err(JsNativeError::typ()
+                .with_message("cannot convert null to a BigInt")
+                .into()),
+            Self::Undefined => Err(JsNativeError::typ()
+                .with_message("cannot convert undefined to a BigInt")
+                .into()),
             Self::String(ref string) => {
-                if let Some(value) = JsBigInt::from_string(string) {
+                if let Some(value) = string.to_big_int() {
                     Ok(value)
                 } else {
-                    context.throw_syntax_error(format!(
-                        "cannot convert string '{string}' to bigint primitive",
-                    ))
+                    Err(JsNativeError::syntax()
+                        .with_message(format!(
+                            "cannot convert string '{}' to bigint primitive",
+                            string.to_std_string_escaped()
+                        ))
+                        .into())
                 }
             }
             Self::Boolean(true) => Ok(JsBigInt::one()),
             Self::Boolean(false) => Ok(JsBigInt::zero()),
-            Self::Integer(_) | Self::Rational(_) => {
-                context.throw_type_error("cannot convert Number to a BigInt")
-            }
+            Self::Integer(_) | Self::Rational(_) => Err(JsNativeError::typ()
+                .with_message("cannot convert Number to a BigInt")
+                .into()),
             Self::BigInt(b) => Ok(b.clone()),
             Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_bigint(context)
             }
-            Self::Symbol(_) => context.throw_type_error("cannot convert Symbol to a BigInt"),
+            Self::Symbol(_) => Err(JsNativeError::typ()
+                .with_message("cannot convert Symbol to a BigInt")
+                .into()),
         }
     }
 
@@ -461,7 +473,9 @@ impl JsValue {
             Self::Rational(rational) => Ok(Number::to_native_string(*rational).into()),
             Self::Integer(integer) => Ok(integer.to_string().into()),
             Self::String(string) => Ok(string.clone()),
-            Self::Symbol(_) => context.throw_type_error("can't convert symbol to string"),
+            Self::Symbol(_) => Err(JsNativeError::typ()
+                .with_message("can't convert symbol to string")
+                .into()),
             Self::BigInt(ref bigint) => Ok(bigint.to_string().into()),
             Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::String)?;
@@ -477,9 +491,9 @@ impl JsValue {
     /// See: <https://tc39.es/ecma262/#sec-toobject>
     pub fn to_object(&self, context: &mut Context) -> JsResult<JsObject> {
         match self {
-            Self::Undefined | Self::Null => {
-                context.throw_type_error("cannot convert 'null' or 'undefined' to object")
-            }
+            Self::Undefined | Self::Null => Err(JsNativeError::typ()
+                .with_message("cannot convert 'null' or 'undefined' to object")
+                .into()),
             Self::Boolean(boolean) => {
                 let prototype = context.intrinsics().constructors().boolean().prototype();
                 Ok(JsObject::from_proto_and_data(
@@ -508,9 +522,9 @@ impl JsValue {
                     JsObject::from_proto_and_data(prototype, ObjectData::string(string.clone()));
                 // Make sure the correct length is set on our new string object
                 object.insert_property(
-                    "length",
+                    js_string!("length"),
                     PropertyDescriptor::builder()
-                        .value(string.encode_utf16().count())
+                        .value(string.len())
                         .writable(false)
                         .enumerable(false)
                         .configurable(false),
@@ -816,7 +830,9 @@ impl JsValue {
 
         // c. If ! SameValue(𝔽(integer), clamped) is false, throw a RangeError exception.
         if integer != clamped {
-            return context.throw_range_error("Index must be between 0 and  2^53 - 1");
+            return Err(JsNativeError::range()
+                .with_message("Index must be between 0 and  2^53 - 1")
+                .into());
         }
 
         // d. Assert: 0 ≤ integer ≤ 2^53 - 1.
@@ -880,11 +896,15 @@ impl JsValue {
             Self::Null => Ok(0.0),
             Self::Undefined => Ok(f64::NAN),
             Self::Boolean(b) => Ok(if b { 1.0 } else { 0.0 }),
-            Self::String(ref string) => Ok(string.string_to_number()),
+            Self::String(ref string) => Ok(string.to_number()),
             Self::Rational(number) => Ok(number),
             Self::Integer(integer) => Ok(f64::from(integer)),
-            Self::Symbol(_) => context.throw_type_error("argument must not be a symbol"),
-            Self::BigInt(_) => context.throw_type_error("argument must not be a bigint"),
+            Self::Symbol(_) => Err(JsNativeError::typ()
+                .with_message("argument must not be a symbol")
+                .into()),
+            Self::BigInt(_) => Err(JsNativeError::typ()
+                .with_message("argument must not be a bigint")
+                .into()),
             Self::Object(_) => {
                 let primitive = self.to_primitive(context, PreferredType::Number)?;
                 primitive.to_number(context)
@@ -917,9 +937,11 @@ impl JsValue {
     /// [table]: https://tc39.es/ecma262/#table-14
     /// [spec]: https://tc39.es/ecma262/#sec-requireobjectcoercible
     #[inline]
-    pub fn require_object_coercible(&self, context: &mut Context) -> JsResult<&Self> {
+    pub fn require_object_coercible(&self) -> JsResult<&Self> {
         if self.is_null_or_undefined() {
-            context.throw_type_error("cannot convert null or undefined to Object")
+            Err(JsNativeError::typ()
+                .with_message("cannot convert null or undefined to Object")
+                .into())
         } else {
             Ok(self)
         }
@@ -930,9 +952,9 @@ impl JsValue {
         // 1. If Type(Obj) is not Object, throw a TypeError exception.
         self.as_object()
             .ok_or_else(|| {
-                context.construct_type_error(
-                    "Cannot construct a property descriptor from a non-object",
-                )
+                JsNativeError::typ()
+                    .with_message("Cannot construct a property descriptor from a non-object")
+                    .into()
             })
             .and_then(|obj| obj.to_property_descriptor(context))
     }

@@ -9,11 +9,14 @@
 
 use crate::syntax::{
     ast::{
-        node::template::{TemplateElement, TemplateLit},
+        expression::literal::{self, TemplateElement},
         Position, Punctuator,
     },
     lexer::TokenKind,
-    parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser},
+    parser::{
+        expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        TokenParser,
+    },
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -55,13 +58,9 @@ impl<R> TokenParser<R> for TemplateLiteral
 where
     R: Read,
 {
-    type Output = TemplateLit;
+    type Output = literal::TemplateLiteral;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("TemplateLiteral", "Parsing");
 
         let mut elements = vec![
@@ -101,7 +100,7 @@ where
                         .map_err(ParseError::lex)?;
 
                     elements.push(TemplateElement::String(cooked));
-                    return Ok(TemplateLit::new(elements));
+                    return Ok(literal::TemplateLiteral::new(elements.into()));
                 }
                 _ => {
                     return Err(ParseError::general(
