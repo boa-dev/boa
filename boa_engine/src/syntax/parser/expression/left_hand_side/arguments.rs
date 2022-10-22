@@ -62,6 +62,7 @@ where
         cursor.expect(Punctuator::OpenParen, "arguments", interner)?;
         let mut args = Vec::new();
         loop {
+            cursor.set_goal(InputElement::RegExp);
             let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
@@ -105,13 +106,13 @@ where
                     .into(),
                 );
             } else {
-                cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 );
             }
         }
+        cursor.set_goal(InputElement::Div);
         Ok(args.into_boxed_slice())
     }
 }

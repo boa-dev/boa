@@ -138,6 +138,23 @@ fn check_numeric_operations() {
 
     let mut interner = Interner::default();
     check_parser(
+        "fn(a) / b;",
+        vec![BinOp::new(
+            NumOp::Div,
+            Call::new(
+                Identifier::new(interner.get_or_intern_static("fn")),
+                vec![Node::from(Identifier::new(
+                    interner.get_or_intern_static("a"),
+                ))],
+            ),
+            Identifier::new(interner.get_or_intern_static("b")),
+        )
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
         "a * b",
         vec![BinOp::new(
             NumOp::Mul,
