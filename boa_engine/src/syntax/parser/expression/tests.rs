@@ -121,6 +121,60 @@ fn check_numeric_operations() {
 
     let mut interner = Interner::default();
     check_parser(
+        "fn(/=/);",
+        vec![Statement::Expression(Expression::from(Call::new(
+            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            vec![New::from(Call::new(
+                Identifier::new(Sym::REGEXP).into(),
+                vec![
+                    Literal::from(interner.get_or_intern_static("=", utf16!("="))).into(),
+                    Literal::from(Sym::EMPTY_STRING).into(),
+                ]
+                .into(),
+            ))
+            .into()]
+            .into(),
+        )))
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
+        "fn(a / b);",
+        vec![Statement::Expression(Expression::from(Call::new(
+            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            vec![Expression::from(Binary::new(
+                ArithmeticOp::Div.into(),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            ))
+            .into()]
+            .into(),
+        )))
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
+        "fn(a) / b;",
+        vec![Statement::Expression(Expression::from(Binary::new(
+            ArithmeticOp::Div.into(),
+            Call::new(
+                Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+                vec![Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into()]
+                    .into(),
+            )
+            .into(),
+            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+        )))
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
         "a * b",
         vec![Statement::Expression(Expression::from(Binary::new(
             ArithmeticOp::Mul.into(),
