@@ -24,16 +24,16 @@ struct GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData, 
-    heap_start: Option<NonNull<HeapBox<dyn Trace>>>,
+    heap_start: Cell<Option<NonNull<HeapBox<dyn Trace>>>>,
 }
 
 
 /// The GcAllocater allocates a garbage collected value to heap.
-pub struct GcAllocater<T: Trace>;
+pub struct GcAlloc;
 
-impl BoaAllocater<T: Trace> {
-    pub fn new_gc(value: T) -> Gc<T> {
-
+impl GcAlloc {
+    pub fn new_gc<T: Trace>(value: T) -> Gc<T> {
+        
     }
 }
 
