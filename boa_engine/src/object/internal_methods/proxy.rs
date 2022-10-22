@@ -686,7 +686,12 @@ pub(crate) fn proxy_exotic_set(
     if !trap
         .call(
             &handler.into(),
-            &[target.clone().into(), value.clone(), receiver],
+            &[
+                target.clone().into(),
+                key.clone().into(),
+                value.clone(),
+                receiver,
+            ],
             context,
         )?
         .to_boolean()
