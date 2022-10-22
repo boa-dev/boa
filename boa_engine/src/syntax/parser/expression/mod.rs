@@ -88,7 +88,6 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
         fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult {
             let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
-            let prev_goal = cursor.get_goal();
             if $goal.is_some() {
                 cursor.set_goal($goal.unwrap());
             }
@@ -115,10 +114,6 @@ macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $lo
                     }
                     _ => break
                 }
-            }
-
-            if $goal.is_some() {
-                cursor.set_goal(prev_goal);
             }
 
             Ok(lhs)

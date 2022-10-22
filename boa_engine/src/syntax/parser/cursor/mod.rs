@@ -52,11 +52,6 @@ where
     }
 
     #[inline]
-    pub(super) fn get_goal(&self) -> InputElement {
-        self.buffered_lexer.get_goal()
-    }
-
-    #[inline]
     pub(super) fn lex_regex(
         &mut self,
         start: Position,
