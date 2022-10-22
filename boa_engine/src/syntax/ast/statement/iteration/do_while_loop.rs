@@ -1,5 +1,5 @@
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// The `do...while` statement creates a loop that executes a specified statement until the
 /// test condition evaluates to false.
@@ -21,28 +21,24 @@ pub struct DoWhileLoop {
 }
 
 impl DoWhileLoop {
+    /// Gets the body of the do-while loop.
+    #[inline]
     pub fn body(&self) -> &Statement {
         &self.body
     }
 
+    /// Gets the condition of the do-while loop.
+    #[inline]
     pub fn cond(&self) -> &Expression {
         &self.condition
     }
     /// Creates a `DoWhileLoop` AST node.
+    #[inline]
     pub fn new(body: Statement, condition: Expression) -> Self {
         Self {
             body: body.into(),
             condition,
         }
-    }
-
-    /// Converts the "do while" loop to a string with the given indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        format!(
-            "do {} while ({})",
-            self.body().to_indented_string(interner, indentation),
-            self.cond().to_interned_string(interner)
-        )
     }
 
     #[inline]
@@ -56,9 +52,13 @@ impl DoWhileLoop {
     }
 }
 
-impl ToInternedString for DoWhileLoop {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for DoWhileLoop {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "do {} while ({})",
+            self.body().to_indented_string(interner, indentation),
+            self.cond().to_interned_string(interner)
+        )
     }
 }
 

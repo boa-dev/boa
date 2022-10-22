@@ -4,7 +4,7 @@ use crate::syntax::ast::{
     join_nodes, Declaration, StatementList,
 };
 
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
@@ -26,6 +26,7 @@ pub struct Generator {
 
 impl Generator {
     /// Creates a new generator expression
+    #[inline]
     pub(in crate::syntax) fn new(
         name: Option<Identifier>,
         parameters: FormalParameterList,
@@ -39,22 +40,26 @@ impl Generator {
     }
 
     /// Gets the name of the generator declaration.
+    #[inline]
     pub fn name(&self) -> Option<Identifier> {
         self.name
     }
 
     /// Gets the list of parameters of the generator declaration.
+    #[inline]
     pub fn parameters(&self) -> &FormalParameterList {
         &self.parameters
     }
 
     /// Gets the body of the generator declaration.
+    #[inline]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
+}
 
-    /// Converts the generator expresion Expression to a string with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for Generator {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = "function*".to_owned();
         if let Some(name) = self.name {
             buf.push_str(&format!(" {}", interner.resolve_expect(name.sym())));
@@ -69,19 +74,15 @@ impl Generator {
     }
 }
 
-impl ToInternedString for Generator {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
-}
-
 impl From<Generator> for Expression {
+    #[inline]
     fn from(expr: Generator) -> Self {
         Self::Generator(expr)
     }
 }
 
 impl From<Generator> for Declaration {
+    #[inline]
     fn from(f: Generator) -> Self {
         Self::Generator(f)
     }

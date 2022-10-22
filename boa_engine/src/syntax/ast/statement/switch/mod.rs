@@ -1,7 +1,7 @@
 //! Switch node.
 //!
 use crate::syntax::ast::{expression::Expression, statement::Statement, StatementList};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 use super::ContainsSymbol;
 
@@ -17,16 +17,19 @@ pub struct Case {
 
 impl Case {
     /// Creates a `Case` AST node.
+    #[inline]
     pub fn new(condition: Expression, body: StatementList) -> Self {
         Self { condition, body }
     }
 
     /// Gets the condition of the case.
+    #[inline]
     pub fn condition(&self) -> &Expression {
         &self.condition
     }
 
     /// Gets the statement listin the body of the case.
+    #[inline]
     pub fn body(&self) -> &StatementList {
         &self.body
     }
@@ -73,6 +76,7 @@ pub struct Switch {
 
 impl Switch {
     /// Creates a `Switch` AST node.
+    #[inline]
     pub fn new(val: Expression, cases: Box<[Case]>, default: Option<StatementList>) -> Self {
         Self {
             val,
@@ -82,22 +86,38 @@ impl Switch {
     }
 
     /// Gets the value to switch.
+    #[inline]
     pub fn val(&self) -> &Expression {
         &self.val
     }
 
     /// Gets the list of cases for the switch statement.
+    #[inline]
     pub fn cases(&self) -> &[Case] {
         &self.cases
     }
 
     /// Gets the default statement list, if any.
+    #[inline]
     pub fn default(&self) -> Option<&StatementList> {
         self.default.as_ref()
     }
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.val.contains_arguments()
+            || self.cases.iter().any(Case::contains_arguments)
+            || matches!(self.default, Some(ref stmts) if stmts.contains_arguments())
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.val.contains(symbol) || self.cases.iter().any(|case| case.contains(symbol))
+    }
+}
+
+impl ToIndentedString for Switch {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let indent = "    ".repeat(indentation);
         let mut buf = format!("switch ({}) {{\n", self.val().to_interned_string(interner));
         for e in self.cases().iter() {
@@ -119,27 +139,10 @@ impl Switch {
 
         buf
     }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.val.contains_arguments()
-            || self.cases.iter().any(Case::contains_arguments)
-            || matches!(self.default, Some(ref stmts) if stmts.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.val.contains(symbol) || self.cases.iter().any(|case| case.contains(symbol))
-    }
-}
-
-impl ToInternedString for Switch {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
 }
 
 impl From<Switch> for Statement {
+    #[inline]
     fn from(switch: Switch) -> Self {
         Self::Switch(switch)
     }

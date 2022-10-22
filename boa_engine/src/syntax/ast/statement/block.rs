@@ -1,9 +1,8 @@
 //! Block AST node.
 
-use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
-
 use super::Statement;
-use boa_interner::{Interner, ToInternedString};
+use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
+use boa_interner::{Interner, ToIndentedString};
 
 /// A `block` statement (or compound statement in other languages) is used to group zero or
 /// more statements.
@@ -29,23 +28,15 @@ pub struct Block {
 
 impl Block {
     /// Gets the list of statements and declarations in this block.
+    #[inline]
     pub(crate) fn statement_list(&self) -> &StatementList {
         &self.statements
     }
 
     /// Get the lexically declared names of the block.
+    #[inline]
     pub(crate) fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         self.statements.lexically_declared_names()
-    }
-
-    /// Implements the display formatting with indentation.
-    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        format!(
-            "{{\n{}{}}}",
-            self.statements
-                .to_indented_string(interner, indentation + 1),
-            "    ".repeat(indentation)
-        )
     }
 
     #[inline]
@@ -63,6 +54,7 @@ impl<T> From<T> for Block
 where
     T: Into<StatementList>,
 {
+    #[inline]
     fn from(list: T) -> Self {
         Self {
             statements: list.into(),
@@ -70,13 +62,19 @@ where
     }
 }
 
-impl ToInternedString for Block {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for Block {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "{{\n{}{}}}",
+            self.statements
+                .to_indented_string(interner, indentation + 1),
+            "    ".repeat(indentation)
+        )
     }
 }
 
 impl From<Block> for Statement {
+    #[inline]
     fn from(block: Block) -> Self {
         Self::Block(block)
     }

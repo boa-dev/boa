@@ -1,5 +1,6 @@
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
+
 /// The `while` statement creates a loop that executes a specified statement as long as the
 /// test condition evaluates to `true`.
 ///
@@ -19,14 +20,8 @@ pub struct WhileLoop {
 }
 
 impl WhileLoop {
-    pub fn condition(&self) -> &Expression {
-        &self.condition
-    }
-
-    pub fn body(&self) -> &Statement {
-        &self.body
-    }
     /// Creates a `WhileLoop` AST node.
+    #[inline]
     pub fn new(condition: Expression, body: Statement) -> Self {
         Self {
             condition,
@@ -34,15 +29,19 @@ impl WhileLoop {
         }
     }
 
-    /// Converts the while loop to a string with the given indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        format!(
-            "while ({}) {}",
-            self.condition().to_interned_string(interner),
-            self.body().to_indented_string(interner, indentation)
-        )
+    /// Gets the condition of the while loop.
+    #[inline]
+    pub fn condition(&self) -> &Expression {
+        &self.condition
     }
 
+    /// Gets the body of the while loop.
+    #[inline]
+    pub fn body(&self) -> &Statement {
+        &self.body
+    }
+
+    #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         self.condition.contains_arguments() || self.body.contains_arguments()
     }
@@ -53,13 +52,18 @@ impl WhileLoop {
     }
 }
 
-impl ToInternedString for WhileLoop {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for WhileLoop {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        format!(
+            "while ({}) {}",
+            self.condition().to_interned_string(interner),
+            self.body().to_indented_string(interner, indentation)
+        )
     }
 }
 
 impl From<WhileLoop> for Statement {
+    #[inline]
     fn from(while_loop: WhileLoop) -> Self {
         Self::WhileLoop(while_loop)
     }

@@ -1,4 +1,4 @@
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 use self::{
     access::{PrivatePropertyAccess, PropertyAccess, SuperPropertyAccess},
@@ -142,12 +142,6 @@ pub enum Expression {
 }
 
 impl Expression {
-    /// Creates a string of the value of the expression with the given indentation.
-    #[inline]
-    pub fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        self.to_no_indent_string(interner, indentation)
-    }
-
     /// Implements the display formatting with indentation.
     ///
     /// This will not prefix the value with any indentation. If you want to prefix this with proper
@@ -281,9 +275,9 @@ impl From<Expression> for Statement {
     }
 }
 
-impl ToInternedString for Expression {
+impl ToIndentedString for Expression {
     #[inline]
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        self.to_no_indent_string(interner, indentation)
     }
 }

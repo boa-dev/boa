@@ -10,7 +10,7 @@ use crate::syntax::ast::{
     property::{MethodDefinition, PropertyDefinition},
     ContainsSymbol,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -39,13 +39,27 @@ pub struct ObjectLiteral {
 }
 
 impl ObjectLiteral {
+    /// Gets the object literal properties
     #[inline]
     pub fn properties(&self) -> &[PropertyDefinition] {
         &self.properties
     }
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        self.properties
+            .iter()
+            .any(PropertyDefinition::contains_arguments)
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        self.properties.iter().any(|prop| prop.contains(symbol))
+    }
+}
+
+impl ToIndentedString for ObjectLiteral {
+    fn to_indented_string(&self, interner: &Interner, indent_n: usize) -> String {
         let mut buf = "{\n".to_owned();
         let indentation = "    ".repeat(indent_n + 1);
         for property in self.properties().iter() {
@@ -118,25 +132,6 @@ impl ObjectLiteral {
         buf.push_str(&format!("{}}}", "    ".repeat(indent_n)));
 
         buf
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.properties
-            .iter()
-            .any(PropertyDefinition::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.properties.iter().any(|prop| prop.contains(symbol))
-    }
-}
-
-impl ToInternedString for ObjectLiteral {
-    #[inline]
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
     }
 }
 

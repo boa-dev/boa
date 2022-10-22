@@ -1,11 +1,10 @@
-use boa_interner::{Interner, ToInternedString};
-use tap::Tap;
-
 use super::{
     expression::Identifier,
     function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
     ContainsSymbol,
 };
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use tap::Tap;
 
 mod variable;
 
@@ -34,17 +33,6 @@ pub enum Declaration {
 }
 
 impl Declaration {
-    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        match self {
-            Declaration::Function(f) => f.to_indented_string(interner, indentation),
-            Declaration::Generator(g) => g.to_indented_string(interner, indentation),
-            Declaration::AsyncFunction(af) => af.to_indented_string(interner, indentation),
-            Declaration::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
-            Declaration::Class(c) => c.to_indented_string(interner, indentation),
-            Declaration::Lexical(l) => l.to_interned_string(interner).tap_mut(|s| s.push(';')),
-        }
-    }
-
     /// Return the lexically declared names of a `Declaration`.
     ///
     /// The returned list may contain duplicates.
@@ -146,8 +134,15 @@ impl Declaration {
     }
 }
 
-impl ToInternedString for Declaration {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
+impl ToIndentedString for Declaration {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+        match self {
+            Declaration::Function(f) => f.to_indented_string(interner, indentation),
+            Declaration::Generator(g) => g.to_indented_string(interner, indentation),
+            Declaration::AsyncFunction(af) => af.to_indented_string(interner, indentation),
+            Declaration::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
+            Declaration::Class(c) => c.to_indented_string(interner, indentation),
+            Declaration::Lexical(l) => l.to_interned_string(interner).tap_mut(|s| s.push(';')),
+        }
     }
 }

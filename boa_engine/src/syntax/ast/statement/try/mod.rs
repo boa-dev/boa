@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     statement::{Block, Statement},
     statement_list::StatementListItem,
 };
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 use super::ContainsSymbol;
 
@@ -33,6 +33,7 @@ pub struct Try {
 
 impl Try {
     /// Creates a new `Try` AST node.
+    #[inline]
     pub(in crate::syntax) fn new(
         block: Block,
         catch: Option<Catch>,
@@ -51,16 +52,19 @@ impl Try {
     }
 
     /// Gets the `try` block.
+    #[inline]
     pub fn block(&self) -> &Block {
         &self.block
     }
 
     /// Gets the `catch` block, if any.
+    #[inline]
     pub fn catch(&self) -> Option<&Catch> {
         self.catch.as_ref()
     }
 
     /// Gets the `finally` block, if any.
+    #[inline]
     pub fn finally(&self) -> Option<&Block> {
         self.finally.as_ref().map(Finally::block)
     }
@@ -78,9 +82,10 @@ impl Try {
             || matches!(self.catch, Some(ref catch) if catch.contains(symbol))
             || matches!(self.finally, Some(ref finally) if finally.contains(symbol))
     }
+}
 
-    /// Implements the display formatting with indentation.
-    pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for Try {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = format!(
             "{}try {}",
             "    ".repeat(indentation),
@@ -98,13 +103,8 @@ impl Try {
     }
 }
 
-impl ToInternedString for Try {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
-}
-
 impl From<Try> for Statement {
+    #[inline]
     fn from(try_catch: Try) -> Self {
         Self::Try(try_catch)
     }
@@ -120,16 +120,19 @@ pub struct Catch {
 
 impl Catch {
     /// Creates a new catch block.
+    #[inline]
     pub(in crate::syntax) fn new(parameter: Option<Binding>, block: Block) -> Self {
         Self { parameter, block }
     }
 
     /// Gets the parameter of the catch block.
+    #[inline]
     pub fn parameter(&self) -> Option<&Binding> {
         self.parameter.as_ref()
     }
 
     /// Retrieves the catch execution block.
+    #[inline]
     pub fn block(&self) -> &Block {
         &self.block
     }
@@ -151,9 +154,10 @@ impl Catch {
             .iter()
             .any(|stmt| stmt.contains(symbol))
     }
+}
 
-    /// Implements the display formatting with indentation.
-    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for Catch {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         let mut buf = " catch".to_owned();
         if let Some(ref param) = self.parameter {
             buf.push_str(&format!("({})", param.to_interned_string(interner)));
@@ -167,12 +171,6 @@ impl Catch {
     }
 }
 
-impl ToInternedString for Catch {
-    fn to_interned_string(&self, interner: &Interner) -> String {
-        self.to_indented_string(interner, 0)
-    }
-}
-
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -182,6 +180,7 @@ pub struct Finally {
 
 impl Finally {
     /// Gets the finally block.
+    #[inline]
     pub fn block(&self) -> &Block {
         &self.block
     }
@@ -203,9 +202,10 @@ impl Finally {
             .iter()
             .any(|stmt| stmt.contains(symbol))
     }
+}
 
-    /// Implements the display formatting with indentation.
-    pub(super) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
+impl ToIndentedString for Finally {
+    fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         format!(
             " finally {}",
             self.block.to_indented_string(interner, indentation)
@@ -214,6 +214,7 @@ impl Finally {
 }
 
 impl From<Block> for Finally {
+    #[inline]
     fn from(block: Block) -> Self {
         Self { block }
     }
