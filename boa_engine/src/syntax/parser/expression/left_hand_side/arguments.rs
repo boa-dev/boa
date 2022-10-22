@@ -59,6 +59,8 @@ where
     ) -> Result<Self::Output, ParseError> {
         let _timer = Profiler::global().start_event("Arguments", "Parsing");
 
+        cursor.set_goal(InputElement::RegExp);
+
         cursor.expect(Punctuator::OpenParen, "arguments", interner)?;
         let mut args = Vec::new();
         loop {
@@ -105,7 +107,6 @@ where
                     .into(),
                 );
             } else {
-                cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,

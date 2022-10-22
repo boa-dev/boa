@@ -77,6 +77,13 @@ where
         self.lexer.set_goal(elm);
     }
 
+    /// Gets the goal symbol from the lexer.
+    #[inline]
+    pub(super) fn get_goal(&self) -> InputElement {
+        let _timer = Profiler::global().start_event("cursor::get_goal()", "Parsing");
+        self.lexer.get_goal()
+    }
+
     /// Lexes the next tokens as a regex assuming that the starting '/' has already been consumed.
     #[inline]
     pub(super) fn lex_regex(

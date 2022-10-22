@@ -17,7 +17,7 @@ mod template;
 
 use crate::syntax::{
     ast::{node::SuperCall, Keyword, Node, Punctuator},
-    lexer::{InputElement, TokenKind},
+    lexer::TokenKind,
     parser::{
         expression::left_hand_side::{
             arguments::Arguments, call::CallExpression, member::MemberExpression,
@@ -68,8 +68,6 @@ where
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
         let _timer = Profiler::global().start_event("LeftHandSIdeExpression", "Parsing");
-
-        cursor.set_goal(InputElement::TemplateTail);
 
         if let Some(next) = cursor.peek(0, interner)? {
             if let TokenKind::Keyword((Keyword::Super, _)) = next.kind() {
