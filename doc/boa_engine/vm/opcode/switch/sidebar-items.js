@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Case","`Case` implements the Opcode Operation for `Opcode::Case`"],["Default","`Default` implements the Opcode Operation for `Opcode::Default`"]]};

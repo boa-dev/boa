@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Swap","`Swap` implements the Opcode Operation for `Opcode::Swap`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DefineClassSetterByName","`DefineClassSetterByName` implements the Opcode Operation for `Opcode::DefineClassSetterByName`"],["DefineClassSetterByValue","`DefineClassSetterByValue` implements the Opcode Operation for `Opcode::DefineClassSetterByValue`"]]};

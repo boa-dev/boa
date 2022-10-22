@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DefineClassMethodByName","`DefineClassMethodByName` implements the Opcode Operation for `Opcode::DefineClassMethodByName`"],["DefineClassMethodByValue","`DefineClassMethodByValue` implements the Opcode Operation for `Opcode::DefineClassMethodByValue`"]]};

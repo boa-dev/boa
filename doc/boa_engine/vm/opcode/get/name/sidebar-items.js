@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GetName","`GetName` implements the Opcode Operation for `Opcode::GetName`"],["GetNameOrUndefined","`GetNameOrUndefined` implements the Opcode Operation for `Opcode::GetNameOrUndefined`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ForInLoopInitIterator","`ForInLoopInitIterator` implements the Opcode Operation for `Opcode::ForInLoopInitIterator`"],["ForInLoopNext","`ForInLoopNext` implements the Opcode Operation for `Opcode::ForInLoopNext`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DefineOwnPropertyByName","`DefineOwnPropertyByName` implements the Opcode Operation for `Opcode::DefineOwnPropertyByName`"],["DefineOwnPropertyByValue","`DefineOwnPropertyByValue` implements the Opcode Operation for `Opcode::DefineOwnPropertyByValue`"]]};

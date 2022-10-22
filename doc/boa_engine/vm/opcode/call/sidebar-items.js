@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Call","`Call` implements the Opcode Operation for `Opcode::Call`"],["CallEval","`CallEval` implements the Opcode Operation for `Opcode::CallEval`"],["CallEvalSpread","`CallEvalSpread` implements the Opcode Operation for `Opcode::CallEvalSpread`"],["CallSpread",""]]};

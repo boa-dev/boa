@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Return","`Return` implements the Opcode Operation for `Opcode::Return`"]]};

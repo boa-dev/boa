@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["PushLiteral","`PushLiteral` implements the Opcode Operation for `Opcode::PushLiteral`"]]};

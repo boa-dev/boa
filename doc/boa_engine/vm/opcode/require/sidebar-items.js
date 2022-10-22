@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["RequireObjectCoercible","`RequireObjectCoercible` implements the Opcode Operation for `Opcode::RequireObjectCoercible`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GetFunction","`GetFunction` implements the Opcode Operation for `Opcode::GetFunction`"],["GetFunctionAsync","`GetFunctionAsync` implements the Opcode Operation for `Opcode::GetFunctionAsync`"]]};

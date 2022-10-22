@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["CopyDataProperties","`CopyDataProperties` implements the Opcode Operation for `Opcode::CopyDataProperties`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["PushClassField","`PushClassField` implements the Opcode Operation for `Opcode::PushClassField`"],["PushClassFieldPrivate","`PushClassFieldPrivate` implements the Opcode Operation for `Opcode::PushClassFieldPrivate`"]]};

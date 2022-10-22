@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["SetClassPrototype","`SetClassProtoType` implements the Opcode Operation for `Opcode::SetClassPrototype`"]]};

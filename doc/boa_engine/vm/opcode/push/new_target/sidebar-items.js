@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["PushNewTarget","`PushNewTarget` implements the Opcode Operation for `Opcode::PushNewTarget`"]]};

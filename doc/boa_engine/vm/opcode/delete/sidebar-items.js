@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["DeletePropertyByName","`DeletePropertyByName` implements the Opcode Operation for `Opcode::DeletePropertyByName`"],["DeletePropertyByValue","`DeletePropertyByValue` implements the Opcode Operation for `Opcode::DeletePropertyByValue`"]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"mod":[["field",""],["private",""]],"struct":[["PushClassPrototype","`PushClassPrototype` implements the Opcode Operation for `Opcode::PushClassPrototype`"]]};
