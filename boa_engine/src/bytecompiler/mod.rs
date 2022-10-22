@@ -20,7 +20,10 @@ use crate::{
         },
         pattern::{Pattern, PatternArrayElement, PatternObjectElement},
         property::{MethodDefinition, PropertyDefinition, PropertyName},
-        statement::iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+        statement::{
+            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+            Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
+        },
         Declaration, Expression, Statement, StatementList, StatementListItem,
     },
     vm::{BindingOpcode, CodeBlock, Opcode},
@@ -1553,6 +1556,362 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
+    pub fn compile_for_loop(&mut self, for_loop: &ForLoop, label: Option<Sym>) -> JsResult<()> {
+        self.context.push_compile_time_environment(false);
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
+        if let Some(init) = for_loop.init() {
+            match init {
+                ForLoopInitializer::Expression(expr) => self.compile_expr(expr, false)?,
+                ForLoopInitializer::Var(decl) => {
+                    self.create_decls_from_var_decl(decl);
+                    self.compile_var_decl(decl)?;
+                }
+                ForLoopInitializer::Lexical(decl) => {
+                    self.create_decls_from_lexical_decl(decl);
+                    self.compile_lexical_decl(decl)?;
+                }
+            }
+        }
+
+        self.emit_opcode(Opcode::LoopStart);
+        let initial_jump = self.jump();
+
+        let start_address = self.next_opcode_location();
+        self.push_loop_control_info(label, start_address);
+
+        self.emit_opcode(Opcode::LoopContinue);
+        if let Some(final_expr) = for_loop.final_expr() {
+            self.compile_expr(final_expr, false)?;
+        }
+
+        self.patch_jump(initial_jump);
+
+        if let Some(condition) = for_loop.condition() {
+            self.compile_expr(condition, true)?;
+        } else {
+            self.emit_opcode(Opcode::PushTrue);
+        }
+        let exit = self.jump_if_false();
+
+        self.compile_stmt(for_loop.body(), false)?;
+
+        self.emit(Opcode::Jump, &[start_address]);
+
+        self.patch_jump(exit);
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+
+        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+        let index_compile_environment = self.push_compile_environment(compile_environment);
+        self.patch_jump_with_target(push_env.0, num_bindings as u32);
+        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+        self.emit_opcode(Opcode::PopEnvironment);
+        Ok(())
+    }
+
+    #[inline]
+    pub fn compile_for_in_loop(
+        &mut self,
+        for_in_loop: &ForInLoop,
+        label: Option<Sym>,
+    ) -> JsResult<()> {
+        let init_bound_names = for_in_loop.init().bound_names();
+        if init_bound_names.is_empty() {
+            self.compile_expr(for_in_loop.expr(), true)?;
+        } else {
+            self.context.push_compile_time_environment(false);
+            let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
+            for name in init_bound_names {
+                self.context.create_mutable_binding(name, false);
+            }
+            self.compile_expr(for_in_loop.expr(), true)?;
+
+            let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+            let index_compile_environment = self.push_compile_environment(compile_environment);
+            self.patch_jump_with_target(push_env.0, num_bindings as u32);
+            self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
+
+        let early_exit = self.emit_opcode_with_operand(Opcode::ForInLoopInitIterator);
+
+        self.emit_opcode(Opcode::LoopStart);
+        let start_address = self.next_opcode_location();
+        self.push_loop_control_info_for_of_in_loop(label, start_address);
+        self.emit_opcode(Opcode::LoopContinue);
+
+        self.context.push_compile_time_environment(false);
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        let exit = self.emit_opcode_with_operand(Opcode::ForInLoopNext);
+
+        match for_in_loop.init() {
+            IterableLoopInitializer::Identifier(ident) => {
+                self.context.create_mutable_binding(*ident, true);
+                let binding = self.context.set_mutable_binding(*ident);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::DefInitVar, &[index]);
+            }
+            IterableLoopInitializer::Var(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_mutable_binding(*ident, true);
+                    self.emit_binding(BindingOpcode::InitVar, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_mutable_binding(ident, true);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                }
+            },
+            IterableLoopInitializer::Let(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_mutable_binding(*ident, false);
+                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_mutable_binding(ident, false);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
+                }
+            },
+            IterableLoopInitializer::Const(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_immutable_binding(*ident);
+                    self.emit_binding(BindingOpcode::InitConst, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_immutable_binding(ident);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
+                }
+            },
+            IterableLoopInitializer::Pattern(pattern) => {
+                for ident in pattern.idents() {
+                    self.context.create_mutable_binding(ident, true);
+                }
+                self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+            }
+        }
+
+        self.compile_stmt(for_in_loop.body(), false)?;
+
+        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+        let index_compile_environment = self.push_compile_environment(compile_environment);
+        self.patch_jump_with_target(push_env.0, num_bindings as u32);
+        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+        self.emit_opcode(Opcode::PopEnvironment);
+
+        self.emit(Opcode::Jump, &[start_address]);
+
+        self.patch_jump(exit);
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+        self.emit_opcode(Opcode::IteratorClose);
+
+        self.patch_jump(early_exit);
+        Ok(())
+    }
+
+    #[inline]
+    pub fn compile_for_of_loop(
+        &mut self,
+        for_of_loop: &ForOfLoop,
+        label: Option<Sym>,
+    ) -> JsResult<()> {
+        let init_bound_names = for_of_loop.init().bound_names();
+        if init_bound_names.is_empty() {
+            self.compile_expr(for_of_loop.iterable(), true)?;
+        } else {
+            self.context.push_compile_time_environment(false);
+            let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
+            for name in init_bound_names {
+                self.context.create_mutable_binding(name, false);
+            }
+            self.compile_expr(for_of_loop.iterable(), true)?;
+
+            let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+            let index_compile_environment = self.push_compile_environment(compile_environment);
+            self.patch_jump_with_target(push_env.0, num_bindings as u32);
+            self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+            self.emit_opcode(Opcode::PopEnvironment);
+        }
+
+        if for_of_loop.r#await() {
+            self.emit_opcode(Opcode::InitIteratorAsync);
+        } else {
+            self.emit_opcode(Opcode::InitIterator);
+        }
+
+        self.emit_opcode(Opcode::LoopStart);
+        let start_address = self.next_opcode_location();
+        self.push_loop_control_info_for_of_in_loop(label, start_address);
+        self.emit_opcode(Opcode::LoopContinue);
+
+        self.context.push_compile_time_environment(false);
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+
+        let exit = if for_of_loop.r#await() {
+            self.emit_opcode(Opcode::ForAwaitOfLoopIterate);
+            self.emit_opcode(Opcode::Await);
+            self.emit_opcode(Opcode::GeneratorNext);
+            self.emit_opcode_with_operand(Opcode::ForAwaitOfLoopNext)
+        } else {
+            self.emit_opcode_with_operand(Opcode::ForInLoopNext)
+        };
+
+        match for_of_loop.init() {
+            IterableLoopInitializer::Identifier(ref ident) => {
+                self.context.create_mutable_binding(*ident, true);
+                let binding = self.context.set_mutable_binding(*ident);
+                let index = self.get_or_insert_binding(binding);
+                self.emit(Opcode::DefInitVar, &[index]);
+            }
+            IterableLoopInitializer::Var(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_mutable_binding(*ident, true);
+                    self.emit_binding(BindingOpcode::InitVar, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_mutable_binding(ident, true);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+                }
+            },
+            IterableLoopInitializer::Let(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_mutable_binding(*ident, false);
+                    self.emit_binding(BindingOpcode::InitLet, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_mutable_binding(ident, false);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
+                }
+            },
+            IterableLoopInitializer::Const(declaration) => match declaration {
+                Binding::Identifier(ident) => {
+                    self.context.create_immutable_binding(*ident);
+                    self.emit_binding(BindingOpcode::InitConst, *ident);
+                }
+                Binding::Pattern(pattern) => {
+                    for ident in pattern.idents() {
+                        self.context.create_immutable_binding(ident);
+                    }
+                    self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
+                }
+            },
+            IterableLoopInitializer::Pattern(pattern) => {
+                for ident in pattern.idents() {
+                    self.context.create_mutable_binding(ident, true);
+                }
+                self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
+            }
+        }
+
+        self.compile_stmt(for_of_loop.body(), false)?;
+
+        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+        let index_compile_environment = self.push_compile_environment(compile_environment);
+        self.patch_jump_with_target(push_env.0, num_bindings as u32);
+        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+        self.emit_opcode(Opcode::PopEnvironment);
+
+        self.emit(Opcode::Jump, &[start_address]);
+
+        self.patch_jump(exit);
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+        self.emit_opcode(Opcode::IteratorClose);
+        Ok(())
+    }
+
+    #[inline]
+    pub fn compile_while_loop(
+        &mut self,
+        while_loop: &WhileLoop,
+        label: Option<Sym>,
+    ) -> JsResult<()> {
+        self.emit_opcode(Opcode::LoopStart);
+        let start_address = self.next_opcode_location();
+        self.push_loop_control_info(label, start_address);
+        self.emit_opcode(Opcode::LoopContinue);
+
+        self.compile_expr(while_loop.condition(), true)?;
+        let exit = self.jump_if_false();
+        self.compile_stmt(while_loop.body(), false)?;
+        self.emit(Opcode::Jump, &[start_address]);
+        self.patch_jump(exit);
+
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+        Ok(())
+    }
+
+    #[inline]
+    pub fn compile_do_while_loop(
+        &mut self,
+        do_while_loop: &DoWhileLoop,
+        label: Option<Sym>,
+    ) -> JsResult<()> {
+        self.emit_opcode(Opcode::LoopStart);
+        let initial_label = self.jump();
+
+        let start_address = self.next_opcode_location();
+        self.push_loop_control_info(label, start_address);
+        self.emit_opcode(Opcode::LoopContinue);
+
+        let condition_label_address = self.next_opcode_location();
+        self.compile_expr(do_while_loop.cond(), true)?;
+        let exit = self.jump_if_false();
+
+        self.patch_jump(initial_label);
+
+        self.compile_stmt(do_while_loop.body(), false)?;
+        self.emit(Opcode::Jump, &[condition_label_address]);
+        self.patch_jump(exit);
+
+        self.pop_loop_control_info();
+        self.emit_opcode(Opcode::LoopEnd);
+        Ok(())
+    }
+
+    #[inline]
+    pub fn compile_block(
+        &mut self,
+        block: &Block,
+        label: Option<Sym>,
+        use_expr: bool,
+    ) -> JsResult<()> {
+        if let Some(label) = label {
+            let next = self.next_opcode_location();
+            self.push_labelled_block_control_info(label, next);
+        }
+
+        self.context.push_compile_time_environment(false);
+        let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
+        self.create_decls(block.statement_list());
+        self.compile_statement_list(block.statement_list(), use_expr)?;
+        let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
+        let index_compile_environment = self.push_compile_environment(compile_environment);
+        self.patch_jump_with_target(push_env.0, num_bindings as u32);
+        self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
+
+        if label.is_some() {
+            self.pop_labelled_block_control_info();
+        }
+
+        self.emit_opcode(Opcode::PopEnvironment);
+        Ok(())
+    }
+
+    #[inline]
     pub fn compile_stmt(&mut self, node: &Statement, use_expr: bool) -> JsResult<()> {
         match node {
             Statement::Var(var) => self.compile_var_decl(var)?,
@@ -1574,314 +1933,40 @@ impl<'b> ByteCompiler<'b> {
                     }
                 }
             }
-            Statement::ForLoop(for_loop) => {
-                self.context.push_compile_time_environment(false);
-                let push_env =
-                    self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
-                if let Some(init) = for_loop.init() {
-                    match init {
-                        ForLoopInitializer::Expression(expr) => self.compile_expr(expr, false)?,
-                        ForLoopInitializer::Var(decl) => {
-                            self.create_decls_from_var_decl(decl);
-                            self.compile_var_decl(decl)?;
-                        }
-                        ForLoopInitializer::Lexical(decl) => {
-                            self.create_decls_from_lexical_decl(decl);
-                            self.compile_lexical_decl(decl)?;
-                        }
-                    }
-                }
-
-                self.emit_opcode(Opcode::LoopStart);
-                let initial_jump = self.jump();
-
-                let start_address = self.next_opcode_location();
-                self.push_loop_control_info(for_loop.label(), start_address);
-
-                self.emit_opcode(Opcode::LoopContinue);
-                if let Some(final_expr) = for_loop.final_expr() {
-                    self.compile_expr(final_expr, false)?;
-                }
-
-                self.patch_jump(initial_jump);
-
-                if let Some(condition) = for_loop.condition() {
-                    self.compile_expr(condition, true)?;
-                } else {
-                    self.emit_opcode(Opcode::PushTrue);
-                }
-                let exit = self.jump_if_false();
-
-                self.compile_stmt(for_loop.body(), false)?;
-
-                self.emit(Opcode::Jump, &[start_address]);
-
-                self.patch_jump(exit);
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::LoopEnd);
-
-                let (num_bindings, compile_environment) =
-                    self.context.pop_compile_time_environment();
-                let index_compile_environment = self.push_compile_environment(compile_environment);
-                self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-                self.emit_opcode(Opcode::PopEnvironment);
+            Statement::ForLoop(for_loop) => self.compile_for_loop(for_loop, None)?,
+            Statement::ForInLoop(for_in_loop) => self.compile_for_in_loop(for_in_loop, None)?,
+            Statement::ForOfLoop(for_of_loop) => self.compile_for_of_loop(for_of_loop, None)?,
+            Statement::WhileLoop(while_loop) => self.compile_while_loop(while_loop, None)?,
+            Statement::DoWhileLoop(do_while_loop) => {
+                self.compile_do_while_loop(do_while_loop, None)?;
             }
-            Statement::ForInLoop(for_in_loop) => {
-                let init_bound_names = for_in_loop.init().bound_names();
-                if init_bound_names.is_empty() {
-                    self.compile_expr(for_in_loop.expr(), true)?;
-                } else {
-                    self.context.push_compile_time_environment(false);
-                    let push_env =
-                        self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
-                    for name in init_bound_names {
-                        self.context.create_mutable_binding(name, false);
+            Statement::Block(block) => self.compile_block(block, None, use_expr)?,
+            Statement::Labelled(labelled) => match labelled.item() {
+                LabelledItem::Statement(stmt) => match stmt {
+                    Statement::ForLoop(for_loop) => {
+                        self.compile_for_loop(for_loop, Some(labelled.label()))?;
                     }
-                    self.compile_expr(for_in_loop.expr(), true)?;
-
-                    let (num_bindings, compile_environment) =
-                        self.context.pop_compile_time_environment();
-                    let index_compile_environment =
-                        self.push_compile_environment(compile_environment);
-                    self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                    self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-                    self.emit_opcode(Opcode::PopEnvironment);
+                    Statement::ForInLoop(for_in_loop) => {
+                        self.compile_for_in_loop(for_in_loop, Some(labelled.label()))?;
+                    }
+                    Statement::ForOfLoop(for_of_loop) => {
+                        self.compile_for_of_loop(for_of_loop, Some(labelled.label()))?;
+                    }
+                    Statement::WhileLoop(while_loop) => {
+                        self.compile_while_loop(while_loop, Some(labelled.label()))?;
+                    }
+                    Statement::DoWhileLoop(do_while_loop) => {
+                        self.compile_do_while_loop(do_while_loop, Some(labelled.label()))?;
+                    }
+                    Statement::Block(block) => {
+                        self.compile_block(block, Some(labelled.label()), use_expr)?;
+                    }
+                    stmt => self.compile_stmt(stmt, use_expr)?,
+                },
+                LabelledItem::Function(f) => {
+                    self.function(f.into(), NodeKind::Declaration, false)?;
                 }
-
-                let early_exit = self.emit_opcode_with_operand(Opcode::ForInLoopInitIterator);
-
-                self.emit_opcode(Opcode::LoopStart);
-                let start_address = self.next_opcode_location();
-                self.push_loop_control_info_for_of_in_loop(for_in_loop.label(), start_address);
-                self.emit_opcode(Opcode::LoopContinue);
-
-                self.context.push_compile_time_environment(false);
-                let push_env =
-                    self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-                let exit = self.emit_opcode_with_operand(Opcode::ForInLoopNext);
-
-                match for_in_loop.init() {
-                    IterableLoopInitializer::Identifier(ident) => {
-                        self.context.create_mutable_binding(*ident, true);
-                        let binding = self.context.set_mutable_binding(*ident);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::DefInitVar, &[index]);
-                    }
-                    IterableLoopInitializer::Var(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(*ident, true);
-                            self.emit_binding(BindingOpcode::InitVar, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_mutable_binding(ident, true);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
-                        }
-                    },
-                    IterableLoopInitializer::Let(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(*ident, false);
-                            self.emit_binding(BindingOpcode::InitLet, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_mutable_binding(ident, false);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
-                        }
-                    },
-                    IterableLoopInitializer::Const(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_immutable_binding(*ident);
-                            self.emit_binding(BindingOpcode::InitConst, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_immutable_binding(ident);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
-                        }
-                    },
-                    IterableLoopInitializer::Pattern(pattern) => {
-                        for ident in pattern.idents() {
-                            self.context.create_mutable_binding(ident, true);
-                        }
-                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
-                    }
-                }
-
-                self.compile_stmt(for_in_loop.body(), false)?;
-
-                let (num_bindings, compile_environment) =
-                    self.context.pop_compile_time_environment();
-                let index_compile_environment = self.push_compile_environment(compile_environment);
-                self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-                self.emit_opcode(Opcode::PopEnvironment);
-
-                self.emit(Opcode::Jump, &[start_address]);
-
-                self.patch_jump(exit);
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::LoopEnd);
-                self.emit_opcode(Opcode::IteratorClose);
-
-                self.patch_jump(early_exit);
-            }
-            Statement::ForOfLoop(for_of_loop) => {
-                let init_bound_names = for_of_loop.init().bound_names();
-                if init_bound_names.is_empty() {
-                    self.compile_expr(for_of_loop.iterable(), true)?;
-                } else {
-                    self.context.push_compile_time_environment(false);
-                    let push_env =
-                        self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
-                    for name in init_bound_names {
-                        self.context.create_mutable_binding(name, false);
-                    }
-                    self.compile_expr(for_of_loop.iterable(), true)?;
-
-                    let (num_bindings, compile_environment) =
-                        self.context.pop_compile_time_environment();
-                    let index_compile_environment =
-                        self.push_compile_environment(compile_environment);
-                    self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                    self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-                    self.emit_opcode(Opcode::PopEnvironment);
-                }
-
-                if for_of_loop.r#await() {
-                    self.emit_opcode(Opcode::InitIteratorAsync);
-                } else {
-                    self.emit_opcode(Opcode::InitIterator);
-                }
-
-                self.emit_opcode(Opcode::LoopStart);
-                let start_address = self.next_opcode_location();
-                self.push_loop_control_info_for_of_in_loop(for_of_loop.label(), start_address);
-                self.emit_opcode(Opcode::LoopContinue);
-
-                self.context.push_compile_time_environment(false);
-                let push_env =
-                    self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-
-                let exit = if for_of_loop.r#await() {
-                    self.emit_opcode(Opcode::ForAwaitOfLoopIterate);
-                    self.emit_opcode(Opcode::Await);
-                    self.emit_opcode(Opcode::GeneratorNext);
-                    self.emit_opcode_with_operand(Opcode::ForAwaitOfLoopNext)
-                } else {
-                    self.emit_opcode_with_operand(Opcode::ForInLoopNext)
-                };
-
-                match for_of_loop.init() {
-                    IterableLoopInitializer::Identifier(ref ident) => {
-                        self.context.create_mutable_binding(*ident, true);
-                        let binding = self.context.set_mutable_binding(*ident);
-                        let index = self.get_or_insert_binding(binding);
-                        self.emit(Opcode::DefInitVar, &[index]);
-                    }
-                    IterableLoopInitializer::Var(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(*ident, true);
-                            self.emit_binding(BindingOpcode::InitVar, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_mutable_binding(ident, true);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
-                        }
-                    },
-                    IterableLoopInitializer::Let(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_mutable_binding(*ident, false);
-                            self.emit_binding(BindingOpcode::InitLet, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_mutable_binding(ident, false);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitLet)?;
-                        }
-                    },
-                    IterableLoopInitializer::Const(declaration) => match declaration {
-                        Binding::Identifier(ident) => {
-                            self.context.create_immutable_binding(*ident);
-                            self.emit_binding(BindingOpcode::InitConst, *ident);
-                        }
-                        Binding::Pattern(pattern) => {
-                            for ident in pattern.idents() {
-                                self.context.create_immutable_binding(ident);
-                            }
-                            self.compile_declaration_pattern(pattern, BindingOpcode::InitConst)?;
-                        }
-                    },
-                    IterableLoopInitializer::Pattern(pattern) => {
-                        for ident in pattern.idents() {
-                            self.context.create_mutable_binding(ident, true);
-                        }
-                        self.compile_declaration_pattern(pattern, BindingOpcode::InitVar)?;
-                    }
-                }
-
-                self.compile_stmt(for_of_loop.body(), false)?;
-
-                let (num_bindings, compile_environment) =
-                    self.context.pop_compile_time_environment();
-                let index_compile_environment = self.push_compile_environment(compile_environment);
-                self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-                self.emit_opcode(Opcode::PopEnvironment);
-
-                self.emit(Opcode::Jump, &[start_address]);
-
-                self.patch_jump(exit);
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::LoopEnd);
-                self.emit_opcode(Opcode::IteratorClose);
-            }
-            Statement::WhileLoop(while_) => {
-                self.emit_opcode(Opcode::LoopStart);
-                let start_address = self.next_opcode_location();
-                self.push_loop_control_info(while_.label(), start_address);
-                self.emit_opcode(Opcode::LoopContinue);
-
-                self.compile_expr(while_.condition(), true)?;
-                let exit = self.jump_if_false();
-                self.compile_stmt(while_.body(), false)?;
-                self.emit(Opcode::Jump, &[start_address]);
-                self.patch_jump(exit);
-
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::LoopEnd);
-            }
-            Statement::DoWhileLoop(do_while) => {
-                self.emit_opcode(Opcode::LoopStart);
-                let initial_label = self.jump();
-
-                let start_address = self.next_opcode_location();
-                self.push_loop_control_info(do_while.label(), start_address);
-                self.emit_opcode(Opcode::LoopContinue);
-
-                let condition_label_address = self.next_opcode_location();
-                self.compile_expr(do_while.cond(), true)?;
-                let exit = self.jump_if_false();
-
-                self.patch_jump(initial_label);
-
-                self.compile_stmt(do_while.body(), false)?;
-                self.emit(Opcode::Jump, &[condition_label_address]);
-                self.patch_jump(exit);
-
-                self.pop_loop_control_info();
-                self.emit_opcode(Opcode::LoopEnd);
-            }
+            },
             Statement::Continue(node) => {
                 let next = self.next_opcode_location();
                 if let Some(info) = self
@@ -2019,29 +2104,6 @@ impl<'b> ByteCompiler<'b> {
                         .breaks
                         .push(label);
                 }
-            }
-            Statement::Block(block) => {
-                if let Some(label) = block.label() {
-                    let next = self.next_opcode_location();
-                    self.push_labelled_block_control_info(label, next);
-                }
-
-                self.context.push_compile_time_environment(false);
-                let push_env =
-                    self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-                self.create_decls(block.statement_list());
-                self.compile_statement_list(block.statement_list(), use_expr)?;
-                let (num_bindings, compile_environment) =
-                    self.context.pop_compile_time_environment();
-                let index_compile_environment = self.push_compile_environment(compile_environment);
-                self.patch_jump_with_target(push_env.0, num_bindings as u32);
-                self.patch_jump_with_target(push_env.1, index_compile_environment as u32);
-
-                if block.label().is_some() {
-                    self.pop_labelled_block_control_info();
-                }
-
-                self.emit_opcode(Opcode::PopEnvironment);
             }
             Statement::Throw(throw) => {
                 self.compile_expr(throw.expr(), true)?;

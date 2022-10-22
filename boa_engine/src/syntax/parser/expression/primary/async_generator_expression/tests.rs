@@ -33,7 +33,7 @@ fn check_async_generator_expr() {
                         Some(add.into()),
                         FormalParameterList::default(),
                         vec![StatementListItem::Statement(Statement::Return(
-                            Return::new(Some(Literal::from(1).into()), None),
+                            Return::new(Some(Literal::from(1).into())),
                         ))]
                         .into(),
                     )
@@ -75,7 +75,7 @@ fn check_nested_async_generator_expr() {
                                         Some(b.into()),
                                         FormalParameterList::default(),
                                         vec![StatementListItem::Statement(Statement::Return(
-                                            Return::new(Some(Literal::from(1).into()), None),
+                                            Return::new(Some(Literal::from(1).into())),
                                         ))]
                                         .into(),
                                     )

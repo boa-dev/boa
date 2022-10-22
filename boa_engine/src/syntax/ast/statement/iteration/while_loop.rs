@@ -1,5 +1,5 @@
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
-use boa_interner::{Interner, Sym, ToInternedString};
+use boa_interner::{Interner, ToInternedString};
 /// The `while` statement creates a loop that executes a specified statement as long as the
 /// test condition evaluates to `true`.
 ///
@@ -16,7 +16,6 @@ use boa_interner::{Interner, Sym, ToInternedString};
 pub struct WhileLoop {
     condition: Expression,
     body: Box<Statement>,
-    label: Option<Sym>,
 }
 
 impl WhileLoop {
@@ -27,44 +26,25 @@ impl WhileLoop {
     pub fn body(&self) -> &Statement {
         &self.body
     }
-
-    pub fn label(&self) -> Option<Sym> {
-        self.label
-    }
-
-    pub fn set_label(&mut self, label: Sym) {
-        self.label = Some(label);
-    }
-
     /// Creates a `WhileLoop` AST node.
     pub fn new(condition: Expression, body: Statement) -> Self {
         Self {
             condition,
             body: body.into(),
-            label: None,
         }
     }
 
     /// Converts the while loop to a string with the given indentation.
     pub(crate) fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
-        let mut buf = if let Some(label) = self.label {
-            format!("{}: ", interner.resolve_expect(label))
-        } else {
-            String::new()
-        };
-        buf.push_str(&format!(
+        format!(
             "while ({}) {}",
             self.condition().to_interned_string(interner),
             self.body().to_indented_string(interner, indentation)
-        ));
-
-        buf
+        )
     }
 
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments()
-            || self.body.contains_arguments()
-            || matches!(self.label, Some(label) if label == Sym::ARGUMENTS)
+        self.condition.contains_arguments() || self.body.contains_arguments()
     }
 
     #[inline]

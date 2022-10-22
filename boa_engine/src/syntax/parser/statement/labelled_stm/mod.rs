@@ -9,9 +9,11 @@ use crate::syntax::{
         AllowYield, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
+
+use super::declaration::FunctionDeclaration;
 
 /// Labelled Statement Parsing
 ///
@@ -47,12 +49,12 @@ impl<R> TokenParser<R> for LabelledStatement
 where
     R: Read,
 {
-    type Output = ast::Statement;
+    type Output = ast::statement::Labelled;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Label", "Parsing");
 
-        let name = LabelIdentifier::new(self.allow_yield, self.allow_await)
+        let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
             .parse(cursor, interner)?
             .sym();
 
@@ -60,9 +62,8 @@ where
 
         let strict = cursor.strict_mode();
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-        // TODO: create `ast::Statement::Labelled`
 
-        Ok(match next_token.kind() {
+        let labelled_item = match next_token.kind() {
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
@@ -72,29 +73,14 @@ where
                     next_token.span().start()
                 ))
             }
-            // TODO: temporarily disable until we implement `LabelledStatement`
-            // TokenKind::Keyword((Keyword::Function, _)) => {
-            //     Declaration::Function(FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
-            //     .parse(cursor, interner)?)
-            //     .into()
-            // }
-            _ => {
-                let mut stmt = Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?;
-                set_label_for_node(&mut stmt, name);
-                stmt
+            TokenKind::Keyword((Keyword::Function, _)) => {
+                FunctionDeclaration::new(self.allow_yield, self.allow_await, false)
+                .parse(cursor, interner)?
+                .into()
             }
-        })
-    }
-}
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?.into()
+        };
 
-fn set_label_for_node(node: &mut ast::Statement, name: Sym) {
-    match node {
-        ast::Statement::ForLoop(ref mut for_loop) => for_loop.set_label(name),
-        ast::Statement::ForOfLoop(ref mut for_of_loop) => for_of_loop.set_label(name),
-        ast::Statement::ForInLoop(ref mut for_in_loop) => for_in_loop.set_label(name),
-        ast::Statement::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
-        ast::Statement::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
-        ast::Statement::Block(ref mut block) => block.set_label(name),
-        _ => (),
+        Ok(ast::statement::Labelled::new(labelled_item, label))
     }
 }

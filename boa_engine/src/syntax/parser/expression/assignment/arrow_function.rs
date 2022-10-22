@@ -194,7 +194,6 @@ where
                     ExpressionBody::new(self.allow_in, false)
                         .parse(cursor, interner)?
                         .into(),
-                    None,
                 ),
             )
             .into()])),

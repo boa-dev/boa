@@ -149,20 +149,6 @@ impl StatementList {
             // We rely on the node to add the correct indent.
             buf.push_str(&item.to_indented_string(interner, indentation));
 
-            match item {
-                StatementListItem::Statement(
-                    Statement::Var(_)
-                    | Statement::Expression(_)
-                    | Statement::Continue(_)
-                    | Statement::Break(_)
-                    | Statement::Return(_)
-                    | Statement::Throw(_)
-                    | Statement::DoWhileLoop(_),
-                )
-                | StatementListItem::Declaration(Declaration::Lexical(_)) => buf.push(';'),
-                _ => {}
-            }
-
             buf.push('\n');
         }
         buf

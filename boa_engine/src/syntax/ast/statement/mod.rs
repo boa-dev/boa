@@ -2,6 +2,7 @@
 
 mod block;
 mod r#if;
+mod labelled;
 mod r#return;
 mod throw;
 
@@ -13,6 +14,7 @@ use self::iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer};
 pub use self::{
     block::Block,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
+    labelled::{Labelled, LabelledItem},
     r#if::If,
     r#return::Return,
     r#try::{Catch, Finally, Try},
@@ -22,6 +24,7 @@ pub use self::{
 
 use boa_interner::{Interner, ToInternedString};
 use rustc_hash::FxHashSet;
+use tap::Tap;
 
 use super::{
     declaration::{Binding, VarDeclaration},
@@ -84,8 +87,9 @@ pub enum Statement {
     Return(Return),
 
     // TODO: Possibly add `with` statements.
+    /// See [`Labelled`].
+    Labelled(Labelled),
 
-    // TODO: extract labels into a `LabelledStatement`
     /// See [`Throw`].
     Throw(Throw),
 
@@ -121,23 +125,27 @@ impl Statement {
     /// indents, use [`to_indented_string()`](Self::to_indented_string).
     pub(super) fn to_no_indent_string(&self, interner: &Interner, indentation: usize) -> String {
         match self {
-            Self::Block(block) => block.to_indented_string(interner, indentation),
+            Self::Block(block) => return block.to_indented_string(interner, indentation),
             Self::Var(var) => var.to_interned_string(interner),
-            Self::Empty => ";".to_owned(),
+            Self::Empty => return ";".to_owned(),
             Self::Expression(expr) => expr.to_indented_string(interner, indentation),
-            Self::If(if_smt) => if_smt.to_indented_string(interner, indentation),
+            Self::If(if_smt) => return if_smt.to_indented_string(interner, indentation),
             Self::DoWhileLoop(do_while) => do_while.to_indented_string(interner, indentation),
-            Self::WhileLoop(while_loop) => while_loop.to_indented_string(interner, indentation),
-            Self::ForLoop(for_loop) => for_loop.to_indented_string(interner, indentation),
-            Self::ForInLoop(for_in) => for_in.to_indented_string(interner, indentation),
-            Self::ForOfLoop(for_of) => for_of.to_indented_string(interner, indentation),
-            Self::Switch(switch) => switch.to_indented_string(interner, indentation),
+            Self::WhileLoop(while_loop) => {
+                return while_loop.to_indented_string(interner, indentation)
+            }
+            Self::ForLoop(for_loop) => return for_loop.to_indented_string(interner, indentation),
+            Self::ForInLoop(for_in) => return for_in.to_indented_string(interner, indentation),
+            Self::ForOfLoop(for_of) => return for_of.to_indented_string(interner, indentation),
+            Self::Switch(switch) => return switch.to_indented_string(interner, indentation),
             Self::Continue(cont) => cont.to_interned_string(interner),
             Self::Break(break_smt) => break_smt.to_interned_string(interner),
             Self::Return(ret) => ret.to_interned_string(interner),
+            Self::Labelled(labelled) => return labelled.to_interned_string(interner),
             Self::Throw(throw) => throw.to_interned_string(interner),
-            Self::Try(try_catch) => try_catch.to_indented_string(interner, indentation),
+            Self::Try(try_catch) => return try_catch.to_indented_string(interner, indentation),
         }
+        .tap_mut(|s| s.push(';'))
     }
 
     pub(crate) fn var_declared_names(&self, vars: &mut FxHashSet<Identifier>) {
@@ -218,6 +226,10 @@ impl Statement {
                     }
                 }
             }
+            Self::Labelled(labelled) => match labelled.item() {
+                LabelledItem::Function(_) => {}
+                LabelledItem::Statement(stmt) => stmt.var_declared_names(vars),
+            },
             _ => {}
         }
     }
@@ -245,6 +257,7 @@ impl Statement {
             Self::Continue(r#continue) => r#continue.contains_arguments(),
             Self::Break(r#break) => r#break.contains_arguments(),
             Self::Return(r#return) => r#return.contains_arguments(),
+            Self::Labelled(labelled) => labelled.contains_arguments(),
             Self::Throw(throw) => throw.contains_arguments(),
             Self::Try(r#try) => r#try.contains_arguments(),
         }
@@ -271,8 +284,20 @@ impl Statement {
             Self::ForOfLoop(forof) => forof.contains(symbol),
             Self::Switch(switch) => switch.contains(symbol),
             Self::Return(r#return) => r#return.contains(symbol),
+            Self::Labelled(labelled) => labelled.contains(symbol),
             Self::Throw(throw) => throw.contains(symbol),
             Self::Try(r#try) => r#try.contains(symbol),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn is_labelled_function(&self) -> bool {
+        match self {
+            Self::Labelled(stmt) => match stmt.item() {
+                LabelledItem::Function(_) => true,
+                LabelledItem::Statement(stmt) => stmt.is_labelled_function(),
+            },
+            _ => false,
         }
     }
 }
