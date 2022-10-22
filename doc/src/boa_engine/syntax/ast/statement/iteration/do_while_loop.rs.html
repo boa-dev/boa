@@ -69,28 +69,8 @@
 <span id="67">67</span>
 <span id="68">68</span>
 <span id="69">69</span>
-<span id="70">70</span>
-<span id="71">71</span>
-<span id="72">72</span>
-<span id="73">73</span>
-<span id="74">74</span>
-<span id="75">75</span>
-<span id="76">76</span>
-<span id="77">77</span>
-<span id="78">78</span>
-<span id="79">79</span>
-<span id="80">80</span>
-<span id="81">81</span>
-<span id="82">82</span>
-<span id="83">83</span>
-<span id="84">84</span>
-<span id="85">85</span>
-<span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">ContainsSymbol</span>};
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="doccomment">/// The `do...while` statement creates a loop that executes a specified statement until the</span>
 <span class="doccomment">/// test condition evaluates to false.</span>
@@ -109,7 +89,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">DoWhileLoop</span> {
     <span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
     <span class="ident">condition</span>: <span class="ident">Expression</span>,
-    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">DoWhileLoop</span> {
@@ -120,45 +99,26 @@
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">cond</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">condition</span>
     }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">label</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Sym</span>) {
-        <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
-    }
-
     <span class="doccomment">/// Creates a `DoWhileLoop` AST node.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">body</span>: <span class="ident">Statement</span>, <span class="ident">condition</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">body</span>: <span class="ident">body</span>.<span class="ident">into</span>(),
             <span class="ident">condition</span>,
-            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 
     <span class="doccomment">/// Converts the &quot;do while&quot; loop to a string with the given indentation.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">label</span> {
-            <span class="macro">format!</span>(<span class="string">&quot;{}: &quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">label</span>))
-        } <span class="kw">else</span> {
-            <span class="ident">String::new</span>()
-        };
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;do {} while ({})&quot;</span>,
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="self">self</span>.<span class="ident">cond</span>().<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)
-        ));
-
-        <span class="ident">buf</span>
+        )
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">label</span>, <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="kw">if</span> <span class="ident">label</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>)
+        <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>() <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">condition</span>.<span class="ident">contains_arguments</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>

@@ -86,30 +86,12 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
-<span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">expression::Expression</span>,
     <span class="ident">statement</span>::{<span class="ident">iteration::IterableLoopInitializer</span>, <span class="ident">Statement</span>},
     <span class="ident">ContainsSymbol</span>,
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
@@ -120,7 +102,6 @@
     <span class="ident">init</span>: <span class="ident">IterableLoopInitializer</span>,
     <span class="ident">iterable</span>: <span class="ident">Expression</span>,
     <span class="ident">body</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span>,
-    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
     <span class="ident">r#await</span>: <span class="ident">bool</span>,
 }
 
@@ -136,7 +117,6 @@
             <span class="ident">init</span>,
             <span class="ident">iterable</span>,
             <span class="ident">body</span>: <span class="ident">body</span>.<span class="ident">into</span>(),
-            <span class="ident">label</span>: <span class="prelude-val">None</span>,
             <span class="ident">r#await</span>,
         }
     }
@@ -153,14 +133,6 @@
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">label</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Sym</span>) {
-        <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
-    }
-
     <span class="doccomment">/// Returns true if this &quot;for...of&quot; loop is an &quot;for await...of&quot; loop.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">r#await</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">r#await</span>
@@ -168,19 +140,12 @@
 
     <span class="doccomment">/// Converts the &quot;for of&quot; loop to a string with the given indentation.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">to_indented_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>, <span class="ident">indentation</span>: <span class="ident">usize</span>) -&gt; <span class="ident">String</span> {
-        <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">label</span> {
-            <span class="macro">format!</span>(<span class="string">&quot;{}: &quot;</span>, <span class="ident">interner</span>.<span class="ident">resolve_expect</span>(<span class="ident">label</span>))
-        } <span class="kw">else</span> {
-            <span class="ident">String::new</span>()
-        };
-        <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
+        <span class="macro">format!</span>(
             <span class="string">&quot;for ({} of {}) {}&quot;</span>,
             <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="self">self</span>.<span class="ident">iterable</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="self">self</span>.<span class="ident">body</span>().<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>)
-        ));
-
-        <span class="ident">buf</span>
+        )
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -188,7 +153,6 @@
         <span class="self">self</span>.<span class="ident">init</span>.<span class="ident">contains_arguments</span>()
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">iterable</span>.<span class="ident">contains_arguments</span>()
             <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">body</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">label</span>, <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="kw">if</span> <span class="ident">label</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>)
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>

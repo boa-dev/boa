@@ -196,6 +196,15 @@
 <span id="194">194</span>
 <span id="195">195</span>
 <span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::position::Position</span>;
@@ -305,6 +314,15 @@
         <span class="ident"><span class="self">Self</span>::General</span> {
             <span class="ident">message</span>: <span class="string">&quot;In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.&quot;</span>,
             <span class="ident">position</span>
+        }
+    }
+
+    <span class="doccomment">/// Creates a &quot;general&quot; parsing error with the specific error message for a wrong function declaration with label.</span>
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">wrong_labelled_function_declaration</span>(<span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::General</span> {
+            <span class="ident">message</span>: <span class="string">&quot;Labelled functions can only be declared at top level or inside a block&quot;</span>,
+            <span class="ident">position</span>,
         }
     }
 

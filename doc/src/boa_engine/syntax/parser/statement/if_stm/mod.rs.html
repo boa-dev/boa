@@ -152,6 +152,15 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
@@ -249,7 +258,12 @@
                 .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
         };
 
-        <span class="kw">let</span> <span class="ident">else_node</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
+        <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the first Statement) is true.</span>
+        <span class="kw">if</span> <span class="ident">then_node</span>.<span class="ident">is_labelled_function</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_labelled_function_declaration</span>(<span class="ident">position</span>));
+        }
+
+        <span class="kw">let</span> <span class="ident">else_stmt</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
             <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
                 <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Else</span>, <span class="bool-val">true</span>)) =&gt; {
                     <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -262,7 +276,8 @@
 
                     <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
                     <span class="kw">let</span> <span class="ident">token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-                    <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
+                    <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>();
+                    <span class="kw">let</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">token</span>.<span class="ident">kind</span>() {
                         <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="kw">_</span>)) =&gt; {
                             <span class="comment">// FunctionDeclarations in IfStatement Statement Clauses</span>
                             <span class="comment">// https://tc39.es/ecma262/#sec-functiondeclarations-in-ifstatement-statement-clauses</span>
@@ -272,28 +287,31 @@
                                 ));
                             }
 
-                            <span class="prelude-val">Some</span>(
-                                <span class="comment">// Source text matched by this production is processed as if each matching</span>
-                                <span class="comment">// occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole</span>
-                                <span class="comment">// StatementListItem of a BlockStatement occupying that position in the source text.</span>
-                                <span class="ident">Block::from</span>(<span class="macro">vec!</span>[<span class="ident">StatementListItem::Declaration</span>(
-                                    <span class="ident">Declaration::Function</span>(
-                                        <span class="ident">FunctionDeclaration::new</span>(
-                                            <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                                            <span class="self">self</span>.<span class="ident">allow_await</span>,
-                                            <span class="bool-val">false</span>,
-                                        )
-                                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
-                                    ),
-                                )])
-                                .<span class="ident">into</span>(),
-                            )
+                            <span class="comment">// Source text matched by this production is processed as if each matching</span>
+                            <span class="comment">// occurrence of FunctionDeclaration[?Yield, ?Await, ~Default] was the sole</span>
+                            <span class="comment">// StatementListItem of a BlockStatement occupying that position in the source text.</span>
+                            <span class="ident">Block::from</span>(<span class="macro">vec!</span>[<span class="ident">StatementListItem::Declaration</span>(
+                                <span class="ident">Declaration::Function</span>(
+                                    <span class="ident">FunctionDeclaration::new</span>(
+                                        <span class="self">self</span>.<span class="ident">allow_yield</span>,
+                                        <span class="self">self</span>.<span class="ident">allow_await</span>,
+                                        <span class="bool-val">false</span>,
+                                    )
+                                    .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                                ),
+                            )])
+                            .<span class="ident">into</span>()
                         }
-                        <span class="kw">_</span> =&gt; <span class="prelude-val">Some</span>(
-                            <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
-                                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
-                        ),
+                        <span class="kw">_</span> =&gt; <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
+                            .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>,
+                    };
+
+                    <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(the second Statement) is true.</span>
+                    <span class="kw">if</span> <span class="ident">stmt</span>.<span class="ident">is_labelled_function</span>() {
+                        <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_labelled_function_declaration</span>(<span class="ident">position</span>));
                     }
+
+                    <span class="prelude-val">Some</span>(<span class="ident">stmt</span>)
                 }
                 <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
             }
@@ -301,7 +319,7 @@
             <span class="prelude-val">None</span>
         };
 
-        <span class="prelude-val">Ok</span>(<span class="ident">If::new</span>(<span class="ident">condition</span>, <span class="ident">then_node</span>, <span class="ident">else_node</span>))
+        <span class="prelude-val">Ok</span>(<span class="ident">If::new</span>(<span class="ident">condition</span>, <span class="ident">then_node</span>, <span class="ident">else_stmt</span>))
     }
 }
 </code></pre></div>

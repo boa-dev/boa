@@ -152,7 +152,9 @@
 <span id="150">150</span>
 <span id="151">151</span>
 <span id="152">152</span>
+<span id="153">153</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">tap::Tap</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression::Identifier</span>,
@@ -194,7 +196,7 @@
             <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">af</span>) =&gt; <span class="ident">af</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">ag</span>) =&gt; <span class="ident">ag</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
             <span class="ident">Declaration::Class</span>(<span class="ident">c</span>) =&gt; <span class="ident">c</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>),
-            <span class="ident">Declaration::Lexical</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident">Declaration::Lexical</span>(<span class="ident">l</span>) =&gt; <span class="ident">l</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>).<span class="ident">tap_mut</span>(<span class="op">|</span><span class="ident">s</span><span class="op">|</span> <span class="ident">s</span>.<span class="ident">push</span>(<span class="string">&#39;;&#39;</span>)),
         }
     }
 

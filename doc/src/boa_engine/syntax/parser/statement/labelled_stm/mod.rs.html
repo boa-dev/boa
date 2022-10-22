@@ -86,20 +86,6 @@
 <span id="84">84</span>
 <span id="85">85</span>
 <span id="86">86</span>
-<span id="87">87</span>
-<span id="88">88</span>
-<span id="89">89</span>
-<span id="90">90</span>
-<span id="91">91</span>
-<span id="92">92</span>
-<span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
-<span id="97">97</span>
-<span id="98">98</span>
-<span id="99">99</span>
-<span id="100">100</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{<span class="self">self</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>},
     <span class="ident">lexer::TokenKind</span>,
@@ -111,9 +97,11 @@
         <span class="ident">AllowYield</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
+<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::declaration::FunctionDeclaration</span>;
 
 <span class="doccomment">/// Labelled Statement Parsing</span>
 <span class="doccomment">///</span>
@@ -149,12 +137,12 @@
 <span class="kw">where</span>
     <span class="ident">R</span>: <span class="ident">Read</span>,
 {
-    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Statement</span>;
+    <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::statement::Labelled</span>;
 
     <span class="kw">fn</span> <span class="ident">parse</span>(<span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>) -&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident"><span class="self">Self</span>::Output</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;Label&quot;</span>, <span class="string">&quot;Parsing&quot;</span>);
 
-        <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">LabelIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+        <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="ident">LabelIdentifier::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
             .<span class="ident">sym</span>();
 
@@ -162,9 +150,8 @@
 
         <span class="kw">let</span> <span class="ident">strict</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>();
         <span class="kw">let</span> <span class="ident">next_token</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>;
-        <span class="comment">// TODO: create `ast::Statement::Labelled`</span>
 
-        <span class="prelude-val">Ok</span>(<span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
+        <span class="kw">let</span> <span class="ident">labelled_item</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">next_token</span>.<span class="ident">kind</span>() {
             <span class="comment">// Early Error: It is a Syntax Error if any strict mode source code matches this rule.</span>
             <span class="comment">// https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors</span>
             <span class="comment">// https://tc39.es/ecma262/#sec-labelled-function-declarations</span>
@@ -174,30 +161,15 @@
                     <span class="ident">next_token</span>.<span class="ident">span</span>().<span class="ident">start</span>()
                 ))
             }
-            <span class="comment">// TODO: temporarily disable until we implement `LabelledStatement`</span>
-            <span class="comment">// TokenKind::Keyword((Keyword::Function, _)) =&gt; {</span>
-            <span class="comment">//     Declaration::Function(FunctionDeclaration::new(self.allow_yield, self.allow_await, false)</span>
-            <span class="comment">//     .parse(cursor, interner)?)</span>
-            <span class="comment">//     .into()</span>
-            <span class="comment">// }</span>
-            <span class="kw">_</span> =&gt; {
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">stmt</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                <span class="ident">set_label_for_node</span>(<span class="kw-2">&amp;mut</span> <span class="ident">stmt</span>, <span class="ident">name</span>);
-                <span class="ident">stmt</span>
+            <span class="ident">TokenKind::Keyword</span>((<span class="ident">Keyword::Function</span>, <span class="kw">_</span>)) =&gt; {
+                <span class="ident">FunctionDeclaration::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="bool-val">false</span>)
+                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                .<span class="ident">into</span>()
             }
-        })
-    }
-}
+            <span class="kw">_</span> =&gt; <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">into</span>()
+        };
 
-<span class="kw">fn</span> <span class="ident">set_label_for_node</span>(<span class="ident">node</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ast::Statement</span>, <span class="ident">name</span>: <span class="ident">Sym</span>) {
-    <span class="kw">match</span> <span class="ident">node</span> {
-        <span class="ident">ast::Statement::ForLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_loop</span>) =&gt; <span class="ident">for_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="ident">ast::Statement::ForOfLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_of_loop</span>) =&gt; <span class="ident">for_of_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="ident">ast::Statement::ForInLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">for_in_loop</span>) =&gt; <span class="ident">for_in_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="ident">ast::Statement::DoWhileLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">do_while_loop</span>) =&gt; <span class="ident">do_while_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="ident">ast::Statement::WhileLoop</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">while_loop</span>) =&gt; <span class="ident">while_loop</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="ident">ast::Statement::Block</span>(<span class="kw-2">ref</span> <span class="kw-2">mut</span> <span class="ident">block</span>) =&gt; <span class="ident">block</span>.<span class="ident">set_label</span>(<span class="ident">name</span>),
-        <span class="kw">_</span> =&gt; (),
+        <span class="prelude-val">Ok</span>(<span class="ident">ast::statement::Labelled::new</span>(<span class="ident">labelled_item</span>, <span class="ident">label</span>))
     }
 }
 </code></pre></div>

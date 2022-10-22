@@ -413,6 +413,27 @@
 <span id="411">411</span>
 <span id="412">412</span>
 <span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -582,13 +603,21 @@
                 <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
+                <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;for in statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
                 <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
-                    .<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;for in statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
                     .<span class="ident">span</span>()
-                    .<span class="ident">end</span>();
+                    .<span class="ident">start</span>();
 
                 <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.</span>
+                <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">is_labelled_function</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_labelled_function_declaration</span>(<span class="ident">position</span>));
+                }
 
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
                 <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
@@ -627,13 +656,21 @@
                 <span class="kw">let</span> <span class="ident">iterable</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
+                <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;for of statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
                 <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">cursor</span>
-                    .<span class="ident">expect</span>(<span class="ident">Punctuator::CloseParen</span>, <span class="string">&quot;for of statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>
                     .<span class="ident">span</span>()
-                    .<span class="ident">end</span>();
+                    .<span class="ident">start</span>();
 
                 <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
                     .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+                <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.</span>
+                <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">is_labelled_function</span>() {
+                    <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_labelled_function_declaration</span>(<span class="ident">position</span>));
+                }
 
                 <span class="comment">// It is a Syntax Error if the BoundNames of ForDeclaration contains &quot;let&quot;.</span>
                 <span class="comment">// It is a Syntax Error if any element of the BoundNames of ForDeclaration also occurs in the VarDeclaredNames of Statement.</span>
@@ -713,6 +750,11 @@
 
         <span class="kw">let</span> <span class="ident">body</span> <span class="op">=</span> <span class="ident">Statement::new</span>(<span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>, <span class="self">self</span>.<span class="ident">allow_return</span>)
             .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+
+        <span class="comment">// Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.</span>
+        <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">is_labelled_function</span>() {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::wrong_labelled_function_declaration</span>(<span class="ident">position</span>));
+        }
 
         <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of</span>
         <span class="comment">// LexicalDeclaration also occurs in the VarDeclaredNames of Statement.</span>

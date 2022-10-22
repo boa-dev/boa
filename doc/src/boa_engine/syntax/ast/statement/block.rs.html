@@ -109,22 +109,12 @@
 <span id="107">107</span>
 <span id="108">108</span>
 <span id="109">109</span>
-<span id="110">110</span>
-<span id="111">111</span>
-<span id="112">112</span>
-<span id="113">113</span>
-<span id="114">114</span>
-<span id="115">115</span>
-<span id="116">116</span>
-<span id="117">117</span>
-<span id="118">118</span>
-<span id="119">119</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Block AST node.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">StatementList</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Statement</span>;
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="doccomment">/// A `block` statement (or compound statement in other languages) is used to group zero or</span>
 <span class="doccomment">/// more statements.</span>
@@ -146,7 +136,6 @@
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Block</span> {
     <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">serde</span>(<span class="ident">flatten</span>))]</span>
     <span class="ident">statements</span>: <span class="ident">StatementList</span>,
-    <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Block</span> {
@@ -170,20 +159,12 @@
         )
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
-        <span class="self">self</span>.<span class="ident">label</span>
-    }
-
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">set_label</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">label</span>: <span class="ident">Sym</span>) {
-        <span class="self">self</span>.<span class="ident">label</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>);
-    }
-
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">contains_arguments</span>()
-            <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="self">self</span>.<span class="ident">label</span>, <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="kw">if</span> <span class="ident">label</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>)
     }
 
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">statements</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
     }
@@ -196,7 +177,6 @@
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">list</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">statements</span>: <span class="ident">list</span>.<span class="ident">into</span>(),
-            <span class="ident">label</span>: <span class="prelude-val">None</span>,
         }
     }
 }
