@@ -105,6 +105,39 @@ fn check_numeric_operations() {
 
     let mut interner = Interner::default();
     check_parser(
+        "fn(/=/);",
+        vec![Call::new(
+            Identifier::new(interner.get_or_intern_static("fn")),
+            vec![Node::from(New::from(Call::new(
+                Identifier::new(Sym::REGEXP),
+                vec![
+                    Node::from(Const::from(interner.get_or_intern_static("="))),
+                    Node::from(Const::from(Sym::EMPTY_STRING)),
+                ],
+            )))],
+        )
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
+        "fn(a / b);",
+        vec![Call::new(
+            Identifier::new(interner.get_or_intern_static("fn")),
+            vec![BinOp::new(
+                NumOp::Div,
+                Identifier::new(interner.get_or_intern_static("a")),
+                Identifier::new(interner.get_or_intern_static("b")),
+            )
+            .into()],
+        )
+        .into()],
+        interner,
+    );
+
+    let mut interner = Interner::default();
+    check_parser(
         "a * b",
         vec![BinOp::new(
             NumOp::Mul,
