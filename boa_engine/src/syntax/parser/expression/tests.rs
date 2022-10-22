@@ -122,16 +122,19 @@ fn check_numeric_operations() {
     let mut interner = Interner::default();
     check_parser(
         "fn(/=/);",
-        vec![Call::new(
-            Identifier::new(interner.get_or_intern_static("fn")),
-            vec![Node::from(New::from(Call::new(
-                Identifier::new(Sym::REGEXP),
+        vec![Statement::Expression(Expression::from(Call::new(
+            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            vec![New::from(Call::new(
+                Identifier::new(Sym::REGEXP).into(),
                 vec![
-                    Node::from(Const::from(interner.get_or_intern_static("="))),
-                    Node::from(Const::from(Sym::EMPTY_STRING)),
-                ],
-            )))],
-        )
+                    Literal::from(interner.get_or_intern_static("=", utf16!("="))).into(),
+                    Literal::from(Sym::EMPTY_STRING).into(),
+                ]
+                .into(),
+            ))
+            .into()]
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -139,15 +142,16 @@ fn check_numeric_operations() {
     let mut interner = Interner::default();
     check_parser(
         "fn(a / b);",
-        vec![Call::new(
-            Identifier::new(interner.get_or_intern_static("fn")),
-            vec![BinOp::new(
-                NumOp::Div,
-                Identifier::new(interner.get_or_intern_static("a")),
-                Identifier::new(interner.get_or_intern_static("b")),
-            )
-            .into()],
-        )
+        vec![Statement::Expression(Expression::from(Call::new(
+            Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+            vec![Expression::from(Binary::new(
+                ArithmeticOp::Div.into(),
+                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+            ))
+            .into()]
+            .into(),
+        )))
         .into()],
         interner,
     );
@@ -155,16 +159,16 @@ fn check_numeric_operations() {
     let mut interner = Interner::default();
     check_parser(
         "fn(a) / b;",
-        vec![BinOp::new(
-            NumOp::Div,
+        vec![Statement::Expression(Expression::from(Binary::new(
+            ArithmeticOp::Div.into(),
             Call::new(
-                Identifier::new(interner.get_or_intern_static("fn")),
-                vec![Node::from(Identifier::new(
-                    interner.get_or_intern_static("a"),
-                ))],
-            ),
-            Identifier::new(interner.get_or_intern_static("b")),
-        )
+                Identifier::new(interner.get_or_intern_static("fn", utf16!("fn"))).into(),
+                vec![Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into()]
+                    .into(),
+            )
+            .into(),
+            Identifier::new(interner.get_or_intern_static("b", utf16!("b"))).into(),
+        )))
         .into()],
         interner,
     );
