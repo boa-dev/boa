@@ -84,6 +84,11 @@
 <span id="82">82</span>
 <span id="83">83</span>
 <span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Continue expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -148,11 +153,16 @@
         <span class="ident">cursor</span>.<span class="ident">expect</span>((<span class="ident">Keyword::Continue</span>, <span class="bool-val">false</span>), <span class="string">&quot;continue statement&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> <span class="ident">label</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="ident">SemicolonResult::Found</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek_semicolon</span>(<span class="ident">interner</span>)<span class="question-mark">?</span> {
-            <span class="kw">match</span> <span class="ident">tok</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">tok</span> {
+                <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) {
+                    <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+                } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::LineTerminator</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">token</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
+                        <span class="kw">if</span> <span class="ident">token</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Semicolon</span>) {
+                            <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>;
+                        }
+                    }
                 }
-                <span class="kw">_</span> =&gt; {}
             }
 
             <span class="prelude-val">None</span>
