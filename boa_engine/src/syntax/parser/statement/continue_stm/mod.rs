@@ -66,7 +66,7 @@ where
                 if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                     cursor.next(interner)?;
                 } else if token.kind() == &TokenKind::LineTerminator {
-                    if let SemicolonResult::Found(Some(token)) = cursor.peek_semicolon(interner)? {
+                    if let Some(token) = cursor.peek(0, interner)? {
                         if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
                             cursor.next(interner)?;
                         }
