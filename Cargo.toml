@@ -32,13 +32,13 @@ boa_macros = { version = "0.16.0", path = "boa_macros" }
 [workspace.metadata.workspaces]
 allow_branch = "main"
 
-# The release profile, used for `cargo build --release`.
+# The ci profile, designed to reduce size of target directory
 [profile.ci]
 inherits = "dev"
-# reduce size of ci cache
 debug = false
 incremental = false
 
+# The release profile, used for `cargo build --release`.
 [profile.release]
 # Enables "fat" LTO, for faster release builds
 lto = "fat"
