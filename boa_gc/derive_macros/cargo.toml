@@ -1,0 +1,15 @@
+[package]
+name = "boa_gc_macros"
+version = "0.16.0"
+description = "Garbage collector for the Boa JavaScript engine."
+keywords = ["javascript", "js", "garbage", "memory"]
+edition = "2021"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "1.0"
+proc-macro2 = "1.0"
+quote = "1.0"
+synstructure = "0.12"

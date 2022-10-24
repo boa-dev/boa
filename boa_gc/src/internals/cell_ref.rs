@@ -9,16 +9,18 @@ use std::mem;
 use std::ops::{Deref, DerefMut};
 use std::ptr::{self, NonNull};
 
-mod borrow_flag;
-mod cell;
-
-use borrow_flag::{BORROWFLAG_INIT, BorrowFlag};
-use cell::GcCell;
+use crate::{
+    internals::{
+        borrow_flag::{BorrowFlag, BorrowState},
+        GcCell,
+    },
+    trace::{Finalize, Trace},
+};
 
 /// A wrapper type for an immutably borrowed value from a `GcCell<T>`.
 pub struct GcCellRef<'a, T: ?Sized + 'static> {
-    flags: &'a Cell<BorrowFlag>,
-    value: &'a T,
+    pub(crate) flags: &'a Cell<BorrowFlag>,
+    pub(crate) value: &'a T,
 }
 
 impl<'a, T: ?Sized> GcCellRef<'a, T> {
@@ -151,14 +153,10 @@ impl<'a, T: ?Sized + Display> Display for GcCellRef<'a, T> {
     }
 }
 
-
-
-
-
 /// A wrapper type for a mutably borrowed value from a `GcCell<T>`.
 pub struct GcCellRefMut<'a, T: Trace + ?Sized + 'static, U: ?Sized = T> {
-    gc_cell: &'a GcCell<T>,
-    value: &'a mut U,
+    pub(crate) gc_cell: &'a GcCell<T>,
+    pub(crate) value: &'a mut U,
 }
 
 impl<'a, T: Trace + ?Sized, U: ?Sized> GcCellRefMut<'a, T, U> {
@@ -324,4 +322,3 @@ impl<T: Trace + ?Sized + Debug> Debug for GcCell<T> {
         }
     }
 }
-

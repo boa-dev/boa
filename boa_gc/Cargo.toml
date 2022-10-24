@@ -11,7 +11,7 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-gc = { version = "0.4.1", features = ["derive"] }
+boa_gc_macros = { path = "derive_macros", version = "0.16.0" }
 
 # Optional Dependencies
 measureme = { version = "10.1.0", optional = true }

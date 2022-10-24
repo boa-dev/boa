@@ -1,24 +1,24 @@
 //! A garbage collected cell implementation
-use std::alloc::Layout;
 use std::cell::{Cell, UnsafeCell};
-use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display};
 use std::hash::{Hash, Hasher};
-use std::ops::{Deref, DerefMut};
-use std::ptr::{self, NonNull};
 
-mod borrow_flag;
-
-use borrow_flag::{BORROWFLAG_INIT, BorrowFlag};
-
+use crate::{
+    internals::{
+        borrow_flag::{BorrowFlag, BorrowState, BORROWFLAG_INIT},
+        GcCellRef, GcCellRefMut,
+    },
+    trace::{Finalize, Trace},
+    GcPointer,
+};
 
 /// A mutable memory location with dynamically checked borrow rules
 /// that can be used inside of a garbage-collected pointer.
 ///
 /// This object is a `RefCell` that can be used inside of a `Gc<T>`.
 pub struct GcCell<T: ?Sized + 'static> {
-    flags: Cell<BorrowFlag>,
-    cell: UnsafeCell<T>,
+    pub(crate) flags: Cell<BorrowFlag>,
+    pub(crate) cell: UnsafeCell<T>,
 }
 
 impl<T: Trace> GcCell<T> {
@@ -222,11 +222,11 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     }
 
     #[inline]
-    fn finalize_glue(&self) {
+    fn run_finalizer(&self) {
         Finalize::finalize(self);
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => unsafe { (*self.cell.get()).finalize_glue() },
+            _ => unsafe { (*self.cell.get()).run_finalizer() },
         }
     }
 }

@@ -23,7 +23,7 @@ const UNUSED: usize = 0;
 pub(crate) const BORROWFLAG_INIT: BorrowFlag = BorrowFlag(1);
 
 impl BorrowFlag {
-    fn borrowed(self) -> BorrowState {
+    pub(crate) fn borrowed(self) -> BorrowState {
         match self.0 & !ROOT {
             UNUSED => BorrowState::Unused,
             WRITING => BorrowState::Writing,
@@ -31,24 +31,24 @@ impl BorrowFlag {
         }
     }
 
-    fn rooted(self) -> bool {
+    pub(crate) fn rooted(self) -> bool {
         match self.0 & ROOT {
             0 => false,
             _ => true,
         }
     }
 
-    fn set_writing(self) -> Self {
+    pub(crate) fn set_writing(self) -> Self {
         // Set every bit other than the root bit, which is preserved
         BorrowFlag(self.0 | WRITING)
     }
 
-    fn set_unused(self) -> Self {
+    pub(crate) fn set_unused(self) -> Self {
         // Clear every bit other than the root bit, which is preserved
         BorrowFlag(self.0 & ROOT)
     }
 
-    fn add_reading(self) -> Self {
+    pub(crate) fn add_reading(self) -> Self {
         assert!(self.borrowed() != BorrowState::Writing);
         // Add 1 to the integer starting at the second binary digit. As our
         // borrowstate is not writing, we know that overflow cannot happen, so
@@ -58,7 +58,7 @@ impl BorrowFlag {
         BorrowFlag(self.0 + 0b10)
     }
 
-    fn sub_reading(self) -> Self {
+    pub(crate) fn sub_reading(self) -> Self {
         assert!(self.borrowed() == BorrowState::Reading);
         // Subtract 1 from the integer starting at the second binary digit. As
         // our borrowstate is not writing or unused, we know that overflow or
@@ -69,7 +69,7 @@ impl BorrowFlag {
         BorrowFlag(self.0 - 0b10)
     }
 
-    fn set_rooted(self, rooted: bool) -> Self {
+    pub(crate) fn set_rooted(self, rooted: bool) -> Self {
         // Preserve the non-root bits
         BorrowFlag((self.0 & !ROOT) | (rooted as usize))
     }
