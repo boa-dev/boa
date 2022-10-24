@@ -24,22 +24,25 @@ pub struct Conditional {
 }
 
 impl Conditional {
+    /// Gets the condition of the `Conditional` expression.
     #[inline]
-    pub fn cond(&self) -> &Expression {
+    pub fn condition(&self) -> &Expression {
         &self.condition
     }
 
+    /// Gets the expression returned if `condition` is truthy.
     #[inline]
     pub fn if_true(&self) -> &Expression {
         &self.if_true
     }
 
+    /// Gets the expression returned if `condition` is falsy.
     #[inline]
     pub fn if_false(&self) -> &Expression {
         &self.if_false
     }
 
-    /// Creates a `ConditionalOp` AST Expression.
+    /// Creates a `Conditional` AST Expression.
     #[inline]
     pub fn new(condition: Expression, if_true: Expression, if_false: Expression) -> Self {
         Self {
@@ -69,7 +72,7 @@ impl ToInternedString for Conditional {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{} ? {} : {}",
-            self.cond().to_interned_string(interner),
+            self.condition().to_interned_string(interner),
             self.if_true().to_interned_string(interner),
             self.if_false().to_interned_string(interner)
         )

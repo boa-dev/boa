@@ -4,8 +4,8 @@ use crate::syntax::{
         expression::{
             literal::Literal,
             operator::{
-                assign::op::AssignOp,
-                binary::op::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
+                assign::AssignOp,
+                binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
                 Assign, Binary,
             },
             Call, Identifier, New,

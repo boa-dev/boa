@@ -22,6 +22,7 @@ pub struct Throw {
 }
 
 impl Throw {
+    /// Gets the expression value of this `Throw` statement.
     pub fn expr(&self) -> &Expression {
         &self.expression
     }

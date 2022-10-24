@@ -5,14 +5,12 @@ use crate::syntax::{
             access::PropertyAccess,
             literal::Literal,
             operator::{
-                assign::op::AssignOp, binary::op::RelationalOp, unary::op::UnaryOp, Assign, Binary,
-                Unary,
+                assign::AssignOp, binary::RelationalOp, unary::UnaryOp, Assign, Binary, Unary,
             },
             Call, Identifier,
         },
         statement::{Block, Break, DoWhileLoop, WhileLoop},
-        statement_list::StatementListItem,
-        Expression, Statement,
+        Expression, Statement, StatementListItem,
     },
     parser::tests::{check_invalid, check_parser},
 };

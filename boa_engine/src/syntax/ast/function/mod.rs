@@ -1,3 +1,25 @@
+//! Functions and classes nodes, as defined by the [spec].
+//!
+//! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of
+//! statements (the *body* of the function). Javascript functions fall in several categories:
+//!
+//! - [`Function`]s.
+//! - [`ArrowFunction`]s.
+//! - [`Generator`]s.
+//! - [`AsyncFunction`]s.
+//! - [`AsyncGenerator`]s.
+//!
+//! All of them can be declared in either [declaration][decl] form or [expression][expr] form,
+//! except from `ArrowFunction`s, which can only be declared in expression form.
+//!
+//! This module also contains [`Class`]es, which are templates for creating objects. Classes
+//! can also be declared in either declaration or expression form.
+//!
+//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes
+//! [func]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
+//! [decl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
+//! [expr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
+
 mod arrow_function;
 mod async_function;
 mod async_generator;
@@ -20,22 +42,16 @@ use boa_interner::{Interner, ToIndentedString};
 use super::expression::{Expression, Identifier};
 use super::{ContainsSymbol, Declaration};
 
-/// The `function` expression defines a function with the specified parameters.
-///
-/// A function created with a function expression is a `Function` object and has all the
-/// properties, methods and behavior of `Function`.
-///
-/// A function can also be created using a declaration (see function expression).
+/// A function definition, as defined by the [spec].
 ///
 /// By default, functions return `undefined`. To return any other value, the function must have
 /// a return statement that specifies the value to return.
 ///
 /// More information:
-///  - [ECMAScript reference][spec]
 ///  - [MDN documentation][mdn]
 ///
-/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function
+/// [spec]: https://tc39.es/ecma262/#sec-function-definitions
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Function {

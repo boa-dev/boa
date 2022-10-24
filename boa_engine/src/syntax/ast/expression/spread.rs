@@ -24,29 +24,32 @@ use super::Expression;
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
-    val: Box<Expression>,
+    expression: Box<Expression>,
 }
 
 impl Spread {
+    /// Gets the expression to be expanded by the spread operator.
     #[inline]
     pub fn val(&self) -> &Expression {
-        &self.val
+        &self.expression
     }
 
     /// Creates a `Spread` AST Expression.
     #[inline]
     pub fn new(val: Expression) -> Self {
-        Self { val: Box::new(val) }
+        Self {
+            expression: Box::new(val),
+        }
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.val.contains_arguments()
+        self.expression.contains_arguments()
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.val.contains(symbol)
+        self.expression.contains(symbol)
     }
 }
 

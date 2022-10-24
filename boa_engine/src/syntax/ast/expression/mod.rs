@@ -1,9 +1,20 @@
+//! The [`Expression`] Parse Node, as defined by the [spec].
+//!
+//! Javascript expressions include:
+//! - [Primary][primary] expressions (`this`, function expressions, literals).
+//! - [Left hand side][lhs] expressions (accessors, `new` operator, `super`).
+//! - [operator] expressions.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-Expression
+//! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions
+//! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
+
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 use self::{
     access::{PrivatePropertyAccess, PropertyAccess, SuperPropertyAccess},
     literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
-    operator::{conditional::Conditional, Assign, Binary, Unary},
+    operator::{Assign, Binary, Conditional, Unary},
 };
 
 use super::{
@@ -32,6 +43,9 @@ pub mod access;
 pub mod literal;
 pub mod operator;
 
+/// The `Expression` Parse Node.
+///
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expression {

@@ -1,3 +1,27 @@
+//! A pattern binding or assignment node.
+//!
+//! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]
+//! nodes, each of which is used in different situations and have slightly different grammars.
+//! For example, a variable declaration combined with a destructuring expression is a `BindingPattern`:
+//!
+//! ```Javascript
+//! const obj = { a: 1, b: 2 };
+//! const { a, b } = obj; // BindingPattern
+//! ```
+//!
+//! On the other hand, a simple destructuring expression with already declared variables is called
+//! an `AssignmentPattern`:
+//!
+//! ```Javascript
+//! let a = 1;
+//! let b = 3;
+//! [a, b] = [b, a]; // AssignmentPattern
+//! ```
+//!
+//! [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
+//! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
+//! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
+
 use boa_interner::{Interner, ToInternedString};
 
 use super::{
@@ -9,41 +33,38 @@ use super::{
     ContainsSymbol, Expression,
 };
 
-/// `Pattern` represents an object or array pattern.
+/// An object or array pattern binding or assignment.
 ///
-/// This enum mostly wraps the functionality of the specific binding pattern types.
-///
-/// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `BindingPattern`][spec1]
-///
-/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
-    Object(PatternObject),
-    Array(PatternArray),
+    /// An object pattern (`let {a, b, c} = object`).
+    Object(ObjectPattern),
+    /// An array pattern (`[a, b, c] = array`).
+    Array(ArrayPattern),
 }
 
-impl From<PatternObject> for Pattern {
-    fn from(obj: PatternObject) -> Self {
+impl From<ObjectPattern> for Pattern {
+    fn from(obj: ObjectPattern) -> Self {
         Pattern::Object(obj)
     }
 }
 
-impl From<PatternArray> for Pattern {
-    fn from(obj: PatternArray) -> Self {
+impl From<ArrayPattern> for Pattern {
+    fn from(obj: ArrayPattern) -> Self {
         Pattern::Array(obj)
     }
 }
 
-impl From<Vec<PatternObjectElement>> for Pattern {
-    fn from(elements: Vec<PatternObjectElement>) -> Self {
-        PatternObject::new(elements.into()).into()
+impl From<Vec<ObjectPatternElement>> for Pattern {
+    fn from(elements: Vec<ObjectPatternElement>) -> Self {
+        ObjectPattern::new(elements.into()).into()
     }
 }
-impl From<Vec<PatternArrayElement>> for Pattern {
-    fn from(elements: Vec<PatternArrayElement>) -> Self {
-        PatternArray::new(elements.into()).into()
+impl From<Vec<ArrayPatternElement>> for Pattern {
+    fn from(elements: Vec<ArrayPatternElement>) -> Self {
+        ArrayPattern::new(elements.into()).into()
     }
 }
 
@@ -97,25 +118,26 @@ impl Pattern {
     }
 }
 
-/// `DeclarationPatternObject` represents an object binding pattern.
+/// An object binding or assignment pattern.
 ///
-/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+/// Corresponds to the [`ObjectBindingPattern`][spec1] and the [`ObjectAssignmentPattern`][spec2]
+/// Parse Nodes.
 ///
-/// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
+/// For more information on what is a valid binding in an object pattern, see [`ObjectPatternElement`].
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
+/// [spec2]: https://tc39.es/ecma262/#prod-ObjectAssignmentPattern
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct PatternObject(Box<[PatternObjectElement]>);
+pub struct ObjectPattern(Box<[ObjectPatternElement]>);
 
-impl From<Vec<PatternObjectElement>> for PatternObject {
-    fn from(elements: Vec<PatternObjectElement>) -> Self {
+impl From<Vec<ObjectPatternElement>> for ObjectPattern {
+    fn from(elements: Vec<ObjectPatternElement>) -> Self {
         Self(elements.into())
     }
 }
 
-impl ToInternedString for PatternObject {
+impl ToInternedString for ObjectPattern {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "{".to_owned();
         for (i, binding) in self.0.iter().enumerate() {
@@ -133,45 +155,33 @@ impl ToInternedString for PatternObject {
     }
 }
 
-impl PatternObject {
-    /// Create a new object binding pattern.
+impl ObjectPattern {
+    /// Creates a new object binding pattern.
     #[inline]
-    pub(in crate::syntax) fn new(bindings: Box<[PatternObjectElement]>) -> Self {
+    pub(in crate::syntax) fn new(bindings: Box<[ObjectPatternElement]>) -> Self {
         Self(bindings)
     }
 
     /// Gets the bindings for the object binding pattern.
     #[inline]
-    pub(crate) fn bindings(&self) -> &[PatternObjectElement] {
+    pub(crate) fn bindings(&self) -> &[ObjectPatternElement] {
         &self.0
     }
 
-    // Returns if the object binding pattern has a rest element.
+    // Returns true if the object binding pattern has a rest element.
     #[inline]
     pub(crate) fn has_rest(&self) -> bool {
         matches!(
             self.0.last(),
-            Some(PatternObjectElement::RestProperty { .. })
+            Some(ObjectPatternElement::RestProperty { .. })
         )
     }
 
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(PatternObjectElement::contains_arguments)
+        self.0.iter().any(ObjectPatternElement::contains_arguments)
     }
 
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.0.iter().any(|e| e.contains(symbol))
@@ -182,36 +192,37 @@ impl PatternObject {
     pub(crate) fn idents(&self) -> Vec<Identifier> {
         self.0
             .iter()
-            .flat_map(PatternObjectElement::idents)
+            .flat_map(ObjectPatternElement::idents)
             .collect()
     }
 }
 
-/// `DeclarationPatternArray` represents an array binding pattern.
+/// An array binding or assignment pattern.
 ///
-/// This struct holds a list of bindings, and an optional initializer for the binding pattern.
+/// Corresponds to the [`ArrayBindingPattern`][spec1] and the [`ArrayAssignmentPattern`][spec2]
+/// Parse Nodes.
 ///
-/// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
+/// For more information on what is a valid binding in an array pattern, see [`ArrayPatternElement`].
 ///
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+/// [spec2]: https://tc39.es/ecma262/#prod-ArrayAssignmentPattern
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct PatternArray(Box<[PatternArrayElement]>);
+pub struct ArrayPattern(Box<[ArrayPatternElement]>);
 
-impl From<Vec<PatternArrayElement>> for PatternArray {
-    fn from(elements: Vec<PatternArrayElement>) -> Self {
+impl From<Vec<ArrayPatternElement>> for ArrayPattern {
+    fn from(elements: Vec<ArrayPatternElement>) -> Self {
         Self(elements.into())
     }
 }
 
-impl ToInternedString for PatternArray {
+impl ToInternedString for ArrayPattern {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = "[".to_owned();
         for (i, binding) in self.0.iter().enumerate() {
             if i == self.0.len() - 1 {
                 match binding {
-                    PatternArrayElement::Elision => {
+                    ArrayPatternElement::Elision => {
                         buf.push_str(&format!("{}, ", binding.to_interned_string(interner)));
                     }
                     _ => buf.push_str(&format!("{} ", binding.to_interned_string(interner))),
@@ -225,36 +236,24 @@ impl ToInternedString for PatternArray {
     }
 }
 
-impl PatternArray {
-    /// Create a new array binding pattern.
+impl ArrayPattern {
+    /// Creates a new array binding pattern.
     #[inline]
-    pub(in crate::syntax) fn new(bindings: Box<[PatternArrayElement]>) -> Self {
+    pub(in crate::syntax) fn new(bindings: Box<[ArrayPatternElement]>) -> Self {
         Self(bindings)
     }
 
     /// Gets the bindings for the array binding pattern.
     #[inline]
-    pub(crate) fn bindings(&self) -> &[PatternArrayElement] {
+    pub(crate) fn bindings(&self) -> &[ArrayPatternElement] {
         &self.0
     }
 
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(PatternArrayElement::contains_arguments)
+        self.0.iter().any(ArrayPatternElement::contains_arguments)
     }
 
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         self.0.iter().any(|e| e.contains(symbol))
     }
@@ -264,23 +263,20 @@ impl PatternArray {
     pub(crate) fn idents(&self) -> Vec<Identifier> {
         self.0
             .iter()
-            .flat_map(PatternArrayElement::idents)
+            .flat_map(ArrayPatternElement::idents)
             .collect()
     }
 }
 
-/// `BindingPatternTypeObject` represents the different types of bindings that an object binding pattern may contain.
+/// The different types of bindings that an [`ObjectPattern`] may contain.
 ///
-/// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]
+/// Corresponds to the [`BindingProperty`][spec1] and the [`AssignmentProperty`][spec2] nodes.
 ///
-/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
+/// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
+/// [spec2]: https://tc39.es/ecma262/#prod-AssignmentProperty
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatternObjectElement {
-    /// Empty represents an empty object pattern e.g. `{ }`.
-    Empty,
-
+pub enum ObjectPatternElement {
     /// SingleName represents one of the following properties:
     ///
     /// - `SingleName` with an identifier and an optional default initializer.
@@ -293,8 +289,11 @@ pub enum PatternObjectElement {
     /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
     /// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty
     SingleName {
+        /// The identifier name of the property to be destructured.
         name: PropertyName,
+        /// The variable name where the property value will be stored.
         ident: Identifier,
+        /// An optional default value for the variable, in case the property doesn't exist.
         default_init: Option<Expression>,
     },
 
@@ -308,7 +307,9 @@ pub enum PatternObjectElement {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty
     RestProperty {
+        /// The variable name where the unassigned properties will be stored.
         ident: Identifier,
+        /// A list of the excluded property keys that were already destructured.
         excluded_keys: Vec<Identifier>,
     },
 
@@ -322,8 +323,11 @@ pub enum PatternObjectElement {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentProperty
     AssignmentPropertyAccess {
+        /// The identifier name of the property to be destructured.
         name: PropertyName,
+        /// The property access where the property value will be destructured.
         access: PropertyAccess,
+        /// An optional default value for the variable, in case the property doesn't exist.
         default_init: Option<Expression>,
     },
 
@@ -337,7 +341,9 @@ pub enum PatternObjectElement {
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentRestProperty
     AssignmentRestPropertyAccess {
+        /// The property access where the unassigned properties will be stored.
         access: PropertyAccess,
+        /// A list of the excluded property keys that were already destructured.
         excluded_keys: Vec<Identifier>,
     },
 
@@ -351,23 +357,20 @@ pub enum PatternObjectElement {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
     Pattern {
+        /// The identifier name of the property to be destructured.
         name: PropertyName,
+        /// The pattern where the property value will be destructured.
         pattern: Pattern,
+        /// An optional default value for the variable, in case the property doesn't exist.
         default_init: Option<Expression>,
     },
 }
 
-impl PatternObjectElement {
-    /// Returns true if the element contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
+impl ObjectPatternElement {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            PatternObjectElement::SingleName {
+            ObjectPatternElement::SingleName {
                 name, default_init, ..
             } => {
                 if let PropertyName::Computed(node) = name {
@@ -381,12 +384,12 @@ impl PatternObjectElement {
                     }
                 }
             }
-            PatternObjectElement::AssignmentRestPropertyAccess { access, .. } => {
+            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
                 if access.target().contains_arguments() {
                     return true;
                 }
             }
-            PatternObjectElement::Pattern {
+            ObjectPatternElement::Pattern {
                 name,
                 pattern,
                 default_init,
@@ -410,12 +413,6 @@ impl PatternObjectElement {
         false
     }
 
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             Self::SingleName {
@@ -469,10 +466,9 @@ impl PatternObjectElement {
     }
 }
 
-impl ToInternedString for PatternObjectElement {
+impl ToInternedString for ObjectPatternElement {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Empty => String::new(),
             Self::SingleName {
                 ident,
                 name,
@@ -567,26 +563,15 @@ impl ToInternedString for PatternObjectElement {
     }
 }
 
-/// `PatternTypeArray` represents the different types of bindings that an array binding pattern may contain.
+/// The different types of bindings that an array binding pattern may contain.
 ///
-/// More information:
-///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]
+/// Corresponds to the [`BindingElement`][spec1] and the [`AssignmentElement`][spec2] nodes.
 ///
-/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
+/// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
+/// [spec2]: https://tc39.es/ecma262/#prod-AssignmentElement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum PatternArrayElement {
-    /// Empty represents an empty array pattern e.g. `[ ]`.
-    ///
-    /// This may occur because the `Elision` and `BindingRestElement` in the first type of
-    /// array binding pattern are both optional.
-    ///
-    /// More information:
-    ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]
-    ///
-    /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
-    Empty,
-
+pub enum ArrayPatternElement {
     /// Elision represents the elision of an item in the array binding pattern.
     ///
     /// An `Elision` may occur at multiple points in the pattern and may be multiple elisions.
@@ -605,7 +590,9 @@ pub enum PatternArrayElement {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding
     SingleName {
+        /// The variable name where the index element will be stored.
         ident: Identifier,
+        /// An optional default value for the variable, in case the index element doesn't exist.
         default_init: Option<Expression>,
     },
 
@@ -618,7 +605,10 @@ pub enum PatternArrayElement {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
-    PropertyAccess { access: PropertyAccess },
+    PropertyAccess {
+        /// The property access where the index element will be stored.
+        access: PropertyAccess,
+    },
 
     /// Pattern represents a `Pattern` in an `Element` of an array pattern.
     ///
@@ -629,7 +619,9 @@ pub enum PatternArrayElement {
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
     Pattern {
+        /// The pattern where the index element will be stored.
         pattern: Pattern,
+        /// An optional default value for the pattern, in case the index element doesn't exist.
         default_init: Option<Expression>,
     },
 
@@ -639,7 +631,10 @@ pub enum PatternArrayElement {
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
-    SingleNameRest { ident: Identifier },
+    SingleNameRest {
+        /// The variable where the unassigned index elements will be stored.
+        ident: Identifier,
+    },
 
     /// PropertyAccess represents a rest (spread operator) with a property accessor.
     ///
@@ -650,7 +645,10 @@ pub enum PatternArrayElement {
     ///  - [ECMAScript reference][spec]
     ///
     /// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
-    PropertyAccessRest { access: PropertyAccess },
+    PropertyAccessRest {
+        /// The property access where the unassigned index elements will be stored.
+        access: PropertyAccess,
+    },
 
     /// PatternRest represents a `Pattern` in a `RestElement` of an array pattern.
     ///
@@ -658,10 +656,13 @@ pub enum PatternArrayElement {
     ///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]
     ///
     /// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement
-    PatternRest { pattern: Pattern },
+    PatternRest {
+        /// The pattern where the unassigned index elements will be stored.
+        pattern: Pattern,
+    },
 }
 
-impl PatternArrayElement {
+impl ArrayPatternElement {
     /// Returns true if the node contains a identifier reference named 'arguments'.
     ///
     /// More information:
@@ -777,10 +778,9 @@ impl PatternArrayElement {
     }
 }
 
-impl ToInternedString for PatternArrayElement {
+impl ToInternedString for ArrayPatternElement {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
-            Self::Empty => String::new(),
             Self::Elision => " ".to_owned(),
             Self::SingleName {
                 ident,

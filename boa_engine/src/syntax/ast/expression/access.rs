@@ -1,10 +1,27 @@
+//! Property access expressions, as defined by the [spec].
+//!
+//! [Property access expressions][access] provide two ways to access properties of an object: *dot notation*
+//! and *bracket notation*.
+//! - *Dot notation* is mostly used when the name of the property is static, and a valid Javascript
+//! identifier e.g. `obj.prop`, `arr.$val`.
+//! - *Bracket notation* is used when the name of the property is either variable, not a valid
+//! identifier or a symbol e.g. `arr[var]`, `arr[5]`, `arr[Symbol.iterator]`.
+//!
+//! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
+//! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
+
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
 
+/// A property access field.
+///
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum PropertyAccessField {
+    /// A constant property field, such as `x.prop`.
     Const(Sym),
+    /// An expression property field, such as `x["val"]`.
     Expr(Box<Expression>),
 }
 
@@ -38,28 +55,9 @@ impl From<Expression> for PropertyAccessField {
     }
 }
 
-/// This property accessor provides access to an object's properties by using the
-/// [bracket notation][mdn].
+/// A property access expression.
 ///
-/// In the `object[property_name]` syntax, the `property_name` is just a string or
-/// [Symbol][symbol]. So, it can be any string, including '1foo', '!bar!', or even ' ' (a
-/// space).
-///
-/// One can think of an object as an associative array (a.k.a. map, dictionary, hash, lookup
-/// table). The keys in this array are the names of the object's properties.
-///
-/// It's typical when speaking of an object's properties to make a distinction between
-/// properties and methods. However, the property/method distinction is little more than a
-/// convention. A method is simply a property that can be called (for example, if it has a
-/// reference to a Function instance as its value).
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-property-accessors
-/// [symbol]: https://developer.mozilla.org/en-US/docs/Glossary/Symbol
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_accessors#Bracket_notation
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct PropertyAccess {
@@ -68,11 +66,13 @@ pub struct PropertyAccess {
 }
 
 impl PropertyAccess {
+    /// Gets the target object of the property access.
     #[inline]
     pub fn target(&self) -> &Expression {
         &self.target
     }
 
+    /// Gets the accessed field of the target object.
     #[inline]
     pub fn field(&self) -> &PropertyAccessField {
         &self.field
@@ -121,14 +121,12 @@ impl From<PropertyAccess> for Expression {
     }
 }
 
-/// This property accessor provides access to an class object's private fields.
+/// An access expression to a class object's [private fields][mdn].
 ///
-/// This expression can be described as ` MemberExpression.PrivateIdentifier`
-/// Example: `this.#a`
+/// Private property accesses differ slightly from plain property accesses, since the accessed
+/// property must be prefixed by `#`, and the bracket notation is not allowed e.g. `this.#a`.
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
+/// This expression corresponds to the [`MemberExpression.PrivateIdentifier`][spec] production.
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-MemberExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes/Private_class_fields
@@ -190,11 +188,10 @@ impl From<PrivatePropertyAccess> for Expression {
     }
 }
 
-/// The `super` keyword is used to access fields on an object's parent.
+/// A property access of an object's parent, as defined by the [spec].
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
+/// A `SuperPropertyAccess` is much like a regular [`PropertyAccess`], but where its `target` object
+/// is not a regular object, but a reference to the parent object of the current object ([`super`][mdn]).
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-SuperProperty
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/super

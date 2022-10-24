@@ -25,6 +25,7 @@ impl Continue {
         Self { label }
     }
 
+    /// Gets the label of this `Continue` statement.
     pub fn label(&self) -> Option<Sym> {
         self.label
     }

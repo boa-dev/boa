@@ -1,3 +1,19 @@
+//! Assignment expression nodes, as defined by the [spec].
+//!
+//! An [assignment operator][mdn] assigns a value to its left operand based on the value of its right
+//! operand. Almost any [`LeftHandSideExpression`][lhs] Parse Node can be the target of a simple
+//! assignment expression (`=`). However, the compound assignment operations such as `%=` or `??=`
+//! only allow ["simple"][simple] left hand side expressions as an assignment target.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
+//! [lhs]: https://tc39.es/ecma262/#prod-LeftHandSideExpression
+//! [simple]: https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype
+
+mod op;
+
+pub use op::*;
+
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use crate::syntax::{
@@ -9,38 +25,27 @@ use crate::syntax::{
             Expression,
         },
         pattern::{
-            Pattern, PatternArray, PatternArrayElement, PatternObject, PatternObjectElement,
+            ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
         },
         property::{PropertyDefinition, PropertyName},
         ContainsSymbol,
     },
     parser::RESERVED_IDENTIFIERS_STRICT,
 };
-
-pub mod op;
-
-/// An assignment operator assigns a value to its left operand based on the value of its right
-/// operand.
+/// An assignment operator expression.
 ///
-/// Assignment operator (`=`), assigns the value of its right operand to its left operand.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Assign {
-    op: op::AssignOp,
+    op: AssignOp,
     lhs: Box<AssignTarget>,
     rhs: Box<Expression>,
 }
 
 impl Assign {
     /// Creates an `Assign` AST Expression.
-    pub(in crate::syntax) fn new(op: op::AssignOp, lhs: AssignTarget, rhs: Expression) -> Self {
+    pub(in crate::syntax) fn new(op: AssignOp, lhs: AssignTarget, rhs: Expression) -> Self {
         Self {
             op,
             lhs: Box::new(lhs),
@@ -50,7 +55,7 @@ impl Assign {
 
     /// Gets the operator of the assignment operation.
     #[inline]
-    pub fn op(&self) -> op::AssignOp {
+    pub fn op(&self) -> AssignOp {
         self.op
     }
 
@@ -108,24 +113,27 @@ impl From<Assign> for Expression {
     }
 }
 
-/// This type represents all valid left-had-side expressions of an assignment operator.
+/// The valid left-hand-side expressions of an assignment operator. Also called
+/// [`LeftHandSideExpression`][spec] in the spec.
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression
+/// [spec]: hhttps://tc39.es/ecma262/#prod-LeftHandSideExpression
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum AssignTarget {
+    /// A simple identifier, such as `a`.
     Identifier(Identifier),
+    /// A property access, such as `a.prop`.
     Property(PropertyAccess),
+    /// A private property access, such as `a.#priv`.
     PrivateProperty(PrivatePropertyAccess),
+    /// A `super` property access, such as `super.prop`.
     SuperProperty(SuperPropertyAccess),
+    /// A pattern assignment target, such as `{a, b, ...c}`.
     Pattern(Pattern),
 }
 
 impl AssignTarget {
-    /// Converts the left-hand-side Expression of an assignment expression into it's an [`AssignTarget`].
+    /// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].
     /// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.
     pub(crate) fn from_expression(
         expression: &Expression,
@@ -176,7 +184,7 @@ impl From<Identifier> for AssignTarget {
 pub(crate) fn object_decl_to_declaration_pattern(
     object: &ObjectLiteral,
     strict: bool,
-) -> Option<PatternObject> {
+) -> Option<ObjectPattern> {
     let mut bindings = Vec::new();
     let mut excluded_keys = Vec::new();
     for (i, property) in object.properties().iter().enumerate() {
@@ -192,7 +200,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 }
 
                 excluded_keys.push(*ident);
-                bindings.push(PatternObjectElement::SingleName {
+                bindings.push(ObjectPatternElement::SingleName {
                     ident: *ident,
                     name: PropertyName::Literal(ident.sym()),
                     default_init: None,
@@ -208,14 +216,14 @@ pub(crate) fn object_decl_to_declaration_pattern(
                     }
 
                     excluded_keys.push(*ident);
-                    bindings.push(PatternObjectElement::SingleName {
+                    bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
                         name: PropertyName::Literal(*name),
                         default_init: None,
                     });
                 }
                 (PropertyName::Literal(name), Expression::Identifier(ident)) => {
-                    bindings.push(PatternObjectElement::SingleName {
+                    bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
                         name: PropertyName::Literal(*name),
                         default_init: None,
@@ -223,7 +231,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 }
                 (PropertyName::Literal(name), Expression::ObjectLiteral(object)) => {
                     let pattern = object_decl_to_declaration_pattern(object, strict)?.into();
-                    bindings.push(PatternObjectElement::Pattern {
+                    bindings.push(ObjectPatternElement::Pattern {
                         name: PropertyName::Literal(*name),
                         pattern,
                         default_init: None,
@@ -231,7 +239,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                 }
                 (PropertyName::Literal(name), Expression::ArrayLiteral(array)) => {
                     let pattern = array_decl_to_declaration_pattern(array, strict)?.into();
-                    bindings.push(PatternObjectElement::Pattern {
+                    bindings.push(ObjectPatternElement::Pattern {
                         name: PropertyName::Literal(*name),
                         pattern,
                         default_init: None,
@@ -248,13 +256,13 @@ pub(crate) fn object_decl_to_declaration_pattern(
                                     return None;
                                 }
                                 excluded_keys.push(*ident);
-                                bindings.push(PatternObjectElement::SingleName {
+                                bindings.push(ObjectPatternElement::SingleName {
                                     ident: *ident,
                                     name: PropertyName::Literal(name),
                                     default_init: Some(assign.rhs().clone()),
                                 });
                             } else {
-                                bindings.push(PatternObjectElement::SingleName {
+                                bindings.push(ObjectPatternElement::SingleName {
                                     ident: *ident,
                                     name: PropertyName::Literal(name),
                                     default_init: Some(assign.rhs().clone()),
@@ -265,14 +273,14 @@ pub(crate) fn object_decl_to_declaration_pattern(
                         }
                     }
                     AssignTarget::Pattern(pattern) => {
-                        bindings.push(PatternObjectElement::Pattern {
+                        bindings.push(ObjectPatternElement::Pattern {
                             name: name.clone(),
                             pattern: pattern.clone(),
                             default_init: Some(assign.rhs().clone()),
                         });
                     }
                     AssignTarget::Property(field) => {
-                        bindings.push(PatternObjectElement::AssignmentPropertyAccess {
+                        bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
                             name: name.clone(),
                             access: field.clone(),
                             default_init: Some(assign.rhs().clone()),
@@ -283,14 +291,14 @@ pub(crate) fn object_decl_to_declaration_pattern(
                     }
                 },
                 (_, Expression::PropertyAccess(field)) => {
-                    bindings.push(PatternObjectElement::AssignmentPropertyAccess {
+                    bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
                         name: name.clone(),
                         access: field.clone(),
                         default_init: None,
                     });
                 }
                 (PropertyName::Computed(name), Expression::Identifier(ident)) => {
-                    bindings.push(PatternObjectElement::SingleName {
+                    bindings.push(ObjectPatternElement::SingleName {
                         ident: *ident,
                         name: PropertyName::Computed(name.clone()),
                         default_init: None,
@@ -301,13 +309,13 @@ pub(crate) fn object_decl_to_declaration_pattern(
             PropertyDefinition::SpreadObject(spread) => {
                 match spread {
                     Expression::Identifier(ident) => {
-                        bindings.push(PatternObjectElement::RestProperty {
+                        bindings.push(ObjectPatternElement::RestProperty {
                             ident: *ident,
                             excluded_keys: excluded_keys.clone(),
                         });
                     }
                     Expression::PropertyAccess(access) => {
-                        bindings.push(PatternObjectElement::AssignmentRestPropertyAccess {
+                        bindings.push(ObjectPatternElement::AssignmentRestPropertyAccess {
                             access: access.clone(),
                             excluded_keys: excluded_keys.clone(),
                         });
@@ -324,7 +332,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
                     return None;
                 }
 
-                bindings.push(PatternObjectElement::SingleName {
+                bindings.push(ObjectPatternElement::SingleName {
                     ident: *ident,
                     name: PropertyName::Literal(ident.sym()),
                     default_init: Some(expr.clone()),
@@ -332,17 +340,14 @@ pub(crate) fn object_decl_to_declaration_pattern(
             }
         }
     }
-    if object.properties().is_empty() {
-        bindings.push(PatternObjectElement::Empty);
-    }
-    Some(PatternObject::new(bindings.into()))
+    Some(ObjectPattern::new(bindings.into()))
 }
 
 /// Converts an array declaration into an array declaration pattern.
 pub(crate) fn array_decl_to_declaration_pattern(
     array: &ArrayLiteral,
     strict: bool,
-) -> Option<PatternArray> {
+) -> Option<ArrayPattern> {
     if array.has_trailing_comma_spread() {
         return None;
     }
@@ -352,7 +357,7 @@ pub(crate) fn array_decl_to_declaration_pattern(
         let expr = if let Some(expr) = expr {
             expr
         } else {
-            bindings.push(PatternArrayElement::Elision);
+            bindings.push(ArrayPatternElement::Elision);
             continue;
         };
         match expr {
@@ -361,7 +366,7 @@ pub(crate) fn array_decl_to_declaration_pattern(
                     return None;
                 }
 
-                bindings.push(PatternArrayElement::SingleName {
+                bindings.push(ArrayPatternElement::SingleName {
                     ident: *ident,
                     default_init: None,
                 });
@@ -369,20 +374,20 @@ pub(crate) fn array_decl_to_declaration_pattern(
             Expression::Spread(spread) => {
                 match spread.val() {
                     Expression::Identifier(ident) => {
-                        bindings.push(PatternArrayElement::SingleNameRest { ident: *ident });
+                        bindings.push(ArrayPatternElement::SingleNameRest { ident: *ident });
                     }
                     Expression::PropertyAccess(access) => {
-                        bindings.push(PatternArrayElement::PropertyAccessRest {
+                        bindings.push(ArrayPatternElement::PropertyAccessRest {
                             access: access.clone(),
                         });
                     }
                     Expression::ArrayLiteral(array) => {
                         let pattern = array_decl_to_declaration_pattern(array, strict)?.into();
-                        bindings.push(PatternArrayElement::PatternRest { pattern });
+                        bindings.push(ArrayPatternElement::PatternRest { pattern });
                     }
                     Expression::ObjectLiteral(object) => {
                         let pattern = object_decl_to_declaration_pattern(object, strict)?.into();
-                        bindings.push(PatternArrayElement::PatternRest { pattern });
+                        bindings.push(ArrayPatternElement::PatternRest { pattern });
                     }
                     _ => return None,
                 }
@@ -392,25 +397,25 @@ pub(crate) fn array_decl_to_declaration_pattern(
             }
             Expression::Assign(assign) => match assign.lhs() {
                 AssignTarget::Identifier(ident) => {
-                    bindings.push(PatternArrayElement::SingleName {
+                    bindings.push(ArrayPatternElement::SingleName {
                         ident: *ident,
                         default_init: Some(assign.rhs().clone()),
                     });
                 }
                 AssignTarget::Property(access) => {
-                    bindings.push(PatternArrayElement::PropertyAccess {
+                    bindings.push(ArrayPatternElement::PropertyAccess {
                         access: access.clone(),
                     });
                 }
                 AssignTarget::Pattern(pattern) => match pattern {
                     Pattern::Object(pattern) => {
-                        bindings.push(PatternArrayElement::Pattern {
+                        bindings.push(ArrayPatternElement::Pattern {
                             pattern: Pattern::Object(pattern.clone()),
                             default_init: Some(assign.rhs().clone()),
                         });
                     }
                     Pattern::Array(pattern) => {
-                        bindings.push(PatternArrayElement::Pattern {
+                        bindings.push(ArrayPatternElement::Pattern {
                             pattern: Pattern::Array(pattern.clone()),
                             default_init: Some(assign.rhs().clone()),
                         });
@@ -420,25 +425,25 @@ pub(crate) fn array_decl_to_declaration_pattern(
             },
             Expression::ArrayLiteral(array) => {
                 let pattern = array_decl_to_declaration_pattern(array, strict)?.into();
-                bindings.push(PatternArrayElement::Pattern {
+                bindings.push(ArrayPatternElement::Pattern {
                     pattern,
                     default_init: None,
                 });
             }
             Expression::ObjectLiteral(object) => {
                 let pattern = object_decl_to_declaration_pattern(object, strict)?.into();
-                bindings.push(PatternArrayElement::Pattern {
+                bindings.push(ArrayPatternElement::Pattern {
                     pattern,
                     default_init: None,
                 });
             }
             Expression::PropertyAccess(access) => {
-                bindings.push(PatternArrayElement::PropertyAccess {
+                bindings.push(ArrayPatternElement::PropertyAccess {
                     access: access.clone(),
                 });
             }
             _ => return None,
         }
     }
-    Some(PatternArray::new(bindings.into()))
+    Some(ArrayPattern::new(bindings.into()))
 }

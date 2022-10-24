@@ -1,7 +1,9 @@
+//! Error handling statements
+
 use crate::syntax::ast::{
     declaration::Binding,
     statement::{Block, Statement},
-    statement_list::StatementListItem,
+    StatementListItem,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 

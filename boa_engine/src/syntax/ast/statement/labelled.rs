@@ -2,7 +2,7 @@ use super::Statement;
 use crate::syntax::ast::{function::Function, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
-/// The set of AST nodes that can be preceded by a label, as defined by the [spec].
+/// The set of Parse Nodes that can be preceded by a label, as defined by the [spec].
 ///
 /// Semantically, a [`Labelled`] statement should only wrap [`Statement`] nodes. However,
 /// old ECMAScript implementations supported [labelled function declarations][label-fn] as an extension
@@ -14,7 +14,9 @@ use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum LabelledItem {
+    /// A labelled [`Function`].
     Function(Function),
+    /// A labelled [`Statement`].
     Statement(Statement),
 }
 

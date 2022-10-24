@@ -4,7 +4,7 @@ use crate::{
         ast::{
             declaration::{LexicalDeclaration, Variable},
             expression::{
-                operator::{binary::op::ArithmeticOp, Binary},
+                operator::{binary::ArithmeticOp, Binary},
                 Identifier,
             },
             function::{
@@ -12,8 +12,7 @@ use crate::{
                 Function,
             },
             statement::Return,
-            statement_list::StatementListItem,
-            Declaration, Expression, Statement, StatementList,
+            Declaration, Expression, Statement, StatementList, StatementListItem,
         },
         parser::tests::check_parser,
         Parser,

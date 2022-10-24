@@ -11,10 +11,7 @@ use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
 use rustc_hash::FxHashSet;
 
-/// `FormalParameterList` is a list of `FormalParameter`s that describes the parameters of a function.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
+/// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
@@ -279,7 +276,7 @@ impl FormalParameter {
         }
     }
 
-    /// Get the variable of the formal parameter
+    /// Gets the variable of the formal parameter
     pub fn variable(&self) -> &Variable {
         &self.variable
     }
@@ -289,11 +286,12 @@ impl FormalParameter {
         self.variable.init()
     }
 
-    /// Gets wether the parameter is a rest parameter.
+    /// Returns `true` if the parameter is a rest parameter.
     pub fn is_rest_param(&self) -> bool {
         self.is_rest_param
     }
 
+    /// Returns `true` if the parameter is a simple [`Identifier`].
     pub fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
     }

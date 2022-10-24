@@ -16,7 +16,7 @@ use crate::syntax::{
     ast::{
         self,
         expression::{
-            operator::assign::{op::AssignOp, Assign, AssignTarget},
+            operator::assign::{Assign, AssignOp, AssignTarget},
             Identifier,
         },
         Expression, Keyword, Punctuator,

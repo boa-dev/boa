@@ -11,7 +11,7 @@ use super::ParseError;
 use crate::syntax::{
     ast::{
         expression::{
-            operator::{binary::op::ArithmeticOp, Binary},
+            operator::{binary::ArithmeticOp, Binary},
             Identifier,
         },
         Expression, Keyword, Punctuator,

@@ -8,9 +8,9 @@ use crate::{
             access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField},
             literal::{self, TemplateElement},
             operator::{
-                assign::{op::AssignOp, AssignTarget},
-                binary::op::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-                unary::op::UnaryOp,
+                assign::{AssignOp, AssignTarget},
+                binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+                unary::UnaryOp,
             },
             Call, Identifier, New,
         },
@@ -18,10 +18,10 @@ use crate::{
             ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
             Function, Generator,
         },
-        pattern::{Pattern, PatternArrayElement, PatternObjectElement},
+        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
         property::{MethodDefinition, PropertyDefinition, PropertyName},
         statement::{
-            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+            iteration::{ForLoopInitializer, IterableLoopInitializer},
             Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
         },
         Declaration, Expression, Statement, StatementList, StatementListItem,
@@ -1221,7 +1221,7 @@ impl<'b> ByteCompiler<'b> {
                 use_expr,
             )?,
             Expression::Conditional(op) => {
-                self.compile_expr(op.cond(), true)?;
+                self.compile_expr(op.condition(), true)?;
                 let jelse = self.jump_if_false();
                 self.compile_expr(op.if_true(), true)?;
                 let exit = self.jump();
@@ -2453,14 +2453,12 @@ impl<'b> ByteCompiler<'b> {
                 let rest_exits = pattern.has_rest();
 
                 for binding in pattern.bindings() {
-                    use PatternObjectElement::{
-                        AssignmentPropertyAccess, AssignmentRestPropertyAccess, Empty, Pattern,
+                    use ObjectPatternElement::{
+                        AssignmentPropertyAccess, AssignmentRestPropertyAccess, Pattern,
                         RestProperty, SingleName,
                     };
 
                     match binding {
-                        // ObjectBindingPattern : { }
-                        Empty => {}
                         //  SingleNameBinding : BindingIdentifier Initializer[opt]
                         SingleName {
                             ident,
@@ -2605,14 +2603,12 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::InitIterator);
 
                 for binding in pattern.bindings().iter() {
-                    use PatternArrayElement::{
-                        Elision, Empty, Pattern, PatternRest, PropertyAccess, PropertyAccessRest,
+                    use ArrayPatternElement::{
+                        Elision, Pattern, PatternRest, PropertyAccess, PropertyAccessRest,
                         SingleName, SingleNameRest,
                     };
 
                     match binding {
-                        // ArrayBindingPattern : [ ]
-                        Empty => {}
                         // ArrayBindingPattern : [ Elision ]
                         Elision => {
                             self.emit_opcode(Opcode::IteratorNext);

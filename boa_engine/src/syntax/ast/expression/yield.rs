@@ -20,11 +20,13 @@ pub struct Yield {
 }
 
 impl Yield {
+    /// Gets the expression of this `Yield` statement.
     #[inline]
     pub fn expr(&self) -> Option<&Expression> {
         self.expr.as_ref().map(Box::as_ref)
     }
 
+    /// Returns `true` if this `Yield` statement delegates to another generator or iterable object.
     #[inline]
     pub fn delegate(&self) -> bool {
         self.delegate

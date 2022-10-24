@@ -37,12 +37,12 @@ use crate::syntax::{
                     array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
                     AssignTarget,
                 },
-                binary::op::BinaryOp,
+                binary::BinaryOp,
             },
             Call, Identifier, New,
         },
         function::{FormalParameter, FormalParameterList},
-        pattern::{Pattern, PatternArrayElement, PatternObjectElement},
+        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
         Keyword, Punctuator, Span,
     },
     lexer::{token::Numeric, InputElement, Token, TokenKind},
@@ -319,8 +319,8 @@ where
         #[derive(Debug)]
         enum InnerExpression {
             Expression(ast::Expression),
-            SpreadObject(Vec<PatternObjectElement>),
-            SpreadArray(Vec<PatternArrayElement>),
+            SpreadObject(Vec<ObjectPatternElement>),
+            SpreadArray(Vec<ArrayPatternElement>),
             SpreadBinding(Identifier),
         }
 

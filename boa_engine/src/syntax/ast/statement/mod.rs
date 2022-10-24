@@ -1,16 +1,23 @@
-//! This module implements the `Statement` node.
+//! The [`Statement`] Parse Node, as defined by the [spec].
+//!
+//! Javascript [statements] are mainly composed of control flow operations, such as [`If`],
+//! [`WhileLoop`], and [`Break`]. However, it also contains statements such as [`VarDeclaration`],
+//! [`Block`] or [`Expression`] which are not strictly used for control flow.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-Statement
+//! [statements]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements
 
 mod block;
 mod r#if;
 mod labelled;
 mod r#return;
+mod switch;
 mod throw;
+mod r#try;
 
 pub mod iteration;
-pub mod switch;
-pub mod r#try;
 
-use self::iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer};
+use self::iteration::{ForLoopInitializer, IterableLoopInitializer};
 pub use self::{
     block::Block,
     iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, WhileLoop},
@@ -32,6 +39,9 @@ use super::{
     ContainsSymbol,
 };
 
+/// The `Statement` Parse Node.
+///
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Statement {
@@ -41,9 +51,9 @@ pub enum Statement {
     /// See [`VarDeclaration`]
     Var(VarDeclaration),
 
-    /// A empty node.
+    /// An empty statement.
     ///
-    /// Empty statement do nothing, just return undefined.
+    /// Empty statements do nothing, just return undefined.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

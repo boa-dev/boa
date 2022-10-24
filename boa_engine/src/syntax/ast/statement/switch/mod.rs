@@ -8,6 +8,14 @@ use super::ContainsSymbol;
 #[cfg(test)]
 mod tests;
 
+/// A case clause inside a [`Switch`] statement, as defined by the [spec].
+///
+/// Even though every [`Case`] body is a [`StatementList`], it doesn't create a new lexical
+/// environment. This means any variable declared in a `Case` will be considered as part of the
+/// lexical environment of the parent [`Switch`] block.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-CaseClause
+/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Case {

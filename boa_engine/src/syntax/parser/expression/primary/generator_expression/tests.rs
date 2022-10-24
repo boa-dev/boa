@@ -3,8 +3,7 @@ use crate::syntax::{
         declaration::{LexicalDeclaration, Variable},
         expression::{literal::Literal, Yield},
         function::{FormalParameterList, Generator},
-        statement_list::StatementListItem,
-        Declaration, Expression, Statement,
+        Declaration, Expression, Statement, StatementListItem,
     },
     parser::tests::check_parser,
 };

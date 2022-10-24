@@ -5,6 +5,13 @@ use crate::syntax::ast::{
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
+/// A `for...in` loop statement, as defined by the [spec].
+///
+/// [`for...in`][forin] statements loop over all enumerable string properties of an object, including
+/// inherited properties.
+///
+/// [forin]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
+/// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {

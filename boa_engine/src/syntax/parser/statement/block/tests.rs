@@ -7,13 +7,12 @@ use crate::syntax::{
         declaration::{VarDeclaration, Variable},
         expression::{
             literal::Literal,
-            operator::{assign::op::AssignOp, unary::op::UnaryOp, Assign, Unary},
+            operator::{assign::AssignOp, unary::UnaryOp, Assign, Unary},
             Call, Identifier,
         },
         function::{FormalParameterList, Function},
         statement::{Block, Return},
-        statement_list::StatementListItem,
-        Declaration, Expression, Statement,
+        Declaration, Expression, Statement, StatementListItem,
     },
     parser::tests::check_parser,
 };

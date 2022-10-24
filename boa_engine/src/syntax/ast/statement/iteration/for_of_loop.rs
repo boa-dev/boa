@@ -5,10 +5,19 @@ use crate::syntax::ast::{
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
-
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+/// A `for...of` loop statement, as defined by the [spec].
+///
+/// [`for..of`][forof] statements loop over a sequence of values obtained from an iterable object (Array,
+/// String, Map, generators).
+///
+/// This type combines `for..of` and [`for await...of`][forawait] statements in a single structure,
+/// since `for await...of` is essentially the same statement but with async iterable objects
+/// as the source of iteration.
+///
+/// [forof]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of
+/// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
+/// [forawait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForOfLoop {
     init: IterableLoopInitializer,

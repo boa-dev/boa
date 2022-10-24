@@ -1,3 +1,19 @@
+//! The [`Declaration`] Parse Node, as defined by the [spec].
+//!
+//! Javascript declarations include:
+//! - [Lexical][lex] declarations (`let`, `const`).
+//! - [Function][fun] declarations (`function`, `async function`).
+//! - [Class][class] declarations.
+//!
+//! See [*Difference between statements and declarations*][diff] for an explanation on why `Declaration`s
+//! and `Statement`s are distinct nodes.
+//!
+//! [spec]: https://tc39.es/ecma262/#prod-Declaration
+//! [lex]: https://tc39.es/ecma262/#prod-LexicalDeclaration
+//! [fun]: https://tc39.es/ecma262/#prod-HoistableDeclaration
+//! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration
+//! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations
+
 use super::{
     expression::Identifier,
     function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
@@ -10,6 +26,9 @@ mod variable;
 
 pub use variable::*;
 
+/// The `Declaration` Parse Node.
+///
+/// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Declaration {

@@ -4,11 +4,10 @@ use crate::syntax::{
     ast::{
         declaration::{VarDeclaration, Variable},
         expression::{literal::Literal, Identifier},
-        pattern::{Pattern, PatternArrayElement, PatternObjectElement},
+        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
         property::PropertyName,
         statement::{Block, Catch, Finally, Try},
-        statement_list::StatementListItem,
-        Statement,
+        Statement, StatementListItem,
     },
     parser::tests::{check_invalid, check_parser},
 };
@@ -190,12 +189,12 @@ fn check_inline_with_binding_pattern_object() {
             Some(Catch::new(
                 Some(
                     Pattern::from(vec![
-                        PatternObjectElement::SingleName {
+                        ObjectPatternElement::SingleName {
                             ident: a.into(),
                             name: PropertyName::Literal(a),
                             default_init: None,
                         },
-                        PatternObjectElement::SingleName {
+                        ObjectPatternElement::SingleName {
                             ident: interner.get_or_intern_static("c", utf16!("c")).into(),
                             name: PropertyName::Literal(
                                 interner.get_or_intern_static("b", utf16!("b")),
@@ -224,11 +223,11 @@ fn check_inline_with_binding_pattern_array() {
             Some(Catch::new(
                 Some(
                     Pattern::from(vec![
-                        PatternArrayElement::SingleName {
+                        ArrayPatternElement::SingleName {
                             ident: interner.get_or_intern_static("a", utf16!("a")).into(),
                             default_init: None,
                         },
-                        PatternArrayElement::SingleName {
+                        ArrayPatternElement::SingleName {
                             ident: interner.get_or_intern_static("b", utf16!("b")).into(),
                             default_init: None,
                         },

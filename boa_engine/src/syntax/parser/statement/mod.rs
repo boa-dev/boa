@@ -43,7 +43,7 @@ use super::{
 use crate::syntax::{
     ast::{
         self,
-        pattern::{PatternArray, PatternArrayElement, PatternObjectElement},
+        pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
         Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, Token, TokenKind},
@@ -51,7 +51,7 @@ use crate::syntax::{
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;
-use std::{io::Read, vec};
+use std::io::Read;
 
 pub(in crate::syntax::parser) use declaration::ClassTail;
 pub(in crate::syntax) use declaration::PrivateElement;
@@ -394,7 +394,7 @@ impl<R> TokenParser<R> for ObjectBindingPattern
 where
     R: Read,
 {
-    type Output = Vec<PatternObjectElement>;
+    type Output = Vec<ObjectPatternElement>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ObjectBindingPattern", "Parsing");
@@ -407,7 +407,6 @@ where
 
         let mut patterns = Vec::new();
         let mut property_names = Vec::new();
-        let mut rest_property_name = None;
 
         loop {
             let next_token_is_colon = *cursor
@@ -423,7 +422,7 @@ where
                         "object binding pattern",
                         interner,
                     )?;
-                    break;
+                    return Ok(patterns);
                 }
                 TokenKind::Punctuator(Punctuator::Spread) => {
                     cursor.expect(
@@ -431,16 +430,18 @@ where
                         "object binding pattern",
                         interner,
                     )?;
-                    rest_property_name = Some(
-                        BindingIdentifier::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?,
-                    );
+                    let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                        .parse(cursor, interner)?;
                     cursor.expect(
                         TokenKind::Punctuator(Punctuator::CloseBlock),
                         "object binding pattern",
                         interner,
                     )?;
-                    break;
+                    patterns.push(ObjectPatternElement::RestProperty {
+                        ident,
+                        excluded_keys: property_names,
+                    });
+                    return Ok(patterns);
                 }
                 _ => {
                     let is_property_name = match token.kind() {
@@ -479,14 +480,14 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(PatternObjectElement::Pattern {
+                                                patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
                                                     pattern: bindings.into(),
                                                     default_init: Some(init),
                                                 });
                                             }
                                             _ => {
-                                                patterns.push(PatternObjectElement::Pattern {
+                                                patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
                                                     pattern: bindings.into(),
                                                     default_init: None,
@@ -512,17 +513,17 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(PatternObjectElement::Pattern {
+                                                patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: PatternArray::new(bindings.into())
+                                                    pattern: ArrayPattern::new(bindings.into())
                                                         .into(),
                                                     default_init: Some(init),
                                                 });
                                             }
                                             _ => {
-                                                patterns.push(PatternObjectElement::Pattern {
+                                                patterns.push(ObjectPatternElement::Pattern {
                                                     name: property_name,
-                                                    pattern: PatternArray::new(bindings.into())
+                                                    pattern: ArrayPattern::new(bindings.into())
                                                         .into(),
                                                     default_init: None,
                                                 });
@@ -547,14 +548,14 @@ where
                                                     self.allow_await,
                                                 )
                                                 .parse(cursor, interner)?;
-                                                patterns.push(PatternObjectElement::SingleName {
+                                                patterns.push(ObjectPatternElement::SingleName {
                                                     ident,
                                                     name: property_name,
                                                     default_init: Some(init),
                                                 });
                                             }
                                             _ => {
-                                                patterns.push(PatternObjectElement::SingleName {
+                                                patterns.push(ObjectPatternElement::SingleName {
                                                     ident,
                                                     name: property_name,
                                                     default_init: None,
@@ -578,14 +579,14 @@ where
                                     self.allow_await,
                                 )
                                 .parse(cursor, interner)?;
-                                patterns.push(PatternObjectElement::SingleName {
+                                patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
                                     name: name.sym().into(),
                                     default_init: Some(init),
                                 });
                             }
                             _ => {
-                                patterns.push(PatternObjectElement::SingleName {
+                                patterns.push(ObjectPatternElement::SingleName {
                                     ident: name,
                                     name: name.sym().into(),
                                     default_init: None,
@@ -605,25 +606,6 @@ where
                     )?;
                 }
             }
-        }
-
-        if let Some(rest) = rest_property_name {
-            if patterns.is_empty() {
-                Ok(vec![PatternObjectElement::RestProperty {
-                    ident: rest,
-                    excluded_keys: property_names,
-                }])
-            } else {
-                patterns.push(PatternObjectElement::RestProperty {
-                    ident: rest,
-                    excluded_keys: property_names,
-                });
-                Ok(patterns)
-            }
-        } else if patterns.is_empty() {
-            Ok(vec![PatternObjectElement::Empty])
-        } else {
-            Ok(patterns)
         }
     }
 }
@@ -658,7 +640,7 @@ impl<R> TokenParser<R> for ArrayBindingPattern
 where
     R: Read,
 {
-    type Output = Vec<PatternArrayElement>;
+    type Output = Vec<ArrayPatternElement>;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ArrayBindingPattern", "Parsing");
@@ -684,7 +666,7 @@ where
                         "array binding pattern",
                         interner,
                     )?;
-                    break;
+                    return Ok(patterns);
                 }
                 TokenKind::Punctuator(Punctuator::Comma) => {
                     cursor.expect(
@@ -693,7 +675,7 @@ where
                         interner,
                     )?;
                     if last_elision_or_first {
-                        patterns.push(PatternArrayElement::Elision);
+                        patterns.push(ArrayPatternElement::Elision);
                     } else {
                         last_elision_or_first = true;
                     }
@@ -715,14 +697,14 @@ where
                             let bindings =
                                 ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::PatternRest {
+                            patterns.push(ArrayPatternElement::PatternRest {
                                 pattern: bindings.into(),
                             });
                         }
                         TokenKind::Punctuator(Punctuator::OpenBracket) => {
                             let bindings = Self::new(self.allow_yield, self.allow_await)
                                 .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::PatternRest {
+                            patterns.push(ArrayPatternElement::PatternRest {
                                 pattern: bindings.into(),
                             });
                         }
@@ -730,7 +712,7 @@ where
                             let rest_property_name =
                                 BindingIdentifier::new(self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::SingleNameRest {
+                            patterns.push(ArrayPatternElement::SingleNameRest {
                                 ident: rest_property_name,
                             });
                         }
@@ -741,7 +723,8 @@ where
                         "array binding pattern",
                         interner,
                     )?;
-                    break;
+
+                    return Ok(patterns);
                 }
                 TokenKind::Punctuator(Punctuator::OpenBlock) => {
                     last_elision_or_first = false;
@@ -758,13 +741,13 @@ where
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::Pattern {
+                            patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
                                 default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(PatternArrayElement::Pattern {
+                            patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
                                 default_init: None,
                             });
@@ -786,13 +769,13 @@ where
                             let default_init =
                                 Initializer::new(None, true, self.allow_yield, self.allow_await)
                                     .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::Pattern {
+                            patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
                                 default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(PatternArrayElement::Pattern {
+                            patterns.push(ArrayPatternElement::Pattern {
                                 pattern: bindings.into(),
                                 default_init: None,
                             });
@@ -817,13 +800,13 @@ where
                                 self.allow_await,
                             )
                             .parse(cursor, interner)?;
-                            patterns.push(PatternArrayElement::SingleName {
+                            patterns.push(ArrayPatternElement::SingleName {
                                 ident,
                                 default_init: Some(default_init),
                             });
                         }
                         _ => {
-                            patterns.push(PatternArrayElement::SingleName {
+                            patterns.push(ArrayPatternElement::SingleName {
                                 ident,
                                 default_init: None,
                             });
@@ -840,14 +823,12 @@ where
                         interner,
                     )?;
                     if last_elision_or_first {
-                        patterns.push(PatternArrayElement::Elision);
+                        patterns.push(ArrayPatternElement::Elision);
                     } else {
                         last_elision_or_first = true;
                     }
                 }
             }
         }
-
-        Ok(patterns)
     }
 }

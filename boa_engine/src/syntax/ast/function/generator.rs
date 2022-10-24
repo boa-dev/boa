@@ -8,14 +8,15 @@ use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
-/// The `function*` keyword can be used to define a generator function inside an expression.
+/// A generator definition, as defined by the [spec].
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
+/// [Generators][mdn] are "resumable functions", which can be suspended during execution and
+/// resumed at any later time. The main feature of a generator are `yield` expressions, which
+/// specifies the value returned when a generator is suspended, and the point from which
+/// the execution will resume.
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-GeneratorExpression
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function*
+/// [spec]: https://tc39.es/ecma262/#sec-generator-function-definitions
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Generator {
