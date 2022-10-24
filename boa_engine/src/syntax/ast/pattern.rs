@@ -150,6 +150,9 @@ impl ToInternedString for ObjectPattern {
 
             buf.push_str(&str);
         }
+        if self.0.is_empty() {
+            buf.push(' ');
+        }
         buf.push('}');
         buf
     }
