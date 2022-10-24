@@ -50,10 +50,10 @@ jobs:
       # this order is faster according to rust-analyzer
       - name: Build
         run: cargo build --all-targets --quiet --profile ci
-      - name: Install latest nextest release
+      - name: Install latest nextest
         uses: taiki-e/install-action@nextest
-      - name: Test with latest nextest release
-        run: cargo nextest run -- --profile ci --cargo-profile ci --features intl
+      - name: Test with nextest
+        run: cargo nextest run --profile ci --cargo-profile ci --features intl
 
   misc:
     name: Misc (clippy, rustfmt, docs, examples)
