@@ -67,10 +67,10 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      - name: Lint (clippy)
-        run: cargo clippy --all-features --all-targets
       - name: Lint (rustfmt)
         run: cargo fmt --all --check
+      - name: Lint (clippy)
+        run: cargo clippy --all-features --all-targets
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
       - run: cd boa_examples
