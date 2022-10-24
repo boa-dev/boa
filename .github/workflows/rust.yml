@@ -9,7 +9,7 @@ on:
 name: Continuous integration
 
 jobs:
-  linux:
+  coverage:
     name: Calculate coverage information
     runs-on: ubuntu-latest
     steps:
@@ -20,6 +20,7 @@ jobs:
           override: true
           profile: minimal
       - uses: Swatinem/rust-cache@v2
+        key: tarpaulin
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
@@ -65,6 +66,7 @@ jobs:
           profile: minimal
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
+        key: misc
       - name: Lint (rustfmt)
         run: cargo fmt --all --check
       - name: Lint (clippy)
