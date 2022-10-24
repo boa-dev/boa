@@ -10,7 +10,7 @@ name: Continuous integration
 
 jobs:
   linux:
-    name: Build and Test on Linux
+    name: Calculate coverage information
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,8 +20,6 @@ jobs:
           override: true
           profile: minimal
       - uses: Swatinem/rust-cache@v2
-      - name: Build
-        run: cargo build --all-targets --quiet
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
@@ -56,7 +54,7 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
 
   misc:
-    name: Misc (clippy, rustfmt, docs, examples)
+    name: Misc (rustfmt, clippy, docs, check build, examples)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -73,6 +71,8 @@ jobs:
         run: cargo clippy --all-features --all-targets
       - name: Generate documentation
         run: cargo doc -v --document-private-items --all-features
+      - name: Build
+        run: cargo build --all-targets --quiet --profile ci
       - run: cd boa_examples
       - name: Build examples
         run: cargo build --quiet --profile ci
