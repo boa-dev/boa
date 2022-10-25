@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `SetIterator` Builtin JavaScript Object
 use std::ops::Deref;
 
 use boa_gc::{Finalize, Trace};
@@ -9,7 +10,7 @@ use crate::{
     Context, JsResult, JsValue,
 };
 
-/// JavaScript `SetIterator` rust object
+/// `JsSetIterator` provides a wrapper for Boa's implementation of the JavaScript `SetIterator` object
 #[derive(Debug, Clone, Finalize, Trace)]
 pub struct JsSetIterator {
     inner: JsObject,

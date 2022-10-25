@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `Proxy` Builtin JavaScript Object
 use boa_gc::{Finalize, Trace};
 
 use crate::{

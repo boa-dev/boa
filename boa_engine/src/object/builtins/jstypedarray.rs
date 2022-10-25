@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `TypedArray` Builtin JavaScript Object
 use crate::{
     builtins::typed_array::TypedArray,
     error::JsNativeError,

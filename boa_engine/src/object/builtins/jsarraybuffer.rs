@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `ArrayBuffer` Builtin JavaScript Object
 use crate::{
     builtins::array_buffer::ArrayBuffer,
     context::intrinsics::StandardConstructors,
@@ -10,7 +11,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// JavaScript `ArrayBuffer` rust object.
+/// `JsArrayBuffer` provides a wrapper for Boa's implementation of the JavaScript `ArrayBuffer` object
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsArrayBuffer {
     inner: JsObject,
