@@ -13,5 +13,8 @@ rust-version.workspace = true
 [dependencies]
 boa_engine = { workspace = true }
 
+[build-dependencies]
+cbindgen = "0.24.3"
+
 [lib]
 crate-type = ["cdylib"]
