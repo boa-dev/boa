@@ -45,8 +45,8 @@ impl Default for GcConfig {
         Self {
             threshold: 100,
             growth_ratio: 0.7,
-            stack_base_capacity: 255,
-            stack_soft_cap: 255,
+            stack_base_capacity: 32,
+            stack_soft_cap: 32,
         }
     }
 }

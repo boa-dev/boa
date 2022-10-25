@@ -112,7 +112,7 @@ impl GcBoxHeader {
     }
 }
 
-/// The HeapBox represents a box on the GC Heap. The HeapBox's creation and allocation is managed
+/// The GcBox represents a box on `BoaGc`'s heap. The GcBox's creation and allocation is handled
 /// by the allocator
 #[repr(C)]
 pub struct GcBox<T: Trace + ?Sized + 'static> {

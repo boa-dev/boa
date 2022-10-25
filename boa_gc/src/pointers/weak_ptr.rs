@@ -1,11 +1,10 @@
-
 use crate::{
-    GcBox, EPHEMERON_QUEUE, finalizer_safe,
-    trace::{Trace, Finalize},
+    finalizer_safe,
+    trace::{Finalize, Trace},
+    GcBox, EPHEMERON_QUEUE,
 };
 use std::cell::Cell;
 use std::ptr::NonNull;
-
 
 pub struct WeakGc<T: Trace + ?Sized + 'static> {
     inner_ptr: Cell<NonNull<GcBox<T>>>,
@@ -29,7 +28,6 @@ impl<T: Trace + ?Sized> WeakGc<T> {
         unsafe { self.inner_ptr.get().as_ptr() }
     }
 }
-
 
 impl<T: Trace> Finalize for WeakGc<T> {}
 
@@ -61,4 +59,3 @@ unsafe impl<T: Trace> Trace for WeakGc<T> {
         Finalize::finalize(self)
     }
 }
-
