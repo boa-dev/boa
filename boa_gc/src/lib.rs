@@ -4,26 +4,27 @@ use std::cell::{Cell as StdCell, RefCell as StdRefCell};
 use std::mem;
 use std::ptr::NonNull;
 
-pub use boa_gc_macros::{Trace, Finalize};
+pub use boa_gc_macros::{Finalize, Trace};
 
-/// `gc_derive` is a general derive prelude import 
+/// `gc_derive` is a general derive prelude import
 pub mod derive_prelude {
-    pub use boa_gc_macros::{Trace, Finalize};
     pub use crate::GcPointer;
+    pub use boa_gc_macros::{Finalize, Trace};
 }
 
 mod gc_box;
 mod internals;
-pub mod trace;
 pub mod pointers;
+pub mod trace;
 
-pub(crate) use gc_box::GcBox;
-pub use internals::{GcCell, GcCellRef};
-use pointers::Gc;
 pub use crate::trace::{Finalize, Trace};
+pub(crate) use gc_box::GcBox;
+pub use internals::{Ephemeron, GcCell as Cell, GcCellRef as CellRef};
+pub use pointers::{Gc, WeakGc};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;
 
+thread_local!(pub static EPHEMERON_QUEUE: StdCell<Option<Vec<GcPointer>>> = StdCell::new(None));
 thread_local!(pub static GC_DROPPING: StdCell<bool> = StdCell::new(false));
 thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
     config: GcConfig::default(),
@@ -73,6 +74,13 @@ struct BoaGc {
     stack: StdCell<Vec<GcPointer>>,
 }
 
+impl Drop for BoaGc {
+    fn drop(&mut self) {
+        unsafe {
+            Collector::dump(self);
+        }
+    }
+}
 // Whether or not the thread is currently in the sweep phase of garbage collection.
 // During this phase, attempts to dereference a `Gc<T>` pointer will trigger a panic.
 
@@ -98,9 +106,9 @@ pub fn finalizer_safe() -> bool {
 /// The GcAllocater handles initialization and allocation of garbage collected values.
 ///
 /// The allocator can trigger a garbage collection
-pub struct GcAlloc;
+pub struct BoaAlloc;
 
-impl GcAlloc {
+impl BoaAlloc {
     pub fn new<T: Trace>(value: T) -> Gc<T> {
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
@@ -121,7 +129,7 @@ impl GcAlloc {
         })
     }
 
-    pub fn new_cell<T: Trace>(value: T) -> Gc<GcCell<T>> {
+    pub fn new_cell<T: Trace>(value: T) -> Gc<Cell<T>> {
         BOA_GC.with(|st| {
             let mut gc = st.borrow_mut();
 
@@ -131,7 +139,7 @@ impl GcAlloc {
                 Self::manage_state::<T>(&mut *gc);
             }
 
-            let cell = GcCell::new(value);
+            let cell = Cell::new(value);
             let stack_element = Box::into_raw(Box::from(GcBox::new(cell)));
             unsafe {
                 let mut stack = gc.stack.take();
@@ -144,13 +152,30 @@ impl GcAlloc {
         })
     }
 
-    pub fn new_weak_pair<K: Trace, V: Trace>(key: K, value: V) {
+    pub fn new_weak_pair<V: Trace>(key: GcPointer, value: V) {
         todo!()
     }
 
-    pub fn new_weak_cell<T: Trace>(value: T) {
-        todo!()
+    pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<Ephemeron<T, ()>> {
+        BOA_GC.with(|state| {
+            let mut gc = state.borrow_mut();
+
+            unsafe {
+                Self::manage_state::<T>(&mut *gc);
+
+                let ephemeron = Ephemeron::new(value.as_ptr());
+                let stack_element = Box::into_raw(Box::from(GcBox::new_weak(ephemeron)));
+                let mut stack = gc.stack.take();
+                stack.push(NonNull::new_unchecked(stack_element));
+                gc.stack.set(stack);
+                gc.runtime.stack_allocations += 1;
+
+                WeakGc::new(NonNull::new_unchecked(stack_element))
+            }
+        })
     }
+
+    // Possibility here for `new_weak` that takes any value and creates a new WeakGc
 
     pub(crate) unsafe fn promote_allocs<T: Trace>(
         promotions: Vec<NonNull<GcBox<dyn Trace>>>,
@@ -206,7 +231,7 @@ impl Collector {
         Self::finalize(unreachable_nodes);
         let _finalized = Self::mark_stack(&stack);
         let promotions = Self::stack_sweep(gc, stack);
-        GcAlloc::promote_allocs::<T>(promotions, gc);
+        BoaAlloc::promote_allocs::<T>(promotions, gc);
     }
 
     pub(crate) unsafe fn run_full_collection<T: Trace>(gc: &mut BoaGc) {
@@ -220,7 +245,7 @@ impl Collector {
         let _sweep_finalized = Self::mark_stack(&old_stack);
         Self::heap_sweep(gc);
         let promotions = Self::stack_sweep(gc, old_stack);
-        GcAlloc::promote_allocs::<T>(promotions, gc);
+        BoaAlloc::promote_allocs::<T>(promotions, gc);
     }
 
     pub(crate) unsafe fn mark_heap(
@@ -245,34 +270,7 @@ impl Collector {
 
         // Ephemeron Evaluation
         if !ephemeron_queue.is_empty() {
-            loop {
-                let mut reachable_nodes = Vec::new();
-                let mut other_nodes = Vec::new();
-                // iterate through ephemeron queue, sorting nodes by whether they
-                // are reachable or unreachable<?>
-                for node in ephemeron_queue {
-                    if (*node.as_ptr()).value.is_marked_ephemeron() {
-                        (*node.as_ptr()).header.mark();
-                        reachable_nodes.push(node);
-                    } else {
-                        other_nodes.push(node);
-                    }
-                }
-                // Replace the old queue with the unreachable<?>
-                ephemeron_queue = other_nodes;
-
-                // If reachable nodes is not empty, trace values. If it is empty,
-                // break from the loop
-                if !reachable_nodes.is_empty() {
-                    // iterate through reachable nodes and trace their values,
-                    // enqueuing any ephemeron that is found during the trace
-                    for node in reachable_nodes {
-                        (*node.as_ptr()).weak_trace_inner(&mut ephemeron_queue)
-                    }
-                } else {
-                    break;
-                }
-            }
+            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue);
         }
 
         // Any left over nodes in the ephemeron queue at this point are
@@ -286,16 +284,73 @@ impl Collector {
         stack: &Vec<NonNull<GcBox<dyn Trace>>>,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let mut finalize = Vec::new();
+        let mut ephemeron_queue = Vec::new();
 
         for node in stack {
-            if (*node.as_ptr()).header.roots() > 0 {
-                (*node.as_ptr()).header.mark()
+            if (*node.as_ptr()).header.is_ephemeron() {
+                ephemeron_queue.push(*node)
             } else {
-                finalize.push(*node)
+                if (*node.as_ptr()).header.roots() > 0 {
+                    (*node.as_ptr()).header.mark()
+                } else {
+                    finalize.push(*node)
+                }
             }
         }
 
+        if !ephemeron_queue.is_empty() {
+            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue)
+        }
+
+        finalize.extend(ephemeron_queue);
+
         finalize
+    }
+
+    // Tracing Ephemerons/Weak is always requires tracing the inner nodes in case it ends up marking unmarked node
+    //
+    // Time complexity should be something like O(nd) where d is the longest chain of epehemerons
+    unsafe fn mark_ephemerons(
+        initial_queue: Vec<NonNull<GcBox<dyn Trace>>>,
+    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
+        let mut ephemeron_queue = initial_queue;
+        loop {
+            let mut reachable_nodes = Vec::new();
+            let mut other_nodes = Vec::new();
+            // iterate through ephemeron queue, sorting nodes by whether they
+            // are reachable or unreachable<?>
+            for node in ephemeron_queue {
+                if (*node.as_ptr()).value.is_marked_ephemeron() {
+                    (*node.as_ptr()).header.mark();
+                    reachable_nodes.push(node);
+                } else {
+                    other_nodes.push(node);
+                }
+            }
+            // Replace the old queue with the unreachable<?>
+            ephemeron_queue = other_nodes;
+
+            // If reachable nodes is not empty, trace values. If it is empty,
+            // break from the loop
+            if !reachable_nodes.is_empty() {
+                EPHEMERON_QUEUE.with(|state| state.set(Some(Vec::new())));
+                // iterate through reachable nodes and trace their values,
+                // enqueuing any ephemeron that is found during the trace
+                for node in reachable_nodes {
+                    // TODO: deal with fetch ephemeron_queue
+                    (*node.as_ptr()).weak_trace_inner()
+                }
+
+                EPHEMERON_QUEUE.with(|st| {
+                    if let Some(found_nodes) = st.take() {
+                        ephemeron_queue.extend(found_nodes)
+                    }
+                })
+            } else {
+                break;
+            }
+        }
+        ephemeron_queue
     }
 
     unsafe fn finalize(finalize_vec: Vec<NonNull<GcBox<dyn Trace>>>) {
@@ -319,7 +374,7 @@ impl Collector {
         let mut promotions = Vec::new();
 
         for node in old_stack {
-            if (*node.as_ptr()).header.is_marked() {
+            if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
                 (*node.as_ptr()).header.inc_age();
                 if (*node.as_ptr()).header.age() > 10 {
@@ -341,7 +396,7 @@ impl Collector {
 
         let mut sweep_head = &gc.heap_start;
         while let Some(node) = sweep_head.get() {
-            if (*node.as_ptr()).header.is_marked() {
+            if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
                 sweep_head = &(*node.as_ptr()).header.next;
             } else {
@@ -350,5 +405,11 @@ impl Collector {
                 sweep_head.set(unmarked_node.header.next.take());
             }
         }
+    }
+
+    // Clean up the heap when BoaGc is dropped
+    unsafe fn dump(gc: &mut BoaGc) {
+        let _unreachable = Self::mark_heap(&gc.heap_start);
+        Self::heap_sweep(gc);
     }
 }

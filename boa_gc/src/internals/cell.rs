@@ -1,7 +1,7 @@
 //! A garbage collected cell implementation
 use std::cell::{Cell, UnsafeCell};
-use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
+use std::fmt::{Debug, Display};
+use std::hash::Hash;
 
 use crate::{
     internals::{
@@ -9,7 +9,6 @@ use crate::{
         GcCellRef, GcCellRefMut,
     },
     trace::{Finalize, Trace},
-    GcPointer,
 };
 
 /// A mutable memory location with dynamically checked borrow rules
@@ -193,10 +192,10 @@ unsafe impl<T: Trace + ?Sized> Trace for GcCell<T> {
     }
 
     #[inline]
-    unsafe fn weak_trace(&self, queue: &mut Vec<GcPointer>) {
+    unsafe fn weak_trace(&self) {
         match self.flags.get().borrowed() {
             BorrowState::Writing => (),
-            _ => (*self.cell.get()).weak_trace(queue),
+            _ => (*self.cell.get()).weak_trace(),
         }
     }
 

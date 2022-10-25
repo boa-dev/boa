@@ -1,3 +1,4 @@
+use crate::pointers::Gc;
 use crate::{Finalize, Trace};
 use std::cell::Cell;
 use std::ptr::{self, NonNull};
@@ -30,6 +31,18 @@ impl GcBoxHeader {
         GcBoxHeader {
             roots: Cell::new(1),
             cycle_age: Cell::new(0_u8),
+            loc: Cell::new(BoxLoc::Stack),
+            next: Cell::new(None),
+        }
+    }
+
+    #[inline]
+    pub fn new_weak() -> Self {
+        // Set weak_flag
+        let cycle_age = 0_u8 | WEAK_MASK;
+        GcBoxHeader {
+            roots: Cell::new(0),
+            cycle_age: Cell::new(cycle_age),
             loc: Cell::new(BoxLoc::Stack),
             next: Cell::new(None),
         }
@@ -101,6 +114,7 @@ impl GcBoxHeader {
 
 /// The HeapBox represents a box on the GC Heap. The HeapBox's creation and allocation is managed
 /// by the allocator
+#[repr(C)]
 pub struct GcBox<T: Trace + ?Sized + 'static> {
     pub(crate) header: GcBoxHeader,
     pub(crate) value: T,
@@ -110,6 +124,13 @@ impl<T: Trace> GcBox<T> {
     pub(crate) fn new(value: T) -> Self {
         GcBox {
             header: GcBoxHeader::new(),
+            value,
+        }
+    }
+
+    pub(crate) fn new_weak(value: T) -> Self {
+        GcBox {
+            header: GcBoxHeader::new_weak(),
             value,
         }
     }
@@ -136,8 +157,8 @@ impl<T: Trace + ?Sized> GcBox<T> {
     }
 
     /// Trace inner data
-    pub(crate) unsafe fn weak_trace_inner(&self, queue: &mut Vec<NonNull<GcBox<dyn Trace>>>) {
-        self.value.weak_trace(queue);
+    pub(crate) unsafe fn weak_trace_inner(&self) {
+        self.value.weak_trace();
     }
 
     /// Increases the root count on this `GcBox`.

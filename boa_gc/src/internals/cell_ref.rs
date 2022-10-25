@@ -1,13 +1,8 @@
 //! Implementation of a garbage collected cell reference
-use std::alloc::Layout;
-use std::cell::{Cell, UnsafeCell};
+use std::cell::Cell;
 use std::cmp::Ordering;
 use std::fmt::{self, Debug, Display};
-use std::hash::{Hash, Hasher};
-use std::marker::PhantomData;
-use std::mem;
 use std::ops::{Deref, DerefMut};
-use std::ptr::{self, NonNull};
 
 use crate::{
     internals::{

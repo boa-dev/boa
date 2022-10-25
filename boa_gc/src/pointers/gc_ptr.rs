@@ -11,7 +11,6 @@ use crate::gc_box::GcBox;
 use crate::{
     finalizer_safe,
     trace::{Finalize, Trace},
-    GcPointer,
 };
 
 pub(crate) unsafe fn set_data_ptr<T: ?Sized, U>(mut ptr: *mut T, data: *mut U) -> *mut T {
@@ -99,8 +98,8 @@ unsafe impl<T: Trace + ?Sized> Trace for Gc<T> {
     }
 
     #[inline]
-    unsafe fn weak_trace(&self, queue: &mut Vec<GcPointer>) {
-        self.inner().weak_trace_inner(queue);
+    unsafe fn weak_trace(&self) {
+        self.inner().weak_trace_inner();
     }
 
     #[inline]
