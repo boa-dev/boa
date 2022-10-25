@@ -17,24 +17,24 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Await {
-    expr: Box<Expression>,
+    target: Box<Expression>,
 }
 
 impl Await {
-    /// Return the expression that should be awaited.
+    /// Return the target expression that should be awaited.
     #[inline]
-    pub(crate) fn expr(&self) -> &Expression {
-        &self.expr
+    pub(crate) fn target(&self) -> &Expression {
+        &self.target
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.expr.contains_arguments()
+        self.target.contains_arguments()
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.expr.contains(symbol)
+        self.target.contains(symbol)
     }
 }
 
@@ -44,14 +44,14 @@ where
 {
     #[inline]
     fn from(e: T) -> Self {
-        Self { expr: e.into() }
+        Self { target: e.into() }
     }
 }
 
 impl ToInternedString for Await {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
-        format!("await {}", self.expr.to_indented_string(interner, 0))
+        format!("await {}", self.target.to_indented_string(interner, 0))
     }
 }
 

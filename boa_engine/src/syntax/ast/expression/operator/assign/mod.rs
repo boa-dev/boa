@@ -372,7 +372,7 @@ pub(crate) fn array_decl_to_declaration_pattern(
                 });
             }
             Expression::Spread(spread) => {
-                match spread.val() {
+                match spread.target() {
                     Expression::Identifier(ident) => {
                         bindings.push(ArrayPatternElement::SingleNameRest { ident: *ident });
                     }

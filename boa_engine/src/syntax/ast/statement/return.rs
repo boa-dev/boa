@@ -21,27 +21,27 @@ use boa_interner::{Interner, ToInternedString};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Return {
-    expr: Option<Expression>,
+    target: Option<Expression>,
 }
 
 impl Return {
-    /// Gets the expression value of this `Return` statement.
-    pub fn expr(&self) -> Option<&Expression> {
-        self.expr.as_ref()
+    /// Gets the target expression value of this `Return` statement.
+    pub fn target(&self) -> Option<&Expression> {
+        self.target.as_ref()
     }
 
     /// Creates a `Return` AST node.
-    pub fn new(expr: Option<Expression>) -> Self {
-        Self { expr }
+    pub fn new(expression: Option<Expression>) -> Self {
+        Self { target: expression }
     }
 
     pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self.expr, Some(ref expr) if expr.contains_arguments())
+        matches!(self.target, Some(ref expr) if expr.contains_arguments())
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self.expr, Some(ref expr) if expr.contains(symbol))
+        matches!(self.target, Some(ref expr) if expr.contains(symbol))
     }
 }
 
@@ -53,7 +53,7 @@ impl From<Return> for Statement {
 
 impl ToInternedString for Return {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        match self.expr() {
+        match self.target() {
             Some(ex) => format!("return {}", ex.to_interned_string(interner)),
             None => "return".to_owned(),
         }

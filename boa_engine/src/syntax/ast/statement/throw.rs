@@ -18,34 +18,34 @@ use boa_interner::{Interner, ToInternedString};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Throw {
-    expression: Expression,
+    target: Expression,
 }
 
 impl Throw {
-    /// Gets the expression value of this `Throw` statement.
-    pub fn expr(&self) -> &Expression {
-        &self.expression
+    /// Gets the target expression of this `Throw` statement.
+    pub fn target(&self) -> &Expression {
+        &self.target
     }
 
     /// Creates a `Throw` AST node.
-    pub fn new(expression: Expression) -> Self {
-        Self { expression }
+    pub fn new(target: Expression) -> Self {
+        Self { target }
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.expression.contains_arguments()
+        self.target.contains_arguments()
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.expression.contains(symbol)
+        self.target.contains(symbol)
     }
 }
 
 impl ToInternedString for Throw {
     fn to_interned_string(&self, interner: &Interner) -> String {
-        format!("throw {}", self.expression.to_interned_string(interner))
+        format!("throw {}", self.target.to_interned_string(interner))
     }
 }
 

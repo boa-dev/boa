@@ -25,19 +25,19 @@ pub struct New {
 }
 
 impl New {
-    /// Gets the name of the function call.
+    /// Gets the constructor of the new expression.
     #[inline]
-    pub fn expr(&self) -> &Expression {
-        self.call.expr()
+    pub fn constructor(&self) -> &Expression {
+        self.call.function()
     }
 
-    /// Retrieves the arguments passed to the function.
+    /// Retrieves the arguments passed to the constructor.
     #[inline]
     pub fn args(&self) -> &[Expression] {
         self.call.args()
     }
 
-    /// Returns the inner call
+    /// Returns the inner call expression.
     pub(crate) fn call(&self) -> &Call {
         &self.call
     }

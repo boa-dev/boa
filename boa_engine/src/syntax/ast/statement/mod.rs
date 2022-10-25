@@ -179,7 +179,7 @@ impl Statement {
                 for_loop.body().var_declared_names(vars);
             }
             Self::ForInLoop(for_in_loop) => {
-                if let IterableLoopInitializer::Var(bind) = for_in_loop.init() {
+                if let IterableLoopInitializer::Var(bind) = for_in_loop.initializer() {
                     vars.extend(bind.idents());
                 }
                 for_in_loop.body().var_declared_names(vars);

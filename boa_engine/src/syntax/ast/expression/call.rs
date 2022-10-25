@@ -20,24 +20,24 @@ use super::Expression;
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Call {
-    target: Box<Expression>,
+    function: Box<Expression>,
     args: Box<[Expression]>,
 }
 
 impl Call {
     /// Creates a new `Call` AST Expression.
     #[inline]
-    pub fn new(target: Expression, args: Box<[Expression]>) -> Self {
+    pub fn new(function: Expression, args: Box<[Expression]>) -> Self {
         Self {
-            target: target.into(),
+            function: function.into(),
             args,
         }
     }
 
-    /// Gets the name of the function call.
+    /// Gets the target function of this call expression.
     #[inline]
-    pub fn expr(&self) -> &Expression {
-        &self.target
+    pub fn function(&self) -> &Expression {
+        &self.function
     }
 
     /// Retrieves the arguments passed to the function.
@@ -48,12 +48,12 @@ impl Call {
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments() || self.args.iter().any(Expression::contains_arguments)
+        self.function.contains_arguments() || self.args.iter().any(Expression::contains_arguments)
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.target.contains(symbol) || self.args.iter().any(|expr| expr.contains(symbol))
+        self.function.contains(symbol) || self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 
@@ -62,7 +62,7 @@ impl ToInternedString for Call {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!(
             "{}({})",
-            self.target.to_interned_string(interner),
+            self.function.to_interned_string(interner),
             join_nodes(interner, &self.args)
         )
     }
