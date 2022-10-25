@@ -1,3 +1,5 @@
+name: Continuous integration
+
 on:
   pull_request:
     branches:
@@ -5,12 +7,12 @@ on:
   push:
     branches:
       - main
-
-name: Continuous integration
+      - staging # bors
+      - trying # bors
 
 jobs:
-  test_on_linux:
-    name: Tests on Linux
+  coverage:
+    name: Coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -19,14 +21,9 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v3
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
+          key: tarpaulin
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
@@ -34,9 +31,14 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
 
-  test_on_windows:
-    name: Tests on Windows
-    runs-on: windows-latest
+  tests:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - windows-latest
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1.0.7
@@ -44,36 +46,19 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-test-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -v --features intl
+      - uses: Swatinem/rust-cache@v2
+      - name: Build tests
+        run: cargo test --no-run --profile ci
+      # this order is faster according to rust-analyzer
+      - name: Build
+        run: cargo build --all-targets --quiet --profile ci
+      - name: Install latest nextest
+        uses: taiki-e/install-action@nextest
+      - name: Test with nextest
+        run: cargo nextest run --profile ci --cargo-profile ci --features intl
 
-  test_on_macos:
-    name: Tests on MacOS
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: -v --features intl
-
-  fmt:
-    name: Rustfmt
+  misc:
+    name: Misc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -82,85 +67,20 @@ jobs:
           toolchain: stable
           override: true
           profile: minimal
-          components: rustfmt
-      - uses: actions-rs/cargo@v1
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
         with:
-          command: fmt
-          args: --all -- --check
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-          components: clippy
-      - name: Cache cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- --verbose
-
-  examples:
-    name: Examples
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-examples-${{ hashFiles('**/Cargo.lock') }}
+          key: misc
+      - name: Lint (rustfmt)
+        run: cargo fmt --all --check
+      - name: Lint (clippy)
+        run: cargo clippy --all-features --all-targets
+      - name: Generate documentation
+        run: cargo doc -v --document-private-items --all-features
+      - name: Build
+        run: cargo build --all-targets --quiet --profile ci
       - run: cd boa_examples
       - name: Build examples
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
+        run: cargo build --quiet --profile ci
       - name: Run example classes
-        uses: actions-rs/cargo@v1
-        with:
-          command: run
-          args: --bin classes
-
-  doc:
-    name: Documentation
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1.0.7
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
-      - name: Cache cargo
-        uses: actions/cache@v3
-        with:
-          path: |
-            target
-            ~/.cargo/git
-            ~/.cargo/registry
-          key: ${{ runner.os }}-cargo-doc-${{ hashFiles('**/Cargo.lock') }}
-      - name: Generate documentation
-        uses: actions-rs/cargo@v1
-        with:
-          command: doc
-          args: -v --document-private-items --all-features
+        run: cargo run --bin classes --profile ci
