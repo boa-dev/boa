@@ -8,7 +8,7 @@ on:
     branches:
       - main
       - staging # bors
-      - trying  # bors
+      - trying # bors
 
 jobs:
   coverage:
