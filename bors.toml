@@ -1,21 +1,15 @@
 # docs https://bors.tech/documentation/
 status = [
-	"Tests on Linux",
-	"Tests on Windows",
-	"Tests on MacOS",
-	"Rustfmt",
-	"Clippy",
-	"Examples",
-	"Documentation",
+	"Coverage",
+	"Build and Test (macos-latest)",
+	"Build and Test (windows-latest)",
+	"Misc",
 ]
 pr_status = [
-	"Tests on Linux",
-	"Tests on Windows",
-	"Tests on MacOS",
-	"Rustfmt",
-	"Clippy",
-	"Examples",
-	"Documentation",
+	"Coverage",
+	"Build and Test (macos-latest)",
+	"Build and Test (windows-latest)",
+	"Misc",
 ]
 block_labels = [ "blocked" ]
 required_approvals = 2

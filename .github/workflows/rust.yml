@@ -1,3 +1,5 @@
+name: Continuous integration
+
 on:
   pull_request:
     branches:
@@ -5,12 +7,12 @@ on:
   push:
     branches:
       - main
-
-name: Continuous integration
+      - staging # bors
+      - trying  # bors
 
 jobs:
   coverage:
-    name: Calculate coverage information
+    name: Coverage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -55,7 +57,7 @@ jobs:
         run: cargo nextest run --profile ci --cargo-profile ci --features intl
 
   misc:
-    name: Misc (rustfmt, clippy, docs, check build, examples)
+    name: Misc
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
