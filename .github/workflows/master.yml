@@ -29,7 +29,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: -v --document-private-items --all-features
+          args: -v --document-private-items --all-features --workspace --no-deps --exclude boa_examples
       - run: echo "<meta http-equiv=refresh content=0;url=boa_engine/index.html>" > target/doc/index.html
       - run: |
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
