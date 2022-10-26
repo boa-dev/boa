@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsSet","JavaScript `Set` rust object."]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsSet","`JsSet` provides a wrapper for Boa’s implementation of the JavaScript `Set` object."]]};

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsMap","`JsMap` provides a wrapper for Boa’s implementation of the Javascript `Map` object."]]};
+window.SIDEBAR_ITEMS = {"struct":[["JsMap","`JsMap` provides a wrapper for Boa’s implementation of the JavaScript `Map` object."]]};

@@ -126,7 +126,9 @@
 <span id="124">124</span>
 <span id="125">125</span>
 <span id="126">126</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="127">127</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `ArrayBuffer` Builtin JavaScript Object</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::array_buffer::ArrayBuffer</span>,
     <span class="ident">context::intrinsics::StandardConstructors</span>,
     <span class="ident">error::JsNativeError</span>,
@@ -138,7 +140,7 @@
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
-<span class="doccomment">/// JavaScript `ArrayBuffer` rust object.</span>
+<span class="doccomment">/// `JsArrayBuffer` provides a wrapper for Boa&#39;s implementation of the JavaScript `ArrayBuffer` object</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsArrayBuffer</span> {
     <span class="ident">inner</span>: <span class="ident">JsObject</span>,

@@ -380,7 +380,9 @@
 <span id="378">378</span>
 <span id="379">379</span>
 <span id="380">380</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
+<span id="381">381</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Array` Builtin JavaScript Object</span>
+<span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::Array</span>,
     <span class="ident">error::JsNativeError</span>,
     <span class="ident">object</span>::{<span class="ident">JsFunction</span>, <span class="ident">JsObject</span>, <span class="ident">JsObjectType</span>},
@@ -390,7 +392,7 @@
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
-<span class="doccomment">/// JavaScript `Array` rust object.</span>
+<span class="doccomment">/// `JsArray` provides a wrapper for Boa&#39;s implementation of the JavaScript `Array` object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsArray</span> {
     <span class="ident">inner</span>: <span class="ident">JsObject</span>,

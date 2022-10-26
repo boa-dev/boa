@@ -25,12 +25,15 @@
 <span id="23">23</span>
 <span id="24">24</span>
 <span id="25">25</span>
+<span id="26">26</span>
+<span id="27">27</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains all the Rust representations of JavaScript objects.</span>
 
 <span class="kw">mod</span> <span class="ident">jsarray</span>;
 <span class="kw">mod</span> <span class="ident">jsarraybuffer</span>;
 <span class="kw">mod</span> <span class="ident">jsdataview</span>;
 <span class="kw">mod</span> <span class="ident">jsfunction</span>;
+<span class="kw">mod</span> <span class="ident">jsgenerator</span>;
 <span class="kw">mod</span> <span class="ident">jsmap</span>;
 <span class="kw">mod</span> <span class="ident">jsmap_iterator</span>;
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod</span> <span class="ident">jsproxy</span>;
@@ -43,6 +46,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsarraybuffer</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsdataview</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsfunction</span>::<span class="kw-2">*</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsgenerator</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsmap_iterator</span>::<span class="kw-2">*</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">jsproxy</span>::{<span class="ident">JsProxy</span>, <span class="ident">JsRevocableProxy</span>};

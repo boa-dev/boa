@@ -59,7 +59,9 @@
 <span id="57">57</span>
 <span id="58">58</span>
 <span id="59">59</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span id="60">60</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `SetIterator` Builtin JavaScript Object</span>
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
@@ -70,7 +72,7 @@
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
-<span class="doccomment">/// JavaScript `SetIterator` rust object</span>
+<span class="doccomment">/// `JsSetIterator` provides a wrapper for Boa&#39;s implementation of the JavaScript `SetIterator` object</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Finalize</span>, <span class="ident">Trace</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsSetIterator</span> {
     <span class="ident">inner</span>: <span class="ident">JsObject</span>,

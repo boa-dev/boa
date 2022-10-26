@@ -190,7 +190,9 @@
 <span id="188">188</span>
 <span id="189">189</span>
 <span id="190">190</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
+<span id="191">191</span>
+</pre><pre class="rust"><code><span class="doccomment">//! This module implements a wrapper for the `Set` Builtin JavaScript Object</span>
+<span class="kw">use</span> <span class="ident">std::ops::Deref</span>;
 
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Trace</span>};
 
@@ -201,7 +203,7 @@
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsValue</span>,
 };
 
-<span class="doccomment">/// JavaScript `Set` rust object.</span>
+<span class="doccomment">/// `JsSet` provides a wrapper for Boa&#39;s implementation of the JavaScript `Set` object.</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Trace</span>, <span class="ident">Finalize</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">JsSet</span> {
     <span class="ident">inner</span>: <span class="ident">JsObject</span>,
