@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["LetDecl","Individual constant declaration."],["LetDeclList","The `let` statement declares a block scope local variable, optionally initializing it to a value."]]});

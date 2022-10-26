@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["error","Error types for decimal formatting."],["format","Lower-level types for decimal formatting."],["options","Options for `FixedDecimalFormat`."],["provider","Data provider struct definitions for this ICU4X component."]],"struct":[["FixedDecimalFormat","A formatter for [`FixedDecimal`], rendering decimal digits in an i18n-friendly way."]]});

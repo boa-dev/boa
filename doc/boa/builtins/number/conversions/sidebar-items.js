@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["f64_to_int32","Converts a 64-bit floating point number to an `i32` according to the `ToInt32` algorithm."],["f64_to_uint32","Converts a 64-bit floating point number to an `u32` according to the `ToUint32` algorithm."]]});

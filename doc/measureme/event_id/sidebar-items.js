@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["SEPARATOR_BYTE","Event IDs are strings conforming to the following grammar:"]],"struct":[["EventId","An `EventId` is a `StringId` with the additional guarantee that the corresponding string conforms to the event_id grammar."],["EventIdBuilder",""]]};

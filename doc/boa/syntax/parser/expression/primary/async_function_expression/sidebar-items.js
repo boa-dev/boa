@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["AsyncFunctionExpression","Async Function expression parsing."]]});

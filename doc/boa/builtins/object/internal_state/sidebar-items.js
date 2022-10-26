@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["InternalStateCell","Wrapper around `Rc` to implement `Trace` and `Finalize`."]],"trait":[["InternalState","This trait must be implemented by all structs used for internal state."]]});

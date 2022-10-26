@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["GeneratorDeclaration","Generator declaration parsing."]]});

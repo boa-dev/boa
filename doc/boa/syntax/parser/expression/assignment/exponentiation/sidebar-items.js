@@ -1,1 +1,0 @@
-initSidebarItems({"fn":[["is_unary_expression","Checks by looking at the next token to see whether it’s a unary operator or not."]],"struct":[["ExponentiationExpression","Parses an exponentiation expression."]]});

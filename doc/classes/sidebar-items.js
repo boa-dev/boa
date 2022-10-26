@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["main",""]],"struct":[["Person","Represents a `Person` object."]]};

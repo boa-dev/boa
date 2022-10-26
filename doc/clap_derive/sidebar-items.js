@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":[["Args","Generates the `Args` impl."],["Parser","Generates the `Parser` implementation."],["Subcommand","Generates the `Subcommand` impl."],["ValueEnum","Generates the `ValueEnum` impl."]]};

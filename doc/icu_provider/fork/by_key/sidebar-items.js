@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ForkByKeyProvider","A provider that returns data from one of two child providers based on the key."],["MultiForkByKeyProvider","A provider that returns data from the first child provider supporting the key."]]});

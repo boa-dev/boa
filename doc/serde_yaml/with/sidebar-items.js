@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["singleton_map","Serialize/deserialize an enum using a YAML map containing one entry in which the key identifies the variant name."],["singleton_map_recursive","Apply [`singleton_map`] to all enums contained within the data structure."]]};

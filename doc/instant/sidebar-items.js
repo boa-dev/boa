@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["now","The current time, expressed in milliseconds since the Unix Epoch."]],"struct":[["Duration","A `Duration` type to represent a span of time, typically used for system timeouts."]],"type":[["Instant",""],["SystemTime",""]]};

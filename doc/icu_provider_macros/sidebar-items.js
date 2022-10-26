@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":[["data_struct","The `#[data_struct]` attribute should be applied to all types intended for use in a `DataStruct`. It does the following things:"]]};

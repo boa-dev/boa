@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["DFA","A sparse deterministic finite automaton (DFA) with variable sized states."]]});

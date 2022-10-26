@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Error","Enum to store the various types of errors that can cause parsing a TinyStr to fail."]],"fn":[["try_u128_from_bytes",""],["try_u32_from_bytes",""],["try_u64_from_bytes",""]]});

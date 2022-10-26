@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["DeclarativeEnvironmentRecord","A declarative Environment Record binds the set of identifiers defined by the declarations contained within its scope."],["DeclarativeEnvironmentRecordBinding","Declarative Bindings have a few properties for book keeping purposes, such as mutability (const vs let). Can it be deleted? and strict mode."]]});

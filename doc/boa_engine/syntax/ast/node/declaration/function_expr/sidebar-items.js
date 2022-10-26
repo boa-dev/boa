@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["FunctionExpr","The `function` expression defines a function with the specified parameters."]]};

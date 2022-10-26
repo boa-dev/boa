@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["MockTimeZone","A temporary struct that implements [`TimeZoneInput`] and is used in tests, benchmarks and examples of this component."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":[["ZeroFrom","Custom derive for `zerofrom::ZeroFrom`,"]],"trait":[["ZeroFrom","Trait for types that can be created from a reference to a different type `C` with no allocations, i.e. a zero-copy (zero-alloc) version of “From”"]]};

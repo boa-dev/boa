@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Iter","Parallel iterator over an inclusive range, implemented for all integer types and `char`."]]};

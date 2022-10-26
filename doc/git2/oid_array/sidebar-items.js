@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["OidArray","An oid array structure used by libgit2"]]});

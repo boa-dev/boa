@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["icu_properties"] = [{"text":"impl <a class=\"trait\" href=\"num_enum/trait.TryFromPrimitive.html\" title=\"trait num_enum::TryFromPrimitive\">TryFromPrimitive</a> for <a class=\"enum\" href=\"icu_properties/enum.GeneralCategory.html\" title=\"enum icu_properties::GeneralCategory\">GeneralCategory</a>","synthetic":false,"types":["icu_properties::props::GeneralCategory"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["TemplateElement",""]],"struct":[["TaggedTemplate",""],["TemplateLit","Template literals are string literals allowing embedded expressions."]]});

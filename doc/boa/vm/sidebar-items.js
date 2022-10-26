@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Opcode","The opcodes of the vm."]],"mod":[["call_frame","`CallFrame`"],["code_block","`CodeBlock`"],["opcode",""]],"struct":[["CallFrame",""],["CodeBlock","The internal representation of a JavaScript function."],["JsVmFunction",""],["Vm","Virtual Machine."]]});

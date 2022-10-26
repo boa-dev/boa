@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["arguments","Argument parsing."],["call","Call expression parsing."],["member","Member expression parsing."],["template",""]],"struct":[["LeftHandSideExpression","Parses a left hand side expression."]]});

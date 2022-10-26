@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Identifier","An `identifier` is a sequence of characters in the code that identifies a variable, function, or property."]]});

@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["ELEMENT","The [`Part`] used by `List` to mark the part of the string that is an element."],["LITERAL","The [`Part`] used by `List` to mark the part of the string that is a list literal, such as “, “ or “ and “."]]});

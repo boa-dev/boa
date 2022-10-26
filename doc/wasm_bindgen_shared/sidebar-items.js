@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["SCHEMA_VERSION",""]],"fn":[["free_function",""],["free_function_export_name",""],["new_function",""],["struct_field_get",""],["struct_field_set",""],["struct_function_export_name",""],["version",""]],"macro":[["shared_api",""]]};

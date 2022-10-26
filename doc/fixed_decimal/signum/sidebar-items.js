@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Signum","Return value of the sign function for FixedDecimal, indicating the sign of the number as well as whether the number is nonzero."]]};

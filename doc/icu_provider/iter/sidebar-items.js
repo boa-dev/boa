@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["IterableProvider","A provider that can iterate over all supported [`ResourceOptions`] for a certain key."]]});

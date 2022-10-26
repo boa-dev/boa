@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["SharedMemoryOrder",""]],"fn":[["copy_data_block_bytes","`6.2.8.3 CopyDataBlockBytes ( toBlock, toIndex, fromBlock, fromIndex, count )`"],["create_byte_data_block","`CreateByteDataBlock ( size )` abstract operation."]],"struct":[["ArrayBuffer",""]]});

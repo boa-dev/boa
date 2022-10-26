@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["expand","Takes the parsed input from a `#[wasm_bindgen]` macro and returns the generated bindings"],["expand_class_marker","Takes the parsed input from a `#[wasm_bindgen]` macro and returns the generated bindings"]],"struct":[["BindgenAttrs","Parsed attributes from a `#[wasm_bindgen(..)]`."]]};

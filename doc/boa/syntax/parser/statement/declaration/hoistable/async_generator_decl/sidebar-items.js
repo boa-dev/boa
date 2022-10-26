@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["AsyncGeneratorDeclaration","Async Generator Declaration Parser"]]});

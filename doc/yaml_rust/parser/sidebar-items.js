@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Event","`Event` is used with the low-level event base parsing API, see `EventReceiver` trait."]],"struct":[["Parser",""]],"trait":[["EventReceiver",""],["MarkedEventReceiver",""]],"type":[["ParseResult",""]]});

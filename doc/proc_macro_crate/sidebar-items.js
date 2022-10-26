@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["Error","Error type used by this crate."],["FoundCrate","The crate as found by [`crate_name`]."]],"fn":[["crate_name","Find the crate name for the given `orig_name` in the current `Cargo.toml`."]]});

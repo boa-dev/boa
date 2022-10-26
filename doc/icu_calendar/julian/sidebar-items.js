@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Julian","The Julian calendar"],["JulianDateInner",""]]};

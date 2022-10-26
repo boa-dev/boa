@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"derive":[["Display","Derive macro for implementing `Display` via doc comment attributes"]]};

@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ConstDecl","Individual constant declaration."],["ConstDeclList","The `const` statements are block-scoped, much like variables defined using the `let` keyword."]]});

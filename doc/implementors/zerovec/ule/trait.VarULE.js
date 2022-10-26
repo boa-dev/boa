@@ -1,4 +1,0 @@
-(function() {var implementors = {};
-implementors["icu_locale_canonicalizer"] = [{"text":"impl <a class=\"trait\" href=\"zerovec/ule/trait.VarULE.html\" title=\"trait zerovec::ule::VarULE\">VarULE</a> for <a class=\"struct\" href=\"icu_locale_canonicalizer/provider/struct.StrStrPairVarULE.html\" title=\"struct icu_locale_canonicalizer::provider::StrStrPairVarULE\">StrStrPairVarULE</a>","synthetic":false,"types":["icu_locale_canonicalizer::provider::StrStrPairVarULE"]}];
-implementors["zerovec"] = [];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
