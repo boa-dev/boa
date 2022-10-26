@@ -250,6 +250,7 @@ impl Context {
             Opcode::SuperCallDerived => SuperCallDerived::execute(self)?,
             Opcode::Case => Case::execute(self)?,
             Opcode::Default => Default::execute(self)?,
+            Opcode::GetArrowFunction => GetArrowFunction::execute(self)?,
             Opcode::GetFunction => GetFunction::execute(self)?,
             Opcode::GetFunctionAsync => GetFunctionAsync::execute(self)?,
             Opcode::GetGenerator => GetGenerator::execute(self)?,
