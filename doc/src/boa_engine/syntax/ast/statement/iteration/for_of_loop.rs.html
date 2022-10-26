@@ -90,6 +90,15 @@
 <span id="88">88</span>
 <span id="89">89</span>
 <span id="90">90</span>
+<span id="91">91</span>
+<span id="92">92</span>
+<span id="93">93</span>
+<span id="94">94</span>
+<span id="95">95</span>
+<span id="96">96</span>
+<span id="97">97</span>
+<span id="98">98</span>
+<span id="99">99</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">expression::Expression</span>,
     <span class="ident">statement</span>::{<span class="ident">iteration::IterableLoopInitializer</span>, <span class="ident">Statement</span>},
@@ -97,10 +106,19 @@
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="doccomment">/// A `for...of` loop statement, as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [`for..of`][forof] statements loop over a sequence of values obtained from an iterable object (Array,</span>
+<span class="doccomment">/// String, Map, generators).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// This type combines `for..of` and [`for await...of`][forawait] statements in a single structure,</span>
+<span class="doccomment">/// since `for await...of` is essentially the same statement but with async iterable objects</span>
+<span class="doccomment">/// as the source of iteration.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [forof]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement</span>
+<span class="doccomment">/// [forawait]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for-await...of</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ForOfLoop</span> {
     <span class="ident">init</span>: <span class="ident">IterableLoopInitializer</span>,

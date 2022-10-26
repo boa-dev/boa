@@ -548,6 +548,15 @@
 <span id="546">546</span>
 <span id="547">547</span>
 <span id="548">548</span>
+<span id="549">549</span>
+<span id="550">550</span>
+<span id="551">551</span>
+<span id="552">552</span>
+<span id="553">553</span>
+<span id="554">554</span>
+<span id="555">555</span>
+<span id="556">556</span>
+<span id="557">557</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -557,24 +566,20 @@
         <span class="ident">expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>},
         <span class="ident">join_nodes</span>,
         <span class="ident">property</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyName</span>},
-        <span class="ident">statement_list::StatementListItem</span>,
-        <span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">StatementList</span>,
+        <span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>,
     },
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Function</span>;
 
-<span class="doccomment">/// The `class` declaration defines a class with the specified methods, fields, and optional constructor.</span>
+<span class="doccomment">/// A class declaration, as defined by the [spec].</span>
 <span class="doccomment">///</span>
+<span class="doccomment">/// A [class][mdn] declaration defines a class with the specified methods, fields, and optional constructor.</span>
 <span class="doccomment">/// Classes can be used to create objects, which can also be created through literals (using `{}`).</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-class-definitions</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Class</span> {
@@ -931,18 +936,31 @@
     }
 }
 
-<span class="doccomment">/// Class element types.</span>
+<span class="doccomment">/// An element that can be within a [`Class`], as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ClassElement</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ClassElement</span> {
+    <span class="doccomment">/// A method definition, including `get` and `set` accessors.</span>
     <span class="ident">MethodDefinition</span>(<span class="ident">PropertyName</span>, <span class="ident">MethodDefinition</span>),
+    <span class="doccomment">/// A static method definition, accessible from the class constructor object.</span>
     <span class="ident">StaticMethodDefinition</span>(<span class="ident">PropertyName</span>, <span class="ident">MethodDefinition</span>),
+    <span class="doccomment">/// A field definition.</span>
     <span class="ident">FieldDefinition</span>(<span class="ident">PropertyName</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// A static field definition, accessible from the class constructor object</span>
     <span class="ident">StaticFieldDefinition</span>(<span class="ident">PropertyName</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// A private method definition, only accessible inside the class declaration.</span>
     <span class="ident">PrivateMethodDefinition</span>(<span class="ident">Sym</span>, <span class="ident">MethodDefinition</span>),
+    <span class="doccomment">/// A private static method definition, only accessible from static methods and fields inside</span>
+    <span class="doccomment">/// the class declaration.</span>
     <span class="ident">PrivateStaticMethodDefinition</span>(<span class="ident">Sym</span>, <span class="ident">MethodDefinition</span>),
+    <span class="doccomment">/// A private field definition, only accessible inside the class declaration.</span>
     <span class="ident">PrivateFieldDefinition</span>(<span class="ident">Sym</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// A private static field definition, only accessible from static methods and fields inside the</span>
+    <span class="doccomment">/// class declaration.</span>
     <span class="ident">PrivateStaticFieldDefinition</span>(<span class="ident">Sym</span>, <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>),
+    <span class="doccomment">/// A static block, where a class can have initialization logic for its static fields.</span>
     <span class="ident">StaticBlock</span>(<span class="ident">StatementList</span>),
 }
 

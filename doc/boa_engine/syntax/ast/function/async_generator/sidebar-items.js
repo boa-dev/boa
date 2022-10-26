@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["AsyncGenerator","The `async function*` keyword can be used to define a generator function inside an expression."]]};
+window.SIDEBAR_ITEMS = {"struct":[["AsyncGenerator","An async generator definition, as defined by the spec."]]};

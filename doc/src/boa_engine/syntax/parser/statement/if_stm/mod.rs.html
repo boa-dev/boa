@@ -160,15 +160,13 @@
 <span id="158">158</span>
 <span id="159">159</span>
 <span id="160">160</span>
-<span id="161">161</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">statement</span>::{<span class="ident">Block</span>, <span class="ident">If</span>},
-        <span class="ident">statement_list::StatementListItem</span>,
-        <span class="ident">Declaration</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
+        <span class="ident">Declaration</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">StatementListItem</span>,
     },
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{

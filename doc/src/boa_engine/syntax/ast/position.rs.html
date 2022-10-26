@@ -292,30 +292,15 @@
 <span id="290">290</span>
 <span id="291">291</span>
 <span id="292">292</span>
-<span id="293">293</span>
-<span id="294">294</span>
-<span id="295">295</span>
-<span id="296">296</span>
-<span id="297">297</span>
-<span id="298">298</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Pos` structure, which represents a position in the source code.</span>
-
-<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">fmt</span>, <span class="ident">num::NonZeroU32</span>};
-
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">cmp::Ordering</span>, <span class="ident">fmt</span>, <span class="ident">num::NonZeroU32</span>};
 
 <span class="doccomment">/// A position in the JavaScript source code.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Stores both the column number and the line number.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Note that spans are of the form [beginning, end) i.e. that the beginning position is inclusive</span>
-<span class="doccomment">/// and the end position is exclusive. See test `check_positions` from `syntax/lexer/tests.rs` for</span>
-<span class="doccomment">/// an example.</span>
-<span class="doccomment">///</span>
 <span class="doccomment">/// ## Similar Implementations</span>
 <span class="doccomment">/// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&amp;q=isValid+Location&amp;g=0&amp;l=216)</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">PartialOrd</span>, <span class="ident">Ord</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Position</span> {
     <span class="doccomment">/// Line number.</span>
@@ -357,7 +342,10 @@
 <span class="doccomment">/// A span in the JavaScript source code.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Stores a start position and an end position.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Note that spans are of the form [start, end) i.e. that the start position is inclusive</span>
+<span class="doccomment">/// and the end position is exclusive.</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Span</span> {
     <span class="ident">start</span>: <span class="ident">Position</span>,

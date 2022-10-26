@@ -110,12 +110,26 @@
 <span id="108">108</span>
 <span id="109">109</span>
 <span id="110">110</span>
+<span id="111">111</span>
+<span id="112">112</span>
+<span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::ContainsSymbol</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Expression</span>;
 
+<span class="doccomment">/// A [`TaggedTemplate`][moz] expression, as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// `TaggedTemplate`s are a type of template literals that are parsed by a custom function to generate</span>
+<span class="doccomment">/// arbitrary objects from the inner strings and expressions.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [moz]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tagged-templates</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TaggedTemplate</span> {

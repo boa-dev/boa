@@ -52,6 +52,7 @@
 <span id="50">50</span>
 <span id="51">51</span>
 <span id="52">52</span>
+<span id="53">53</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::statement::Statement</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="doccomment">/// The `continue` statement terminates execution of the statements in the current iteration of</span>
@@ -79,6 +80,7 @@
         <span class="self">Self</span> { <span class="ident">label</span> }
     }
 
+    <span class="doccomment">/// Gets the label of this `Continue` statement.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">label</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">label</span>
     }

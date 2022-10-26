@@ -125,11 +125,13 @@
 <span id="123">123</span>
 <span id="124">124</span>
 <span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Statement</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">function::Function</span>, <span class="ident">ContainsSymbol</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
-<span class="doccomment">/// The set of AST nodes that can be preceded by a label, as defined by the [spec].</span>
+<span class="doccomment">/// The set of Parse Nodes that can be preceded by a label, as defined by the [spec].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Semantically, a [`Labelled`] statement should only wrap [`Statement`] nodes. However,</span>
 <span class="doccomment">/// old ECMAScript implementations supported [labelled function declarations][label-fn] as an extension</span>
@@ -141,7 +143,9 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">LabelledItem</span> {
+    <span class="doccomment">/// A labelled [`Function`].</span>
     <span class="ident">Function</span>(<span class="ident">Function</span>),
+    <span class="doccomment">/// A labelled [`Statement`].</span>
     <span class="ident">Statement</span>(<span class="ident">Statement</span>),
 }
 

@@ -74,13 +74,43 @@
 <span id="72">72</span>
 <span id="73">73</span>
 <span id="74">74</span>
-</pre><pre class="rust"><code><span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">op</span>;
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
+<span id="87">87</span>
+<span id="88">88</span>
+<span id="89">89</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Unary expression nodes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A Binary expression comprises any operation applied to a single expression. Some examples include:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - [Increment and decrement operations][inc] (`++`, `--`).</span>
+<span class="doccomment">//! - The [`delete`][del] operator.</span>
+<span class="doccomment">//! - The [bitwise NOT][not] operator (`~`).</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! The full list of valid unary operators is defined in [`UnaryOp`].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [inc]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#increment_and_decrement</span>
+<span class="doccomment">//! [del]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete</span>
+<span class="doccomment">//! [not]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_NOT</span>
+<span class="kw">mod</span> <span class="ident">op</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">op</span>::<span class="kw-2">*</span>;
 
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">ContainsSymbol</span>};
 
-<span class="doccomment">/// A unary operation is an operation with only one operand.</span>
+<span class="doccomment">/// A unary expression is an operation with only one operand.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -91,13 +121,13 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Unary</span> {
-    <span class="ident">op</span>: <span class="ident">op::UnaryOp</span>,
+    <span class="ident">op</span>: <span class="ident">UnaryOp</span>,
     <span class="ident">target</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Unary</span> {
     <span class="doccomment">/// Creates a new `UnaryOp` AST Expression.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">op</span>: <span class="ident">op::UnaryOp</span>, <span class="ident">target</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">op</span>: <span class="ident">UnaryOp</span>, <span class="ident">target</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">op</span>,
             <span class="ident">target</span>: <span class="ident">Box::new</span>(<span class="ident">target</span>),
@@ -106,7 +136,7 @@
 
     <span class="doccomment">/// Gets the unary operation of the Expression.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">op::UnaryOp</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">UnaryOp</span> {
         <span class="self">self</span>.<span class="ident">op</span>
     }
 
@@ -131,7 +161,7 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">space</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">op</span> {
-            <span class="ident">op::UnaryOp::TypeOf</span> <span class="op">|</span> <span class="ident">op::UnaryOp::Delete</span> <span class="op">|</span> <span class="ident">op::UnaryOp::Void</span> =&gt; <span class="string">&quot; &quot;</span>,
+            <span class="ident">UnaryOp::TypeOf</span> <span class="op">|</span> <span class="ident">UnaryOp::Delete</span> <span class="op">|</span> <span class="ident">UnaryOp::Void</span> =&gt; <span class="string">&quot; &quot;</span>,
             <span class="kw">_</span> =&gt; <span class="string">&quot;&quot;</span>,
         };
         <span class="macro">format!</span>(

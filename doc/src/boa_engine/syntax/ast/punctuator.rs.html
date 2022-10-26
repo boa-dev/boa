@@ -279,10 +279,7 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
-<span id="280">280</span>
-<span id="281">281</span>
-<span id="282">282</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The `Punctuator` enum, which contains all punctuators used in JavaScript.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
 <span class="doccomment">//!  - [ECMAScript Reference][spec]</span>
@@ -290,24 +287,21 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Punctuator</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::expression::operator</span>::{
-    <span class="ident">assign::op::AssignOp</span>,
-    <span class="ident">binary::op</span>::{<span class="ident">ArithmeticOp</span>, <span class="ident">BinaryOp</span>, <span class="ident">BitwiseOp</span>, <span class="ident">LogicalOp</span>, <span class="ident">RelationalOp</span>},
+    <span class="ident">assign::AssignOp</span>,
+    <span class="ident">binary</span>::{<span class="ident">ArithmeticOp</span>, <span class="ident">BinaryOp</span>, <span class="ident">BitwiseOp</span>, <span class="ident">LogicalOp</span>, <span class="ident">RelationalOp</span>},
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">convert::TryInto</span>,
     <span class="ident">fmt</span>::{<span class="ident">Display</span>, <span class="ident">Error</span>, <span class="ident">Formatter</span>},
 };
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="doccomment">/// The Punctuator enum describes all of the punctuators used in JavaScript.</span>
+<span class="doccomment">/// All of the punctuators used in JavaScript.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript Reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-Punctuator</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Punctuator</span> {
     <span class="doccomment">/// `+`</span>

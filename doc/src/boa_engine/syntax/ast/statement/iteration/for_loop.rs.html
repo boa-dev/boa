@@ -240,6 +240,16 @@
 <span id="238">238</span>
 <span id="239">239</span>
 <span id="240">240</span>
+<span id="241">241</span>
+<span id="242">242</span>
+<span id="243">243</span>
+<span id="244">244</span>
+<span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">declaration</span>::{<span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>, <span class="ident">Variable</span>},
     <span class="ident">expression::Identifier</span>,
@@ -250,12 +260,11 @@
 
 <span class="doccomment">/// The `for` statement creates a loop that consists of three optional expressions.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// A `for` loop repeats until a specified condition evaluates to `false`.</span>
+<span class="doccomment">/// A [`for`][mdn] loop repeats until a specified condition evaluates to `false`.</span>
 <span class="doccomment">/// The JavaScript for loop is similar to the Java and C for loop.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for</span>
@@ -405,11 +414,22 @@
     }
 }
 
+<span class="doccomment">/// A [`ForLoop`] initializer, as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// A `ForLoop` initializer differs a lot from an</span>
+<span class="doccomment">/// [`IterableLoopInitializer`][super::IterableLoopInitializer], since it can contain any arbitrary</span>
+<span class="doccomment">/// expression instead of only accessors and patterns. Additionally, it can also contain many variable</span>
+<span class="doccomment">/// declarations instead of only one.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ForStatement</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ForLoopInitializer</span> {
+    <span class="doccomment">/// An expression initializer.</span>
     <span class="ident">Expression</span>(<span class="ident">Expression</span>),
+    <span class="doccomment">/// A var declaration initializer.</span>
     <span class="ident">Var</span>(<span class="ident">VarDeclaration</span>),
+    <span class="doccomment">/// A lexical declaration initializer.</span>
     <span class="ident">Lexical</span>(<span class="ident">LexicalDeclaration</span>),
 }
 

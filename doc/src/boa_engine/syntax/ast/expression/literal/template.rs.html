@@ -120,6 +120,15 @@
 <span id="118">118</span>
 <span id="119">119</span>
 <span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Template literal Expression.</span>
 
 <span class="kw">use</span> <span class="ident">std::borrow::Cow</span>;
@@ -152,14 +161,23 @@
     }
 }
 
+<span class="doccomment">/// An element found within a [`TemplateLiteral`].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// The [spec] doesn&#39;t define an element akin to `TemplateElement`. However, the AST defines this</span>
+<span class="doccomment">/// node as the equivalent of the components found in a template literal.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-template-literals</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TemplateElement</span> {
+    <span class="doccomment">/// A simple string.</span>
     <span class="ident">String</span>(<span class="ident">Sym</span>),
+    <span class="doccomment">/// An expression that is evaluated and replaced by its string representation.</span>
     <span class="ident">Expr</span>(<span class="ident">Expression</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">TemplateLiteral</span> {
+    <span class="doccomment">/// Creates a new `TemplateLiteral` from a list of [`TemplateElement`]s.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">elements</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">TemplateElement</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> { <span class="ident">elements</span> }

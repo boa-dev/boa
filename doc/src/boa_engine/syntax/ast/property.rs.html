@@ -329,7 +329,11 @@
 <span id="327">327</span>
 <span id="328">328</span>
 <span id="329">329</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span id="330">330</span>
+<span id="331">331</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Property definition related types, used in object literals and class definitions.</span>
+
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression</span>::{<span class="ident">literal::Literal</span>, <span class="ident">Identifier</span>},
@@ -337,7 +341,7 @@
     <span class="ident">ContainsSymbol</span>, <span class="ident">Expression</span>, <span class="ident">StatementList</span>,
 };
 
-<span class="doccomment">/// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.</span>
+<span class="doccomment">/// Describes the definition of a property within an object literal.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// A property has a name (a string) and a value (primitive, method, or object reference).</span>
 <span class="doccomment">/// Note that when we say that &quot;a property holds an object&quot;, that is shorthand for &quot;a property holds an object reference&quot;.</span>
@@ -396,7 +400,7 @@
     <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties</span>
     <span class="ident">SpreadObject</span>(<span class="ident">Expression</span>),
 
-    <span class="doccomment">/// Cover grammar for when an object literal is used as an object biding pattern.</span>
+    <span class="doccomment">/// Cover grammar for when an object literal is used as an object binding pattern.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>

@@ -97,24 +97,24 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Await</span> {
-    <span class="ident">expr</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
+    <span class="ident">target</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Await</span> {
-    <span class="doccomment">/// Return the expression that should be awaited.</span>
+    <span class="doccomment">/// Return the target expression that should be awaited.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">expr</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">target</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
+        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">target</span>
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">contains_arguments</span>()
+        <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">contains_arguments</span>()
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
+        <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
     }
 }
 
@@ -124,14 +124,14 @@
 {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">e</span>: <span class="ident">T</span>) -&gt; <span class="self">Self</span> {
-        <span class="self">Self</span> { <span class="ident">expr</span>: <span class="ident">e</span>.<span class="ident">into</span>() }
+        <span class="self">Self</span> { <span class="ident">target</span>: <span class="ident">e</span>.<span class="ident">into</span>() }
     }
 }
 
 <span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">Await</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
-        <span class="macro">format!</span>(<span class="string">&quot;await {}&quot;</span>, <span class="self">self</span>.<span class="ident">expr</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>))
+        <span class="macro">format!</span>(<span class="string">&quot;await {}&quot;</span>, <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">to_indented_string</span>(<span class="ident">interner</span>, <span class="number">0</span>))
     }
 }
 

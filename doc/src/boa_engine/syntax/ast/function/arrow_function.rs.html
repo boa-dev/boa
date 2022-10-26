@@ -122,10 +122,6 @@
 <span id="120">120</span>
 <span id="121">121</span>
 <span id="122">122</span>
-<span id="123">123</span>
-<span id="124">124</span>
-<span id="125">125</span>
-<span id="126">126</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>},
     <span class="ident">join_nodes</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">StatementList</span>,
@@ -134,16 +130,12 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::FormalParameterList</span>;
 
-<span class="doccomment">/// An arrow function expression is a syntactically compact alternative to a regular function</span>
-<span class="doccomment">/// expression.</span>
+<span class="doccomment">/// An arrow function expression, as defined by the [spec].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Arrow function expressions are ill suited as methods, and they cannot be used as</span>
+<span class="doccomment">/// An [arrow function][mdn] expression is a syntactically compact alternative to a regular function</span>
+<span class="doccomment">/// expression. Arrow function expressions are ill suited as methods, and they cannot be used as</span>
 <span class="doccomment">/// constructors. Arrow functions cannot be used as constructors and will throw an error when</span>
 <span class="doccomment">/// used with new.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction</span>
 <span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions</span>

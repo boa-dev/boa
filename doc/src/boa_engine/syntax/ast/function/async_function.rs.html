@@ -115,7 +115,6 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
-<span id="116">116</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Function Expression.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
@@ -126,15 +125,14 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::FormalParameterList</span>;
 
-<span class="doccomment">/// An async function expression is very similar to an async function declaration except used within</span>
-<span class="doccomment">/// a wider expression (for example during an assignment).</span>
+<span class="doccomment">/// An async function definition, as defined by the [spec].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
+<span class="doccomment">/// An [async function][mdn] is a function where await expressions are allowed within it.</span>
+<span class="doccomment">/// The async and await keywords enable asynchronous programming on Javascript without the use</span>
+<span class="doccomment">/// of promise chains.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-async-function-definitions</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncFunction</span> {

@@ -205,11 +205,13 @@
 <span id="203">203</span>
 <span id="204">204</span>
 <span id="205">205</span>
+<span id="206">206</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Error and result implementation for the parser.</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::position::Position</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::Span</span>;
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::Error</span> <span class="kw">as</span> <span class="ident">LexError</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
+    <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
+    <span class="ident">lexer::Error</span> <span class="kw">as</span> <span class="ident">LexError</span>,
+};
 <span class="kw">use</span> <span class="ident">std::fmt</span>;
 
 <span class="doccomment">/// Result of a parsing operation.</span>

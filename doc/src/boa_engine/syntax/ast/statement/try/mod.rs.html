@@ -221,10 +221,14 @@
 <span id="219">219</span>
 <span id="220">220</span>
 <span id="221">221</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
+<span id="222">222</span>
+<span id="223">223</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Error handling statements</span>
+
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">declaration::Binding</span>,
     <span class="ident">statement</span>::{<span class="ident">Block</span>, <span class="ident">Statement</span>},
-    <span class="ident">statement_list::StatementListItem</span>,
+    <span class="ident">StatementListItem</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 

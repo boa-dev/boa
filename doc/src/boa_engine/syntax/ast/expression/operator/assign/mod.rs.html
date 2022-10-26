@@ -444,7 +444,28 @@
 <span id="442">442</span>
 <span id="443">443</span>
 <span id="444">444</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Assignment expression nodes, as defined by the [spec].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! An [assignment operator][mdn] assigns a value to its left operand based on the value of its right</span>
+<span class="doccomment">//! operand. Almost any [`LeftHandSideExpression`][lhs] Parse Node can be the target of a simple</span>
+<span class="doccomment">//! assignment expression (`=`). However, the compound assignment operations such as `%=` or `??=`</span>
+<span class="doccomment">//! only allow [&quot;simple&quot;][simple] left hand side expressions as an assignment target.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
+<span class="doccomment">//! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators</span>
+<span class="doccomment">//! [lhs]: https://tc39.es/ecma262/#prod-LeftHandSideExpression</span>
+<span class="doccomment">//! [simple]: https://tc39.es/ecma262/#sec-static-semantics-assignmenttargettype</span>
+
+<span class="kw">mod</span> <span class="ident">op</span>;
+
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">op</span>::<span class="kw-2">*</span>;
+
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
@@ -455,38 +476,27 @@
             <span class="ident">Expression</span>,
         },
         <span class="ident">pattern</span>::{
-            <span class="ident">Pattern</span>, <span class="ident">PatternArray</span>, <span class="ident">PatternArrayElement</span>, <span class="ident">PatternObject</span>, <span class="ident">PatternObjectElement</span>,
+            <span class="ident">ArrayPattern</span>, <span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPattern</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>,
         },
         <span class="ident">property</span>::{<span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
         <span class="ident">ContainsSymbol</span>,
     },
     <span class="ident">parser::RESERVED_IDENTIFIERS_STRICT</span>,
 };
-
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">op</span>;
-
-<span class="doccomment">/// An assignment operator assigns a value to its left operand based on the value of its right</span>
-<span class="doccomment">/// operand.</span>
+<span class="doccomment">/// An assignment operator expression.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// Assignment operator (`=`), assigns the value of its right operand to its left operand.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///  - [MDN documentation][mdn]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Assignment_Operators</span>
+<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Assign</span> {
-    <span class="ident">op</span>: <span class="ident">op::AssignOp</span>,
+    <span class="ident">op</span>: <span class="ident">AssignOp</span>,
     <span class="ident">lhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">AssignTarget</span><span class="op">&gt;</span>,
     <span class="ident">rhs</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">Assign</span> {
     <span class="doccomment">/// Creates an `Assign` AST Expression.</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">op</span>: <span class="ident">op::AssignOp</span>, <span class="ident">lhs</span>: <span class="ident">AssignTarget</span>, <span class="ident">rhs</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">op</span>: <span class="ident">AssignOp</span>, <span class="ident">lhs</span>: <span class="ident">AssignTarget</span>, <span class="ident">rhs</span>: <span class="ident">Expression</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span> {
             <span class="ident">op</span>,
             <span class="ident">lhs</span>: <span class="ident">Box::new</span>(<span class="ident">lhs</span>),
@@ -496,7 +506,7 @@
 
     <span class="doccomment">/// Gets the operator of the assignment operation.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">op::AssignOp</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">op</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">AssignOp</span> {
         <span class="self">self</span>.<span class="ident">op</span>
     }
 
@@ -554,24 +564,27 @@
     }
 }
 
-<span class="doccomment">/// This type represents all valid left-had-side expressions of an assignment operator.</span>
+<span class="doccomment">/// The valid left-hand-side expressions of an assignment operator. Also called</span>
+<span class="doccomment">/// [`LeftHandSideExpression`][spec] in the spec.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
+<span class="doccomment">/// [spec]: hhttps://tc39.es/ecma262/#prod-LeftHandSideExpression</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">AssignTarget</span> {
+    <span class="doccomment">/// A simple identifier, such as `a`.</span>
     <span class="ident">Identifier</span>(<span class="ident">Identifier</span>),
+    <span class="doccomment">/// A property access, such as `a.prop`.</span>
     <span class="ident">Property</span>(<span class="ident">PropertyAccess</span>),
+    <span class="doccomment">/// A private property access, such as `a.#priv`.</span>
     <span class="ident">PrivateProperty</span>(<span class="ident">PrivatePropertyAccess</span>),
+    <span class="doccomment">/// A `super` property access, such as `super.prop`.</span>
     <span class="ident">SuperProperty</span>(<span class="ident">SuperPropertyAccess</span>),
+    <span class="doccomment">/// A pattern assignment target, such as `{a, b, ...c}`.</span>
     <span class="ident">Pattern</span>(<span class="ident">Pattern</span>),
 }
 
 <span class="kw">impl</span> <span class="ident">AssignTarget</span> {
-    <span class="doccomment">/// Converts the left-hand-side Expression of an assignment expression into it&#39;s an [`AssignTarget`].</span>
+    <span class="doccomment">/// Converts the left-hand-side Expression of an assignment expression into an [`AssignTarget`].</span>
     <span class="doccomment">/// Returns `None` if the given Expression is an invalid left-hand-side for a assignment expression.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">from_expression</span>(
         <span class="ident">expression</span>: <span class="kw-2">&amp;</span><span class="ident">Expression</span>,
@@ -622,7 +635,7 @@
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">object_decl_to_declaration_pattern</span>(
     <span class="ident">object</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectLiteral</span>,
     <span class="ident">strict</span>: <span class="ident">bool</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PatternObject</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ObjectPattern</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">excluded_keys</span> <span class="op">=</span> <span class="ident">Vec::new</span>();
     <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">property</span>) <span class="kw">in</span> <span class="ident">object</span>.<span class="ident">properties</span>().<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -638,7 +651,7 @@
                 }
 
                 <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                     <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">ident</span>.<span class="ident">sym</span>()),
                     <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
@@ -654,14 +667,14 @@
                     }
 
                     <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                         <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                     });
                 }
                 (<span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>), <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>)) =&gt; {
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                         <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
@@ -669,7 +682,7 @@
                 }
                 (<span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>), <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">object</span>)) =&gt; {
                     <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::Pattern</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::Pattern</span> {
                         <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
                         <span class="ident">pattern</span>,
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
@@ -677,7 +690,7 @@
                 }
                 (<span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>), <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">array</span>)) =&gt; {
                     <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::Pattern</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::Pattern</span> {
                         <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="kw-2">*</span><span class="ident">name</span>),
                         <span class="ident">pattern</span>,
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
@@ -694,13 +707,13 @@
                                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                                 }
                                 <span class="ident">excluded_keys</span>.<span class="ident">push</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
-                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                                     <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>),
                                     <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                                 });
                             } <span class="kw">else</span> {
-                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                                     <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>),
                                     <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
@@ -711,14 +724,14 @@
                         }
                     }
                     <span class="ident">AssignTarget::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::Pattern</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::Pattern</span> {
                             <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
                             <span class="ident">pattern</span>: <span class="ident">pattern</span>.<span class="ident">clone</span>(),
                             <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                         });
                     }
                     <span class="ident">AssignTarget::Property</span>(<span class="ident">field</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::AssignmentPropertyAccess</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::AssignmentPropertyAccess</span> {
                             <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
                             <span class="ident">access</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
                             <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
@@ -729,14 +742,14 @@
                     }
                 },
                 (<span class="kw">_</span>, <span class="ident">Expression::PropertyAccess</span>(<span class="ident">field</span>)) =&gt; {
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::AssignmentPropertyAccess</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::AssignmentPropertyAccess</span> {
                         <span class="ident">name</span>: <span class="ident">name</span>.<span class="ident">clone</span>(),
                         <span class="ident">access</span>: <span class="ident">field</span>.<span class="ident">clone</span>(),
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                     });
                 }
                 (<span class="ident">PropertyName::Computed</span>(<span class="ident">name</span>), <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>)) =&gt; {
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                         <span class="ident">name</span>: <span class="ident">PropertyName::Computed</span>(<span class="ident">name</span>.<span class="ident">clone</span>()),
                         <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
@@ -747,13 +760,13 @@
             <span class="ident">PropertyDefinition::SpreadObject</span>(<span class="ident">spread</span>) =&gt; {
                 <span class="kw">match</span> <span class="ident">spread</span> {
                     <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::RestProperty</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::RestProperty</span> {
                             <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                             <span class="ident">excluded_keys</span>: <span class="ident">excluded_keys</span>.<span class="ident">clone</span>(),
                         });
                     }
                     <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::AssignmentRestPropertyAccess</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::AssignmentRestPropertyAccess</span> {
                             <span class="ident">access</span>: <span class="ident">access</span>.<span class="ident">clone</span>(),
                             <span class="ident">excluded_keys</span>: <span class="ident">excluded_keys</span>.<span class="ident">clone</span>(),
                         });
@@ -770,7 +783,7 @@
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
 
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::SingleName</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ObjectPatternElement::SingleName</span> {
                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                     <span class="ident">name</span>: <span class="ident">PropertyName::Literal</span>(<span class="ident">ident</span>.<span class="ident">sym</span>()),
                     <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">expr</span>.<span class="ident">clone</span>()),
@@ -778,17 +791,14 @@
             }
         }
     }
-    <span class="kw">if</span> <span class="ident">object</span>.<span class="ident">properties</span>().<span class="ident">is_empty</span>() {
-        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternObjectElement::Empty</span>);
-    }
-    <span class="prelude-val">Some</span>(<span class="ident">PatternObject::new</span>(<span class="ident">bindings</span>.<span class="ident">into</span>()))
+    <span class="prelude-val">Some</span>(<span class="ident">ObjectPattern::new</span>(<span class="ident">bindings</span>.<span class="ident">into</span>()))
 }
 
 <span class="doccomment">/// Converts an array declaration into an array declaration pattern.</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">array_decl_to_declaration_pattern</span>(
     <span class="ident">array</span>: <span class="kw-2">&amp;</span><span class="ident">ArrayLiteral</span>,
     <span class="ident">strict</span>: <span class="ident">bool</span>,
-) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">PatternArray</span><span class="op">&gt;</span> {
+) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">ArrayPattern</span><span class="op">&gt;</span> {
     <span class="kw">if</span> <span class="ident">array</span>.<span class="ident">has_trailing_comma_spread</span>() {
         <span class="kw">return</span> <span class="prelude-val">None</span>;
     }
@@ -798,7 +808,7 @@
         <span class="kw">let</span> <span class="ident">expr</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">expr</span> {
             <span class="ident">expr</span>
         } <span class="kw">else</span> {
-            <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::Elision</span>);
+            <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::Elision</span>);
             <span class="kw">continue</span>;
         };
         <span class="kw">match</span> <span class="ident">expr</span> {
@@ -807,28 +817,28 @@
                     <span class="kw">return</span> <span class="prelude-val">None</span>;
                 }
 
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::SingleName</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::SingleName</span> {
                     <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                     <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                 });
             }
             <span class="ident">Expression::Spread</span>(<span class="ident">spread</span>) =&gt; {
-                <span class="kw">match</span> <span class="ident">spread</span>.<span class="ident">val</span>() {
+                <span class="kw">match</span> <span class="ident">spread</span>.<span class="ident">target</span>() {
                     <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::SingleNameRest</span> { <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span> });
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::SingleNameRest</span> { <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span> });
                     }
                     <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::PropertyAccessRest</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::PropertyAccessRest</span> {
                             <span class="ident">access</span>: <span class="ident">access</span>.<span class="ident">clone</span>(),
                         });
                     }
                     <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::PatternRest</span> { <span class="ident">pattern</span> });
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::PatternRest</span> { <span class="ident">pattern</span> });
                     }
                     <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::PatternRest</span> { <span class="ident">pattern</span> });
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::PatternRest</span> { <span class="ident">pattern</span> });
                     }
                     <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
                 }
@@ -838,25 +848,25 @@
             }
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
                 <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::SingleName</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::SingleName</span> {
                         <span class="ident">ident</span>: <span class="kw-2">*</span><span class="ident">ident</span>,
                         <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                     });
                 }
                 <span class="ident">AssignTarget::Property</span>(<span class="ident">access</span>) =&gt; {
-                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::PropertyAccess</span> {
+                    <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::PropertyAccess</span> {
                         <span class="ident">access</span>: <span class="ident">access</span>.<span class="ident">clone</span>(),
                     });
                 }
                 <span class="ident">AssignTarget::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="kw">match</span> <span class="ident">pattern</span> {
                     <span class="ident">Pattern::Object</span>(<span class="ident">pattern</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::Pattern</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::Pattern</span> {
                             <span class="ident">pattern</span>: <span class="ident">Pattern::Object</span>(<span class="ident">pattern</span>.<span class="ident">clone</span>()),
                             <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                         });
                     }
                     <span class="ident">Pattern::Array</span>(<span class="ident">pattern</span>) =&gt; {
-                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::Pattern</span> {
+                        <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::Pattern</span> {
                             <span class="ident">pattern</span>: <span class="ident">Pattern::Array</span>(<span class="ident">pattern</span>.<span class="ident">clone</span>()),
                             <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>().<span class="ident">clone</span>()),
                         });
@@ -866,27 +876,27 @@
             },
             <span class="ident">Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::Pattern</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::Pattern</span> {
                     <span class="ident">pattern</span>,
                     <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                 });
             }
             <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>)<span class="question-mark">?</span>.<span class="ident">into</span>();
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::Pattern</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::Pattern</span> {
                     <span class="ident">pattern</span>,
                     <span class="ident">default_init</span>: <span class="prelude-val">None</span>,
                 });
             }
             <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">PatternArrayElement::PropertyAccess</span> {
+                <span class="ident">bindings</span>.<span class="ident">push</span>(<span class="ident">ArrayPatternElement::PropertyAccess</span> {
                     <span class="ident">access</span>: <span class="ident">access</span>.<span class="ident">clone</span>(),
                 });
             }
             <span class="kw">_</span> =&gt; <span class="kw">return</span> <span class="prelude-val">None</span>,
         }
     }
-    <span class="prelude-val">Some</span>(<span class="ident">PatternArray::new</span>(<span class="ident">bindings</span>.<span class="ident">into</span>()))
+    <span class="prelude-val">Some</span>(<span class="ident">ArrayPattern::new</span>(<span class="ident">bindings</span>.<span class="ident">into</span>()))
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

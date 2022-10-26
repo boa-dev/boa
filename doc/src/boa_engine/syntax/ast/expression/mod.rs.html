@@ -283,12 +283,37 @@
 <span id="281">281</span>
 <span id="282">282</span>
 <span id="283">283</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Javascript expressions include:</span>
+<span class="doccomment">//! - [Primary][primary] expressions (`this`, function expressions, literals).</span>
+<span class="doccomment">//! - [Left hand side][lhs] expressions (accessors, `new` operator, `super`).</span>
+<span class="doccomment">//! - [operator] expressions.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Expression</span>
+<span class="doccomment">//! [primary]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#primary_expressions</span>
+<span class="doccomment">//! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions</span>
+
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">access</span>::{<span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>, <span class="ident">SuperPropertyAccess</span>},
     <span class="ident">literal</span>::{<span class="ident">ArrayLiteral</span>, <span class="ident">Literal</span>, <span class="ident">ObjectLiteral</span>, <span class="ident">TemplateLiteral</span>},
-    <span class="ident">operator</span>::{<span class="ident">conditional::Conditional</span>, <span class="ident">Assign</span>, <span class="ident">Binary</span>, <span class="ident">Unary</span>},
+    <span class="ident">operator</span>::{<span class="ident">Assign</span>, <span class="ident">Binary</span>, <span class="ident">Conditional</span>, <span class="ident">Unary</span>},
 };
 
 <span class="kw">use</span> <span class="kw">super</span>::{
@@ -317,6 +342,9 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">literal</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">operator</span>;
 
+<span class="doccomment">/// The `Expression` Parse Node.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Expression</span> {

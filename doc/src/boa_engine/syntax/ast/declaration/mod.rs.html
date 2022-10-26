@@ -148,7 +148,42 @@
 <span id="146">146</span>
 <span id="147">147</span>
 <span id="148">148</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">super</span>::{
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The [`Declaration`] Parse Node, as defined by the [spec].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Javascript declarations include:</span>
+<span class="doccomment">//! - [Lexical][lex] declarations (`let`, `const`).</span>
+<span class="doccomment">//! - [Function][fun] declarations (`function`, `async function`).</span>
+<span class="doccomment">//! - [Class][class] declarations.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! See [*Difference between statements and declarations*][diff] for an explanation on why `Declaration`s</span>
+<span class="doccomment">//! and `Statement`s are distinct nodes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Declaration</span>
+<span class="doccomment">//! [lex]: https://tc39.es/ecma262/#prod-LexicalDeclaration</span>
+<span class="doccomment">//! [fun]: https://tc39.es/ecma262/#prod-HoistableDeclaration</span>
+<span class="doccomment">//! [class]: https://tc39.es/ecma262/#prod-ClassDeclaration</span>
+<span class="doccomment">//! [diff]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements#difference_between_statements_and_declarations</span>
+
+<span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression::Identifier</span>,
     <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
     <span class="ident">ContainsSymbol</span>,
@@ -160,6 +195,9 @@
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">variable</span>::<span class="kw-2">*</span>;
 
+<span class="doccomment">/// The `Declaration` Parse Node.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Declaration</span> {

@@ -819,7 +819,34 @@
 <span id="817">817</span>
 <span id="818">818</span>
 <span id="819">819</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span id="820">820</span>
+<span id="821">821</span>
+<span id="822">822</span>
+</pre><pre class="rust"><code><span class="doccomment">//! A pattern binding or assignment node.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]</span>
+<span class="doccomment">//! nodes, each of which is used in different situations and have slightly different grammars.</span>
+<span class="doccomment">//! For example, a variable declaration combined with a destructuring expression is a `BindingPattern`:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```Javascript</span>
+<span class="doccomment">//! const obj = { a: 1, b: 2 };</span>
+<span class="doccomment">//! const { a, b } = obj; // BindingPattern</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! On the other hand, a simple destructuring expression with already declared variables is called</span>
+<span class="doccomment">//! an `AssignmentPattern`:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! ```Javascript</span>
+<span class="doccomment">//! let a = 1;</span>
+<span class="doccomment">//! let b = 3;</span>
+<span class="doccomment">//! [a, b] = [b, a]; // AssignmentPattern</span>
+<span class="doccomment">//! ```</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec1]: https://tc39.es/ecma262/#prod-BindingPattern</span>
+<span class="doccomment">//! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern</span>
+<span class="doccomment">//! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment</span>
+
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
     <span class="ident">expression</span>::{
@@ -830,41 +857,38 @@
     <span class="ident">ContainsSymbol</span>, <span class="ident">Expression</span>,
 };
 
-<span class="doccomment">/// `Pattern` represents an object or array pattern.</span>
+<span class="doccomment">/// An object or array pattern binding or assignment.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This enum mostly wraps the functionality of the specific binding pattern types.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `BindingPattern`][spec1]</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingPattern</span>
+<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Pattern</span> {
-    <span class="ident">Object</span>(<span class="ident">PatternObject</span>),
-    <span class="ident">Array</span>(<span class="ident">PatternArray</span>),
+    <span class="doccomment">/// An object pattern (`let {a, b, c} = object`).</span>
+    <span class="ident">Object</span>(<span class="ident">ObjectPattern</span>),
+    <span class="doccomment">/// An array pattern (`[a, b, c] = array`).</span>
+    <span class="ident">Array</span>(<span class="ident">ArrayPattern</span>),
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PatternObject</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">PatternObject</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ObjectPattern</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">ObjectPattern</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Pattern::Object</span>(<span class="ident">obj</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PatternArray</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">PatternArray</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">ArrayPattern</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">obj</span>: <span class="ident">ArrayPattern</span>) -&gt; <span class="self">Self</span> {
         <span class="ident">Pattern::Array</span>(<span class="ident">obj</span>)
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternObjectElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternObjectElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">PatternObject::new</span>(<span class="ident">elements</span>.<span class="ident">into</span>()).<span class="ident">into</span>()
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectPatternElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectPatternElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">ObjectPattern::new</span>(<span class="ident">elements</span>.<span class="ident">into</span>()).<span class="ident">into</span>()
     }
 }
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternArrayElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternArrayElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident">PatternArray::new</span>(<span class="ident">elements</span>.<span class="ident">into</span>()).<span class="ident">into</span>()
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArrayPatternElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Pattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArrayPatternElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident">ArrayPattern::new</span>(<span class="ident">elements</span>.<span class="ident">into</span>()).<span class="ident">into</span>()
     }
 }
 
@@ -918,25 +942,26 @@
     }
 }
 
-<span class="doccomment">/// `DeclarationPatternObject` represents an object binding pattern.</span>
+<span class="doccomment">/// An object binding or assignment pattern.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This struct holds a list of bindings, and an optional initializer for the binding pattern.</span>
+<span class="doccomment">/// Corresponds to the [`ObjectBindingPattern`][spec1] and the [`ObjectAssignmentPattern`][spec2]</span>
+<span class="doccomment">/// Parse Nodes.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]</span>
+<span class="doccomment">/// For more information on what is a valid binding in an object pattern, see [`ObjectPatternElement`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
+<span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-ObjectAssignmentPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatternObject</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PatternObjectElement</span>]<span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectPattern</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">ObjectPatternElement</span>]<span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternObjectElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PatternObject</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternObjectElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectPatternElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ObjectPattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ObjectPatternElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">elements</span>.<span class="ident">into</span>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PatternObject</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ObjectPattern</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;{&quot;</span>.<span class="ident">to_owned</span>();
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">binding</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
@@ -949,50 +974,41 @@
 
             <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="ident">str</span>);
         }
+        <span class="kw">if</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">is_empty</span>() {
+            <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39; &#39;</span>);
+        }
         <span class="ident">buf</span>.<span class="ident">push</span>(<span class="string">&#39;}&#39;</span>);
         <span class="ident">buf</span>
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PatternObject</span> {
-    <span class="doccomment">/// Create a new object binding pattern.</span>
+<span class="kw">impl</span> <span class="ident">ObjectPattern</span> {
+    <span class="doccomment">/// Creates a new object binding pattern.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bindings</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PatternObjectElement</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bindings</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">ObjectPatternElement</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">bindings</span>)
     }
 
     <span class="doccomment">/// Gets the bindings for the object binding pattern.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">PatternObjectElement</span>] {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ObjectPatternElement</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 
-    <span class="comment">// Returns if the object binding pattern has a rest element.</span>
+    <span class="comment">// Returns true if the object binding pattern has a rest element.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">has_rest</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(
             <span class="self">self</span>.<span class="number">0</span>.<span class="ident">last</span>(),
-            <span class="prelude-val">Some</span>(<span class="ident">PatternObjectElement::RestProperty</span> { .. })
+            <span class="prelude-val">Some</span>(<span class="ident">ObjectPatternElement::RestProperty</span> { .. })
         )
     }
 
-    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">PatternObjectElement::contains_arguments</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">ObjectPatternElement::contains_arguments</span>)
     }
 
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
@@ -1003,36 +1019,37 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">idents</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">flat_map</span>(<span class="ident">PatternObjectElement::idents</span>)
+            .<span class="ident">flat_map</span>(<span class="ident">ObjectPatternElement::idents</span>)
             .<span class="ident">collect</span>()
     }
 }
 
-<span class="doccomment">/// `DeclarationPatternArray` represents an array binding pattern.</span>
+<span class="doccomment">/// An array binding or assignment pattern.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// This struct holds a list of bindings, and an optional initializer for the binding pattern.</span>
+<span class="doccomment">/// Corresponds to the [`ArrayBindingPattern`][spec1] and the [`ArrayAssignmentPattern`][spec2]</span>
+<span class="doccomment">/// Parse Nodes.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]</span>
+<span class="doccomment">/// For more information on what is a valid binding in an array pattern, see [`ArrayPatternElement`].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
+<span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-ArrayAssignmentPattern</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PatternArray</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PatternArrayElement</span>]<span class="op">&gt;</span>);
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ArrayPattern</span>(<span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">ArrayPatternElement</span>]<span class="op">&gt;</span>);
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternArrayElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PatternArray</span> {
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">PatternArrayElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArrayPatternElement</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">ArrayPattern</span> {
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">elements</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">ArrayPatternElement</span><span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">elements</span>.<span class="ident">into</span>())
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PatternArray</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ArrayPattern</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">buf</span> <span class="op">=</span> <span class="string">&quot;[&quot;</span>.<span class="ident">to_owned</span>();
         <span class="kw">for</span> (<span class="ident">i</span>, <span class="ident">binding</span>) <span class="kw">in</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">enumerate</span>() {
             <span class="kw">if</span> <span class="ident">i</span> <span class="op">==</span> <span class="self">self</span>.<span class="number">0</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span> {
                 <span class="kw">match</span> <span class="ident">binding</span> {
-                    <span class="ident">PatternArrayElement::Elision</span> =&gt; {
+                    <span class="ident">ArrayPatternElement::Elision</span> =&gt; {
                         <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{}, &quot;</span>, <span class="ident">binding</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>)));
                     }
                     <span class="kw">_</span> =&gt; <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">&quot;{} &quot;</span>, <span class="ident">binding</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>))),
@@ -1046,36 +1063,24 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">PatternArray</span> {
-    <span class="doccomment">/// Create a new array binding pattern.</span>
+<span class="kw">impl</span> <span class="ident">ArrayPattern</span> {
+    <span class="doccomment">/// Creates a new array binding pattern.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bindings</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">PatternArrayElement</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
+    <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">bindings</span>: <span class="ident">Box</span><span class="op">&lt;</span>[<span class="ident">ArrayPatternElement</span>]<span class="op">&gt;</span>) -&gt; <span class="self">Self</span> {
         <span class="self">Self</span>(<span class="ident">bindings</span>)
     }
 
     <span class="doccomment">/// Gets the bindings for the array binding pattern.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">PatternArrayElement</span>] {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">bindings</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">ArrayPatternElement</span>] {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0</span>
     }
 
-    <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">PatternArrayElement::contains_arguments</span>)
+        <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="ident">ArrayPatternElement::contains_arguments</span>)
     }
 
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="number">0</span>.<span class="ident">iter</span>().<span class="ident">any</span>(<span class="op">|</span><span class="ident">e</span><span class="op">|</span> <span class="ident">e</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
     }
@@ -1085,23 +1090,20 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">idents</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="number">0</span>
             .<span class="ident">iter</span>()
-            .<span class="ident">flat_map</span>(<span class="ident">PatternArrayElement::idents</span>)
+            .<span class="ident">flat_map</span>(<span class="ident">ArrayPatternElement::idents</span>)
             .<span class="ident">collect</span>()
     }
 }
 
-<span class="doccomment">/// `BindingPatternTypeObject` represents the different types of bindings that an object binding pattern may contain.</span>
+<span class="doccomment">/// The different types of bindings that an [`ObjectPattern`] may contain.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ObjectBindingPattern`][spec1]</span>
+<span class="doccomment">/// Corresponds to the [`BindingProperty`][spec1] and the [`AssignmentProperty`][spec2] nodes.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern</span>
+<span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty</span>
+<span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-AssignmentProperty</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PatternObjectElement</span> {
-    <span class="doccomment">/// Empty represents an empty object pattern e.g. `{ }`.</span>
-    <span class="ident">Empty</span>,
-
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ObjectPatternElement</span> {
     <span class="doccomment">/// SingleName represents one of the following properties:</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// - `SingleName` with an identifier and an optional default initializer.</span>
@@ -1114,8 +1116,11 @@
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding</span>
     <span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-BindingProperty</span>
     <span class="ident">SingleName</span> {
+        <span class="doccomment">/// The identifier name of the property to be destructured.</span>
         <span class="ident">name</span>: <span class="ident">PropertyName</span>,
+        <span class="doccomment">/// The variable name where the property value will be stored.</span>
         <span class="ident">ident</span>: <span class="ident">Identifier</span>,
+        <span class="doccomment">/// An optional default value for the variable, in case the property doesn&#39;t exist.</span>
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     },
 
@@ -1129,7 +1134,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingRestProperty</span>
     <span class="ident">RestProperty</span> {
+        <span class="doccomment">/// The variable name where the unassigned properties will be stored.</span>
         <span class="ident">ident</span>: <span class="ident">Identifier</span>,
+        <span class="doccomment">/// A list of the excluded property keys that were already destructured.</span>
         <span class="ident">excluded_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     },
 
@@ -1143,8 +1150,11 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentProperty</span>
     <span class="ident">AssignmentPropertyAccess</span> {
+        <span class="doccomment">/// The identifier name of the property to be destructured.</span>
         <span class="ident">name</span>: <span class="ident">PropertyName</span>,
+        <span class="doccomment">/// The property access where the property value will be destructured.</span>
         <span class="ident">access</span>: <span class="ident">PropertyAccess</span>,
+        <span class="doccomment">/// An optional default value for the variable, in case the property doesn&#39;t exist.</span>
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     },
 
@@ -1158,7 +1168,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentRestProperty</span>
     <span class="ident">AssignmentRestPropertyAccess</span> {
+        <span class="doccomment">/// The property access where the unassigned properties will be stored.</span>
         <span class="ident">access</span>: <span class="ident">PropertyAccess</span>,
+        <span class="doccomment">/// A list of the excluded property keys that were already destructured.</span>
         <span class="ident">excluded_keys</span>: <span class="ident">Vec</span><span class="op">&lt;</span><span class="ident">Identifier</span><span class="op">&gt;</span>,
     },
 
@@ -1172,23 +1184,20 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty</span>
     <span class="ident">Pattern</span> {
+        <span class="doccomment">/// The identifier name of the property to be destructured.</span>
         <span class="ident">name</span>: <span class="ident">PropertyName</span>,
+        <span class="doccomment">/// The pattern where the property value will be destructured.</span>
         <span class="ident">pattern</span>: <span class="ident">Pattern</span>,
+        <span class="doccomment">/// An optional default value for the variable, in case the property doesn&#39;t exist.</span>
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     },
 }
 
-<span class="kw">impl</span> <span class="ident">PatternObjectElement</span> {
-    <span class="doccomment">/// Returns true if the element contains a identifier reference named &#39;arguments&#39;.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments</span>
+<span class="kw">impl</span> <span class="ident">ObjectPatternElement</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident">PatternObjectElement::SingleName</span> {
+            <span class="ident">ObjectPatternElement::SingleName</span> {
                 <span class="ident">name</span>, <span class="ident">default_init</span>, ..
             } =&gt; {
                 <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">name</span> {
@@ -1202,12 +1211,12 @@
                     }
                 }
             }
-            <span class="ident">PatternObjectElement::AssignmentRestPropertyAccess</span> { <span class="ident">access</span>, .. } =&gt; {
+            <span class="ident">ObjectPatternElement::AssignmentRestPropertyAccess</span> { <span class="ident">access</span>, .. } =&gt; {
                 <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">target</span>().<span class="ident">contains_arguments</span>() {
                     <span class="kw">return</span> <span class="bool-val">true</span>;
                 }
             }
-            <span class="ident">PatternObjectElement::Pattern</span> {
+            <span class="ident">ObjectPatternElement::Pattern</span> {
                 <span class="ident">name</span>,
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
@@ -1231,12 +1240,6 @@
         <span class="bool-val">false</span>
     }
 
-    <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript specification][spec]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::SingleName</span> {
@@ -1290,10 +1293,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PatternObjectElement</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ObjectPatternElement</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Empty</span> =&gt; <span class="ident">String::new</span>(),
             <span class="ident"><span class="self">Self</span>::SingleName</span> {
                 <span class="ident">ident</span>,
                 <span class="ident">name</span>,
@@ -1388,26 +1390,15 @@
     }
 }
 
-<span class="doccomment">/// `PatternTypeArray` represents the different types of bindings that an array binding pattern may contain.</span>
+<span class="doccomment">/// The different types of bindings that an array binding pattern may contain.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - `ArrayBindingPattern`][spec1]</span>
+<span class="doccomment">/// Corresponds to the [`BindingElement`][spec1] and the [`AssignmentElement`][spec2] nodes.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
+<span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingElement</span>
+<span class="doccomment">/// [spec2]: https://tc39.es/ecma262/#prod-AssignmentElement</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PatternArrayElement</span> {
-    <span class="doccomment">/// Empty represents an empty array pattern e.g. `[ ]`.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// This may occur because the `Elision` and `BindingRestElement` in the first type of</span>
-    <span class="doccomment">/// array binding pattern are both optional.</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// More information:</span>
-    <span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - ArrayBindingPattern][spec1]</span>
-    <span class="doccomment">///</span>
-    <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern</span>
-    <span class="ident">Empty</span>,
-
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">ArrayPatternElement</span> {
     <span class="doccomment">/// Elision represents the elision of an item in the array binding pattern.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// An `Elision` may occur at multiple points in the pattern and may be multiple elisions.</span>
@@ -1426,7 +1417,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-SingleNameBinding</span>
     <span class="ident">SingleName</span> {
+        <span class="doccomment">/// The variable name where the index element will be stored.</span>
         <span class="ident">ident</span>: <span class="ident">Identifier</span>,
+        <span class="doccomment">/// An optional default value for the variable, in case the index element doesn&#39;t exist.</span>
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     },
 
@@ -1439,7 +1432,10 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
-    <span class="ident">PropertyAccess</span> { <span class="ident">access</span>: <span class="ident">PropertyAccess</span> },
+    <span class="ident">PropertyAccess</span> {
+        <span class="doccomment">/// The property access where the index element will be stored.</span>
+        <span class="ident">access</span>: <span class="ident">PropertyAccess</span>,
+    },
 
     <span class="doccomment">/// Pattern represents a `Pattern` in an `Element` of an array pattern.</span>
     <span class="doccomment">///</span>
@@ -1450,7 +1446,9 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingElement</span>
     <span class="ident">Pattern</span> {
+        <span class="doccomment">/// The pattern where the index element will be stored.</span>
         <span class="ident">pattern</span>: <span class="ident">Pattern</span>,
+        <span class="doccomment">/// An optional default value for the pattern, in case the index element doesn&#39;t exist.</span>
         <span class="ident">default_init</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     },
 
@@ -1460,7 +1458,10 @@
     <span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement</span>
-    <span class="ident">SingleNameRest</span> { <span class="ident">ident</span>: <span class="ident">Identifier</span> },
+    <span class="ident">SingleNameRest</span> {
+        <span class="doccomment">/// The variable where the unassigned index elements will be stored.</span>
+        <span class="ident">ident</span>: <span class="ident">Identifier</span>,
+    },
 
     <span class="doccomment">/// PropertyAccess represents a rest (spread operator) with a property accessor.</span>
     <span class="doccomment">///</span>
@@ -1471,7 +1472,10 @@
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AssignmentExpression</span>
-    <span class="ident">PropertyAccessRest</span> { <span class="ident">access</span>: <span class="ident">PropertyAccess</span> },
+    <span class="ident">PropertyAccessRest</span> {
+        <span class="doccomment">/// The property access where the unassigned index elements will be stored.</span>
+        <span class="ident">access</span>: <span class="ident">PropertyAccess</span>,
+    },
 
     <span class="doccomment">/// PatternRest represents a `Pattern` in a `RestElement` of an array pattern.</span>
     <span class="doccomment">///</span>
@@ -1479,10 +1483,13 @@
     <span class="doccomment">///  - [ECMAScript reference: 14.3.3 Destructuring Binding Patterns - BindingRestElement][spec1]</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// [spec1]: https://tc39.es/ecma262/#prod-BindingRestElement</span>
-    <span class="ident">PatternRest</span> { <span class="ident">pattern</span>: <span class="ident">Pattern</span> },
+    <span class="ident">PatternRest</span> {
+        <span class="doccomment">/// The pattern where the unassigned index elements will be stored.</span>
+        <span class="ident">pattern</span>: <span class="ident">Pattern</span>,
+    },
 }
 
-<span class="kw">impl</span> <span class="ident">PatternArrayElement</span> {
+<span class="kw">impl</span> <span class="ident">ArrayPatternElement</span> {
     <span class="doccomment">/// Returns true if the node contains a identifier reference named &#39;arguments&#39;.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
@@ -1598,10 +1605,9 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PatternArrayElement</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">ArrayPatternElement</span> {
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::Empty</span> =&gt; <span class="ident">String::new</span>(),
             <span class="ident"><span class="self">Self</span>::Elision</span> =&gt; <span class="string">&quot; &quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident"><span class="self">Self</span>::SingleName</span> {
                 <span class="ident">ident</span>,

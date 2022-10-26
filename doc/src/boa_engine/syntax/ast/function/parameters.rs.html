@@ -319,8 +319,6 @@
 <span id="317">317</span>
 <span id="318">318</span>
 <span id="319">319</span>
-<span id="320">320</span>
-<span id="321">321</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">declaration</span>::{<span class="ident">Binding</span>, <span class="ident">Variable</span>},
@@ -334,10 +332,7 @@
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 
-<span class="doccomment">/// `FormalParameterList` is a list of `FormalParameter`s that describes the parameters of a function.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">/// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-FormalParameterList</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
@@ -602,7 +597,7 @@
         }
     }
 
-    <span class="doccomment">/// Get the variable of the formal parameter</span>
+    <span class="doccomment">/// Gets the variable of the formal parameter</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">variable</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Variable</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>
     }
@@ -612,11 +607,12 @@
         <span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">init</span>()
     }
 
-    <span class="doccomment">/// Gets wether the parameter is a rest parameter.</span>
+    <span class="doccomment">/// Returns `true` if the parameter is a rest parameter.</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_rest_param</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="self">self</span>.<span class="ident">is_rest_param</span>
     }
 
+    <span class="doccomment">/// Returns `true` if the parameter is a simple [`Identifier`].</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">is_identifier</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="macro">matches!</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">variable</span>.<span class="ident">binding</span>(), <span class="ident">Binding::Identifier</span>(<span class="kw">_</span>))
     }

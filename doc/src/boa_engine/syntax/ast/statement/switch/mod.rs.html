@@ -149,6 +149,14 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Switch node.</span>
 <span class="doccomment">//!</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">expression::Expression</span>, <span class="ident">statement::Statement</span>, <span class="ident">StatementList</span>};
@@ -159,6 +167,14 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="doccomment">/// A case clause inside a [`Switch`] statement, as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Even though every [`Case`] body is a [`StatementList`], it doesn&#39;t create a new lexical</span>
+<span class="doccomment">/// environment. This means any variable declared in a `Case` will be considered as part of the</span>
+<span class="doccomment">/// lexical environment of the parent [`Switch`] block.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-CaseClause</span>
+<span class="doccomment">/// [truthy]: https://developer.mozilla.org/en-US/docs/Glossary/Truthy</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Case</span> {

@@ -181,7 +181,45 @@
 <span id="179">179</span>
 <span id="180">180</span>
 <span id="181">181</span>
-</pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">arrow_function</span>;
+<span id="182">182</span>
+<span id="183">183</span>
+<span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of</span>
+<span class="doccomment">//! statements (the *body* of the function). Javascript functions fall in several categories:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - [`Function`]s.</span>
+<span class="doccomment">//! - [`ArrowFunction`]s.</span>
+<span class="doccomment">//! - [`Generator`]s.</span>
+<span class="doccomment">//! - [`AsyncFunction`]s.</span>
+<span class="doccomment">//! - [`AsyncGenerator`]s.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! All of them can be declared in either [declaration][decl] form or [expression][expr] form,</span>
+<span class="doccomment">//! except from `ArrowFunction`s, which can only be declared in expression form.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module also contains [`Class`]es, which are templates for creating objects. Classes</span>
+<span class="doccomment">//! can also be declared in either declaration or expression form.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-ecmascript-language-functions-and-classes</span>
+<span class="doccomment">//! [func]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions</span>
+<span class="doccomment">//! [decl]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function</span>
+<span class="doccomment">//! [expr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function</span>
+
+<span class="kw">mod</span> <span class="ident">arrow_function</span>;
 <span class="kw">mod</span> <span class="ident">async_function</span>;
 <span class="kw">mod</span> <span class="ident">async_generator</span>;
 <span class="kw">mod</span> <span class="ident">class</span>;
@@ -203,22 +241,16 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>};
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>};
 
-<span class="doccomment">/// The `function` expression defines a function with the specified parameters.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A function created with a function expression is a `Function` object and has all the</span>
-<span class="doccomment">/// properties, methods and behavior of `Function`.</span>
-<span class="doccomment">///</span>
-<span class="doccomment">/// A function can also be created using a declaration (see function expression).</span>
+<span class="doccomment">/// A function definition, as defined by the [spec].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// By default, functions return `undefined`. To return any other value, the function must have</span>
 <span class="doccomment">/// a return statement that specifies the value to return.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///  - [MDN documentation][mdn]</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-terms-and-definitions-function</span>
-<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/function</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-function-definitions</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Function</span> {

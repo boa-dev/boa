@@ -113,18 +113,48 @@
 <span id="111">111</span>
 <span id="112">112</span>
 <span id="113">113</span>
+<span id="114">114</span>
+<span id="115">115</span>
+<span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Javascript Abstract Syntax Tree.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! This module contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.</span>
+<span class="doccomment">//! Some `Parse Node`s are not represented by Boa&#39;s AST, because a lot of grammar productions are</span>
+<span class="doccomment">//! only used to throw [**Early Errors**][early], and don&#39;t influence the evaluation of the AST itself.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Boa&#39;s AST is mainly split in three main components: [`Declaration`]s, [`Expression`]s and</span>
+<span class="doccomment">//! [`Statement`]s, with [`StatementList`] being the primordial Parse Node that combines</span>
+<span class="doccomment">//! all of them to create a proper AST.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar</span>
+<span class="doccomment">//! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules</span>
+
+<span class="attribute">#![<span class="ident">deny</span>(<span class="ident">missing_docs</span>)]</span>
+
+<span class="kw">mod</span> <span class="ident">position</span>;
+<span class="kw">mod</span> <span class="ident">punctuator</span>;
+<span class="kw">mod</span> <span class="ident">statement_list</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">declaration</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">expression</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">function</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">keyword</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pattern</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">position</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">punctuator</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement_list</span>;
 
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
@@ -138,7 +168,9 @@
     <span class="ident">statement_list</span>::{<span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>},
 };
 
-<span class="doccomment">/// Represents the possible symbols that can be use the the `contains` function.</span>
+<span class="doccomment">/// Represents all the possible symbols searched for by the [`Contains`][contains] operation.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [contains]: https://tc39.es/ecma262/#sec-syntax-directed-operations-contains</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">enum</span> <span class="ident">ContainsSymbol</span> {
     <span class="ident">SuperProperty</span>,

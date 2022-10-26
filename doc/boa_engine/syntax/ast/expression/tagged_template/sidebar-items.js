@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":[["TaggedTemplate",""]]};
+window.SIDEBAR_ITEMS = {"struct":[["TaggedTemplate","A `TaggedTemplate` expression, as defined by the spec."]]};

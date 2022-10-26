@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":[["TemplateElement",""]],"struct":[["TemplateLiteral","Template literals are string literals allowing embedded expressions."]]};
+window.SIDEBAR_ITEMS = {"enum":[["TemplateElement","An element found within a [`TemplateLiteral`]."]],"struct":[["TemplateLiteral","Template literals are string literals allowing embedded expressions."]]};

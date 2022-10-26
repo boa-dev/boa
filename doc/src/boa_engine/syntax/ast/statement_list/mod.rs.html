@@ -272,6 +272,14 @@
 <span id="270">270</span>
 <span id="271">271</span>
 <span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Statement list node.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">Declaration</span>};
@@ -283,10 +291,18 @@
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
+<span class="doccomment">/// An item inside a [`StatementList`] Parse Node, as defined by the [spec].</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Items in a `StatementList` can be either [`Declaration`]s (functions, classes, let/const declarations)</span>
+<span class="doccomment">/// or [`Statement`]s (if, while, var statement).</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-StatementListItem</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">StatementListItem</span> {
+    <span class="doccomment">/// See [`Statement`].</span>
     <span class="ident">Statement</span>(<span class="ident">Statement</span>),
+    <span class="doccomment">/// See [`Declaration`].</span>
     <span class="ident">Declaration</span>(<span class="ident">Declaration</span>),
 }
 

@@ -305,19 +305,36 @@
 <span id="303">303</span>
 <span id="304">304</span>
 <span id="305">305</span>
-</pre><pre class="rust"><code><span class="doccomment">//! This module implements the `Statement` node.</span>
+<span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+</pre><pre class="rust"><code><span class="doccomment">//! The [`Statement`] Parse Node, as defined by the [spec].</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! Javascript [statements] are mainly composed of control flow operations, such as [`If`],</span>
+<span class="doccomment">//! [`WhileLoop`], and [`Break`]. However, it also contains statements such as [`VarDeclaration`],</span>
+<span class="doccomment">//! [`Block`] or [`Expression`] which are not strictly used for control flow.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [spec]: https://tc39.es/ecma262/#prod-Statement</span>
+<span class="doccomment">//! [statements]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements</span>
 
 <span class="kw">mod</span> <span class="ident">block</span>;
 <span class="kw">mod</span> <span class="ident">r#if</span>;
 <span class="kw">mod</span> <span class="ident">labelled</span>;
 <span class="kw">mod</span> <span class="ident">r#return</span>;
+<span class="kw">mod</span> <span class="ident">switch</span>;
 <span class="kw">mod</span> <span class="ident">throw</span>;
+<span class="kw">mod</span> <span class="ident">r#try</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">iteration</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">switch</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">r#try</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="self">self</span>::iteration</span>::{<span class="ident">for_loop::ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>};
+<span class="kw">use</span> <span class="ident"><span class="self">self</span>::iteration</span>::{<span class="ident">ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">block::Block</span>,
     <span class="ident">iteration</span>::{<span class="ident">Break</span>, <span class="ident">Continue</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">WhileLoop</span>},
@@ -339,6 +356,9 @@
     <span class="ident">ContainsSymbol</span>,
 };
 
+<span class="doccomment">/// The `Statement` Parse Node.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Statement</span> {
@@ -348,9 +368,9 @@
     <span class="doccomment">/// See [`VarDeclaration`]</span>
     <span class="ident">Var</span>(<span class="ident">VarDeclaration</span>),
 
-    <span class="doccomment">/// A empty node.</span>
+    <span class="doccomment">/// An empty statement.</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Empty statement do nothing, just return undefined.</span>
+    <span class="doccomment">/// Empty statements do nothing, just return undefined.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// More information:</span>
     <span class="doccomment">///  - [ECMAScript reference][spec]</span>
@@ -476,7 +496,7 @@
                 <span class="ident">for_loop</span>.<span class="ident">body</span>().<span class="ident">var_declared_names</span>(<span class="ident">vars</span>);
             }
             <span class="ident"><span class="self">Self</span>::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">bind</span>) <span class="op">=</span> <span class="ident">for_in_loop</span>.<span class="ident">init</span>() {
+                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">bind</span>) <span class="op">=</span> <span class="ident">for_in_loop</span>.<span class="ident">initializer</span>() {
                     <span class="ident">vars</span>.<span class="ident">extend</span>(<span class="ident">bind</span>.<span class="ident">idents</span>());
                 }
                 <span class="ident">for_in_loop</span>.<span class="ident">body</span>().<span class="ident">var_declared_names</span>(<span class="ident">vars</span>);

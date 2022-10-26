@@ -11,14 +11,38 @@
 <span id="9">9</span>
 <span id="10">10</span>
 <span id="11">11</span>
-</pre><pre class="rust"><code><span class="doccomment">//! Operator Expressions</span>
+<span id="12">12</span>
+<span id="13">13</span>
+<span id="14">14</span>
+<span id="15">15</span>
+<span id="16">16</span>
+<span id="17">17</span>
+<span id="18">18</span>
+<span id="19">19</span>
+<span id="20">20</span>
+<span id="21">21</span>
+<span id="22">22</span>
+<span id="23">23</span>
+</pre><pre class="rust"><code><span class="doccomment">//! Operator expression nodes.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! An [operator][op] expression is an expression that takes an operator (such as `+`, `typeof`, `+=`)</span>
+<span class="doccomment">//! and one or more expressions and returns an expression as a result.</span>
+<span class="doccomment">//! An operator expression can be any of the following:</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! - A [`Unary`] expression.</span>
+<span class="doccomment">//! - An [`Assign`] expression.</span>
+<span class="doccomment">//! - A [`Binary`] expression.</span>
+<span class="doccomment">//! - A [`Conditional`] expression.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! [op]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators</span>
+
+<span class="kw">mod</span> <span class="ident">conditional</span>;
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">assign</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">binary</span>;
-<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">conditional</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">unary</span>;
 
-<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assign::Assign</span>, <span class="ident">binary::Binary</span>, <span class="ident">unary::Unary</span>};
+<span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assign::Assign</span>, <span class="ident">binary::Binary</span>, <span class="ident">conditional::Conditional</span>, <span class="ident">unary::Unary</span>};
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;

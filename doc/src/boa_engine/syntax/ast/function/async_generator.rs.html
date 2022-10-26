@@ -87,6 +87,7 @@
 <span id="85">85</span>
 <span id="86">86</span>
 <span id="87">87</span>
+<span id="88">88</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Async Generator Expression</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
     <span class="ident">block_to_string</span>,
@@ -97,12 +98,13 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::FormalParameterList</span>;
 
-<span class="doccomment">/// The `async function*` keyword can be used to define a generator function inside an expression.</span>
+<span class="doccomment">/// An async generator definition, as defined by the [spec].</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// More information:</span>
-<span class="doccomment">///  - [ECMAScript reference][spec]</span>
+<span class="doccomment">/// An [async generator][mdn] combines async functions with generators, making it possible to use</span>
+<span class="doccomment">/// `await` and `yield` expressions within the definition of the function.</span>
 <span class="doccomment">///</span>
-<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-async-generator-function-definitions</span>
+<span class="doccomment">/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function*</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">AsyncGenerator</span> {

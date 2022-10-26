@@ -115,19 +115,19 @@
 }
 
 <span class="kw">impl</span> <span class="ident">New</span> {
-    <span class="doccomment">/// Gets the name of the function call.</span>
+    <span class="doccomment">/// Gets the constructor of the new expression.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">expr</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
-        <span class="self">self</span>.<span class="ident">call</span>.<span class="ident">expr</span>()
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">constructor</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
+        <span class="self">self</span>.<span class="ident">call</span>.<span class="ident">function</span>()
     }
 
-    <span class="doccomment">/// Retrieves the arguments passed to the function.</span>
+    <span class="doccomment">/// Retrieves the arguments passed to the constructor.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">args</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>[<span class="ident">Expression</span>] {
         <span class="self">self</span>.<span class="ident">call</span>.<span class="ident">args</span>()
     }
 
-    <span class="doccomment">/// Returns the inner call</span>
+    <span class="doccomment">/// Returns the inner call expression.</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">call</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Call</span> {
         <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">call</span>
     }
