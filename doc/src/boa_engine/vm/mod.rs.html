@@ -597,6 +597,7 @@
 <span id="595">595</span>
 <span id="596">596</span>
 <span id="597">597</span>
+<span id="598">598</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -849,6 +850,7 @@
             <span class="ident">Opcode::SuperCallDerived</span> =&gt; <span class="ident">SuperCallDerived::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::Case</span> =&gt; <span class="ident">Case::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::Default</span> =&gt; <span class="ident">Default::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
+            <span class="ident">Opcode::GetArrowFunction</span> =&gt; <span class="ident">GetArrowFunction::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::GetFunction</span> =&gt; <span class="ident">GetFunction::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::GetFunctionAsync</span> =&gt; <span class="ident">GetFunctionAsync::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::GetGenerator</span> =&gt; <span class="ident">GetGenerator::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,

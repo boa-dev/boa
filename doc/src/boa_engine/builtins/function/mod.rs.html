@@ -1668,7 +1668,7 @@
             <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">generator</span> {
                 <span class="ident"><span class="kw">crate</span>::vm::create_generator_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="ident">context</span>)
             } <span class="kw">else</span> {
-                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)
+                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>)
             };
 
             <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">extend</span>(<span class="ident">environments</span>);
@@ -1699,7 +1699,7 @@
 
             <span class="kw">let</span> <span class="ident">environments</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">pop_to_global</span>();
             <span class="kw">let</span> <span class="ident">function_object</span> <span class="op">=</span>
-                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>);
+                <span class="ident"><span class="kw">crate</span>::vm::create_function_object</span>(<span class="ident">code</span>, <span class="ident">r#async</span>, <span class="bool-val">false</span>, <span class="prelude-val">Some</span>(<span class="ident">prototype</span>), <span class="ident">context</span>);
             <span class="ident">context</span>.<span class="ident">realm</span>.<span class="ident">environments</span>.<span class="ident">extend</span>(<span class="ident">environments</span>);
 
             <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)

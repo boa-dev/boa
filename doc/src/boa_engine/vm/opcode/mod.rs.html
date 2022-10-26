@@ -1697,6 +1697,15 @@
 <span id="1695">1695</span>
 <span id="1696">1696</span>
 <span id="1697">1697</span>
+<span id="1698">1698</span>
+<span id="1699">1699</span>
+<span id="1700">1700</span>
+<span id="1701">1701</span>
+<span id="1702">1702</span>
+<span id="1703">1703</span>
+<span id="1704">1704</span>
+<span id="1705">1705</span>
+<span id="1706">1706</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">vm::ShouldExit</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>};
 
@@ -2721,6 +2730,13 @@
     <span class="doccomment">/// Stack: `value` **=&gt;**</span>
     <span class="ident">Default</span>,
 
+    <span class="doccomment">/// Get arrow function from the pre-compiled inner functions.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: address: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: **=&gt;** func</span>
+    <span class="ident">GetArrowFunction</span>,
+
     <span class="doccomment">/// Get function from the pre-compiled inner functions.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: address: `u32`</span>
@@ -3140,6 +3156,7 @@
             <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="ident">SuperCallDerived::NAME</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="ident">Case::NAME</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="ident">Default::NAME</span>,
+            <span class="ident"><span class="self">Self</span>::GetArrowFunction</span> =&gt; <span class="ident">GetArrowFunction::NAME</span>,
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="ident">GetFunction::NAME</span>,
             <span class="ident"><span class="self">Self</span>::GetFunctionAsync</span> =&gt; <span class="ident">GetFunctionAsync::NAME</span>,
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="ident">GetGenerator::NAME</span>,
@@ -3287,6 +3304,7 @@
             <span class="ident"><span class="self">Self</span>::SuperCallDerived</span> =&gt; <span class="ident">SuperCallDerived::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::Case</span> =&gt; <span class="ident">Case::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::Default</span> =&gt; <span class="ident">Default::INSTRUCTION</span>,
+            <span class="ident"><span class="self">Self</span>::GetArrowFunction</span> =&gt; <span class="ident">GetArrowFunction::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::GetFunction</span> =&gt; <span class="ident">GetFunction::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::GetFunctionAsync</span> =&gt; <span class="ident">GetFunctionAsync::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::GetGenerator</span> =&gt; <span class="ident">GetGenerator::INSTRUCTION</span>,

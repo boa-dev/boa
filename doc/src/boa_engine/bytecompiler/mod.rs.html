@@ -3372,6 +3372,8 @@
 <span id="3370">3370</span>
 <span id="3371">3371</span>
 <span id="3372">3372</span>
+<span id="3373">3373</span>
+<span id="3374">3374</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -5691,6 +5693,8 @@
             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetGenerator</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
         } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">r#async</span> {
             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunctionAsync</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+        } <span class="kw">else</span> <span class="kw">if</span> <span class="ident">arrow</span> {
+            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetArrowFunction</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetFunction</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
         }
