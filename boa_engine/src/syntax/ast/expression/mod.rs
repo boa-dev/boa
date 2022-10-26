@@ -12,7 +12,7 @@
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 use self::{
-    access::{PrivatePropertyAccess, PropertyAccess, SuperPropertyAccess},
+    access::PropertyAccess,
     literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateLiteral},
     operator::{Assign, Binary, Conditional, Unary},
 };
@@ -104,12 +104,6 @@ pub enum Expression {
     /// See [`PropertyAccess`].
     PropertyAccess(PropertyAccess),
 
-    /// See [`SuperPropertyAccess`]
-    SuperPropertyAccess(SuperPropertyAccess),
-
-    /// See [`PrivatePropertyAccess].
-    PrivatePropertyAccess(PrivatePropertyAccess),
-
     /// See [`New`].
     New(New),
 
@@ -176,8 +170,6 @@ impl Expression {
             Self::AsyncGenerator(asgen) => asgen.to_indented_string(interner, indentation),
             Self::TemplateLiteral(tem) => tem.to_interned_string(interner),
             Self::PropertyAccess(prop) => prop.to_interned_string(interner),
-            Self::SuperPropertyAccess(supp) => supp.to_interned_string(interner),
-            Self::PrivatePropertyAccess(private) => private.to_interned_string(interner),
             Self::New(new) => new.to_interned_string(interner),
             Self::Call(call) => call.to_interned_string(interner),
             Self::SuperCall(supc) => supc.to_interned_string(interner),
@@ -218,8 +210,6 @@ impl Expression {
             Expression::Class(class) => class.contains_arguments(),
             Expression::TemplateLiteral(template) => template.contains_arguments(),
             Expression::PropertyAccess(access) => access.contains_arguments(),
-            Expression::SuperPropertyAccess(access) => access.contains_arguments(),
-            Expression::PrivatePropertyAccess(access) => access.contains_arguments(),
             Expression::New(new) => new.contains_arguments(),
             Expression::Call(call) => call.contains_arguments(),
             Expression::SuperCall(call) => call.contains_arguments(),
@@ -257,12 +247,7 @@ impl Expression {
             Expression::ArrowFunction(arrow) => arrow.contains(symbol),
             Expression::Class(class) => class.contains(symbol),
             Expression::TemplateLiteral(temp) => temp.contains(symbol),
-            Expression::PropertyAccess(access) => access.contains(symbol),
-            Expression::SuperPropertyAccess(_access) if symbol == ContainsSymbol::SuperProperty => {
-                true
-            }
-            Expression::SuperPropertyAccess(access) => access.contains(symbol),
-            Expression::PrivatePropertyAccess(access) => access.contains(symbol),
+            Expression::PropertyAccess(prop) => prop.contains(symbol),
             Expression::New(new) => new.contains(symbol),
             Expression::Call(call) => call.contains(symbol),
             Expression::SuperCall(_) if symbol == ContainsSymbol::SuperCall => true,

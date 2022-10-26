@@ -845,7 +845,7 @@ pub enum Opcode {
 
     /// Deletes a property by name of an object.
     ///
-    /// Like `delete object.key.`
+    /// Like `delete object.key`
     ///
     /// Operands: name_index: `u32`
     ///
@@ -1068,7 +1068,7 @@ pub enum Opcode {
     ///
     /// Operands: argument_count: `u32`
     ///
-    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    /// Stack: this, func, argument_1, ... argument_n **=>** result
     Call,
 
     /// Call a function where the arguments contain spreads.

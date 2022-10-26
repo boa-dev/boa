@@ -1,6 +1,6 @@
 use crate::syntax::{
     ast::{
-        expression::{access::PropertyAccess, Call, Identifier},
+        expression::{access::SimplePropertyAccess, Call, Identifier},
         Expression, Statement,
     },
     parser::tests::check_parser,
@@ -13,14 +13,17 @@ macro_rules! check_call_property_identifier {
         let mut interner = Interner::default();
         check_parser(
             format!("a().{}", $property).as_str(),
-            vec![Statement::Expression(Expression::from(PropertyAccess::new(
-                Call::new(
-                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                    Box::default(),
+            vec![Statement::Expression(Expression::PropertyAccess(
+                SimplePropertyAccess::new(
+                    Call::new(
+                        Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                        Box::default(),
+                    )
+                    .into(),
+                    interner.get_or_intern_static($property, utf16!($property)),
                 )
                 .into(),
-                interner.get_or_intern_static($property, utf16!($property)),
-            )))
+            ))
             .into()],
             interner,
         );
@@ -41,10 +44,13 @@ macro_rules! check_member_property_identifier {
         let mut interner = Interner::default();
         check_parser(
             format!("a.{}", $property).as_str(),
-            vec![Statement::Expression(Expression::from(PropertyAccess::new(
-                Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
-                interner.get_or_intern_static($property, utf16!($property)),
-            )))
+            vec![Statement::Expression(Expression::PropertyAccess(
+                SimplePropertyAccess::new(
+                    Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
+                    interner.get_or_intern_static($property, utf16!($property)),
+                )
+                .into(),
+            ))
             .into()],
             interner,
         );

@@ -11,7 +11,8 @@ use crate::syntax::{
         self,
         expression::{
             access::{
-                PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SuperPropertyAccess,
+                PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess,
+                SuperPropertyAccess,
             },
             Call, Identifier, New,
         },
@@ -141,13 +142,15 @@ where
                                 ));
                             }
                         };
-                        field.into()
+                        ast::Expression::PropertyAccess(field.into())
                     }
                     TokenKind::Punctuator(Punctuator::OpenBracket) => {
                         let expr = Expression::new(None, true, self.allow_yield, self.allow_await)
                             .parse(cursor, interner)?;
                         cursor.expect(Punctuator::CloseBracket, "super property", interner)?;
-                        ast::Expression::from(SuperPropertyAccess::new(expr.into()))
+                        ast::Expression::PropertyAccess(
+                            SuperPropertyAccess::new(expr.into()).into(),
+                        )
                     }
                     _ => {
                         return Err(ParseError::unexpected(
@@ -173,23 +176,21 @@ where
 
                     let token = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?;
 
-                    match token.kind() {
-                        TokenKind::Identifier(name) => lhs = PropertyAccess::new(lhs, *name).into(),
+                    let access = match token.kind() {
+                        TokenKind::Identifier(name) => SimplePropertyAccess::new(lhs, *name).into(),
                         TokenKind::Keyword((kw, _)) => {
-                            lhs = PropertyAccess::new(lhs, kw.to_sym(interner)).into();
+                            SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
                         }
                         TokenKind::BooleanLiteral(true) => {
-                            lhs = PropertyAccess::new(lhs, Sym::TRUE).into();
+                            SimplePropertyAccess::new(lhs, Sym::TRUE).into()
                         }
                         TokenKind::BooleanLiteral(false) => {
-                            lhs = PropertyAccess::new(lhs, Sym::FALSE).into();
+                            SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
-                        TokenKind::NullLiteral => {
-                            lhs = PropertyAccess::new(lhs, Sym::NULL).into();
-                        }
+                        TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;
-                            lhs = PrivatePropertyAccess::new(lhs, *name).into();
+                            PrivatePropertyAccess::new(lhs, *name).into()
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -199,7 +200,9 @@ where
                                 "member expression",
                             ));
                         }
-                    }
+                    };
+
+                    lhs = ast::Expression::PropertyAccess(access);
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor
@@ -208,7 +211,8 @@ where
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "member expression", interner)?;
-                    lhs = PropertyAccess::new(lhs, idx).into();
+                    lhs =
+                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into());
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(

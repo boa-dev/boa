@@ -9,7 +9,7 @@ use crate::{
     syntax::ast::{
         declaration::{Declaration, LexicalDeclaration, VarDeclaration, Variable},
         expression::{
-            access::PropertyAccess,
+            access::SimplePropertyAccess,
             literal::{Literal, ObjectLiteral},
             operator::{
                 assign::AssignOp,
@@ -60,15 +60,18 @@ fn check_construct_call_precedence() {
     check_parser(
         "new Date().getTime()",
         vec![Statement::Expression(Expression::from(Call::new(
-            PropertyAccess::new(
-                New::from(Call::new(
-                    Identifier::new(interner.get_or_intern_static("Date", utf16!("Date"))).into(),
-                    Box::default(),
-                ))
+            Expression::PropertyAccess(
+                SimplePropertyAccess::new(
+                    New::from(Call::new(
+                        Identifier::new(interner.get_or_intern_static("Date", utf16!("Date")))
+                            .into(),
+                        Box::default(),
+                    ))
+                    .into(),
+                    interner.get_or_intern_static("getTime", utf16!("getTime")),
+                )
                 .into(),
-                interner.get_or_intern_static("getTime", utf16!("getTime")),
-            )
-            .into(),
+            ),
             Box::default(),
         )))
         .into()],

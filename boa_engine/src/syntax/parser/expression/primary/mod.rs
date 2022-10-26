@@ -541,7 +541,7 @@ fn expression_to_formal_parameters(
                     ));
                 }
             },
-            _ => {
+            AssignTarget::Access(_) => {
                 return Err(ParseError::general(
                     "invalid initialization expression in formal parameter list",
                     span.start(),

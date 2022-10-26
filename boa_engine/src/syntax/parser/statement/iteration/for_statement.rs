@@ -377,13 +377,7 @@ fn initializer_to_iterable_loop_initializer(
                     })
                     .map(|obj| IterableLoopInitializer::Pattern(obj.into()))
             }
-            // TODO: implement member initializers
-            ast::Expression::PropertyAccess(_)
-            | ast::Expression::SuperPropertyAccess(_)
-            | ast::Expression::PrivatePropertyAccess(_) => Err(ParseError::Unimplemented {
-                message: "using a property access as iterable loop initializer is not implemented",
-                position,
-            }),
+            ast::Expression::PropertyAccess(access) => Ok(IterableLoopInitializer::Access(access)),
             _ => Err(ParseError::lex(LexError::Syntax(
                 "invalid variable for iterable loop".into(),
                 position,

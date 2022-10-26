@@ -8,7 +8,11 @@ mod for_loop;
 mod for_of_loop;
 mod while_loop;
 
-use crate::syntax::ast::{declaration::Binding, expression::Identifier, pattern::Pattern};
+use crate::syntax::ast::{
+    declaration::Binding,
+    expression::{access::PropertyAccess, Identifier},
+    pattern::Pattern,
+};
 
 pub use self::{
     do_while_loop::DoWhileLoop,
@@ -36,9 +40,10 @@ mod tests;
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
-    // TODO: This should also accept property accessors
     /// An already declared variable.
     Identifier(Identifier),
+    /// A property access.
+    Access(PropertyAccess),
     /// A new var declaration.
     Var(Binding),
     /// A new let declaration.
@@ -69,6 +74,7 @@ impl IterableLoopInitializer {
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
             Self::Identifier(ident) => *ident == Sym::ARGUMENTS,
+            Self::Access(access) => access.contains_arguments(),
             Self::Var(bind) | Self::Let(bind) | Self::Const(bind) => bind.contains_arguments(),
             Self::Pattern(pattern) => pattern.contains_arguments(),
         }
@@ -81,6 +87,7 @@ impl IterableLoopInitializer {
                 declaration.contains(symbol)
             }
             Self::Pattern(pattern) => pattern.contains(symbol),
+            Self::Access(access) => access.contains(symbol),
             Self::Identifier(_) => false,
         }
     }
@@ -91,6 +98,7 @@ impl ToInternedString for IterableLoopInitializer {
         let (binding, pre) = match self {
             Self::Identifier(ident) => return ident.to_interned_string(interner),
             Self::Pattern(pattern) => return pattern.to_interned_string(interner),
+            Self::Access(access) => return access.to_interned_string(interner),
             Self::Var(binding) => (binding, "var"),
             Self::Let(binding) => (binding, "let"),
             Self::Const(binding) => (binding, "const"),

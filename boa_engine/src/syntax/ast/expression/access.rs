@@ -7,6 +7,10 @@
 //! - *Bracket notation* is used when the name of the property is either variable, not a valid
 //! identifier or a symbol e.g. `arr[var]`, `arr[5]`, `arr[Symbol.iterator]`.
 //!
+//! A property access expression can be represented by a [`SimplePropertyAccess`] (`x.y`), a
+//! [`PrivatePropertyAccess`] (`x.#y`) or a [`SuperPropertyAccess`] (`super["y"]`), each of them with
+//! slightly different semantics overall.
+//!
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
@@ -60,12 +64,62 @@ impl From<Expression> for PropertyAccessField {
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct PropertyAccess {
+pub enum PropertyAccess {
+    /// A simple property access (`x.prop`).
+    Simple(SimplePropertyAccess),
+    /// A property access of a private property (`x.#priv`).
+    Private(PrivatePropertyAccess),
+    /// A property access of a `super` reference. (`super["prop"]`).
+    Super(SuperPropertyAccess),
+}
+
+impl PropertyAccess {
+    #[inline]
+    pub(crate) fn contains_arguments(&self) -> bool {
+        match self {
+            PropertyAccess::Simple(s) => s.contains_arguments(),
+            PropertyAccess::Private(p) => p.contains_arguments(),
+            PropertyAccess::Super(s) => s.contains_arguments(),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
+        match self {
+            PropertyAccess::Simple(s) => s.contains(symbol),
+            PropertyAccess::Private(p) => p.contains(symbol),
+            PropertyAccess::Super(s) => s.contains(symbol),
+        }
+    }
+}
+
+impl ToInternedString for PropertyAccess {
+    #[inline]
+    fn to_interned_string(&self, interner: &Interner) -> String {
+        match self {
+            PropertyAccess::Simple(s) => s.to_interned_string(interner),
+            PropertyAccess::Private(p) => p.to_interned_string(interner),
+            PropertyAccess::Super(s) => s.to_interned_string(interner),
+        }
+    }
+}
+
+impl From<PropertyAccess> for Expression {
+    #[inline]
+    fn from(access: PropertyAccess) -> Self {
+        Self::PropertyAccess(access)
+    }
+}
+
+/// A simple property access, where the target object is an [`Expression`].
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
+#[derive(Clone, Debug, PartialEq)]
+pub struct SimplePropertyAccess {
     target: Box<Expression>,
     field: PropertyAccessField,
 }
 
-impl PropertyAccess {
+impl SimplePropertyAccess {
     /// Gets the target object of the property access.
     #[inline]
     pub fn target(&self) -> &Expression {
@@ -101,7 +155,7 @@ impl PropertyAccess {
     }
 }
 
-impl ToInternedString for PropertyAccess {
+impl ToInternedString for SimplePropertyAccess {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let target = self.target.to_interned_string(interner);
@@ -114,17 +168,18 @@ impl ToInternedString for PropertyAccess {
     }
 }
 
-impl From<PropertyAccess> for Expression {
+impl From<SimplePropertyAccess> for PropertyAccess {
     #[inline]
-    fn from(access: PropertyAccess) -> Self {
-        Self::PropertyAccess(access)
+    fn from(access: SimplePropertyAccess) -> Self {
+        Self::Simple(access)
     }
 }
 
 /// An access expression to a class object's [private fields][mdn].
 ///
 /// Private property accesses differ slightly from plain property accesses, since the accessed
-/// property must be prefixed by `#`, and the bracket notation is not allowed e.g. `this.#a`.
+/// property must be prefixed by `#`, and the bracket notation is not allowed. For example,
+/// `this.#a` is a valid private property access.
 ///
 /// This expression corresponds to the [`MemberExpression.PrivateIdentifier`][spec] production.
 ///
@@ -181,10 +236,10 @@ impl ToInternedString for PrivatePropertyAccess {
     }
 }
 
-impl From<PrivatePropertyAccess> for Expression {
+impl From<PrivatePropertyAccess> for PropertyAccess {
     #[inline]
     fn from(access: PrivatePropertyAccess) -> Self {
-        Self::PrivatePropertyAccess(access)
+        Self::Private(access)
     }
 }
 
@@ -219,7 +274,7 @@ impl SuperPropertyAccess {
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.field.contains(symbol)
+        symbol == ContainsSymbol::SuperProperty || self.field.contains(symbol)
     }
 }
 
@@ -237,9 +292,9 @@ impl ToInternedString for SuperPropertyAccess {
     }
 }
 
-impl From<SuperPropertyAccess> for Expression {
+impl From<SuperPropertyAccess> for PropertyAccess {
     #[inline]
     fn from(access: SuperPropertyAccess) -> Self {
-        Self::SuperPropertyAccess(access)
+        Self::Super(access)
     }
 }

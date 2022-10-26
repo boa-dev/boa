@@ -5,7 +5,7 @@ use crate::{
     syntax::ast::{
         declaration::{Binding, LexicalDeclaration, VarDeclaration},
         expression::{
-            access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField},
+            access::{PropertyAccess, PropertyAccessField},
             literal::{self, TemplateElement},
             operator::{
                 assign::{AssignOp, AssignTarget},
@@ -178,9 +178,26 @@ enum JumpControlInfoKind {
 enum Access<'a> {
     Variable { name: Identifier },
     Property { access: &'a PropertyAccess },
-    PrivateProperty { access: &'a PrivatePropertyAccess },
-    SuperProperty { field: &'a PropertyAccessField },
     This,
+}
+
+impl Access<'_> {
+    fn from_assign_target(target: &AssignTarget) -> Result<Access<'_>, &Pattern> {
+        match target {
+            AssignTarget::Identifier(ident) => Ok(Access::Variable { name: *ident }),
+            AssignTarget::Access(access) => Ok(Access::Property { access }),
+            AssignTarget::Pattern(pat) => Err(pat),
+        }
+    }
+
+    fn from_expression(expr: &Expression) -> Option<Access<'_>> {
+        match expr {
+            Expression::Identifier(name) => Some(Access::Variable { name: *name }),
+            Expression::PropertyAccess(access) => Some(Access::Property { access }),
+            Expression::This => Some(Access::This),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -638,16 +655,6 @@ impl<'b> ByteCompiler<'b> {
     }
 
     #[inline]
-    fn compile_access(expr: &Expression) -> Option<Access<'_>> {
-        match expr {
-            Expression::Identifier(name) => Some(Access::Variable { name: *name }),
-            Expression::PropertyAccess(access) => Some(Access::Property { access }),
-            Expression::This => Some(Access::This),
-            _ => None,
-        }
-    }
-
-    #[inline]
     fn access_get(&mut self, access: Access<'_>, use_expr: bool) -> JsResult<()> {
         match access {
             Access::Variable { name } => {
@@ -655,34 +662,36 @@ impl<'b> ByteCompiler<'b> {
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::GetName, &[index]);
             }
-            Access::Property { access } => match access.field() {
-                PropertyAccessField::Const(name) => {
-                    let index = self.get_or_insert_name((*name).into());
+            Access::Property { access } => match access {
+                PropertyAccess::Simple(access) => match access.field() {
+                    PropertyAccessField::Const(name) => {
+                        let index = self.get_or_insert_name((*name).into());
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::GetPropertyByValue, &[]);
+                    }
+                },
+                PropertyAccess::Private(access) => {
+                    let index = self.get_or_insert_name(access.field().into());
                     self.compile_expr(access.target(), true)?;
-                    self.emit(Opcode::GetPropertyByName, &[index]);
+                    self.emit(Opcode::GetPrivateField, &[index]);
                 }
-                PropertyAccessField::Expr(expr) => {
-                    self.compile_expr(expr, true)?;
-                    self.compile_expr(access.target(), true)?;
-                    self.emit(Opcode::GetPropertyByValue, &[]);
-                }
-            },
-            Access::PrivateProperty { access } => {
-                let index = self.get_or_insert_name(access.field().into());
-                self.compile_expr(access.target(), true)?;
-                self.emit(Opcode::GetPrivateField, &[index]);
-            }
-            Access::SuperProperty { field } => match field {
-                PropertyAccessField::Const(field) => {
-                    let index = self.get_or_insert_name((*field).into());
-                    self.emit_opcode(Opcode::Super);
-                    self.emit(Opcode::GetPropertyByName, &[index]);
-                }
-                PropertyAccessField::Expr(expr) => {
-                    self.compile_expr(&**expr, true)?;
-                    self.emit_opcode(Opcode::Super);
-                    self.emit_opcode(Opcode::GetPropertyByValue);
-                }
+                PropertyAccess::Super(access) => match access.field() {
+                    PropertyAccessField::Const(field) => {
+                        let index = self.get_or_insert_name((*field).into());
+                        self.emit_opcode(Opcode::Super);
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(&**expr, true)?;
+                        self.emit_opcode(Opcode::Super);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
+                    }
+                },
             },
             Access::This => {
                 self.emit(Opcode::This, &[]);
@@ -716,27 +725,72 @@ impl<'b> ByteCompiler<'b> {
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
             }
-            Access::Property { access } => match access.field() {
-                PropertyAccessField::Const(name) => {
+            Access::Property { access } => match access {
+                PropertyAccess::Simple(access) => match access.field() {
+                    PropertyAccessField::Const(name) => {
+                        self.compile_expr(access.target(), true)?;
+                        let index = self.get_or_insert_name((*name).into());
+                        self.emit(Opcode::SetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::SetPropertyByValue, &[]);
+                    }
+                },
+                PropertyAccess::Private(access) => {
                     self.compile_expr(access.target(), true)?;
-                    let index = self.get_or_insert_name((*name).into());
-                    self.emit(Opcode::SetPropertyByName, &[index]);
+                    self.emit_opcode(Opcode::Swap);
+                    let index = self.get_or_insert_name(access.field().into());
+                    self.emit(Opcode::AssignPrivateField, &[index]);
                 }
-                PropertyAccessField::Expr(expr) => {
-                    self.compile_expr(expr, true)?;
-                    self.compile_expr(access.target(), true)?;
-                    self.emit(Opcode::SetPropertyByValue, &[]);
+                PropertyAccess::Super(access) => match access.field() {
+                    PropertyAccessField::Const(name) => {
+                        self.emit(Opcode::Super, &[]);
+                        let index = self.get_or_insert_name((*name).into());
+                        self.emit(Opcode::SetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.emit(Opcode::Super, &[]);
+                        self.emit(Opcode::SetPropertyByValue, &[]);
+                    }
+                },
+            },
+            Access::This => todo!("access_set `this`"),
+        }
+        Ok(())
+    }
+
+    #[inline]
+    fn access_delete(&mut self, access: Access<'_>) -> JsResult<()> {
+        match access {
+            Access::Property { access } => match access {
+                PropertyAccess::Simple(access) => match access.field() {
+                    PropertyAccessField::Const(name) => {
+                        let index = self.get_or_insert_name((*name).into());
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::DeletePropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::DeletePropertyByValue, &[]);
+                    }
+                },
+                // TODO: throw ReferenceError on super deletion.
+                PropertyAccess::Super(_) => self.emit(Opcode::PushFalse, &[]),
+                PropertyAccess::Private(_) => {
+                    unreachable!("deleting private properties should always throw early errors.")
                 }
             },
-            Access::PrivateProperty { access } => {
-                self.compile_expr(access.target(), true)?;
-                self.emit_opcode(Opcode::Swap);
-                let index = self.get_or_insert_name(access.field().into());
-                self.emit(Opcode::AssignPrivateField, &[index]);
+            // TODO: implement delete on references.
+            Access::Variable { .. } => {
+                self.emit(Opcode::PushFalse, &[]);
             }
-            // TODO: access_set `super`
-            Access::SuperProperty { field: _field } => {}
-            Access::This => todo!("access_set `this`"),
+            Access::This => {
+                self.emit(Opcode::PushTrue, &[]);
+            }
         }
         Ok(())
     }
@@ -810,7 +864,7 @@ impl<'b> ByteCompiler<'b> {
                         self.compile_expr(unary.target(), true)?;
                         self.emit(Opcode::Inc, &[]);
 
-                        let access = Self::compile_access(unary.target()).ok_or_else(|| {
+                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
                         self.access_set(access, None, true)?;
@@ -821,7 +875,7 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::Dec, &[]);
 
                         // TODO: promote to an early error.
-                        let access = Self::compile_access(unary.target()).ok_or_else(|| {
+                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
                         self.access_set(access, None, true)?;
@@ -832,7 +886,7 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::IncPost, &[]);
 
                         // TODO: promote to an early error.
-                        let access = Self::compile_access(unary.target()).ok_or_else(|| {
+                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
                         self.access_set(access, None, false)?;
@@ -844,39 +898,21 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::DecPost, &[]);
 
                         // TODO: promote to an early error.
-                        let access = Self::compile_access(unary.target()).ok_or_else(|| {
+                        let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
                         self.access_set(access, None, false)?;
 
                         None
                     }
-                    UnaryOp::Delete => match unary.target() {
-                        Expression::PropertyAccess(ref access) => {
-                            match access.field() {
-                                PropertyAccessField::Const(name) => {
-                                    let index = self.get_or_insert_name((*name).into());
-                                    self.compile_expr(access.target(), true)?;
-                                    self.emit(Opcode::DeletePropertyByName, &[index]);
-                                }
-                                PropertyAccessField::Expr(expr) => {
-                                    self.compile_expr(expr, true)?;
-                                    self.compile_expr(access.target(), true)?;
-                                    self.emit(Opcode::DeletePropertyByValue, &[]);
-                                }
-                            }
-                            None
-                        }
-                        // TODO: implement delete on references.
-                        Expression::Identifier(_) => {
-                            self.emit(Opcode::PushFalse, &[]);
-                            None
-                        }
-                        _ => {
+                    UnaryOp::Delete => {
+                        if let Some(access) = Access::from_expression(unary.target()) {
+                            self.access_delete(access)?;
+                        } else {
                             self.emit(Opcode::PushTrue, &[]);
-                            None
                         }
-                    },
+                        None
+                    }
                     UnaryOp::Minus => Some(Opcode::Neg),
                     UnaryOp::Plus => Some(Opcode::Pos),
                     UnaryOp::Not => Some(Opcode::LogicalNot),
@@ -992,49 +1028,21 @@ impl<'b> ByteCompiler<'b> {
                     }
                 }
             }
-            Expression::Assign(assign) if assign.op() == AssignOp::Assign => match assign.lhs() {
-                AssignTarget::Identifier(name) => self.access_set(
-                    Access::Variable { name: *name },
-                    Some(assign.rhs()),
-                    use_expr,
-                )?,
-                AssignTarget::PrivateProperty(access) => self.access_set(
-                    Access::PrivateProperty { access },
-                    Some(assign.rhs()),
-                    use_expr,
-                )?,
-                AssignTarget::Property(access) => {
-                    self.access_set(Access::Property { access }, Some(assign.rhs()), use_expr)?;
-                }
-                AssignTarget::SuperProperty(access) => {
-                    self.access_set(
-                        Access::SuperProperty {
-                            field: access.field(),
-                        },
-                        Some(assign.rhs()),
-                        use_expr,
-                    )?;
-                }
-                AssignTarget::Pattern(pattern) => {
-                    self.compile_expr(assign.rhs(), true)?;
-                    if use_expr {
-                        self.emit_opcode(Opcode::Dup);
+            Expression::Assign(assign) if assign.op() == AssignOp::Assign => {
+                match Access::from_assign_target(assign.lhs()) {
+                    Ok(access) => self.access_set(access, Some(assign.rhs()), use_expr)?,
+                    Err(pattern) => {
+                        self.compile_expr(assign.rhs(), true)?;
+                        if use_expr {
+                            self.emit_opcode(Opcode::Dup);
+                        }
+                        self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
                     }
-                    self.compile_declaration_pattern(pattern, BindingOpcode::SetName)?;
                 }
-            },
+            }
             Expression::Assign(assign) => {
-                let access = match assign.lhs() {
-                    AssignTarget::Identifier(name) => Access::Variable { name: *name },
-                    AssignTarget::Property(access) => Access::Property { access },
-                    AssignTarget::PrivateProperty(access) => Access::PrivateProperty { access },
-                    AssignTarget::SuperProperty(access) => Access::SuperProperty {
-                        field: access.field(),
-                    },
-                    AssignTarget::Pattern(_) => {
-                        panic!("tried to use an assignment operator on a pattern")
-                    }
-                };
+                let access = Access::from_assign_target(assign.lhs())
+                    .expect("patterns should throw early errors on complex assignment operators");
                 self.access_get(access, true)?;
                 let opcode = match assign.op() {
                     AssignOp::Assign => unreachable!(),
@@ -1211,15 +1219,6 @@ impl<'b> ByteCompiler<'b> {
             Expression::PropertyAccess(access) => {
                 self.access_get(Access::Property { access }, use_expr)?;
             }
-            Expression::PrivatePropertyAccess(access) => {
-                self.access_get(Access::PrivateProperty { access }, use_expr)?;
-            }
-            Expression::SuperPropertyAccess(access) => self.access_get(
-                Access::SuperProperty {
-                    field: access.field(),
-                },
-                use_expr,
-            )?,
             Expression::Conditional(op) => {
                 self.compile_expr(op.condition(), true)?;
                 let jelse = self.jump_if_false();
@@ -1346,7 +1345,7 @@ impl<'b> ByteCompiler<'b> {
             }
             Expression::TaggedTemplate(template) => {
                 match template.tag() {
-                    Expression::PropertyAccess(access) => {
+                    Expression::PropertyAccess(PropertyAccess::Simple(access)) => {
                         self.compile_expr(access.target(), true)?;
                         self.emit(Opcode::Dup, &[]);
                         match access.field() {
@@ -1360,6 +1359,12 @@ impl<'b> ByteCompiler<'b> {
                                 self.emit(Opcode::GetPropertyByValue, &[]);
                             }
                         }
+                    }
+                    Expression::PropertyAccess(PropertyAccess::Private(access)) => {
+                        self.compile_expr(access.target(), true)?;
+                        self.emit(Opcode::Dup, &[]);
+                        let index = self.get_or_insert_name(access.field().into());
+                        self.emit(Opcode::GetPrivateField, &[index]);
                     }
                     expr => {
                         self.compile_expr(expr, true)?;
@@ -1653,6 +1658,9 @@ impl<'b> ByteCompiler<'b> {
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitVar, &[index]);
             }
+            IterableLoopInitializer::Access(access) => {
+                self.access_set(Access::Property { access }, None, false)?;
+            }
             IterableLoopInitializer::Var(declaration) => match declaration {
                 Binding::Identifier(ident) => {
                     self.context.create_mutable_binding(*ident, true);
@@ -1770,6 +1778,9 @@ impl<'b> ByteCompiler<'b> {
                 let binding = self.context.set_mutable_binding(*ident);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::DefInitVar, &[index]);
+            }
+            IterableLoopInitializer::Access(access) => {
+                self.access_set(Access::Property { access }, None, false)?;
             }
             IterableLoopInitializer::Var(declaration) => match declaration {
                 Binding::Identifier(ident) => {
@@ -2344,48 +2355,50 @@ impl<'b> ByteCompiler<'b> {
         };
 
         match call.function() {
-            Expression::PropertyAccess(access) => {
-                self.compile_expr(access.target(), true)?;
-                if kind == CallKind::Call {
-                    self.emit(Opcode::Dup, &[]);
-                }
-                match access.field() {
-                    PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name((*field).into());
-                        self.emit(Opcode::GetPropertyByName, &[index]);
+            Expression::PropertyAccess(access) => match access {
+                PropertyAccess::Simple(access) => {
+                    self.compile_expr(access.target(), true)?;
+                    if kind == CallKind::Call {
+                        self.emit(Opcode::Dup, &[]);
                     }
-                    PropertyAccessField::Expr(field) => {
-                        self.compile_expr(field, true)?;
-                        self.emit(Opcode::Swap, &[]);
-                        self.emit(Opcode::GetPropertyByValue, &[]);
-                    }
-                }
-            }
-            Expression::SuperPropertyAccess(access) => {
-                if kind == CallKind::Call {
-                    self.emit_opcode(Opcode::This);
-                }
-                self.emit_opcode(Opcode::Super);
-                match access.field() {
-                    PropertyAccessField::Const(field) => {
-                        let index = self.get_or_insert_name((*field).into());
-                        self.emit(Opcode::GetPropertyByName, &[index]);
-                    }
-                    PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
-                        self.emit_opcode(Opcode::Swap);
-                        self.emit_opcode(Opcode::GetPropertyByValue);
+                    match access.field() {
+                        PropertyAccessField::Const(field) => {
+                            let index = self.get_or_insert_name((*field).into());
+                            self.emit(Opcode::GetPropertyByName, &[index]);
+                        }
+                        PropertyAccessField::Expr(field) => {
+                            self.compile_expr(field, true)?;
+                            self.emit(Opcode::Swap, &[]);
+                            self.emit(Opcode::GetPropertyByValue, &[]);
+                        }
                     }
                 }
-            }
-            Expression::PrivatePropertyAccess(access) => {
-                self.compile_expr(access.target(), true)?;
-                if kind == CallKind::Call {
-                    self.emit(Opcode::Dup, &[]);
+                PropertyAccess::Private(access) => {
+                    self.compile_expr(access.target(), true)?;
+                    if kind == CallKind::Call {
+                        self.emit(Opcode::Dup, &[]);
+                    }
+                    let index = self.get_or_insert_name(access.field().into());
+                    self.emit(Opcode::GetPrivateField, &[index]);
                 }
-                let index = self.get_or_insert_name(access.field().into());
-                self.emit(Opcode::GetPrivateField, &[index]);
-            }
+                PropertyAccess::Super(access) => {
+                    if kind == CallKind::Call {
+                        self.emit_opcode(Opcode::This);
+                    }
+                    self.emit_opcode(Opcode::Super);
+                    match access.field() {
+                        PropertyAccessField::Const(field) => {
+                            let index = self.get_or_insert_name((*field).into());
+                            self.emit(Opcode::GetPropertyByName, &[index]);
+                        }
+                        PropertyAccessField::Expr(expr) => {
+                            self.compile_expr(expr, true)?;
+                            self.emit_opcode(Opcode::Swap);
+                            self.emit_opcode(Opcode::GetPropertyByValue);
+                        }
+                    }
+                }
+            },
             expr => {
                 self.compile_expr(expr, true)?;
                 if kind == CallKind::Call || kind == CallKind::CallEval {

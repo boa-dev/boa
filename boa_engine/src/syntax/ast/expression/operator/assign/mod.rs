@@ -19,7 +19,7 @@ use boa_interner::{Interner, Sym, ToInternedString};
 use crate::syntax::{
     ast::{
         expression::{
-            access::{PrivatePropertyAccess, PropertyAccess, SuperPropertyAccess},
+            access::PropertyAccess,
             identifier::Identifier,
             literal::{ArrayLiteral, ObjectLiteral},
             Expression,
@@ -75,9 +75,7 @@ impl Assign {
     pub(crate) fn contains_arguments(&self) -> bool {
         (match &*self.lhs {
             AssignTarget::Identifier(ident) => *ident == Sym::ARGUMENTS,
-            AssignTarget::Property(access) => access.contains_arguments(),
-            AssignTarget::PrivateProperty(access) => access.contains_arguments(),
-            AssignTarget::SuperProperty(access) => access.contains_arguments(),
+            AssignTarget::Access(access) => access.contains_arguments(),
             AssignTarget::Pattern(pattern) => pattern.contains_arguments(),
         } || self.rhs.contains_arguments())
     }
@@ -86,9 +84,7 @@ impl Assign {
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         (match &*self.lhs {
             AssignTarget::Identifier(_) => false,
-            AssignTarget::Property(access) => access.contains(symbol),
-            AssignTarget::PrivateProperty(access) => access.contains(symbol),
-            AssignTarget::SuperProperty(access) => access.contains(symbol),
+            AssignTarget::Access(access) => access.contains(symbol),
             AssignTarget::Pattern(pattern) => pattern.contains(symbol),
         } || self.rhs.contains(symbol))
     }
@@ -123,12 +119,8 @@ pub enum AssignTarget {
     /// A simple identifier, such as `a`.
     Identifier(Identifier),
     /// A property access, such as `a.prop`.
-    Property(PropertyAccess),
-    /// A private property access, such as `a.#priv`.
-    PrivateProperty(PrivatePropertyAccess),
-    /// A `super` property access, such as `super.prop`.
-    SuperProperty(SuperPropertyAccess),
-    /// A pattern assignment target, such as `{a, b, ...c}`.
+    Access(PropertyAccess),
+    /// A pattern assignment, such as `{a, b, ...c}`.
     Pattern(Pattern),
 }
 
@@ -142,11 +134,7 @@ impl AssignTarget {
     ) -> Option<Self> {
         match expression {
             Expression::Identifier(id) => Some(Self::Identifier(*id)),
-            Expression::PropertyAccess(access) => Some(Self::Property(access.clone())),
-            Expression::PrivatePropertyAccess(access) => {
-                Some(Self::PrivateProperty(access.clone()))
-            }
-            Expression::SuperPropertyAccess(access) => Some(Self::SuperProperty(access.clone())),
+            Expression::PropertyAccess(access) => Some(Self::Access(access.clone())),
             Expression::ObjectLiteral(object) if destructure => {
                 let pattern = object_decl_to_declaration_pattern(object, strict)?;
                 Some(Self::Pattern(pattern.into()))
@@ -165,9 +153,7 @@ impl ToInternedString for AssignTarget {
     fn to_interned_string(&self, interner: &Interner) -> String {
         match self {
             AssignTarget::Identifier(id) => id.to_interned_string(interner),
-            AssignTarget::Property(access) => access.to_interned_string(interner),
-            AssignTarget::PrivateProperty(access) => access.to_interned_string(interner),
-            AssignTarget::SuperProperty(access) => access.to_interned_string(interner),
+            AssignTarget::Access(access) => access.to_interned_string(interner),
             AssignTarget::Pattern(pattern) => pattern.to_interned_string(interner),
         }
     }
@@ -189,9 +175,7 @@ pub(crate) fn object_decl_to_declaration_pattern(
     let mut excluded_keys = Vec::new();
     for (i, property) in object.properties().iter().enumerate() {
         match property {
-            PropertyDefinition::IdentifierReference(ident)
-                if strict && ident.sym() == Sym::EVAL =>
-            {
+            PropertyDefinition::IdentifierReference(ident) if strict && *ident == Sym::EVAL => {
                 return None
             }
             PropertyDefinition::IdentifierReference(ident) => {
@@ -279,21 +263,18 @@ pub(crate) fn object_decl_to_declaration_pattern(
                             default_init: Some(assign.rhs().clone()),
                         });
                     }
-                    AssignTarget::Property(field) => {
+                    AssignTarget::Access(access) => {
                         bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
                             name: name.clone(),
-                            access: field.clone(),
+                            access: access.clone(),
                             default_init: Some(assign.rhs().clone()),
                         });
                     }
-                    AssignTarget::SuperProperty(_) | AssignTarget::PrivateProperty(_) => {
-                        return None
-                    }
                 },
-                (_, Expression::PropertyAccess(field)) => {
+                (_, Expression::PropertyAccess(access)) => {
                     bindings.push(ObjectPatternElement::AssignmentPropertyAccess {
                         name: name.clone(),
-                        access: field.clone(),
+                        access: access.clone(),
                         default_init: None,
                     });
                 }
@@ -402,7 +383,7 @@ pub(crate) fn array_decl_to_declaration_pattern(
                         default_init: Some(assign.rhs().clone()),
                     });
                 }
-                AssignTarget::Property(access) => {
+                AssignTarget::Access(access) => {
                     bindings.push(ArrayPatternElement::PropertyAccess {
                         access: access.clone(),
                     });
@@ -421,7 +402,6 @@ pub(crate) fn array_decl_to_declaration_pattern(
                         });
                     }
                 },
-                AssignTarget::PrivateProperty(_) | AssignTarget::SuperProperty(_) => return None,
             },
             Expression::ArrayLiteral(array) => {
                 let pattern = array_decl_to_declaration_pattern(array, strict)?.into();
