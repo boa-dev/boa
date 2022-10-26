@@ -12,7 +12,7 @@ use crate::syntax::{
     ast::{
         self,
         expression::{
-            access::{PrivatePropertyAccess, PropertyAccess},
+            access::{PrivatePropertyAccess, SimplePropertyAccess},
             Call,
         },
         Punctuator,
@@ -95,25 +95,21 @@ where
                 TokenKind::Punctuator(Punctuator::Dot) => {
                     cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser forward.
 
-                    match cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
-                        TokenKind::Identifier(name) => {
-                            lhs = PropertyAccess::new(lhs, *name).into();
-                        }
+                    let access = match cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?.kind() {
+                        TokenKind::Identifier(name) => SimplePropertyAccess::new(lhs, *name).into(),
                         TokenKind::Keyword((kw, _)) => {
-                            lhs = PropertyAccess::new(lhs, kw.to_sym(interner)).into();
+                            SimplePropertyAccess::new(lhs, kw.to_sym(interner)).into()
                         }
                         TokenKind::BooleanLiteral(true) => {
-                            lhs = PropertyAccess::new(lhs, Sym::TRUE).into();
+                            SimplePropertyAccess::new(lhs, Sym::TRUE).into()
                         }
                         TokenKind::BooleanLiteral(false) => {
-                            lhs = PropertyAccess::new(lhs, Sym::FALSE).into();
+                            SimplePropertyAccess::new(lhs, Sym::FALSE).into()
                         }
-                        TokenKind::NullLiteral => {
-                            lhs = PropertyAccess::new(lhs, Sym::NULL).into();
-                        }
+                        TokenKind::NullLiteral => SimplePropertyAccess::new(lhs, Sym::NULL).into(),
                         TokenKind::PrivateIdentifier(name) => {
                             cursor.push_used_private_identifier(*name, token.span().start())?;
-                            lhs = PrivatePropertyAccess::new(lhs, *name).into();
+                            PrivatePropertyAccess::new(lhs, *name).into()
                         }
                         _ => {
                             return Err(ParseError::expected(
@@ -123,14 +119,17 @@ where
                                 "call expression",
                             ));
                         }
-                    }
+                    };
+
+                    lhs = ast::Expression::PropertyAccess(access);
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     let _next = cursor.next(interner)?.ok_or(ParseError::AbruptEnd)?; // We move the parser.
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "call expression", interner)?;
-                    lhs = PropertyAccess::new(lhs, idx).into();
+                    lhs =
+                        ast::Expression::PropertyAccess(SimplePropertyAccess::new(lhs, idx).into());
                 }
                 TokenKind::TemplateNoSubstitution { .. } | TokenKind::TemplateMiddle { .. } => {
                     lhs = TaggedTemplateLiteral::new(

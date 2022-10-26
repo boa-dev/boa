@@ -10,6 +10,7 @@
 use crate::syntax::{
     ast::{
         expression::{
+            access::PropertyAccess,
             operator::{unary::UnaryOp, Unary},
             Identifier,
         },
@@ -87,7 +88,7 @@ where
                             token_start,
                         )));
                     }
-                    Expression::PrivatePropertyAccess(_) => {
+                    Expression::PropertyAccess(PropertyAccess::Private(_)) => {
                         return Err(ParseError::general(
                             "private fields can not be deleted",
                             position,

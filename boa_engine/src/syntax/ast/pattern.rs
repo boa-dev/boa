@@ -22,13 +22,10 @@
 //! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
-use boa_interner::{Interner, ToInternedString};
+use boa_interner::{Interner, Sym, ToInternedString};
 
 use super::{
-    expression::{
-        access::{PropertyAccess, PropertyAccessField},
-        Identifier,
-    },
+    expression::{access::PropertyAccess, Identifier},
     property::PropertyName,
     ContainsSymbol, Expression,
 };
@@ -374,80 +371,58 @@ impl ObjectPatternElement {
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
             ObjectPatternElement::SingleName {
-                name, default_init, ..
+                name,
+                ident,
+                default_init,
             } => {
-                if let PropertyName::Computed(node) = name {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-                if let Some(init) = default_init {
-                    if init.contains_arguments() {
-                        return true;
-                    }
-                }
+                *ident == Sym::ARGUMENTS
+                    || name.contains_arguments()
+                    || matches!(default_init, Some(init) if init.contains_arguments())
+            }
+            ObjectPatternElement::RestProperty { ident, .. } => *ident == Sym::ARGUMENTS,
+            ObjectPatternElement::AssignmentPropertyAccess {
+                name,
+                access,
+                default_init,
+            } => {
+                name.contains_arguments()
+                    || access.contains_arguments()
+                    || matches!(default_init, Some(init) if init.contains_arguments())
             }
             ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
-                if access.target().contains_arguments() {
-                    return true;
-                }
+                access.contains_arguments()
             }
             ObjectPatternElement::Pattern {
                 name,
                 pattern,
                 default_init,
             } => {
-                if let PropertyName::Computed(node) = name {
-                    if node.contains_arguments() {
-                        return true;
-                    }
-                }
-                if pattern.contains_arguments() {
-                    return true;
-                }
-                if let Some(init) = default_init {
-                    if init.contains_arguments() {
-                        return true;
-                    }
-                }
+                name.contains_arguments()
+                    || pattern.contains_arguments()
+                    || matches!(default_init, Some(init) if init.contains_arguments())
             }
-            _ => {}
         }
-        false
     }
 
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
             Self::SingleName {
-                default_init: Some(node),
-                ..
+                name, default_init, ..
             } => {
-                if node.contains(symbol) {
-                    return true;
-                }
+                name.contains(symbol) || matches!(default_init, Some(init) if init.contains(symbol))
             }
-            Self::AssignmentRestPropertyAccess { access, .. } => {
-                if access.target().contains(symbol) {
-                    return true;
-                }
-            }
+            Self::AssignmentRestPropertyAccess { access, .. } => access.contains(symbol),
             Self::Pattern {
+                name,
                 pattern,
                 default_init,
-                ..
             } => {
-                if let Some(node) = default_init {
-                    if node.contains(symbol) {
-                        return true;
-                    }
-                }
-                if pattern.contains(symbol) {
-                    return true;
-                }
+                name.contains(symbol)
+                    || matches!(default_init, Some(init) if init.contains(symbol))
+                    || pattern.contains(symbol)
             }
-            _ => {}
+            _ => false,
         }
-        false
     }
 
     /// Gets the list of identifiers declared by the object binding pattern.
@@ -675,45 +650,27 @@ impl ArrayPatternElement {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
+            Self::Elision => false,
             Self::SingleName {
-                default_init: Some(init),
-                ..
+                ident,
+                default_init,
             } => {
-                if init.contains_arguments() {
-                    return true;
-                }
+                *ident == Sym::ARGUMENTS
+                    || matches!(default_init, Some(init) if init.contains_arguments())
             }
+            Self::SingleNameRest { ident } => *ident == Sym::ARGUMENTS,
             Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                if access.target().contains_arguments() {
-                    return true;
-                }
-                if let PropertyAccessField::Expr(expr) = access.field() {
-                    if expr.contains_arguments() {
-                        return true;
-                    }
-                }
+                access.contains_arguments()
             }
-            Self::PatternRest { pattern } => {
-                if pattern.contains_arguments() {
-                    return true;
-                }
-            }
+            Self::PatternRest { pattern } => pattern.contains_arguments(),
             Self::Pattern {
                 pattern,
                 default_init,
             } => {
-                if pattern.contains_arguments() {
-                    return true;
-                }
-                if let Some(init) = default_init {
-                    if init.contains_arguments() {
-                        return true;
-                    }
-                }
+                pattern.contains_arguments()
+                    || matches!(default_init, Some(init) if init.contains_arguments())
             }
-            _ => {}
         }
-        false
     }
 
     /// Returns `true` if the node contains the given token.
@@ -724,47 +681,22 @@ impl ArrayPatternElement {
     /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
-            Self::SingleName {
-                default_init: Some(node),
-                ..
-            } => {
-                if node.contains(symbol) {
-                    return true;
-                }
+            Self::Elision | Self::SingleNameRest { .. } => false,
+            Self::SingleName { default_init, .. } => {
+                matches!(default_init, Some(init) if init.contains(symbol))
             }
             Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                if access.target().contains(symbol) {
-                    return true;
-                }
-
-                if let PropertyAccessField::Expr(expr) = access.field() {
-                    if expr.contains(symbol) {
-                        return true;
-                    }
-                }
+                access.contains(symbol)
             }
             Self::Pattern {
                 pattern,
                 default_init,
             } => {
-                if pattern.contains(symbol) {
-                    return true;
-                }
-
-                if let Some(init) = default_init {
-                    if init.contains(symbol) {
-                        return true;
-                    }
-                }
+                pattern.contains(symbol)
+                    || matches!(default_init, Some(init) if init.contains(symbol))
             }
-            Self::PatternRest { pattern } => {
-                if pattern.contains(symbol) {
-                    return true;
-                }
-            }
-            _ => {}
+            Self::PatternRest { pattern } => pattern.contains(symbol),
         }
-        false
     }
 
     /// Gets the list of identifiers in the array pattern element.

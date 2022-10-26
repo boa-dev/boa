@@ -1,7 +1,7 @@
 use crate::syntax::{
     ast::{
         declaration::{LexicalDeclaration, Variable},
-        expression::{access::PropertyAccess, literal::Literal, Call, Identifier},
+        expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
         statement::{Break, Case, Switch},
         Declaration, Expression, Statement,
     },
@@ -173,7 +173,10 @@ fn check_separated_switch() {
                         Literal::from(5).into(),
                         vec![
                             Statement::Expression(Expression::from(Call::new(
-                                PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                                Expression::PropertyAccess(
+                                    SimplePropertyAccess::new(Identifier::new(console).into(), log)
+                                        .into(),
+                                ),
                                 vec![Literal::from(5).into()].into(),
                             )))
                             .into(),
@@ -185,7 +188,10 @@ fn check_separated_switch() {
                         Literal::from(10).into(),
                         vec![
                             Statement::Expression(Expression::from(Call::new(
-                                PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                                Expression::PropertyAccess(
+                                    SimplePropertyAccess::new(Identifier::new(console).into(), log)
+                                        .into(),
+                                ),
                                 vec![Literal::from(10).into()].into(),
                             )))
                             .into(),
@@ -197,7 +203,9 @@ fn check_separated_switch() {
                 .into(),
                 Some(
                     vec![Statement::Expression(Expression::from(Call::new(
-                        PropertyAccess::new(Identifier::new(console).into(), log).into(),
+                        Expression::PropertyAccess(
+                            SimplePropertyAccess::new(Identifier::new(console).into(), log).into(),
+                        ),
                         vec![Literal::from(
                             interner.get_or_intern_static("Default", utf16!("Default")),
                         )

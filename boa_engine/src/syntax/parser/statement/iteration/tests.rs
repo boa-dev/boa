@@ -2,7 +2,7 @@ use crate::syntax::{
     ast::{
         declaration::{VarDeclaration, Variable},
         expression::{
-            access::PropertyAccess,
+            access::SimplePropertyAccess,
             literal::Literal,
             operator::{
                 assign::AssignOp, binary::RelationalOp, unary::UnaryOp, Assign, Binary, Unary,
@@ -64,14 +64,16 @@ fn check_do_while_semicolon_insertion() {
                 Statement::Block(
                     vec![StatementListItem::Statement(Statement::Expression(
                         Expression::from(Call::new(
-                            PropertyAccess::new(
-                                Identifier::new(
-                                    interner.get_or_intern_static("console", utf16!("console")),
+                            Expression::PropertyAccess(
+                                SimplePropertyAccess::new(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("console", utf16!("console")),
+                                    )
+                                    .into(),
+                                    interner.get_or_intern_static("log", utf16!("log")),
                                 )
                                 .into(),
-                                interner.get_or_intern_static("log", utf16!("log")),
-                            )
-                            .into(),
+                            ),
                             vec![Literal::from(
                                 interner.get_or_intern_static("hello", utf16!("hello")),
                             )
@@ -94,12 +96,16 @@ fn check_do_while_semicolon_insertion() {
             ))
             .into(),
             Statement::Expression(Expression::from(Call::new(
-                PropertyAccess::new(
-                    Identifier::new(interner.get_or_intern_static("console", utf16!("console")))
+                Expression::PropertyAccess(
+                    SimplePropertyAccess::new(
+                        Identifier::new(
+                            interner.get_or_intern_static("console", utf16!("console")),
+                        )
                         .into(),
-                    interner.get_or_intern_static("log", utf16!("log")),
-                )
-                .into(),
+                        interner.get_or_intern_static("log", utf16!("log")),
+                    )
+                    .into(),
+                ),
                 vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
                     .into(),
             )))
@@ -131,14 +137,16 @@ fn check_do_while_semicolon_insertion_no_space() {
                 Statement::Block(
                     vec![StatementListItem::Statement(Statement::Expression(
                         Expression::from(Call::new(
-                            PropertyAccess::new(
-                                Identifier::new(
-                                    interner.get_or_intern_static("console", utf16!("console")),
+                            Expression::PropertyAccess(
+                                SimplePropertyAccess::new(
+                                    Identifier::new(
+                                        interner.get_or_intern_static("console", utf16!("console")),
+                                    )
+                                    .into(),
+                                    interner.get_or_intern_static("log", utf16!("log")),
                                 )
                                 .into(),
-                                interner.get_or_intern_static("log", utf16!("log")),
-                            )
-                            .into(),
+                            ),
                             vec![Literal::from(
                                 interner.get_or_intern_static("hello", utf16!("hello")),
                             )
@@ -161,12 +169,16 @@ fn check_do_while_semicolon_insertion_no_space() {
             ))
             .into(),
             Statement::Expression(Expression::from(Call::new(
-                PropertyAccess::new(
-                    Identifier::new(interner.get_or_intern_static("console", utf16!("console")))
+                Expression::PropertyAccess(
+                    SimplePropertyAccess::new(
+                        Identifier::new(
+                            interner.get_or_intern_static("console", utf16!("console")),
+                        )
                         .into(),
-                    interner.get_or_intern_static("log", utf16!("log")),
-                )
-                .into(),
+                        interner.get_or_intern_static("log", utf16!("log")),
+                    )
+                    .into(),
+                ),
                 vec![Literal::from(interner.get_or_intern_static("end", utf16!("end"))).into()]
                     .into(),
             )))
