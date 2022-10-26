@@ -24,8 +24,11 @@ use super::Expression;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Identifier
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Glossary/Identifier
-#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
-#[cfg_attr(feature = "deser", serde(transparent))]
+#[cfg_attr(
+    feature = "deser",
+    derive(serde::Serialize, serde::Deserialize),
+    serde(transparent)
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Identifier {

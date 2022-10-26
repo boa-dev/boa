@@ -30,14 +30,23 @@ impl From<TemplateLiteral> for Expression {
     }
 }
 
+/// An element found within a [`TemplateLiteral`].
+///
+/// The [spec] doesn't define an element akin to `TemplateElement`. However, the AST defines this
+/// node as the equivalent of the components found in a template literal.
+///
+/// [spec]: https://tc39.es/ecma262/#sec-template-literals
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum TemplateElement {
+    /// A simple string.
     String(Sym),
+    /// An expression that is evaluated and replaced by its string representation.
     Expr(Expression),
 }
 
 impl TemplateLiteral {
+    /// Creates a new `TemplateLiteral` from a list of [`TemplateElement`]s.
     #[inline]
     pub fn new(elements: Box<[TemplateElement]>) -> Self {
         Self { elements }

@@ -24,7 +24,7 @@ use crate::syntax::{
         self,
         expression::{
             operator::{
-                binary::op::{BinaryOp, LogicalOp},
+                binary::{BinaryOp, LogicalOp},
                 Binary,
             },
             Identifier,

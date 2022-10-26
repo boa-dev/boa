@@ -4,6 +4,13 @@ use crate::syntax::ast::ContainsSymbol;
 
 use super::Expression;
 
+/// A [`TaggedTemplate`][moz] expression, as defined by the [spec].
+///
+/// `TaggedTemplate`s are a type of template literals that are parsed by a custom function to generate
+/// arbitrary objects from the inner strings and expressions.
+///
+/// [moz]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals#tagged_templates
+/// [spec]: https://tc39.es/ecma262/#sec-tagged-templates
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct TaggedTemplate {

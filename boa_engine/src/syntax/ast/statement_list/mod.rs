@@ -9,10 +9,18 @@ use std::cmp::Ordering;
 #[cfg(test)]
 mod tests;
 
+/// An item inside a [`StatementList`] Parse Node, as defined by the [spec].
+///
+/// Items in a `StatementList` can be either [`Declaration`]s (functions, classes, let/const declarations)
+/// or [`Statement`]s (if, while, var statement).
+///
+/// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum StatementListItem {
+    /// See [`Statement`].
     Statement(Statement),
+    /// See [`Declaration`].
     Declaration(Declaration),
 }
 

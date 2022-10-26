@@ -4,8 +4,7 @@ mod tests;
 use crate::syntax::{
     ast::{
         statement::{Block, If},
-        statement_list::StatementListItem,
-        Declaration, Keyword, Punctuator,
+        Declaration, Keyword, Punctuator, StatementListItem,
     },
     lexer::TokenKind,
     parser::{

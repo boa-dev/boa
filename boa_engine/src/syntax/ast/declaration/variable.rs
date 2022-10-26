@@ -12,18 +12,34 @@ use boa_interner::{Interner, ToInternedString};
 
 use super::Declaration;
 
-/// A [`var`][var] declaration list, also called [`VariableDeclarationList`][vardecl]
-/// in the spec.
+/// A [`var`][var] statement, also called [`VariableStatement`][varstmt] in the spec.
 ///
 /// The scope of a variable declared with `var` is its current execution context, which is either
 /// the enclosing function or, for variables declared outside any function, global. If you
 /// re-declare a JavaScript variable, it will not lose its value.
 ///
+/// Although a bit confusing, `VarDeclaration`s are not considered [`Declaration`]s by the spec.
+/// This is partly because it has very different semantics from `let` and `const` declarations, but
+/// also because a `var` statement can be labelled just like any other [`Statement`]:
+///
+/// ```javascript
+/// label: var a = 5;
+/// a;
+/// ```
+///
+/// returns `5` as the value of the statement list, while:
+///
+/// ```javascript
+/// label: let a = 5;
+/// a;
+/// ```
+/// throws a `SyntaxError`.
+///
 /// `var` declarations, wherever they occur, are processed before any code is executed. This is
 /// called <code>[hoisting]</code>.
 ///
 /// [var]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/var
-/// [vardecl]: https://tc39.es/ecma262/#prod-VariableStatement
+/// [varstmt]: https://tc39.es/ecma262/#prod-VariableStatement
 /// [hoisting]: https://developer.mozilla.org/en-US/docs/Glossary/Hoisting
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -155,6 +171,7 @@ impl ToInternedString for VariableList {
     }
 }
 
+/// The error returned by the [`VariableList::try_from`] function.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct TryFromVariableListError(());
 
@@ -280,7 +297,9 @@ impl Variable {
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Binding {
+    /// A single identifier binding.
     Identifier(Identifier),
+    /// A pattern binding.
     Pattern(Pattern),
 }
 

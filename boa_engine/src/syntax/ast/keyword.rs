@@ -1,29 +1,24 @@
-//! This module implements the `Keyword` structure, which represents reserved words of the JavaScript language.
+//! The `Keyword` AST node, which represents reserved words of the JavaScript language.
 //!
-//! More information:
-//!  - [ECMAScript reference][spec]
-//!  - [MDN documentation][mdn]
+//! The [specification][spec] defines keywords as tokens that match an `IdentifierName`, but also
+//! have special meaning in JavaScript. In JavaScript you cannot use these reserved words as variables,
+//! labels, or function names.
+//!
+//! The [MDN documentation][mdn] contains a more extensive explanation about keywords.
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
 //! [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
 
 use crate::{
     string::utf16,
-    syntax::ast::expression::operator::binary::op::{BinaryOp, RelationalOp},
+    syntax::ast::expression::operator::binary::{BinaryOp, RelationalOp},
 };
 use boa_interner::{Interner, Sym};
-use std::{convert::TryInto, error, fmt, str::FromStr};
+use std::{convert::TryFrom, error, fmt, str::FromStr};
 
-/// Keywords are tokens that have special meaning in JavaScript.
+/// List of keywords recognized by the JavaScript grammar.
 ///
-/// In JavaScript you cannot use these reserved words as variables, labels, or function names.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-keywords-and-reserved-words
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#Keywords
+/// See the [module-level documentation][self] for more details.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Keyword {
@@ -482,7 +477,8 @@ pub enum Keyword {
 }
 
 impl Keyword {
-    /// Gets the keyword as a binary operation, if this keyword is the `in` keyword.
+    /// Gets the keyword as a binary operation, if this keyword is the `in` or the `instanceof`
+    /// keywords.
     pub fn as_binary_op(self) -> Option<BinaryOp> {
         match self {
             Self::In => Some(BinaryOp::Relational(RelationalOp::In)),
@@ -538,6 +534,7 @@ impl Keyword {
         }
     }
 
+    // TODO: promote all keywords to statics inside Interner
     /// Converts the keyword to a symbol in the given interner.
     pub fn to_sym(self, interner: &mut Interner) -> Sym {
         let (utf8, utf16) = self.as_str();
@@ -545,14 +542,18 @@ impl Keyword {
     }
 }
 
-impl TryInto<BinaryOp> for Keyword {
+// TODO: Should use a proper Error
+impl TryFrom<Keyword> for BinaryOp {
     type Error = String;
-    fn try_into(self) -> Result<BinaryOp, Self::Error> {
-        self.as_binary_op()
-            .ok_or_else(|| format!("No binary operation for {self}"))
+
+    fn try_from(value: Keyword) -> Result<Self, Self::Error> {
+        value
+            .as_binary_op()
+            .ok_or_else(|| format!("No binary operation for {value}"))
     }
 }
 
+/// The error type which is returned from parsing a [`str`] into a [`Keyword`].
 #[derive(Debug, Clone, Copy)]
 pub struct KeywordError;
 impl fmt::Display for KeywordError {
@@ -565,11 +566,6 @@ impl fmt::Display for KeywordError {
 impl error::Error for KeywordError {
     fn description(&self) -> &str {
         "invalid token"
-    }
-
-    fn cause(&self) -> Option<&dyn error::Error> {
-        // Generic error, underlying cause isn't tracked.
-        None
     }
 }
 impl FromStr for Keyword {

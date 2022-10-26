@@ -10,7 +10,7 @@
 use crate::syntax::{
     ast::{
         expression::{
-            operator::{unary::op::UnaryOp, Unary},
+            operator::{unary::UnaryOp, Unary},
             Identifier,
         },
         Expression, Keyword, Punctuator,

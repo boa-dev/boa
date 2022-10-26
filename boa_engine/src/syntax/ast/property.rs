@@ -1,3 +1,5 @@
+//! Property definition related types, used in object literals and class definitions.
+
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use super::{
@@ -6,7 +8,7 @@ use super::{
     ContainsSymbol, Expression, StatementList,
 };
 
-/// A JavaScript property is a characteristic of an object, often describing attributes associated with a data structure.
+/// Describes the definition of a property within an object literal.
 ///
 /// A property has a name (a string) and a value (primitive, method, or object reference).
 /// Note that when we say that "a property holds an object", that is shorthand for "a property holds an object reference".
@@ -65,7 +67,7 @@ pub enum PropertyDefinition {
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Object_initializer#Spread_properties
     SpreadObject(Expression),
 
-    /// Cover grammar for when an object literal is used as an object biding pattern.
+    /// Cover grammar for when an object literal is used as an object binding pattern.
     ///
     /// More information:
     ///  - [ECMAScript reference][spec]

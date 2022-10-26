@@ -8,12 +8,11 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// The `for` statement creates a loop that consists of three optional expressions.
 ///
-/// A `for` loop repeats until a specified condition evaluates to `false`.
+/// A [`for`][mdn] loop repeats until a specified condition evaluates to `false`.
 /// The JavaScript for loop is similar to the Java and C for loop.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ForDeclaration
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for
@@ -163,11 +162,22 @@ impl InnerForLoop {
     }
 }
 
+/// A [`ForLoop`] initializer, as defined by the [spec].
+///
+/// A `ForLoop` initializer differs a lot from an
+/// [`IterableLoopInitializer`][super::IterableLoopInitializer], since it can contain any arbitrary
+/// expression instead of only accessors and patterns. Additionally, it can also contain many variable
+/// declarations instead of only one.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ForStatement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ForLoopInitializer {
+    /// An expression initializer.
     Expression(Expression),
+    /// A var declaration initializer.
     Var(VarDeclaration),
+    /// A lexical declaration initializer.
     Lexical(LexicalDeclaration),
 }
 

@@ -24,36 +24,39 @@ use super::Expression;
 #[cfg_attr(feature = "deser", serde(transparent))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
-    val: Box<Expression>,
+    target: Box<Expression>,
 }
 
 impl Spread {
+    /// Gets the target expression to be expanded by the spread operator.
     #[inline]
-    pub fn val(&self) -> &Expression {
-        &self.val
+    pub fn target(&self) -> &Expression {
+        &self.target
     }
 
     /// Creates a `Spread` AST Expression.
     #[inline]
-    pub fn new(val: Expression) -> Self {
-        Self { val: Box::new(val) }
+    pub fn new(target: Expression) -> Self {
+        Self {
+            target: Box::new(target),
+        }
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.val.contains_arguments()
+        self.target.contains_arguments()
     }
 
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.val.contains(symbol)
+        self.target.contains(symbol)
     }
 }
 
 impl ToInternedString for Spread {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
-        format!("...{}", self.val().to_interned_string(interner))
+        format!("...{}", self.target().to_interned_string(interner))
     }
 }
 

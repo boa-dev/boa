@@ -8,9 +8,9 @@ use crate::{
             access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField},
             literal::{self, TemplateElement},
             operator::{
-                assign::{op::AssignOp, AssignTarget},
-                binary::op::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-                unary::op::UnaryOp,
+                assign::{AssignOp, AssignTarget},
+                binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+                unary::UnaryOp,
             },
             Call, Identifier, New,
         },
@@ -18,10 +18,10 @@ use crate::{
             ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
             Function, Generator,
         },
-        pattern::{Pattern, PatternArrayElement, PatternObjectElement},
+        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
         property::{MethodDefinition, PropertyDefinition, PropertyName},
         statement::{
-            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+            iteration::{ForLoopInitializer, IterableLoopInitializer},
             Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
         },
         Declaration, Expression, Statement, StatementList, StatementListItem,
@@ -1221,7 +1221,7 @@ impl<'b> ByteCompiler<'b> {
                 use_expr,
             )?,
             Expression::Conditional(op) => {
-                self.compile_expr(op.cond(), true)?;
+                self.compile_expr(op.condition(), true)?;
                 let jelse = self.jump_if_false();
                 self.compile_expr(op.if_true(), true)?;
                 let exit = self.jump();
@@ -1259,7 +1259,7 @@ impl<'b> ByteCompiler<'b> {
             Expression::This => {
                 self.access_get(Access::This, use_expr)?;
             }
-            Expression::Spread(spread) => self.compile_expr(spread.val(), true)?,
+            Expression::Spread(spread) => self.compile_expr(spread.target(), true)?,
             Expression::Function(function) => {
                 self.function(function.into(), NodeKind::Expression, use_expr)?;
             }
@@ -1299,7 +1299,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Expression::Await(expr) => {
-                self.compile_expr(expr.expr(), true)?;
+                self.compile_expr(expr.target(), true)?;
                 self.emit_opcode(Opcode::Await);
                 self.emit_opcode(Opcode::GeneratorNext);
                 if !use_expr {
@@ -1307,7 +1307,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Expression::Yield(r#yield) => {
-                if let Some(expr) = r#yield.expr() {
+                if let Some(expr) = r#yield.target() {
                     self.compile_expr(expr, true)?;
                 } else {
                     self.emit_opcode(Opcode::PushUndefined);
@@ -1616,9 +1616,9 @@ impl<'b> ByteCompiler<'b> {
         for_in_loop: &ForInLoop,
         label: Option<Sym>,
     ) -> JsResult<()> {
-        let init_bound_names = for_in_loop.init().bound_names();
+        let init_bound_names = for_in_loop.initializer().bound_names();
         if init_bound_names.is_empty() {
-            self.compile_expr(for_in_loop.expr(), true)?;
+            self.compile_expr(for_in_loop.target(), true)?;
         } else {
             self.context.push_compile_time_environment(false);
             let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -1626,7 +1626,7 @@ impl<'b> ByteCompiler<'b> {
             for name in init_bound_names {
                 self.context.create_mutable_binding(name, false);
             }
-            self.compile_expr(for_in_loop.expr(), true)?;
+            self.compile_expr(for_in_loop.target(), true)?;
 
             let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
             let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -1646,7 +1646,7 @@ impl<'b> ByteCompiler<'b> {
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
         let exit = self.emit_opcode_with_operand(Opcode::ForInLoopNext);
 
-        match for_in_loop.init() {
+        match for_in_loop.initializer() {
             IterableLoopInitializer::Identifier(ident) => {
                 self.context.create_mutable_binding(*ident, true);
                 let binding = self.context.set_mutable_binding(*ident);
@@ -2106,7 +2106,7 @@ impl<'b> ByteCompiler<'b> {
                 }
             }
             Statement::Throw(throw) => {
-                self.compile_expr(throw.expr(), true)?;
+                self.compile_expr(throw.target(), true)?;
                 self.emit(Opcode::Throw, &[]);
             }
             Statement::Switch(switch) => {
@@ -2153,7 +2153,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::PopEnvironment);
             }
             Statement::Return(ret) => {
-                if let Some(expr) = ret.expr() {
+                if let Some(expr) = ret.target() {
                     self.compile_expr(expr, true)?;
                 } else {
                     self.emit(Opcode::PushUndefined, &[]);
@@ -2336,14 +2336,14 @@ impl<'b> ByteCompiler<'b> {
         }
 
         let (call, kind) = match callable {
-            Callable::Call(call) => match call.expr() {
+            Callable::Call(call) => match call.function() {
                 Expression::Identifier(ident) if *ident == Sym::EVAL => (call, CallKind::CallEval),
                 _ => (call, CallKind::Call),
             },
             Callable::New(new) => (new.call(), CallKind::New),
         };
 
-        match call.expr() {
+        match call.function() {
             Expression::PropertyAccess(access) => {
                 self.compile_expr(access.target(), true)?;
                 if kind == CallKind::Call {
@@ -2453,14 +2453,12 @@ impl<'b> ByteCompiler<'b> {
                 let rest_exits = pattern.has_rest();
 
                 for binding in pattern.bindings() {
-                    use PatternObjectElement::{
-                        AssignmentPropertyAccess, AssignmentRestPropertyAccess, Empty, Pattern,
+                    use ObjectPatternElement::{
+                        AssignmentPropertyAccess, AssignmentRestPropertyAccess, Pattern,
                         RestProperty, SingleName,
                     };
 
                     match binding {
-                        // ObjectBindingPattern : { }
-                        Empty => {}
                         //  SingleNameBinding : BindingIdentifier Initializer[opt]
                         SingleName {
                             ident,
@@ -2605,14 +2603,12 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_opcode(Opcode::InitIterator);
 
                 for binding in pattern.bindings().iter() {
-                    use PatternArrayElement::{
-                        Elision, Empty, Pattern, PatternRest, PropertyAccess, PropertyAccessRest,
+                    use ArrayPatternElement::{
+                        Elision, Pattern, PatternRest, PropertyAccess, PropertyAccessRest,
                         SingleName, SingleNameRest,
                     };
 
                     match binding {
-                        // ArrayBindingPattern : [ ]
-                        Empty => {}
                         // ArrayBindingPattern : [ Elision ]
                         Elision => {
                             self.emit_opcode(Opcode::IteratorNext);

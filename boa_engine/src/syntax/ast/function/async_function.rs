@@ -8,15 +8,14 @@ use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
-/// An async function expression is very similar to an async function declaration except used within
-/// a wider expression (for example during an assignment).
+/// An async function definition, as defined by the [spec].
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
+/// An [async function][mdn] is a function where await expressions are allowed within it.
+/// The async and await keywords enable asynchronous programming on Javascript without the use
+/// of promise chains.
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/async_function
+/// [spec]: https://tc39.es/ecma262/#sec-async-function-definitions
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncFunction {

@@ -9,7 +9,7 @@
 
 use crate::syntax::{
     ast::{
-        expression::{operator::conditional::Conditional, Identifier},
+        expression::{operator::Conditional, Identifier},
         Expression, Punctuator,
     },
     lexer::TokenKind,

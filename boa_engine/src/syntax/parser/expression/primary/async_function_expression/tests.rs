@@ -4,8 +4,7 @@ use crate::syntax::{
         expression::literal::Literal,
         function::{AsyncFunction, FormalParameterList},
         statement::Return,
-        statement_list::StatementListItem,
-        Statement,
+        Statement, StatementListItem,
     },
     parser::tests::check_parser,
 };

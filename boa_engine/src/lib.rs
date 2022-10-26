@@ -40,7 +40,7 @@
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    // rustdoc,
+    rustdoc::broken_intra_doc_links,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,
@@ -49,7 +49,7 @@
     rust_2018_compatibility,
     rust_2018_idioms,
     future_incompatible,
-    nonstandard_style,
+    nonstandard_style
 )]
 #![allow(
     clippy::missing_inline_in_public_items,

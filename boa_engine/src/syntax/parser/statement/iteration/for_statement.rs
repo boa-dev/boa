@@ -14,7 +14,7 @@ use crate::syntax::{
             array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
         },
         statement::{
-            iteration::{for_loop::ForLoopInitializer, IterableLoopInitializer},
+            iteration::{ForLoopInitializer, IterableLoopInitializer},
             ForInLoop, ForLoop, ForOfLoop,
         },
         Keyword, Position, Punctuator,

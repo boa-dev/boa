@@ -12,9 +12,9 @@ use crate::{
             access::PropertyAccess,
             literal::{Literal, ObjectLiteral},
             operator::{
-                assign::op::AssignOp,
-                binary::op::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
-                unary::op::UnaryOp,
+                assign::AssignOp,
+                binary::{ArithmeticOp, BinaryOp, LogicalOp, RelationalOp},
+                unary::UnaryOp,
                 Assign, Binary, Unary,
             },
             Call, Identifier, New,
@@ -24,8 +24,7 @@ use crate::{
         },
         property::PropertyDefinition,
         statement::{If, Return},
-        statement_list::StatementListItem,
-        Expression, Statement, StatementList,
+        Expression, Statement, StatementList, StatementListItem,
     },
     Context,
 };

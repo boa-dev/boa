@@ -6,8 +6,7 @@ use crate::syntax::{
         expression::literal::Literal,
         function::{AsyncGenerator, FormalParameterList},
         statement::Return,
-        statement_list::StatementListItem,
-        Declaration, Statement,
+        Declaration, Statement, StatementListItem,
     },
     parser::tests::check_parser,
 };

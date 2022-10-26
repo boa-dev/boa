@@ -2,8 +2,7 @@ use crate::syntax::{
     ast::{
         expression::literal::Literal,
         statement::{Block, Break, WhileLoop},
-        statement_list::StatementListItem,
-        Statement,
+        Statement, StatementListItem,
     },
     parser::tests::check_parser,
 };

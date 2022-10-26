@@ -1,4 +1,4 @@
-//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript
+//! The `Punctuator` enum, which contains all punctuators used in JavaScript.
 //!
 //! More information:
 //!  - [ECMAScript Reference][spec]
@@ -6,24 +6,21 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Punctuator
 
 use crate::syntax::ast::expression::operator::{
-    assign::op::AssignOp,
-    binary::op::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+    assign::AssignOp,
+    binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
 };
 use std::{
     convert::TryInto,
     fmt::{Display, Error, Formatter},
 };
 
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
-
-/// The Punctuator enum describes all of the punctuators used in JavaScript.
+/// All of the punctuators used in JavaScript.
 ///
 /// More information:
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Punctuator {
     /// `+`

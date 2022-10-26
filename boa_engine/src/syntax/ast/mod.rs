@@ -1,15 +1,29 @@
 //! The Javascript Abstract Syntax Tree.
+//!
+//! This module contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.
+//! Some `Parse Node`s are not represented by Boa's AST, because a lot of grammar productions are
+//! only used to throw [**Early Errors**][early], and don't influence the evaluation of the AST itself.
+//!
+//! Boa's AST is mainly split in three main components: [`Declaration`]s, [`Expression`]s and
+//! [`Statement`]s, with [`StatementList`] being the primordial Parse Node that combines
+//! all of them to create a proper AST.
+//!
+//! [grammar]: https://tc39.es/ecma262/#sec-syntactic-grammar
+//! [early]: https://tc39.es/ecma262/#sec-static-semantic-rules
+
+#![deny(missing_docs)]
+
+mod position;
+mod punctuator;
+mod statement_list;
 
 pub mod declaration;
 pub mod expression;
 pub mod function;
 pub mod keyword;
 pub mod pattern;
-pub mod position;
 pub mod property;
-pub mod punctuator;
 pub mod statement;
-pub mod statement_list;
 
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
@@ -23,7 +37,9 @@ pub use self::{
     statement_list::{StatementList, StatementListItem},
 };
 
-/// Represents the possible symbols that can be use the the `contains` function.
+/// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
+///
+/// [contains]: https://tc39.es/ecma262/#sec-syntax-directed-operations-contains
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) enum ContainsSymbol {
     SuperProperty,

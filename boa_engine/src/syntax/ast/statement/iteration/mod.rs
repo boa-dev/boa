@@ -1,18 +1,23 @@
 //! Iteration nodes
 
-pub mod r#break;
-pub mod r#continue;
-pub mod do_while_loop;
-pub mod for_in_loop;
-pub mod for_loop;
-pub mod for_of_loop;
-pub mod while_loop;
+mod r#break;
+mod r#continue;
+mod do_while_loop;
+mod for_in_loop;
+mod for_loop;
+mod for_of_loop;
+mod while_loop;
 
 use crate::syntax::ast::{declaration::Binding, expression::Identifier, pattern::Pattern};
 
 pub use self::{
-    do_while_loop::DoWhileLoop, for_in_loop::ForInLoop, for_loop::ForLoop, for_of_loop::ForOfLoop,
-    r#break::Break, r#continue::Continue, while_loop::WhileLoop,
+    do_while_loop::DoWhileLoop,
+    for_in_loop::ForInLoop,
+    for_loop::{ForLoop, ForLoopInitializer},
+    for_of_loop::ForOfLoop,
+    r#break::Break,
+    r#continue::Continue,
+    while_loop::WhileLoop,
 };
 use boa_interner::{Interner, Sym, ToInternedString};
 
@@ -21,14 +26,26 @@ use super::ContainsSymbol;
 #[cfg(test)]
 mod tests;
 
+/// A `for-in`, `for-of` and `for-await-of` loop initializer.
+///
+/// The [spec] specifies only single bindings for the listed types of loops, which makes us
+/// unable to use plain `LexicalDeclaration`s or `VarStatement`s as initializers, since those
+/// can have more than one binding.
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
     // TODO: This should also accept property accessors
+    /// An already declared variable.
     Identifier(Identifier),
+    /// A new var declaration.
     Var(Binding),
+    /// A new let declaration.
     Let(Binding),
+    /// A new const declaration.
     Const(Binding),
+    /// A pattern with already declared variables.
     Pattern(Pattern),
 }
 

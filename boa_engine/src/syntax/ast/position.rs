@@ -1,21 +1,12 @@
-//! This module implements the `Pos` structure, which represents a position in the source code.
-
 use std::{cmp::Ordering, fmt, num::NonZeroU32};
-
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
 
 /// A position in the JavaScript source code.
 ///
 /// Stores both the column number and the line number.
 ///
-/// Note that spans are of the form [beginning, end) i.e. that the beginning position is inclusive
-/// and the end position is exclusive. See test `check_positions` from `syntax/lexer/tests.rs` for
-/// an example.
-///
 /// ## Similar Implementations
 /// [V8: Location](https://cs.chromium.org/chromium/src/v8/src/parsing/scanner.h?type=cs&q=isValid+Location&g=0&l=216)
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Position {
     /// Line number.
@@ -57,7 +48,10 @@ impl fmt::Display for Position {
 /// A span in the JavaScript source code.
 ///
 /// Stores a start position and an end position.
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+///
+/// Note that spans are of the form [start, end) i.e. that the start position is inclusive
+/// and the end position is exclusive.
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Span {
     start: Position,

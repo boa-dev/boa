@@ -1,10 +1,25 @@
-pub mod op;
+//! Unary expression nodes.
+//!
+//! A Binary expression comprises any operation applied to a single expression. Some examples include:
+//!
+//! - [Increment and decrement operations][inc] (`++`, `--`).
+//! - The [`delete`][del] operator.
+//! - The [bitwise NOT][not] operator (`~`).
+//!
+//! The full list of valid unary operators is defined in [`UnaryOp`].
+//!
+//! [inc]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#increment_and_decrement
+//! [del]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/delete
+//! [not]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_NOT
+mod op;
+
+pub use op::*;
 
 use boa_interner::{Interner, ToInternedString};
 
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 
-/// A unary operation is an operation with only one operand.
+/// A unary expression is an operation with only one operand.
 ///
 /// More information:
 ///  - [ECMAScript reference][spec]
@@ -15,13 +30,13 @@ use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Unary {
-    op: op::UnaryOp,
+    op: UnaryOp,
     target: Box<Expression>,
 }
 
 impl Unary {
     /// Creates a new `UnaryOp` AST Expression.
-    pub(in crate::syntax) fn new(op: op::UnaryOp, target: Expression) -> Self {
+    pub(in crate::syntax) fn new(op: UnaryOp, target: Expression) -> Self {
         Self {
             op,
             target: Box::new(target),
@@ -30,7 +45,7 @@ impl Unary {
 
     /// Gets the unary operation of the Expression.
     #[inline]
-    pub fn op(&self) -> op::UnaryOp {
+    pub fn op(&self) -> UnaryOp {
         self.op
     }
 
@@ -55,7 +70,7 @@ impl ToInternedString for Unary {
     #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let space = match self.op {
-            op::UnaryOp::TypeOf | op::UnaryOp::Delete | op::UnaryOp::Void => " ",
+            UnaryOp::TypeOf | UnaryOp::Delete | UnaryOp::Void => " ",
             _ => "",
         };
         format!(

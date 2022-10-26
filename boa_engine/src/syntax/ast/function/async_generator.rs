@@ -8,12 +8,13 @@ use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
-/// The `async function*` keyword can be used to define a generator function inside an expression.
+/// An async generator definition, as defined by the [spec].
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
+/// An [async generator][mdn] combines async functions with generators, making it possible to use
+/// `await` and `yield` expressions within the definition of the function.
 ///
-/// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
+/// [spec]: https://tc39.es/ecma262/#sec-async-generator-function-definitions
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function*
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncGenerator {

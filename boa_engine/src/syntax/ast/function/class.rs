@@ -7,24 +7,20 @@ use crate::{
         expression::{Expression, Identifier},
         join_nodes,
         property::{MethodDefinition, PropertyName},
-        statement_list::StatementListItem,
-        ContainsSymbol, Declaration, StatementList,
+        ContainsSymbol, Declaration, StatementList, StatementListItem,
     },
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
 use super::Function;
 
-/// The `class` declaration defines a class with the specified methods, fields, and optional constructor.
+/// A class declaration, as defined by the [spec].
 ///
+/// A [class][mdn] declaration defines a class with the specified methods, fields, and optional constructor.
 /// Classes can be used to create objects, which can also be created through literals (using `{}`).
 ///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
-///
 /// [spec]: https://tc39.es/ecma262/#sec-class-definitions
-/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function
+/// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Class {
@@ -381,18 +377,31 @@ impl From<Class> for Declaration {
     }
 }
 
-/// Class element types.
+/// An element that can be within a [`Class`], as defined by the [spec].
+///
+/// [spec]: https://tc39.es/ecma262/#prod-ClassElement
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ClassElement {
+    /// A method definition, including `get` and `set` accessors.
     MethodDefinition(PropertyName, MethodDefinition),
+    /// A static method definition, accessible from the class constructor object.
     StaticMethodDefinition(PropertyName, MethodDefinition),
+    /// A field definition.
     FieldDefinition(PropertyName, Option<Expression>),
+    /// A static field definition, accessible from the class constructor object
     StaticFieldDefinition(PropertyName, Option<Expression>),
+    /// A private method definition, only accessible inside the class declaration.
     PrivateMethodDefinition(Sym, MethodDefinition),
+    /// A private static method definition, only accessible from static methods and fields inside
+    /// the class declaration.
     PrivateStaticMethodDefinition(Sym, MethodDefinition),
+    /// A private field definition, only accessible inside the class declaration.
     PrivateFieldDefinition(Sym, Option<Expression>),
+    /// A private static field definition, only accessible from static methods and fields inside the
+    /// class declaration.
     PrivateStaticFieldDefinition(Sym, Option<Expression>),
+    /// A static block, where a class can have initialization logic for its static fields.
     StaticBlock(StatementList),
 }
 

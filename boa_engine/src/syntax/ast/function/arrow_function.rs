@@ -6,16 +6,12 @@ use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
 
-/// An arrow function expression is a syntactically compact alternative to a regular function
-/// expression.
+/// An arrow function expression, as defined by the [spec].
 ///
-/// Arrow function expressions are ill suited as methods, and they cannot be used as
+/// An [arrow function][mdn] expression is a syntactically compact alternative to a regular function
+/// expression. Arrow function expressions are ill suited as methods, and they cannot be used as
 /// constructors. Arrow functions cannot be used as constructors and will throw an error when
 /// used with new.
-///
-/// More information:
-///  - [ECMAScript reference][spec]
-///  - [MDN documentation][mdn]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ArrowFunction
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
