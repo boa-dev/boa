@@ -148,7 +148,11 @@ impl Eval {
 
         // Compile and execute the eval statement list.
         let code_block = context.compile_with_new_declarative(&body, strict)?;
-        if direct {
+        // Indirect calls don't need extensions, because a non-strict indirect call modifies only
+        // the global object.
+        // Strict direct calls also don't need extensions, since all strict eval calls push a new
+        // function environment before evaluating.
+        if direct && !strict {
             context
                 .realm
                 .environments
