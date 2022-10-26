@@ -236,6 +236,15 @@ where
                         AssignTarget::from_expression(&lhs, cursor.strict_mode(), false)
                     {
                         let assignop = p.as_assign_op().expect("assignop disappeared");
+                        if assignop == AssignOp::BoolAnd
+                            || assignop == AssignOp::BoolOr
+                            || assignop == AssignOp::Coalesce
+                        {
+                            if let AssignTarget::Identifier(ident) = target {
+                                self.name = Some(ident);
+                            }
+                        }
+
                         let rhs = self.parse(cursor, interner)?;
                         lhs = Assign::new(assignop, target, rhs).into();
                     } else {
