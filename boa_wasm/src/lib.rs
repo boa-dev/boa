@@ -67,6 +67,6 @@ pub fn evaluate(src: &str) -> Result<String, JsValue> {
     // Setup executor
     Context::default()
         .eval(src)
-        .map_err(|e| JsValue::from(format!("Uncaught {}", e.display())))
+        .map_err(|e| JsValue::from(format!("Uncaught {e}")))
         .map(|v| v.display().to_string())
 }

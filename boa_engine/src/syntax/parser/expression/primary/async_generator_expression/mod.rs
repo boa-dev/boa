@@ -12,14 +12,14 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, AsyncGeneratorExpr},
+        expression::Identifier, function::function_contains_super, function::AsyncGenerator,
         Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, TokenParser,
+        Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -34,14 +34,14 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncGeneratorExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncGeneratorExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
 }
 
 impl AsyncGeneratorExpression {
     /// Creates a new `AsyncGeneratorExpression` parser.
     pub(in crate::syntax::parser) fn new<N>(name: N) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
     {
         Self { name: name.into() }
     }
@@ -52,13 +52,9 @@ where
     R: Read,
 {
     //The below needs to be implemented in ast::node
-    type Output = AsyncGeneratorExpr;
+    type Output = AsyncGenerator;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncGeneratorExpression", "Parsing");
 
         cursor.peek_expect_no_lineterminator(0, "async generator expression", interner)?;
@@ -85,7 +81,7 @@ where
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict
         // mode code, it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
         if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
                     match cursor.peek(0, interner)? {
@@ -175,6 +171,6 @@ where
         }
 
         //implement the below AsyncGeneratorExpr in ast::node
-        Ok(AsyncGeneratorExpr::new(name, params, body))
+        Ok(AsyncGenerator::new(name, params, body))
     }
 }

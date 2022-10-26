@@ -1,7 +1,8 @@
 use crate::syntax::{
     ast::{
-        node::{Block, If, Node},
-        Const,
+        expression::literal::Literal,
+        statement::{Block, If},
+        Statement,
     },
     parser::tests::check_parser,
 };
@@ -11,7 +12,12 @@ use boa_interner::Interner;
 fn if_without_else_block() {
     check_parser(
         "if (true) {}",
-        vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],
+        vec![Statement::If(If::new(
+            Literal::from(true).into(),
+            Block::from(Vec::new()).into(),
+            None,
+        ))
+        .into()],
         Interner::default(),
     );
 }
@@ -20,7 +26,12 @@ fn if_without_else_block() {
 fn if_without_else_block_with_trailing_newline() {
     check_parser(
         "if (true) {}\n",
-        vec![If::new::<_, _, Node, _>(Const::from(true), Block::from(Vec::new()), None).into()],
+        vec![Statement::If(If::new(
+            Literal::from(true).into(),
+            Block::from(Vec::new()).into(),
+            None,
+        ))
+        .into()],
         Interner::default(),
     );
 }

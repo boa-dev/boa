@@ -12,25 +12,26 @@ pub mod error;
 mod tests;
 
 use crate::{
+    string::utf16,
     syntax::{
-        ast::{
-            node::{ContainsSymbol, FormalParameterList, StatementList},
-            Position,
-        },
         lexer::TokenKind,
         parser::{
             cursor::Cursor,
             function::{FormalParameters, FunctionStatementList},
         },
     },
-    Context,
+    Context, JsString,
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 pub use self::error::{ParseError, ParseResult};
 pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
+
+use super::ast::{
+    expression::Identifier, function::FormalParameterList, ContainsSymbol, Position, StatementList,
+};
 
 /// Trait implemented by parsers.
 ///
@@ -45,11 +46,7 @@ where
     /// Parses the token stream using the current parser.
     ///
     /// This method needs to be provided by the implementor type.
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError>;
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output>;
 }
 
 /// Boolean representing if the parser should allow a `yield` keyword.
@@ -138,6 +135,11 @@ impl<R> Parser<R> {
         Script::new(false).parse(&mut self.cursor, context)
     }
 
+    /// [`19.2.1.1 PerformEval ( x, strictCaller, direct )`][spec]
+    ///
+    /// Parses the source text input of an `eval` call.
+    ///
+    /// [spec]: https://tc39.es/ecma262/#sec-performeval
     pub(crate) fn parse_eval(
         &mut self,
         direct: bool,
@@ -146,67 +148,84 @@ impl<R> Parser<R> {
     where
         R: Read,
     {
-        let (in_function, in_method, in_derived_constructor) = if let Some(function_env) = context
+        #[derive(Debug, Default)]
+        #[allow(clippy::struct_excessive_bools)]
+        struct Flags {
+            in_function: bool,
+            in_method: bool,
+            in_derived_constructor: bool,
+            in_class_field_initializer: bool,
+        }
+        // 5. Perform ? HostEnsureCanCompileStrings(evalRealm).
+        // 11. Perform the following substeps in an implementation-defined order, possibly interleaving parsing and error detection:
+        //     a. Let script be ParseText(StringToCodePoints(x), Script).
+        //     b. If script is a List of errors, throw a SyntaxError exception.
+        //     c. If script Contains ScriptBody is false, return undefined.
+        //     d. Let body be the ScriptBody of script.
+        let body = Script::new(direct).parse(&mut self.cursor, context)?;
+
+        // 6. Let inFunction be false.
+        // 7. Let inMethod be false.
+        // 8. Let inDerivedConstructor be false.
+        // 9. Let inClassFieldInitializer be false.
+        // a. Let thisEnvRec be GetThisEnvironment().
+        let flags = match context
             .realm
             .environments
             .get_this_environment()
             .as_function_slots()
         {
-            let function_env_borrow = function_env.borrow();
-            let has_super_binding = function_env_borrow.has_super_binding();
-            let function_object = function_env_borrow.function_object().borrow();
-            (
-                true,
-                has_super_binding,
-                function_object
-                    .as_function()
-                    .expect("must be function object")
-                    .is_derived_constructor(),
-            )
-        } else {
-            (false, false, false)
-        };
-
-        let statement_list = Script::new(direct).parse(&mut self.cursor, context)?;
-
-        let mut contains_super_property = false;
-        let mut contains_super_call = false;
-        let mut contains_new_target = false;
-        if direct {
-            for node in statement_list.items() {
-                if !contains_super_property && node.contains(ContainsSymbol::SuperProperty) {
-                    contains_super_property = true;
-                }
-
-                if !contains_super_call && node.contains(ContainsSymbol::SuperCall) {
-                    contains_super_call = true;
-                }
-
-                if !contains_new_target && node.contains(ContainsSymbol::NewTarget) {
-                    contains_new_target = true;
+            // 10. If direct is true, then
+            //     b. If thisEnvRec is a Function Environment Record, then
+            Some(function_env) if direct => {
+                let function_env = function_env.borrow();
+                // i. Let F be thisEnvRec.[[FunctionObject]].
+                let function_object = function_env.function_object().borrow();
+                Flags {
+                    // ii. Set inFunction to true.
+                    in_function: true,
+                    // iii. Set inMethod to thisEnvRec.HasSuperBinding().
+                    in_method: function_env.has_super_binding(),
+                    // iv. If F.[[ConstructorKind]] is derived, set inDerivedConstructor to true.
+                    in_derived_constructor: function_object
+                        .as_function()
+                        .expect("must be function object")
+                        .is_derived_constructor(),
+                    // TODO:
+                    // v. Let classFieldInitializerName be F.[[ClassFieldInitializerName]].
+                    // vi. If classFieldInitializerName is not empty, set inClassFieldInitializer to true.
+                    in_class_field_initializer: false,
                 }
             }
+            _ => Flags::default(),
+        };
+
+        if !flags.in_function && body.contains(ContainsSymbol::NewTarget) {
+            return Err(ParseError::general(
+                "invalid `new.target` expression inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if !flags.in_method && body.contains(ContainsSymbol::SuperProperty) {
+            return Err(ParseError::general(
+                "invalid `super` reference inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if !flags.in_derived_constructor && body.contains(ContainsSymbol::SuperCall) {
+            return Err(ParseError::general(
+                "invalid `super` call inside eval",
+                Position::new(1, 1),
+            ));
+        }
+        if flags.in_class_field_initializer && body.contains_arguments() {
+            return Err(ParseError::general(
+                "invalid `arguments` reference inside eval",
+                Position::new(1, 1),
+            ));
         }
 
-        if !in_function && contains_new_target {
-            return Err(ParseError::general(
-                "invalid new.target usage",
-                Position::new(1, 1),
-            ));
-        }
-        if !in_method && contains_super_property {
-            return Err(ParseError::general(
-                "invalid super usage",
-                Position::new(1, 1),
-            ));
-        }
-        if !in_derived_constructor && contains_super_call {
-            return Err(ParseError::general(
-                "invalid super usage",
-                Position::new(1, 1),
-            ));
-        }
-        Ok(statement_list)
+        Ok(body)
     }
 
     /// Parse the full input as an [ECMAScript `FunctionBody`][spec] into the boa AST representation.
@@ -268,7 +287,11 @@ impl Script {
                 match tok.kind() {
                     // Set the strict mode
                     TokenKind::StringLiteral(string)
-                        if context.interner_mut().resolve_expect(*string) == "use strict" =>
+                        if context.interner_mut().resolve_expect(*string).join(
+                            |s| s == "use strict",
+                            |g| g == utf16!("use strict"),
+                            true,
+                        ) =>
                     {
                         cursor.set_strict_mode(true);
                         strict = true;
@@ -282,9 +305,10 @@ impl Script {
                 // It is a Syntax Error if the LexicallyDeclaredNames of ScriptBody contains any duplicate entries.
                 // It is a Syntax Error if any element of the LexicallyDeclaredNames of ScriptBody also occurs in the VarDeclaredNames of ScriptBody.
                 let mut var_declared_names = FxHashSet::default();
-                statement_list.var_declared_names_new(&mut var_declared_names);
+                statement_list.var_declared_names(&mut var_declared_names);
                 let lexically_declared_names = statement_list.lexically_declared_names();
-                let mut lexically_declared_names_map: FxHashMap<Sym, bool> = FxHashMap::default();
+                let mut lexically_declared_names_map: FxHashMap<Identifier, bool> =
+                    FxHashMap::default();
                 for (name, is_function_declaration) in &lexically_declared_names {
                     if let Some(existing_is_function_declaration) =
                         lexically_declared_names_map.get(name)
@@ -311,12 +335,12 @@ impl Script {
                         ));
                     }
                     if !is_function_declaration {
-                        let name_str = context.interner().resolve_expect(*name);
+                        let name_str = context.interner().resolve_expect(name.sym());
                         let desc = context
                             .realm
                             .global_property_map
                             .string_property_map()
-                            .get(name_str);
+                            .get(&name_str.into_common::<JsString>(false));
                         let non_configurable_binding_exists = match desc {
                             Some(desc) => !matches!(desc.configurable(), Some(true)),
                             None => false,
@@ -369,16 +393,12 @@ where
 {
     type Output = StatementList;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let body = self::statement::StatementList::new(false, false, false, &[])
             .parse(cursor, interner)?;
 
         if !self.direct_eval {
-            for node in body.items() {
+            for node in body.statements() {
                 // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
                 // code that is being processed by a direct eval.
                 // Additional early error rules for super within direct eval are defined in 19.2.1.1.

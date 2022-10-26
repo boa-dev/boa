@@ -29,13 +29,13 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: doc
-          args: -v --document-private-items --all-features
+          args: -v --document-private-items --all-features --workspace --no-deps --exclude boa_examples
       - run: echo "<meta http-equiv=refresh content=0;url=boa_engine/index.html>" > target/doc/index.html
       - run: |
           if [ -d target/doc_upload ]; then rm -rf target/doc_upload; fi
           mkdir target/doc_upload && mv target/doc target/doc_upload/doc
       - name: Upload documentation
-        uses: crazy-max/ghaction-github-pages@v3.0.0
+        uses: crazy-max/ghaction-github-pages@v3.1.0
         with:
           target_branch: gh-pages
           keep_history: true

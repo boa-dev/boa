@@ -12,6 +12,7 @@
 
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, regexp},
+    error::JsNativeError,
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::WellKnownSymbols,
@@ -85,7 +86,9 @@ impl RegExpStringIterator {
         let iterator = iterator
             .as_mut()
             .and_then(|obj| obj.as_regexp_string_iterator_mut())
-            .ok_or_else(|| context.construct_type_error("`this` is not a RegExpStringIterator"))?;
+            .ok_or_else(|| {
+                JsNativeError::typ().with_message("`this` is not a RegExpStringIterator")
+            })?;
         if iterator.completed {
             return Ok(create_iter_result_object(
                 JsValue::undefined(),

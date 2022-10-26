@@ -1,26 +1,26 @@
-//! This module implements the `Punctuator`, which represents all punctuators used in JavaScript
+//! The `Punctuator` enum, which contains all punctuators used in JavaScript.
 //!
 //! More information:
 //!  - [ECMAScript Reference][spec]
 //!
 //! [spec]: https://tc39.es/ecma262/#prod-Punctuator
 
-use crate::syntax::ast::op::{AssignOp, BinOp, BitOp, CompOp, LogOp, NumOp};
+use crate::syntax::ast::expression::operator::{
+    assign::AssignOp,
+    binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+};
 use std::{
     convert::TryInto,
     fmt::{Display, Error, Formatter},
 };
 
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
-
-/// The Punctuator enum describes all of the punctuators used in JavaScript.
+/// All of the punctuators used in JavaScript.
 ///
 /// More information:
 ///  - [ECMAScript Reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-Punctuator
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Punctuator {
     /// `+`
@@ -138,49 +138,59 @@ pub enum Punctuator {
 }
 
 impl Punctuator {
+    /// Attempts to convert a punctuator (`+`, `=`...) to an Assign Operator
+    ///
+    /// If there is no match, `None` will be returned.
+    pub const fn as_assign_op(self) -> Option<AssignOp> {
+        match self {
+            Self::Assign => Some(AssignOp::Assign),
+            Self::AssignAdd => Some(AssignOp::Add),
+            Self::AssignAnd => Some(AssignOp::And),
+            Self::AssignBoolAnd => Some(AssignOp::BoolAnd),
+            Self::AssignBoolOr => Some(AssignOp::BoolOr),
+            Self::AssignCoalesce => Some(AssignOp::Coalesce),
+            Self::AssignDiv => Some(AssignOp::Div),
+            Self::AssignLeftSh => Some(AssignOp::Shl),
+            Self::AssignMod => Some(AssignOp::Mod),
+            Self::AssignMul => Some(AssignOp::Mul),
+            Self::AssignOr => Some(AssignOp::Or),
+            Self::AssignPow => Some(AssignOp::Exp),
+            Self::AssignRightSh => Some(AssignOp::Shr),
+            Self::AssignSub => Some(AssignOp::Sub),
+            Self::AssignURightSh => Some(AssignOp::Ushr),
+            Self::AssignXor => Some(AssignOp::Xor),
+            _ => None,
+        }
+    }
+
     /// Attempts to convert a punctuator (`+`, `=`...) to a Binary Operator
     ///
     /// If there is no match, `None` will be returned.
-    pub const fn as_binop(self) -> Option<BinOp> {
+    pub const fn as_binary_op(self) -> Option<BinaryOp> {
         match self {
-            Self::AssignAdd => Some(BinOp::Assign(AssignOp::Add)),
-            Self::AssignAnd => Some(BinOp::Assign(AssignOp::And)),
-            Self::AssignBoolAnd => Some(BinOp::Assign(AssignOp::BoolAnd)),
-            Self::AssignBoolOr => Some(BinOp::Assign(AssignOp::BoolOr)),
-            Self::AssignCoalesce => Some(BinOp::Assign(AssignOp::Coalesce)),
-            Self::AssignDiv => Some(BinOp::Assign(AssignOp::Div)),
-            Self::AssignLeftSh => Some(BinOp::Assign(AssignOp::Shl)),
-            Self::AssignMod => Some(BinOp::Assign(AssignOp::Mod)),
-            Self::AssignMul => Some(BinOp::Assign(AssignOp::Mul)),
-            Self::AssignOr => Some(BinOp::Assign(AssignOp::Or)),
-            Self::AssignPow => Some(BinOp::Assign(AssignOp::Exp)),
-            Self::AssignRightSh => Some(BinOp::Assign(AssignOp::Shr)),
-            Self::AssignSub => Some(BinOp::Assign(AssignOp::Sub)),
-            Self::AssignURightSh => Some(BinOp::Assign(AssignOp::Ushr)),
-            Self::AssignXor => Some(BinOp::Assign(AssignOp::Xor)),
-            Self::Add => Some(BinOp::Num(NumOp::Add)),
-            Self::Sub => Some(BinOp::Num(NumOp::Sub)),
-            Self::Mul => Some(BinOp::Num(NumOp::Mul)),
-            Self::Div => Some(BinOp::Num(NumOp::Div)),
-            Self::Mod => Some(BinOp::Num(NumOp::Mod)),
-            Self::And => Some(BinOp::Bit(BitOp::And)),
-            Self::Or => Some(BinOp::Bit(BitOp::Or)),
-            Self::Xor => Some(BinOp::Bit(BitOp::Xor)),
-            Self::BoolAnd => Some(BinOp::Log(LogOp::And)),
-            Self::BoolOr => Some(BinOp::Log(LogOp::Or)),
-            Self::Coalesce => Some(BinOp::Log(LogOp::Coalesce)),
-            Self::Eq => Some(BinOp::Comp(CompOp::Equal)),
-            Self::NotEq => Some(BinOp::Comp(CompOp::NotEqual)),
-            Self::StrictEq => Some(BinOp::Comp(CompOp::StrictEqual)),
-            Self::StrictNotEq => Some(BinOp::Comp(CompOp::StrictNotEqual)),
-            Self::LessThan => Some(BinOp::Comp(CompOp::LessThan)),
-            Self::GreaterThan => Some(BinOp::Comp(CompOp::GreaterThan)),
-            Self::GreaterThanOrEq => Some(BinOp::Comp(CompOp::GreaterThanOrEqual)),
-            Self::LessThanOrEq => Some(BinOp::Comp(CompOp::LessThanOrEqual)),
-            Self::LeftSh => Some(BinOp::Bit(BitOp::Shl)),
-            Self::RightSh => Some(BinOp::Bit(BitOp::Shr)),
-            Self::URightSh => Some(BinOp::Bit(BitOp::UShr)),
-            Self::Comma => Some(BinOp::Comma),
+            Self::Add => Some(BinaryOp::Arithmetic(ArithmeticOp::Add)),
+            Self::Sub => Some(BinaryOp::Arithmetic(ArithmeticOp::Sub)),
+            Self::Mul => Some(BinaryOp::Arithmetic(ArithmeticOp::Mul)),
+            Self::Div => Some(BinaryOp::Arithmetic(ArithmeticOp::Div)),
+            Self::Mod => Some(BinaryOp::Arithmetic(ArithmeticOp::Mod)),
+            Self::And => Some(BinaryOp::Bitwise(BitwiseOp::And)),
+            Self::Or => Some(BinaryOp::Bitwise(BitwiseOp::Or)),
+            Self::Xor => Some(BinaryOp::Bitwise(BitwiseOp::Xor)),
+            Self::BoolAnd => Some(BinaryOp::Logical(LogicalOp::And)),
+            Self::BoolOr => Some(BinaryOp::Logical(LogicalOp::Or)),
+            Self::Coalesce => Some(BinaryOp::Logical(LogicalOp::Coalesce)),
+            Self::Eq => Some(BinaryOp::Relational(RelationalOp::Equal)),
+            Self::NotEq => Some(BinaryOp::Relational(RelationalOp::NotEqual)),
+            Self::StrictEq => Some(BinaryOp::Relational(RelationalOp::StrictEqual)),
+            Self::StrictNotEq => Some(BinaryOp::Relational(RelationalOp::StrictNotEqual)),
+            Self::LessThan => Some(BinaryOp::Relational(RelationalOp::LessThan)),
+            Self::GreaterThan => Some(BinaryOp::Relational(RelationalOp::GreaterThan)),
+            Self::GreaterThanOrEq => Some(BinaryOp::Relational(RelationalOp::GreaterThanOrEqual)),
+            Self::LessThanOrEq => Some(BinaryOp::Relational(RelationalOp::LessThanOrEqual)),
+            Self::LeftSh => Some(BinaryOp::Bitwise(BitwiseOp::Shl)),
+            Self::RightSh => Some(BinaryOp::Bitwise(BitwiseOp::Shr)),
+            Self::URightSh => Some(BinaryOp::Bitwise(BitwiseOp::UShr)),
+            Self::Comma => Some(BinaryOp::Comma),
             _ => None,
         }
     }
@@ -248,10 +258,10 @@ impl Punctuator {
     }
 }
 
-impl TryInto<BinOp> for Punctuator {
+impl TryInto<BinaryOp> for Punctuator {
     type Error = String;
-    fn try_into(self) -> Result<BinOp, Self::Error> {
-        self.as_binop()
+    fn try_into(self) -> Result<BinaryOp, Self::Error> {
+        self.as_binary_op()
             .ok_or_else(|| format!("No binary operation for {self}"))
     }
 }

@@ -1,19 +1,19 @@
 use crate::syntax::{
-    ast::{Keyword, Node, Punctuator},
+    ast::{self, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::Cursor,
         error::ParseError,
         expression::LabelIdentifier,
-        statement::{
-            declaration::hoistable::FunctionDeclaration, AllowAwait, AllowReturn, Statement,
-        },
-        AllowYield, TokenParser,
+        statement::{AllowAwait, AllowReturn, Statement},
+        AllowYield, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
+
+use super::declaration::FunctionDeclaration;
 
 /// Labelled Statement Parsing
 ///
@@ -49,23 +49,21 @@ impl<R> TokenParser<R> for LabelledStatement
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::statement::Labelled;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Label", "Parsing");
 
-        let name =
-            LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+        let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
+            .parse(cursor, interner)?
+            .sym();
 
         cursor.expect(Punctuator::Colon, "Labelled Statement", interner)?;
 
         let strict = cursor.strict_mode();
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
-        let mut node = match next_token.kind() {
+
+        let labelled_item = match next_token.kind() {
             // Early Error: It is a Syntax Error if any strict mode source code matches this rule.
             // https://tc39.es/ecma262/#sec-labelled-statements-static-semantics-early-errors
             // https://tc39.es/ecma262/#sec-labelled-function-declarations
@@ -80,22 +78,9 @@ where
                 .parse(cursor, interner)?
                 .into()
             }
-            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?
+            _ => Statement::new(self.allow_yield, self.allow_await, self.allow_return).parse(cursor, interner)?.into()
         };
 
-        set_label_for_node(&mut node, name);
-        Ok(node)
-    }
-}
-
-fn set_label_for_node(node: &mut Node, name: Sym) {
-    match node {
-        Node::ForLoop(ref mut for_loop) => for_loop.set_label(name),
-        Node::ForOfLoop(ref mut for_of_loop) => for_of_loop.set_label(name),
-        Node::ForInLoop(ref mut for_in_loop) => for_in_loop.set_label(name),
-        Node::DoWhileLoop(ref mut do_while_loop) => do_while_loop.set_label(name),
-        Node::WhileLoop(ref mut while_loop) => while_loop.set_label(name),
-        Node::Block(ref mut block) => block.set_label(name),
-        _ => (),
+        Ok(ast::statement::Labelled::new(labelled_item, label))
     }
 }

@@ -11,12 +11,12 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::Continue, Keyword, Punctuator},
+    ast::{statement::Continue, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
         expression::LabelIdentifier,
-        AllowAwait, AllowYield, ParseError, TokenParser,
+        AllowAwait, AllowYield, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -57,26 +57,28 @@ where
 {
     type Output = Continue;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ContinueStatement", "Parsing");
         cursor.expect((Keyword::Continue, false), "continue statement", interner)?;
 
         let label = if let SemicolonResult::Found(tok) = cursor.peek_semicolon(interner)? {
-            match tok {
-                Some(tok) if tok.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) => {
-                    let _next = cursor.next(interner)?;
+            if let Some(token) = tok {
+                if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+                    cursor.next(interner)?;
+                } else if token.kind() == &TokenKind::LineTerminator {
+                    if let Some(token) = cursor.peek(0, interner)? {
+                        if token.kind() == &TokenKind::Punctuator(Punctuator::Semicolon) {
+                            cursor.next(interner)?;
+                        }
+                    }
                 }
-                _ => {}
             }
 
             None
         } else {
-            let label =
-                LabelIdentifier::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            let label = LabelIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?
+                .sym();
             cursor.expect_semicolon("continue statement", interner)?;
 
             Some(label)

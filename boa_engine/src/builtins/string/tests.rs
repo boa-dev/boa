@@ -1,4 +1,3 @@
-use super::{is_leading_surrogate, is_trailing_surrogate};
 use crate::{forward, forward_val, Context};
 
 #[test]
@@ -682,13 +681,14 @@ fn split() {
         forward(&mut context, "['']")
     );
 
-    // TODO: Support keeping invalid code point in string
     assert_eq!(
         forward(
             &mut context,
             "\'\u{1d7d8}\u{1d7d9}\u{1d7da}\u{1d7db}\'.split(\'\')"
         ),
-        forward(&mut context, "['�','�','�','�','�','�','�','�']")
+        // TODO: modify interner to store UTF-16 surrogates from string literals
+        // forward(&mut context, "['�','�','�','�','�','�','�','�']")
+        "[ \"\\uD835\", \"\\uDFD8\", \"\\uD835\", \"\\uDFD9\", \"\\uD835\", \"\\uDFDA\", \"\\uD835\", \"\\uDFDB\" ]"
     );
 }
 
@@ -966,7 +966,7 @@ fn char_at() {
     assert_eq!(forward(&mut context, "'abc'.charAt(9)"), "\"\"");
     assert_eq!(forward(&mut context, "'abc'.charAt()"), "\"a\"");
     assert_eq!(forward(&mut context, "'abc'.charAt(null)"), "\"a\"");
-    assert_eq!(forward(&mut context, "'\\uDBFF'.charAt(0)"), "\"\u{FFFD}\"");
+    assert_eq!(forward(&mut context, "'\\uDBFF'.charAt(0)"), r#""\uDBFF""#);
 }
 
 #[test]
@@ -1139,7 +1139,7 @@ fn string_get_property() {
     assert_eq!(forward(&mut context, "'abc'[2]"), "\"c\"");
     assert_eq!(forward(&mut context, "'abc'[3]"), "undefined");
     assert_eq!(forward(&mut context, "'abc'['foo']"), "undefined");
-    assert_eq!(forward(&mut context, "'😀'[0]"), "\"�\"");
+    assert_eq!(forward(&mut context, "'😀'[0]"), "\"\\uD83D\"");
 }
 
 #[test]
@@ -1150,18 +1150,4 @@ fn search() {
     assert_eq!(forward(&mut context, "'aa'.search(/a/)"), "0");
     assert_eq!(forward(&mut context, "'aa'.search(/a/g)"), "0");
     assert_eq!(forward(&mut context, "'ba'.search(/a/)"), "1");
-}
-
-#[test]
-fn ut_is_leading_surrogate() {
-    for cp in 0xD800..=0xDBFF {
-        assert!(is_leading_surrogate(cp), "failed: {cp:X}");
-    }
-}
-
-#[test]
-fn ut_is_trailing_surrogate() {
-    for cp in 0xDC00..=0xDFFF {
-        assert!(is_trailing_surrogate(cp), "failed: {cp:X}");
-    }
 }

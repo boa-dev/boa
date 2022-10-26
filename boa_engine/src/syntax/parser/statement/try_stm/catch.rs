@@ -1,12 +1,9 @@
 use crate::syntax::{
-    ast::{
-        node::{self, Identifier},
-        Keyword, Punctuator,
-    },
+    ast::{declaration::Binding, statement, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
-        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -49,13 +46,9 @@ impl<R> TokenParser<R> for Catch
 where
     R: Read,
 {
-    type Output = node::Catch;
+    type Output = statement::Catch;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Catch", "Parsing");
         cursor.expect((Keyword::Catch, false), "try statement", interner)?;
         let position = cursor
@@ -75,7 +68,7 @@ where
 
         // It is a Syntax Error if BoundNames of CatchParameter contains any duplicate elements.
         // https://tc39.es/ecma262/#sec-try-statement-static-semantics-early-errors
-        if let Some(node::Declaration::Pattern(pattern)) = &catch_param {
+        if let Some(Binding::Pattern(pattern)) = &catch_param {
             let mut set = FxHashSet::default();
             for ident in pattern.idents() {
                 if !set.insert(ident) {
@@ -101,23 +94,23 @@ where
         // https://tc39.es/ecma262/#sec-variablestatements-in-catch-blocks
         let lexically_declared_names = catch_block.lexically_declared_names();
         match &catch_param {
-            Some(node::Declaration::Identifier { ident, .. }) => {
-                if lexically_declared_names.contains(&(ident.sym(), false)) {
+            Some(Binding::Identifier(ident)) => {
+                if lexically_declared_names.contains(&(*ident, false)) {
                     return Err(ParseError::general(
                         "catch parameter identifier declared in catch body",
                         position,
                     ));
                 }
-                if lexically_declared_names.contains(&(ident.sym(), true)) {
+                if lexically_declared_names.contains(&(*ident, true)) {
                     return Err(ParseError::general(
                         "catch parameter identifier declared in catch body",
                         position,
                     ));
                 }
             }
-            Some(node::Declaration::Pattern(pattern)) => {
+            Some(Binding::Pattern(pattern)) => {
                 let mut var_declared_names = FxHashSet::default();
-                for node in catch_block.items() {
+                for node in catch_block.statement_list().statements() {
                     node.var_declared_names(&mut var_declared_names);
                 }
                 for ident in pattern.idents() {
@@ -144,7 +137,7 @@ where
             _ => {}
         }
 
-        let catch_node = node::Catch::new::<_, node::Declaration, _>(catch_param, catch_block);
+        let catch_node = statement::Catch::new(catch_param, catch_block);
         Ok(catch_node)
     }
 }
@@ -181,13 +174,9 @@ impl<R> TokenParser<R> for CatchParameter
 where
     R: Read,
 {
-    type Output = node::Declaration;
+    type Output = Binding;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
         match token.kind() {
@@ -195,18 +184,17 @@ where
                 let pat = ObjectBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
 
-                Ok(node::Declaration::new_with_object_pattern(pat, None))
+                Ok(Binding::Pattern(pat.into()))
             }
             TokenKind::Punctuator(Punctuator::OpenBracket) => {
                 let pat = ArrayBindingPattern::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)?;
-                Ok(node::Declaration::new_with_array_pattern(pat, None))
+                Ok(Binding::Pattern(pat.into()))
             }
             TokenKind::Identifier(_) => {
                 let ident = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)
-                    .map(Identifier::new)?;
-                Ok(node::Declaration::new_with_identifier(ident, None))
+                    .parse(cursor, interner)?;
+                Ok(Binding::Identifier(ident))
             }
             _ => Err(ParseError::unexpected(
                 token.to_string(interner),

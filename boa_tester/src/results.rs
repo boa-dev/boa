@@ -250,7 +250,7 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
         fn pretty_int(i: isize) -> String {
             let mut res = String::new();
 
-            for (idx, val) in i.to_string().chars().rev().enumerate() {
+            for (idx, val) in i.abs().to_string().chars().rev().enumerate() {
                 if idx != 0 && idx % 3 == 0 {
                     res.insert(0, ',');
                 }
@@ -264,13 +264,17 @@ pub(crate) fn compare_results(base: &Path, new: &Path, markdown: bool) {
             format!(
                 "{}{}{}{}",
                 if diff == 0 { "" } else { "**" },
-                if diff > 0 { "+" } else { "" },
+                if diff.is_positive() {
+                    "+"
+                } else if diff.is_negative() {
+                    "-"
+                } else {
+                    ""
+                },
                 pretty_int(diff),
                 if diff == 0 { "" } else { "**" }
             )
         }
-
-        println!("#### VM implementation");
 
         println!("| Test result | main count | PR count | difference |");
         println!("| :---------: | :----------: | :------: | :--------: |");

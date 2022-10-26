@@ -13,20 +13,20 @@
 
 use crate::{
     builtins::{BuiltIn, JsArgs},
-    bytecompiler::{FunctionCompiler, FunctionKind},
+    bytecompiler::FunctionCompiler,
     context::intrinsics::StandardConstructors,
     environments::DeclarativeEnvironmentStack,
+    error::JsNativeError,
+    js_string,
     object::{
         internal_methods::get_prototype_from_constructor, JsObject, NativeObject, Object,
         ObjectData,
     },
     object::{ConstructorBuilder, FunctionBuilder, JsFunction, PrivateElement, Ref, RefMut},
     property::{Attribute, PropertyDescriptor, PropertyKey},
+    string::utf16,
     symbol::WellKnownSymbols,
-    syntax::{
-        ast::node::{FormalParameterList, StatementList},
-        Parser,
-    },
+    syntax::{ast::function::FormalParameterList, ast::StatementList, Parser},
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
@@ -36,7 +36,6 @@ use boa_profiler::Profiler;
 use dyn_clone::DynClone;
 use std::{
     any::Any,
-    borrow::Cow,
     fmt,
     ops::{Deref, DerefMut},
 };
@@ -498,28 +497,27 @@ impl BuiltInFunctionObject {
             } else {
                 let mut parameters = Vec::with_capacity(args.len());
                 for arg in args {
-                    parameters.push(arg.to_string(context)?);
+                    parameters.push(arg.to_string(context)?.as_slice().to_owned());
                 }
-                let mut parameters = parameters.join(",");
-                parameters.push(')');
+                let mut parameters = parameters.join(utf16!(","));
+                parameters.push(u16::from(b')'));
 
-                let parameters = match Parser::new(parameters.as_bytes()).parse_formal_parameters(
-                    context.interner_mut(),
-                    generator,
-                    r#async,
-                ) {
+                // TODO: make parser generic to u32 iterators
+                let parameters = match Parser::new(String::from_utf16_lossy(&parameters).as_bytes())
+                    .parse_formal_parameters(context.interner_mut(), generator, r#async)
+                {
                     Ok(parameters) => parameters,
                     Err(e) => {
-                        return context.throw_syntax_error(format!(
-                            "failed to parse function parameters: {e}"
-                        ))
+                        return Err(JsNativeError::syntax()
+                            .with_message(format!("failed to parse function parameters: {e}"))
+                            .into())
                     }
                 };
 
                 if generator && parameters.contains_yield_expression() {
-                    return context.throw_syntax_error(
+                    return Err(JsNativeError::syntax().with_message(
                             "yield expression is not allowed in formal parameter list of generator function",
-                        );
+                        ).into());
                 }
 
                 parameters
@@ -527,29 +525,29 @@ impl BuiltInFunctionObject {
 
             // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
             if generator && r#async && parameters.contains_yield_expression() {
-                return context.throw_syntax_error(
-                    "yield expression not allowed in async generator parameters",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message("yield expression not allowed in async generator parameters")
+                    .into());
             }
 
             // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
             if generator && r#async && parameters.contains_await_expression() {
-                return context.throw_syntax_error(
-                    "await expression not allowed in async generator parameters",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message("await expression not allowed in async generator parameters")
+                    .into());
             }
 
             let body_arg = body_arg.to_string(context)?;
 
-            let body = match Parser::new(body_arg.as_bytes()).parse_function_body(
-                context.interner_mut(),
-                generator,
-                r#async,
-            ) {
+            // TODO: make parser generic to u32 iterators
+            let body = match Parser::new(body_arg.to_std_string_escaped().as_bytes())
+                .parse_function_body(context.interner_mut(), generator, r#async)
+            {
                 Ok(statement_list) => statement_list,
                 Err(e) => {
-                    return context
-                        .throw_syntax_error(format!("failed to parse function body: {e}"))
+                    return Err(JsNativeError::syntax()
+                        .with_message(format!("failed to parse function body: {e}"))
+                        .into())
                 }
             };
 
@@ -559,9 +557,9 @@ impl BuiltInFunctionObject {
                 for parameter in parameters.parameters.iter() {
                     for name in parameter.names() {
                         if name == Sym::ARGUMENTS || name == Sym::EVAL {
-                            return context.throw_syntax_error(
-                                " Unexpected 'eval' or 'arguments' in strict mode",
-                            );
+                            return Err(JsNativeError::syntax()
+                                .with_message(" Unexpected 'eval' or 'arguments' in strict mode")
+                                .into());
                         }
                     }
                 }
@@ -570,16 +568,19 @@ impl BuiltInFunctionObject {
             // Early Error: If the source code matching FormalParameters is strict mode code,
             // the Early Error rules for UniqueFormalParameters : FormalParameters are applied.
             if (body.strict()) && parameters.has_duplicates() {
-                return context
-                    .throw_syntax_error("Duplicate parameter name not allowed in this context");
+                return Err(JsNativeError::syntax()
+                    .with_message("Duplicate parameter name not allowed in this context")
+                    .into());
             }
 
             // Early Error: It is a Syntax Error if FunctionBodyContainsUseStrict of GeneratorBody is true
             // and IsSimpleParameterList of FormalParameters is false.
             if body.strict() && !parameters.is_simple() {
-                return context.throw_syntax_error(
-                    "Illegal 'use strict' directive in function with non-simple parameter list",
-                );
+                return Err(JsNativeError::syntax()
+                    .with_message(
+                        "Illegal 'use strict' directive in function with non-simple parameter list",
+                    )
+                    .into());
             }
 
             // It is a Syntax Error if any element of the BoundNames of FormalParameters
@@ -593,10 +594,12 @@ impl BuiltInFunctionObject {
                             .iter()
                             .any(|(name, _)| *name == param_name)
                         {
-                            return context.throw_syntax_error(format!(
-                                "Redeclaration of formal parameter `{}`",
-                                context.interner().resolve_expect(param_name)
-                            ));
+                            return Err(JsNativeError::syntax()
+                                .with_message(format!(
+                                    "Redeclaration of formal parameter `{}`",
+                                    context.interner().resolve_expect(param_name.sym())
+                                ))
+                                .into());
                         }
                     }
                 }
@@ -606,7 +609,6 @@ impl BuiltInFunctionObject {
                 .name(Sym::ANONYMOUS)
                 .generator(generator)
                 .r#async(r#async)
-                .kind(FunctionKind::Expression)
                 .compile(&parameters, &body, context)?;
 
             let environments = context.realm.environments.pop_to_global();
@@ -624,7 +626,6 @@ impl BuiltInFunctionObject {
             let code = FunctionCompiler::new()
                 .name(Sym::ANONYMOUS)
                 .generator(true)
-                .kind(FunctionKind::Expression)
                 .compile(
                     &FormalParameterList::empty(),
                     &StatementList::default(),
@@ -638,14 +639,11 @@ impl BuiltInFunctionObject {
 
             Ok(function_object)
         } else {
-            let code = FunctionCompiler::new()
-                .name(Sym::ANONYMOUS)
-                .kind(FunctionKind::Expression)
-                .compile(
-                    &FormalParameterList::empty(),
-                    &StatementList::default(),
-                    context,
-                )?;
+            let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
+                &FormalParameterList::empty(),
+                &StatementList::default(),
+                context,
+            )?;
 
             let environments = context.realm.environments.pop_to_global();
             let function_object =
@@ -671,7 +669,7 @@ impl BuiltInFunctionObject {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
-            context.construct_type_error(format!("{} is not a function", this.display()))
+            JsNativeError::typ().with_message(format!("{} is not a function", this.display()))
         })?;
 
         let this_arg = args.get_or_undefined(0);
@@ -711,7 +709,8 @@ impl BuiltInFunctionObject {
         // 1. Let Target be the this value.
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
         let target = this.as_callable().ok_or_else(|| {
-            context.construct_type_error("cannot bind `this` without a `[[Call]]` internal method")
+            JsNativeError::typ()
+                .with_message("cannot bind `this` without a `[[Call]]` internal method")
         })?;
 
         let this_arg = args.get_or_undefined(0).clone();
@@ -767,12 +766,10 @@ impl BuiltInFunctionObject {
         let target_name = target.get("name", context)?;
 
         // 9. If Type(targetName) is not String, set targetName to the empty String.
-        let target_name = target_name
-            .as_string()
-            .map_or(JsString::new(""), Clone::clone);
+        let target_name = target_name.as_string().map_or(js_string!(), Clone::clone);
 
         // 10. Perform SetFunctionName(F, targetName, "bound").
-        set_function_name(&f, &target_name.into(), Some("bound"), context);
+        set_function_name(&f, &target_name.into(), Some(js_string!("bound")), context);
 
         // 11. Return F.
         Ok(f.into())
@@ -792,7 +789,7 @@ impl BuiltInFunctionObject {
         // 1. Let func be the this value.
         // 2. If IsCallable(func) is false, throw a TypeError exception.
         let func = this.as_callable().ok_or_else(|| {
-            context.construct_type_error(format!("{} is not a function", this.display()))
+            JsNativeError::typ().with_message(format!("{} is not a function", this.display()))
         })?;
         let this_arg = args.get_or_undefined(0);
 
@@ -809,7 +806,7 @@ impl BuiltInFunctionObject {
         let function = object
             .as_deref()
             .and_then(Object::as_function)
-            .ok_or_else(|| context.construct_type_error("Not a function"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("Not a function"))?;
 
         let name = {
             // Is there a case here where if there is no name field on a value
@@ -832,16 +829,23 @@ impl BuiltInFunctionObject {
                     constructor: _,
                 },
                 Some(name),
-            ) => Ok(format!("function {name}() {{\n  [native Code]\n}}").into()),
+            ) => Ok(js_string!(
+                utf16!("function "),
+                &name,
+                utf16!("() {{\n  [native Code]\n}}")
+            )
+            .into()),
             (Function::Ordinary { .. }, Some(name)) if name.is_empty() => {
-                Ok("[Function (anonymous)]".into())
+                Ok(js_string!("[Function (anonymous)]").into())
             }
-            (Function::Ordinary { .. }, Some(name)) => Ok(format!("[Function: {name}]").into()),
-            (Function::Ordinary { .. }, None) => Ok("[Function (anonymous)]".into()),
+            (Function::Ordinary { .. }, Some(name)) => {
+                Ok(js_string!(utf16!("[Function: "), &name, utf16!("]")).into())
+            }
+            (Function::Ordinary { .. }, None) => Ok(js_string!("[Function (anonymous)]").into()),
             (Function::Generator { .. }, Some(name)) => {
-                Ok(format!("[Function*: {}]", &name).into())
+                Ok(js_string!(utf16!("[Function*: "), &name, utf16!("]")).into())
             }
-            (Function::Generator { .. }, None) => Ok("[Function* (anonymous)]".into()),
+            (Function::Generator { .. }, None) => Ok(js_string!("[Function* (anonymous)]").into()),
             _ => Ok("TODO".into()),
         }
     }
@@ -930,7 +934,7 @@ impl BuiltIn for BuiltInFunctionObject {
 fn set_function_name(
     function: &JsObject,
     name: &PropertyKey,
-    prefix: Option<&str>,
+    prefix: Option<JsString>,
     context: &mut Context,
 ) {
     // 1. Assert: F is an extensible object that does not have a "name" own property.
@@ -940,14 +944,14 @@ fn set_function_name(
             // a. Let description be name's [[Description]] value.
             if let Some(desc) = sym.description() {
                 // c. Else, set name to the string-concatenation of "[", description, and "]".
-                Cow::Owned(JsString::concat_array(&["[", &desc, "]"]))
+                js_string!(utf16!("["), &desc, utf16!("]"))
             } else {
                 // b. If description is undefined, set name to the empty String.
-                Cow::Owned(JsString::new(""))
+                js_string!()
             }
         }
-        PropertyKey::String(string) => Cow::Borrowed(string),
-        PropertyKey::Index(index) => Cow::Owned(JsString::new(index.to_string())),
+        PropertyKey::String(string) => string.clone(),
+        PropertyKey::Index(index) => js_string!(format!("{}", index)),
     };
 
     // 3. Else if name is a Private Name, then
@@ -960,7 +964,7 @@ fn set_function_name(
 
     // 5. If prefix is present, then
     if let Some(prefix) = prefix {
-        name = Cow::Owned(JsString::concat_array(&[prefix, " ", &name]));
+        name = js_string!(&prefix, utf16!(" "), &name);
         // b. If F has an [[InitialName]] internal slot, then
         // i. Optionally, set F.[[InitialName]] to name.
         // todo: implement [[InitialName]] for builtins
@@ -972,7 +976,7 @@ fn set_function_name(
         .define_property_or_throw(
             "name",
             PropertyDescriptor::builder()
-                .value(name.into_owned())
+                .value(name)
                 .writable(false)
                 .enumerable(false)
                 .configurable(true),

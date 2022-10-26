@@ -1,12 +1,13 @@
 //! Error and result implementation for the parser.
 
-use crate::syntax::ast::Span;
-use crate::syntax::ast::{position::Position, Node};
-use crate::syntax::lexer::Error as LexError;
+use crate::syntax::{
+    ast::{Position, Span},
+    lexer::Error as LexError,
+};
 use std::fmt;
 
 /// Result of a parsing operation.
-pub type ParseResult = Result<Node, ParseError>;
+pub type ParseResult<T> = Result<T, ParseError>;
 
 pub(crate) trait ErrorContext {
     fn context(self, context: &'static str) -> Self;
@@ -107,6 +108,15 @@ impl ParseError {
         Self::General {
             message: "In non-strict mode code, functions can only be declared at top level, inside a block, or as the body of an if statement.",
             position
+        }
+    }
+
+    /// Creates a "general" parsing error with the specific error message for a wrong function declaration with label.
+    #[inline]
+    pub(super) fn wrong_labelled_function_declaration(position: Position) -> Self {
+        Self::General {
+            message: "Labelled functions can only be declared at top level or inside a block",
+            position,
         }
     }
 

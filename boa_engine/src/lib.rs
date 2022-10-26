@@ -40,7 +40,7 @@
     unused_lifetimes,
     unreachable_pub,
     trivial_numeric_casts,
-    // rustdoc,
+    rustdoc::broken_intra_doc_links,
     missing_debug_implementations,
     missing_copy_implementations,
     deprecated_in_future,
@@ -49,9 +49,10 @@
     rust_2018_compatibility,
     rust_2018_idioms,
     future_incompatible,
-    nonstandard_style,
+    nonstandard_style
 )]
 #![allow(
+    clippy::missing_inline_in_public_items,
     clippy::module_name_repetitions,
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
@@ -61,19 +62,20 @@
     clippy::missing_panics_doc,
     clippy::too_many_lines,
     clippy::unreadable_literal,
-    clippy::missing_inline_in_public_items,
     clippy::cognitive_complexity,
     clippy::must_use_candidate,
     clippy::missing_errors_doc,
     clippy::as_conversions,
     clippy::let_unit_value,
+    // TODO deny once false positive is fixed (https://github.com/rust-lang/rust-clippy/issues/9626).
+    clippy::trait_duplication_in_bounds,
     // Ignore because `write!(string, ...)` instead of `string.push_str(&format!(...))` can fail.
     // We only use it in `ToInternedString` where performance is not an issue.
     clippy::format_push_string,
-    // TODO deny once false positive are fixed (https://github.com/rust-lang/rust-clippy/issues/9076).
-    clippy::trait_duplication_in_bounds,
     rustdoc::missing_doc_code_examples
 )]
+
+extern crate static_assertions as sa;
 
 pub mod bigint;
 pub mod builtins;
@@ -81,6 +83,7 @@ pub mod bytecompiler;
 pub mod class;
 pub mod context;
 pub mod environments;
+pub mod error;
 pub mod job;
 pub mod object;
 pub mod property;
@@ -96,7 +99,11 @@ mod tests;
 
 /// A convenience module that re-exports the most commonly-used Boa APIs
 pub mod prelude {
-    pub use crate::{object::JsObject, Context, JsBigInt, JsResult, JsString, JsValue};
+    pub use crate::{
+        error::{JsError, JsNativeError, JsNativeErrorKind},
+        object::JsObject,
+        Context, JsBigInt, JsResult, JsString, JsValue,
+    };
 }
 
 use std::result::Result as StdResult;
@@ -104,11 +111,16 @@ use std::result::Result as StdResult;
 // Export things to root level
 #[doc(inline)]
 pub use crate::{
-    bigint::JsBigInt, context::Context, string::JsString, symbol::JsSymbol, value::JsValue,
+    bigint::JsBigInt,
+    context::Context,
+    error::{JsError, JsNativeError, JsNativeErrorKind},
+    string::JsString,
+    symbol::JsSymbol,
+    value::JsValue,
 };
 
 /// The result of a Javascript expression is represented like this so it can succeed (`Ok`) or fail (`Err`)
-pub type JsResult<T> = StdResult<T, JsValue>;
+pub type JsResult<T> = StdResult<T, JsError>;
 
 /// Execute the code using an existing `Context`.
 ///
@@ -118,10 +130,9 @@ pub(crate) fn forward<S>(context: &mut Context, src: S) -> String
 where
     S: AsRef<[u8]>,
 {
-    context.eval(src.as_ref()).map_or_else(
-        |e| format!("Uncaught {}", e.display()),
-        |v| v.display().to_string(),
-    )
+    context
+        .eval(src.as_ref())
+        .map_or_else(|e| format!("Uncaught {}", e), |v| v.display().to_string())
 }
 
 /// Execute the code using an existing Context.
@@ -152,7 +163,7 @@ pub(crate) fn exec<T: AsRef<[u8]>>(src: T) -> String {
 
     match Context::default().eval(src_bytes) {
         Ok(value) => value.display().to_string(),
-        Err(error) => error.display().to_string(),
+        Err(error) => error.to_string(),
     }
 }
 

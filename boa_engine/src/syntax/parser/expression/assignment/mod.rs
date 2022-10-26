@@ -14,8 +14,12 @@ mod r#yield;
 
 use crate::syntax::{
     ast::{
-        node::{operator::assign::AssignTarget, ArrowFunctionDecl, Assign, BinOp, Node},
-        Keyword, Punctuator,
+        self,
+        expression::{
+            operator::assign::{Assign, AssignOp, AssignTarget},
+            Identifier,
+        },
+        Expression, Keyword, Punctuator,
     },
     lexer::{Error as LexError, InputElement, TokenKind},
     parser::{
@@ -27,7 +31,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -53,7 +57,7 @@ pub(super) use exponentiation::ExponentiationExpression;
 /// [lhs]: ../lhs_expression/struct.LeftHandSideExpression.html
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser) struct AssignmentExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -68,7 +72,7 @@ impl AssignmentExpression {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -86,9 +90,9 @@ impl<R> TokenParser<R> for AssignmentExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Expression> {
         let _timer = Profiler::global().start_event("AssignmentExpression", "Parsing");
         cursor.set_goal(InputElement::RegExp);
 
@@ -127,7 +131,7 @@ where
                             self.allow_await,
                         )
                         .parse(cursor, interner)
-                        .map(Node::ArrowFunctionDecl);
+                        .map(Expression::ArrowFunction);
                     }
                 }
             }
@@ -150,7 +154,7 @@ where
         .parse(cursor, interner)?;
 
         // If the left hand side is a parameter list, we must parse an arrow function.
-        if let Node::FormalParameterList(parameters) = lhs {
+        if let Expression::FormalParameterList(parameters) = lhs {
             cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
             cursor.expect(
@@ -189,16 +193,15 @@ where
                 position,
             )?;
 
-            return Ok(ArrowFunctionDecl::new(self.name, parameters, body).into());
+            return Ok(ast::function::ArrowFunction::new(self.name, parameters, body).into());
         }
 
         // Review if we are trying to assign to an invalid left hand side expression.
-        // TODO: can we avoid cloning?
         if let Some(tok) = cursor.peek(0, interner)?.cloned() {
             match tok.kind() {
                 TokenKind::Punctuator(Punctuator::Assign) => {
                     if cursor.strict_mode() {
-                        if let Node::Identifier(ident) = lhs {
+                        if let Expression::Identifier(ident) = lhs {
                             ident.check_strict_arguments_or_eval(position)?;
                         }
                     }
@@ -206,12 +209,14 @@ where
                     cursor.next(interner)?.expect("= token vanished");
                     cursor.set_goal(InputElement::RegExp);
 
-                    if let Some(target) = AssignTarget::from_node(&lhs, cursor.strict_mode()) {
+                    if let Some(target) =
+                        AssignTarget::from_expression(&lhs, cursor.strict_mode(), true)
+                    {
                         if let AssignTarget::Identifier(ident) = target {
-                            self.name = Some(ident.sym());
+                            self.name = Some(ident);
                         }
                         let expr = self.parse(cursor, interner)?;
-                        lhs = Assign::new(target, expr).into();
+                        lhs = Assign::new(AssignOp::Assign, target, expr).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -219,18 +224,20 @@ where
                         )));
                     }
                 }
-                TokenKind::Punctuator(p) if p.as_binop().is_some() && p != &Punctuator::Comma => {
+                TokenKind::Punctuator(p) if p.as_assign_op().is_some() => {
                     if cursor.strict_mode() {
-                        if let Node::Identifier(ident) = lhs {
+                        if let Expression::Identifier(ident) = lhs {
                             ident.check_strict_arguments_or_eval(position)?;
                         }
                     }
 
                     cursor.next(interner)?.expect("token vanished");
-                    if is_assignable(&lhs) {
-                        let binop = p.as_binop().expect("binop disappeared");
-                        let expr = self.parse(cursor, interner)?;
-                        lhs = BinOp::new(binop, lhs, expr).into();
+                    if let Some(target) =
+                        AssignTarget::from_expression(&lhs, cursor.strict_mode(), false)
+                    {
+                        let assignop = p.as_assign_op().expect("assignop disappeared");
+                        let rhs = self.parse(cursor, interner)?;
+                        lhs = Assign::new(assignop, target, rhs).into();
                     } else {
                         return Err(ParseError::lex(LexError::Syntax(
                             "Invalid left-hand side in assignment".into(),
@@ -244,20 +251,4 @@ where
 
         Ok(lhs)
     }
-}
-
-/// Returns true if as per spec[spec] the node can be assigned a value.
-///
-/// [spec]: https://tc39.es/ecma262/#sec-assignment-operators-static-semantics-early-errors
-#[inline]
-pub(crate) fn is_assignable(node: &Node) -> bool {
-    matches!(
-        node,
-        Node::GetConstField(_)
-            | Node::GetField(_)
-            | Node::Assign(_)
-            | Node::Call(_)
-            | Node::Identifier(_)
-            | Node::Object(_)
-    )
 }

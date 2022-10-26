@@ -1,5 +1,6 @@
 use crate::{
     builtins::{function::make_builtin_fn, iterable::create_iter_result_object, Array, JsValue},
+    error::JsNativeError,
     object::{JsObject, ObjectData},
     property::{PropertyDescriptor, PropertyNameKind},
     symbol::WellKnownSymbols,
@@ -72,7 +73,7 @@ impl SetIterator {
         let set_iterator = set_iterator
             .as_mut()
             .and_then(|obj| obj.as_set_iterator_mut())
-            .ok_or_else(|| context.construct_type_error("`this` is not an SetIterator"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("`this` is not an SetIterator"))?;
         {
             let m = &set_iterator.iterated_set;
             let mut index = set_iterator.next_index;
@@ -90,7 +91,7 @@ impl SetIterator {
             let entries = entries
                 .as_ref()
                 .and_then(|obj| obj.as_set_ref())
-                .ok_or_else(|| context.construct_type_error("'this' is not a Set"))?;
+                .ok_or_else(|| JsNativeError::typ().with_message("'this' is not a Set"))?;
 
             let num_entries = entries.size();
             while index < num_entries {

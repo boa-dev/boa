@@ -7,21 +7,10 @@ use chrono::prelude::*;
 // this.
 
 fn forward_dt_utc(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
-    let date_time = if let Ok(v) = forward_val(context, src) {
-        v
-    } else {
-        panic!("expected success")
-    };
-
-    if let JsValue::Object(ref date_time) = date_time {
-        if let Some(date_time) = date_time.borrow().as_date() {
-            date_time.0
-        } else {
-            panic!("expected date")
-        }
-    } else {
-        panic!("expected object")
-    }
+    let date_time = forward_val(context, src).unwrap();
+    let date_time = date_time.as_object().unwrap();
+    let date_time = date_time.borrow();
+    date_time.as_date().unwrap().0
 }
 
 fn forward_dt_local(context: &mut Context, src: &str) -> Option<NaiveDateTime> {
@@ -59,14 +48,9 @@ fn date_this_time_value() {
         &mut context,
         "({toString: Date.prototype.toString}).toString()",
     )
-    .expect_err("Expected error");
-    let message_property = &error
-        .get_property("message")
-        .expect("Expected 'message' property")
-        .expect_value()
-        .clone();
-
-    assert_eq!(JsValue::new("\'this\' is not a Date"), *message_property);
+    .unwrap_err();
+    let error = error.as_native().unwrap();
+    assert_eq!("\'this\' is not a Date", error.message());
 }
 
 #[test]
@@ -201,7 +185,7 @@ fn date_ctor_parse_call() {
 
     let date_time = forward_val(&mut context, "Date.parse('2020-06-08T09:16:15.779-07:30')");
 
-    assert_eq!(Ok(JsValue::new(1591634775779f64)), date_time);
+    assert_eq!(JsValue::new(1591634775779f64), date_time.unwrap());
 }
 
 #[test]
@@ -210,14 +194,14 @@ fn date_ctor_utc_call() {
 
     let date_time = forward_val(&mut context, "Date.UTC(2020, 06, 08, 09, 16, 15, 779)");
 
-    assert_eq!(Ok(JsValue::new(1594199775779f64)), date_time);
+    assert_eq!(JsValue::new(1594199775779f64), date_time.unwrap());
 }
 
 #[test]
 fn date_ctor_utc_call_nan() {
     fn check(src: &str) {
         let mut context = Context::default();
-        let date_time = forward_val(&mut context, src).expect("Expected Success");
+        let date_time = forward_val(&mut context, src).unwrap();
         assert_eq!(JsValue::nan(), date_time);
     }
 
@@ -238,10 +222,10 @@ fn date_proto_get_date_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDate()",
     );
-    assert_eq!(Ok(JsValue::new(08f64)), actual);
+    assert_eq!(JsValue::new(08f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getDate()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -252,10 +236,10 @@ fn date_proto_get_day_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getDay()",
     );
-    assert_eq!(Ok(JsValue::new(3f64)), actual);
+    assert_eq!(JsValue::new(3f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getDay()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -266,10 +250,10 @@ fn date_proto_get_full_year_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getFullYear()",
     );
-    assert_eq!(Ok(JsValue::new(2020f64)), actual);
+    assert_eq!(JsValue::new(2020f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getFullYear()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -280,10 +264,10 @@ fn date_proto_get_hours_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getHours()",
     );
-    assert_eq!(Ok(JsValue::new(09f64)), actual);
+    assert_eq!(JsValue::new(09f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getHours()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -294,10 +278,10 @@ fn date_proto_get_milliseconds_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMilliseconds()",
     );
-    assert_eq!(Ok(JsValue::new(779f64)), actual);
+    assert_eq!(JsValue::new(779f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getMilliseconds()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -308,10 +292,10 @@ fn date_proto_get_minutes_call() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMinutes()",
     );
-    assert_eq!(Ok(JsValue::new(16f64)), actual);
+    assert_eq!(JsValue::new(16f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getMinutes()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -322,10 +306,10 @@ fn date_proto_get_month() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getMonth()",
     );
-    assert_eq!(Ok(JsValue::new(06f64)), actual);
+    assert_eq!(JsValue::new(06f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getMonth()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -336,10 +320,10 @@ fn date_proto_get_seconds() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getSeconds()",
     );
-    assert_eq!(Ok(JsValue::new(15f64)), actual);
+    assert_eq!(JsValue::new(15f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getSeconds()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -355,10 +339,10 @@ fn date_proto_get_time() {
         .ymd(2020, 07, 08)
         .and_hms_milli(09, 16, 15, 779)
         .timestamp_millis() as f64;
-    assert_eq!(Ok(JsValue::new(ts)), actual);
+    assert_eq!(JsValue::new(ts), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getTime()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -369,10 +353,10 @@ fn date_proto_get_year() {
         &mut context,
         "new Date(2020, 06, 08, 09, 16, 15, 779).getYear()",
     );
-    assert_eq!(Ok(JsValue::new(120f64)), actual);
+    assert_eq!(JsValue::new(120f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getYear()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -385,7 +369,7 @@ fn date_proto_get_timezone_offset() {
     );
 
     // NB: Host Settings, not TZ specified in the DateTime.
-    assert_eq!(Ok(JsValue::new(true)), actual);
+    assert_eq!(JsValue::new(true), actual.unwrap());
 
     let actual = forward_val(
         &mut context,
@@ -395,13 +379,13 @@ fn date_proto_get_timezone_offset() {
     // The value of now().offset() depends on the host machine, so we have to replicate the method code here.
     let offset_seconds = f64::from(chrono::Local::now().offset().local_minus_utc());
     let offset_minutes = -offset_seconds / 60f64;
-    assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
+    assert_eq!(JsValue::new(offset_minutes), actual.unwrap());
 
     let actual = forward_val(
         &mut context,
         "new Date('1975-08-19T23:15:30+07:00').getTimezoneOffset()",
     );
-    assert_eq!(Ok(JsValue::new(offset_minutes)), actual);
+    assert_eq!(JsValue::new(offset_minutes), actual.unwrap());
 }
 
 #[test]
@@ -412,10 +396,10 @@ fn date_proto_get_utc_date_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDate()",
     );
-    assert_eq!(Ok(JsValue::new(08f64)), actual);
+    assert_eq!(JsValue::new(08f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCDate()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -426,10 +410,10 @@ fn date_proto_get_utc_day_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCDay()",
     );
-    assert_eq!(Ok(JsValue::new(3f64)), actual);
+    assert_eq!(JsValue::new(3f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCDay()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -440,10 +424,10 @@ fn date_proto_get_utc_full_year_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCFullYear()",
     );
-    assert_eq!(Ok(JsValue::new(2020f64)), actual);
+    assert_eq!(JsValue::new(2020f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCFullYear()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -454,10 +438,10 @@ fn date_proto_get_utc_hours_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCHours()",
     );
-    assert_eq!(Ok(JsValue::new(09f64)), actual);
+    assert_eq!(JsValue::new(09f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCHours()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -468,10 +452,10 @@ fn date_proto_get_utc_milliseconds_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMilliseconds()",
     );
-    assert_eq!(Ok(JsValue::new(779f64)), actual);
+    assert_eq!(JsValue::new(779f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMilliseconds()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -482,10 +466,10 @@ fn date_proto_get_utc_minutes_call() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMinutes()",
     );
-    assert_eq!(Ok(JsValue::new(16f64)), actual);
+    assert_eq!(JsValue::new(16f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMinutes()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -496,10 +480,10 @@ fn date_proto_get_utc_month() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCMonth()",
     );
-    assert_eq!(Ok(JsValue::new(06f64)), actual);
+    assert_eq!(JsValue::new(06f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCMonth()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -510,10 +494,10 @@ fn date_proto_get_utc_seconds() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).getUTCSeconds()",
     );
-    assert_eq!(Ok(JsValue::new(15f64)), actual);
+    assert_eq!(JsValue::new(15f64), actual.unwrap());
 
     let actual = forward_val(&mut context, "new Date(1/0).getUTCSeconds()");
-    assert_eq!(Ok(JsValue::nan()), actual);
+    assert_eq!(JsValue::nan(), actual.unwrap());
 }
 
 #[test]
@@ -1145,7 +1129,7 @@ fn date_proto_to_date_string() {
         &mut context,
         "let dt = new Date(2020, 06, 08, 09, 16, 15, 779); dt.toDateString()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new("Wed Jul 08 2020"), actual);
 }
 
@@ -1157,7 +1141,7 @@ fn date_proto_to_gmt_string() {
         &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toGMTString()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 }
 
@@ -1169,7 +1153,7 @@ fn date_proto_to_iso_string() {
         &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toISOString()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
 }
 
@@ -1181,7 +1165,7 @@ fn date_proto_to_json() {
         &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toJSON()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new("2020-07-08T09:16:15.779Z"), actual);
 }
 
@@ -1245,7 +1229,7 @@ fn date_proto_to_utc_string() {
         &mut context,
         "let dt = new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)); dt.toUTCString()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new("Wed, 08 Jul 2020 09:16:15 GMT"), actual);
 }
 
@@ -1257,7 +1241,7 @@ fn date_proto_value_of() {
         &mut context,
         "new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)).valueOf()",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new(1594199775779f64), actual);
 }
 
@@ -1269,7 +1253,7 @@ fn date_neg() {
         &mut context,
         "-new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779))",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(JsValue::new(-1594199775779f64), actual);
 }
 
@@ -1281,7 +1265,7 @@ fn date_json() {
         &mut context,
         "JSON.stringify({ date: new Date(Date.UTC(2020, 06, 08, 09, 16, 15, 779)) })",
     )
-    .expect("Successful eval");
+    .unwrap();
     assert_eq!(
         JsValue::new(r#"{"date":"2020-07-08T09:16:15.779Z"}"#),
         actual

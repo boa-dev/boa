@@ -6,7 +6,7 @@
   },
   "devDependencies": {
     "@wasm-tool/wasm-pack-plugin": "^1.6.0",
-    "bootstrap": "^5.2.1",
+    "bootstrap": "^5.2.2",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^11.0.0",
     "css-loader": "^6.7.1",
@@ -21,6 +21,6 @@
     "webpack-dev-server": "^4.11.1"
   },
   "dependencies": {
-    "monaco-editor": "^0.34.0"
+    "monaco-editor": "^0.34.1"
   }
 }

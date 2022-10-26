@@ -28,16 +28,22 @@ use self::{
 };
 use crate::syntax::{
     ast::{
-        node::{
-            declaration::{BindingPatternTypeArray, BindingPatternTypeObject},
-            operator::assign::{
-                array_decl_to_declaration_pattern, object_decl_to_declaration_pattern, AssignTarget,
+        self,
+        declaration::Variable,
+        expression::{
+            literal::Literal,
+            operator::{
+                assign::{
+                    array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
+                    AssignTarget,
+                },
+                binary::BinaryOp,
             },
-            Call, Declaration, DeclarationPattern, FormalParameter, FormalParameterList,
-            Identifier, New, Node,
+            Call, Identifier, New,
         },
-        op::BinOp,
-        Const, Keyword, Punctuator, Span,
+        function::{FormalParameter, FormalParameterList},
+        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+        Keyword, Punctuator, Span,
     },
     lexer::{token::Numeric, InputElement, Token, TokenKind},
     parser::{
@@ -65,7 +71,7 @@ pub(in crate::syntax::parser) use object_initializer::Initializer;
 /// [spec]: https://tc39.es/ecma262/#prod-PrimaryExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PrimaryExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -74,7 +80,7 @@ impl PrimaryExpression {
     /// Creates a new `PrimaryExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -90,9 +96,9 @@ impl<R> TokenParser<R> for PrimaryExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("PrimaryExpression", "Parsing");
 
         // TODO: tok currently consumes the token instead of peeking, so the token
@@ -107,7 +113,7 @@ where
             )),
             TokenKind::Keyword((Keyword::This, false)) => {
                 cursor.next(interner).expect("token disappeared");
-                Ok(Node::This)
+                Ok(ast::Expression::This)
             }
             TokenKind::Keyword((Keyword::Function, _)) => {
                 cursor.next(interner).expect("token disappeared");
@@ -115,17 +121,18 @@ where
                 if next_token.kind() == &TokenKind::Punctuator(Punctuator::Mul) {
                     GeneratorExpression::new(self.name)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(Into::into)
                 } else {
                     FunctionExpression::new(self.name)
                         .parse(cursor, interner)
-                        .map(Node::from)
+                        .map(Into::into)
                 }
             }
             TokenKind::Keyword((Keyword::Class, _)) => {
                 cursor.next(interner).expect("token disappeared");
                 ClassExpression::new(self.name, self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
+                    .map(Into::into)
             }
             TokenKind::Keyword((Keyword::Async, contain_escaped_char)) => {
                 let contain_escaped_char = *contain_escaped_char;
@@ -142,16 +149,16 @@ where
                             Some(TokenKind::Punctuator(Punctuator::Mul)) => {
                                 AsyncGeneratorExpression::new(self.name)
                                     .parse(cursor, interner)
-                                    .map(Node::from)
+                                    .map(Into::into)
                             }
                             _ => AsyncFunctionExpression::new(self.name, self.allow_yield)
                                 .parse(cursor, interner)
-                                .map(Node::from),
+                                .map(Into::into),
                         }
                     }
                     _ => IdentifierReference::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)
-                        .map(Node::from),
+                        .map(Into::into),
                 }
             }
             TokenKind::Punctuator(Punctuator::OpenParen) => {
@@ -170,23 +177,23 @@ where
                 cursor.set_goal(InputElement::RegExp);
                 ArrayLiteral::new(self.allow_yield, self.allow_await)
                     .parse(cursor, interner)
-                    .map(Node::ArrayDecl)
+                    .map(Into::into)
             }
             TokenKind::Punctuator(Punctuator::OpenBlock) => {
                 cursor.next(interner).expect("token disappeared");
                 cursor.set_goal(InputElement::RegExp);
-                Ok(ObjectLiteral::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?
-                    .into())
+                ObjectLiteral::new(self.allow_yield, self.allow_await)
+                    .parse(cursor, interner)
+                    .map(Into::into)
             }
             TokenKind::BooleanLiteral(boolean) => {
-                let node = Const::from(*boolean).into();
+                let node = Literal::from(*boolean).into();
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
             }
             TokenKind::NullLiteral => {
                 cursor.next(interner).expect("token disappeared");
-                Ok(Const::Null.into())
+                Ok(Literal::Null.into())
             }
             TokenKind::Identifier(_)
             | TokenKind::Keyword((
@@ -194,14 +201,14 @@ where
                 _,
             )) => IdentifierReference::new(self.allow_yield, self.allow_await)
                 .parse(cursor, interner)
-                .map(Node::from),
+                .map(Into::into),
             TokenKind::StringLiteral(lit) => {
-                let node = Const::from(*lit).into();
+                let node = Literal::from(*lit).into();
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
             }
             TokenKind::TemplateNoSubstitution(template_string) => {
-                let node = Const::from(
+                let node = Literal::from(
                     template_string
                         .to_owned_cooked(interner)
                         .map_err(ParseError::lex)?,
@@ -211,24 +218,24 @@ where
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::Integer(num)) => {
-                let node = Const::from(*num).into();
+                let node = Literal::from(*num).into();
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::Rational(num)) => {
-                let node = Const::from(*num).into();
+                let node = Literal::from(*num).into();
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
             }
             TokenKind::NumericLiteral(Numeric::BigInt(num)) => {
-                let node = Const::from(num.clone()).into();
+                let node = Literal::from(num.clone()).into();
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
             }
             TokenKind::RegularExpressionLiteral(body, flags) => {
-                let node = Node::from(New::from(Call::new(
-                    Identifier::new(Sym::REGEXP),
-                    vec![Const::from(*body).into(), Const::from(*flags).into()],
+                let node = ast::Expression::from(New::from(Call::new(
+                    Identifier::new(Sym::REGEXP).into(),
+                    vec![Literal::from(*body).into(), Literal::from(*flags).into()].into(),
                 )));
                 cursor.next(interner).expect("token disappeared");
                 Ok(node)
@@ -239,9 +246,9 @@ where
                 let tok = cursor.lex_regex(position, interner)?;
 
                 if let TokenKind::RegularExpressionLiteral(body, flags) = *tok.kind() {
-                    Ok(Node::from(New::from(Call::new(
-                        Identifier::new(Sym::REGEXP),
-                        vec![Const::from(body).into(), Const::from(flags).into()],
+                    Ok(ast::Expression::from(New::from(Call::new(
+                        Identifier::new(Sym::REGEXP).into(),
+                        vec![Literal::from(body).into(), Literal::from(flags).into()].into(),
                     ))))
                 } else {
                     // A regex was expected and nothing else.
@@ -262,7 +269,7 @@ where
                         .map_err(ParseError::lex)?,
                 );
                 cursor.next(interner).expect("token disappeared");
-                parser.parse(cursor, interner).map(Node::TemplateLit)
+                parser.parse(cursor, interner).map(Into::into)
             }
             _ => Err(ParseError::unexpected(
                 tok.to_string(interner),
@@ -281,7 +288,7 @@ where
 /// [spec]: https://tc39.es/ecma262/#prod-CoverParenthesizedExpressionAndArrowParameterList
 #[derive(Debug, Clone, Copy)]
 pub(super) struct CoverParenthesizedExpressionAndArrowParameterList {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -290,7 +297,7 @@ impl CoverParenthesizedExpressionAndArrowParameterList {
     /// Creates a new `CoverParenthesizedExpressionAndArrowParameterList` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -306,15 +313,15 @@ impl<R> TokenParser<R> for CoverParenthesizedExpressionAndArrowParameterList
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = ast::Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         #[derive(Debug)]
         enum InnerExpression {
-            Expression(Node),
-            SpreadObject(Vec<BindingPatternTypeObject>),
-            SpreadArray(Vec<BindingPatternTypeArray>),
-            SpreadBinding(Sym),
+            Expression(ast::Expression),
+            SpreadObject(Vec<ObjectPatternElement>),
+            SpreadArray(Vec<ArrayPatternElement>),
+            SpreadBinding(Identifier),
         }
 
         let _timer = Profiler::global().start_event(
@@ -430,7 +437,7 @@ where
         for expression in expressions {
             match expression {
                 InnerExpression::Expression(node) => {
-                    node_to_formal_parameters(
+                    expression_to_formal_parameters(
                         &node,
                         &mut parameters,
                         cursor.strict_mode(),
@@ -438,17 +445,17 @@ where
                     )?;
                 }
                 InnerExpression::SpreadObject(bindings) => {
-                    let declaration = Declaration::new_with_object_pattern(bindings, None);
+                    let declaration = Variable::from_pattern(bindings.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
                 InnerExpression::SpreadArray(bindings) => {
-                    let declaration = Declaration::new_with_array_pattern(bindings, None);
+                    let declaration = Variable::from_pattern(bindings.into(), None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
                 InnerExpression::SpreadBinding(ident) => {
-                    let declaration = Declaration::new_with_identifier(ident, None);
+                    let declaration = Variable::from_identifier(ident, None);
                     let parameter = FormalParameter::new(declaration, true);
                     parameters.push(parameter);
                 }
@@ -473,79 +480,82 @@ where
             ));
         }
 
-        Ok(Node::FormalParameterList(parameters))
+        Ok(ast::Expression::FormalParameterList(parameters))
     }
 }
 
-/// Convert a node to a formal parameter and append it to the given parameter list.
-fn node_to_formal_parameters(
-    node: &Node,
+/// Convert an expression to a formal parameter and append it to the given parameter list.
+fn expression_to_formal_parameters(
+    node: &ast::Expression,
     parameters: &mut Vec<FormalParameter>,
     strict: bool,
     span: Span,
 ) -> Result<(), ParseError> {
     match node {
-        Node::Identifier(identifier) if strict && identifier.sym() == Sym::EVAL => {
+        ast::Expression::Identifier(identifier) if strict && *identifier == Sym::EVAL => {
             return Err(ParseError::general(
                 "parameter name 'eval' not allowed in strict mode",
                 span.start(),
             ));
         }
-        Node::Identifier(identifier) if strict && identifier.sym() == Sym::ARGUMENTS => {
+        ast::Expression::Identifier(identifier) if strict && *identifier == Sym::ARGUMENTS => {
             return Err(ParseError::general(
                 "parameter name 'arguments' not allowed in strict mode",
                 span.start(),
             ));
         }
-        Node::Identifier(identifier) => {
+        ast::Expression::Identifier(identifier) => {
             parameters.push(FormalParameter::new(
-                Declaration::new_with_identifier(identifier.sym(), None),
+                Variable::from_identifier(*identifier, None),
                 false,
             ));
         }
-        Node::BinOp(bin_op) if bin_op.op() == BinOp::Comma => {
-            node_to_formal_parameters(bin_op.lhs(), parameters, strict, span)?;
-            node_to_formal_parameters(bin_op.rhs(), parameters, strict, span)?;
+        ast::Expression::Binary(bin_op) if bin_op.op() == BinaryOp::Comma => {
+            expression_to_formal_parameters(bin_op.lhs(), parameters, strict, span)?;
+            expression_to_formal_parameters(bin_op.rhs(), parameters, strict, span)?;
         }
-        Node::Assign(assign) => match assign.lhs() {
+        ast::Expression::Assign(assign) => match assign.lhs() {
             AssignTarget::Identifier(ident) => {
                 parameters.push(FormalParameter::new(
-                    Declaration::new_with_identifier(ident.sym(), Some(assign.rhs().clone())),
+                    Variable::from_identifier(*ident, Some(assign.rhs().clone())),
                     false,
                 ));
             }
-            AssignTarget::DeclarationPattern(pattern) => match pattern {
-                DeclarationPattern::Object(pattern) => {
+            AssignTarget::Pattern(pattern) => match pattern {
+                Pattern::Object(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Declaration::new_with_object_pattern(
-                            pattern.bindings().clone(),
+                        Variable::from_pattern(
+                            pattern.bindings().to_vec().into(),
                             Some(assign.rhs().clone()),
                         ),
                         false,
                     ));
                 }
-                DeclarationPattern::Array(pattern) => {
+                Pattern::Array(pattern) => {
                     parameters.push(FormalParameter::new(
-                        Declaration::new_with_array_pattern(
-                            pattern.bindings().clone(),
+                        Variable::from_pattern(
+                            pattern.bindings().to_vec().into(),
                             Some(assign.rhs().clone()),
                         ),
                         false,
                     ));
                 }
             },
-            _ => {
+            AssignTarget::Access(_) => {
                 return Err(ParseError::general(
                     "invalid initialization expression in formal parameter list",
                     span.start(),
                 ));
             }
         },
-        Node::Object(object) => {
+        ast::Expression::ObjectLiteral(object) => {
             let decl = object_decl_to_declaration_pattern(object, strict);
 
             if let Some(pattern) = decl {
-                parameters.push(FormalParameter::new(Declaration::Pattern(pattern), false));
+                parameters.push(FormalParameter::new(
+                    Variable::from_pattern(pattern.into(), None),
+                    false,
+                ));
             } else {
                 return Err(ParseError::general(
                     "invalid object binding pattern in formal parameter list",
@@ -553,11 +563,14 @@ fn node_to_formal_parameters(
                 ));
             }
         }
-        Node::ArrayDecl(array) => {
+        ast::Expression::ArrayLiteral(array) => {
             let decl = array_decl_to_declaration_pattern(array, strict);
 
             if let Some(pattern) = decl {
-                parameters.push(FormalParameter::new(Declaration::Pattern(pattern), false));
+                parameters.push(FormalParameter::new(
+                    Variable::from_pattern(pattern.into(), None),
+                    false,
+                ));
             } else {
                 return Err(ParseError::general(
                     "invalid array binding pattern in formal parameter list",

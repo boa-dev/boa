@@ -1,6 +1,9 @@
-//! This module implements the Rust representation of a JavaScript object.
+//! This module implements the Rust representation of a JavaScript object,
+//! see [`object::builtins`][builtins] for implementors.
+//!
+//! This module also provides helper objects for working with JavaScript objects.
 
-pub use jsobject::{JsObject, RecursionLimiter, Ref, RefMut};
+pub use jsobject::{RecursionLimiter, Ref, RefMut};
 pub use operations::IntegrityLevel;
 pub use property_map::*;
 
@@ -27,6 +30,7 @@ use crate::{
         array::array_iterator::ArrayIterator,
         array_buffer::ArrayBuffer,
         async_generator::AsyncGenerator,
+        error::ErrorKind,
         function::arguments::Arguments,
         function::{
             arguments::ParameterMap, BoundFunction, Captures, ConstructorKind, Function,
@@ -46,6 +50,8 @@ use crate::{
         DataView, Date, Promise, RegExp,
     },
     context::intrinsics::StandardConstructor,
+    error::JsNativeError,
+    js_string,
     property::{Attribute, PropertyDescriptor, PropertyKey},
     Context, JsBigInt, JsResult, JsString, JsSymbol, JsValue,
 };
@@ -63,28 +69,16 @@ use std::{
 mod tests;
 
 pub(crate) mod internal_methods;
-mod jsarray;
-mod jsarraybuffer;
-mod jsfunction;
-mod jsmap;
-mod jsmap_iterator;
+
+pub mod builtins;
 mod jsobject;
-mod jsproxy;
-mod jsset;
-mod jsset_iterator;
-mod jstypedarray;
 mod operations;
 mod property_map;
 
-pub use jsarray::*;
-pub use jsarraybuffer::*;
-pub use jsfunction::*;
-pub use jsmap::*;
-pub use jsmap_iterator::*;
-pub use jsproxy::*;
-pub use jsset::*;
-pub use jsset_iterator::*;
-pub use jstypedarray::*;
+pub(crate) use builtins::*;
+
+pub use builtins::jsproxy::JsProxyBuilder;
+pub use jsobject::*;
 
 pub(crate) trait JsObjectType:
     Into<JsValue> + Into<JsObject> + Deref<Target = JsObject>
@@ -190,7 +184,7 @@ pub enum ObjectKind {
     StringIterator(StringIterator),
     Number(f64),
     Symbol(JsSymbol),
-    Error,
+    Error(ErrorKind),
     Ordinary,
     Proxy(Proxy),
     Date(Date),
@@ -234,7 +228,7 @@ unsafe impl Trace for ObjectKind {
             | Self::String(_)
             | Self::Date(_)
             | Self::Array
-            | Self::Error
+            | Self::Error(_)
             | Self::Ordinary
             | Self::Global
             | Self::Number(_)
@@ -461,9 +455,9 @@ impl ObjectData {
     }
 
     /// Create the `Error` object data
-    pub fn error() -> Self {
+    pub(crate) fn error(error: ErrorKind) -> Self {
         Self {
-            kind: ObjectKind::Error,
+            kind: ObjectKind::Error(error),
             internal_methods: &ORDINARY_INTERNAL_METHODS,
         }
     }
@@ -567,7 +561,7 @@ impl Display for ObjectKind {
             Self::String(_) => "String",
             Self::StringIterator(_) => "StringIterator",
             Self::Symbol(_) => "Symbol",
-            Self::Error => "Error",
+            Self::Error(_) => "Error",
             Self::Ordinary => "Ordinary",
             Self::Proxy(_) => "Proxy",
             Self::Boolean(_) => "Boolean",
@@ -1075,10 +1069,21 @@ impl Object {
         matches!(
             self.data,
             ObjectData {
-                kind: ObjectKind::Error,
+                kind: ObjectKind::Error(_),
                 ..
             }
         )
+    }
+
+    #[inline]
+    pub fn as_error(&self) -> Option<ErrorKind> {
+        match self.data {
+            ObjectData {
+                kind: ObjectKind::Error(e),
+                ..
+            } => Some(e),
+            _ => None,
+        }
     }
 
     /// Checks if it a Boolean object.
@@ -1638,7 +1643,7 @@ impl<'context> FunctionBuilder<'context> {
                 function,
                 constructor: None,
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1656,7 +1661,7 @@ impl<'context> FunctionBuilder<'context> {
                 constructor: None,
                 captures: Captures::new(()),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1683,14 +1688,15 @@ impl<'context> FunctionBuilder<'context> {
                 function: Box::new(move |this, args, captures: Captures, context| {
                     let mut captures = captures.as_mut_any();
                     let captures = captures.downcast_mut::<C>().ok_or_else(|| {
-                        context.construct_type_error("cannot downcast `Captures` to given type")
+                        JsNativeError::typ()
+                            .with_message("cannot downcast `Captures` to given type")
                     })?;
                     function(this, args, captures, context)
                 }),
                 constructor: None,
                 captures: Captures::new(captures),
             },
-            name: JsString::default(),
+            name: js_string!(),
             length: 0,
         }
     }
@@ -1702,9 +1708,9 @@ impl<'context> FunctionBuilder<'context> {
     #[must_use]
     pub fn name<N>(mut self, name: N) -> Self
     where
-        N: AsRef<str>,
+        N: Into<JsString>,
     {
-        self.name = name.as_ref().into();
+        self.name = name.into();
         self
     }
 
@@ -1797,16 +1803,8 @@ impl<'context> FunctionBuilder<'context> {
 /// # use boa_engine::{Context, JsValue, object::ObjectInitializer, property::Attribute};
 /// let mut context = Context::default();
 /// let object = ObjectInitializer::new(&mut context)
-///     .property(
-///         "hello",
-///         "world",
-///         Attribute::all()
-///     )
-///     .property(
-///         1,
-///         1,
-///         Attribute::all()
-///     )
+///     .property("hello", "world", Attribute::all())
+///     .property(1, 1, Attribute::all())
 ///     .function(|_, _, _| Ok(JsValue::undefined()), "func", 0)
 ///     .build();
 /// ```
@@ -1925,7 +1923,7 @@ impl<'context> ConstructorBuilder<'context> {
             object: JsObject::empty(),
             prototype: JsObject::empty(),
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,
@@ -1947,7 +1945,7 @@ impl<'context> ConstructorBuilder<'context> {
             has_prototype_property: true,
             prototype: standard_constructor.prototype,
             length: 0,
-            name: JsString::default(),
+            name: js_string!(),
             callable: true,
             constructor: Some(ConstructorKind::Base),
             inherit: None,

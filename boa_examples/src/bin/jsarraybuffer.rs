@@ -1,7 +1,7 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    object::{JsArrayBuffer, JsUint32Array, JsUint8Array},
+    object::builtins::{JsArrayBuffer, JsDataView, JsUint32Array, JsUint8Array},
     property::Attribute,
     Context, JsResult, JsValue,
 };
@@ -17,9 +17,9 @@ fn main() -> JsResult<()> {
     let uint32_typed_array = JsUint32Array::from_array_buffer(array_buffer, context)?;
 
     let value = 0x12345678u32;
-    uint32_typed_array.set(0, value, true, context)?;
+    uint32_typed_array.set(0_u64, value, true, context)?;
 
-    assert_eq!(uint32_typed_array.get(0, context)?, JsValue::new(value));
+    assert_eq!(uint32_typed_array.get(0_u64, context)?, JsValue::new(value));
 
     // We can also create array buffers from a user defined block of data.
     //
@@ -37,6 +37,17 @@ fn main() -> JsResult<()> {
     for i in 0..byte_length {
         assert_eq!(uint8_typed_array.get(i, context)?, JsValue::new(i));
     }
+
+    // We can create a Dataview from a JsArrayBuffer
+    let dataview = JsDataView::from_js_array_buffer(&array_buffer, None, Some(100_u64), context)?;
+
+    let dataview_length = dataview.byte_length(context)?;
+
+    assert_eq!(dataview_length, 100);
+
+    let second_byte = dataview.get_uint8(2, true, context)?;
+
+    assert_eq!(second_byte, 2_u8);
 
     // We can also register it as a global property
     context.register_global_property(

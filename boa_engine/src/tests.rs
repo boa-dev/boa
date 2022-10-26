@@ -1,6 +1,6 @@
 use crate::{
-    builtins::Number, check_output, exec, forward, forward_val, value::IntegerOrInfinity, Context,
-    JsValue, TestAction,
+    builtins::Number, check_output, exec, forward, forward_val, string::utf16,
+    value::IntegerOrInfinity, Context, JsValue, TestAction,
 };
 
 #[test]
@@ -467,7 +467,7 @@ fn test_invalid_break() {
     let string = forward(&mut context, src);
     assert_eq!(
         string,
-        "Uncaught \"SyntaxError\": \"unlabeled break must be inside loop or switch\""
+        "Uncaught SyntaxError: unlabeled break must be inside loop or switch"
     );
 }
 
@@ -482,7 +482,7 @@ fn test_invalid_continue_target() {
     let string = forward(&mut context, src);
     assert_eq!(
         string,
-        "Uncaught \"SyntaxError\": \"Cannot use the undeclared label 'nonexistent'\""
+        "Uncaught SyntaxError: Cannot use the undeclared label 'nonexistent'"
     );
 }
 
@@ -490,10 +490,7 @@ fn test_invalid_continue_target() {
 fn test_invalid_continue() {
     let mut context = Context::default();
     let string = forward(&mut context, r"continue;");
-    assert_eq!(
-        string,
-        "Uncaught \"SyntaxError\": \"continue must be inside loop\""
-    );
+    assert_eq!(string, "Uncaught SyntaxError: continue must be inside loop");
 }
 
 #[test]
@@ -542,10 +539,10 @@ fn unary_pre() {
 #[test]
 fn invalid_unary_access() {
     check_output(&[
-        TestAction::TestStartsWith("++[];", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("[]++;", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("--[];", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("[]--;", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("++[];", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("[]++;", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("--[];", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("[]--;", "Uncaught SyntaxError: "),
     ]);
 }
 
@@ -851,7 +848,7 @@ mod in_operator {
 
         check_output(&[TestAction::TestEq(
             scenario,
-            "Uncaught \"TypeError\": \"not a constructor\"",
+            "Uncaught TypeError: not a constructor",
         )]);
     }
 
@@ -1201,16 +1198,25 @@ fn to_int32() {
 fn to_string() {
     let mut context = Context::default();
 
-    assert_eq!(JsValue::null().to_string(&mut context).unwrap(), "null");
     assert_eq!(
-        JsValue::undefined().to_string(&mut context).unwrap(),
-        "undefined"
+        &JsValue::null().to_string(&mut context).unwrap(),
+        utf16!("null")
     );
-    assert_eq!(JsValue::new(55).to_string(&mut context).unwrap(), "55");
-    assert_eq!(JsValue::new(55.0).to_string(&mut context).unwrap(), "55");
     assert_eq!(
-        JsValue::new("hello").to_string(&mut context).unwrap(),
-        "hello"
+        &JsValue::undefined().to_string(&mut context).unwrap(),
+        utf16!("undefined")
+    );
+    assert_eq!(
+        &JsValue::new(55).to_string(&mut context).unwrap(),
+        utf16!("55")
+    );
+    assert_eq!(
+        &JsValue::new(55.0).to_string(&mut context).unwrap(),
+        utf16!("55")
+    );
+    assert_eq!(
+        &JsValue::new("hello").to_string(&mut context).unwrap(),
+        utf16!("hello")
     );
 }
 
@@ -1226,20 +1232,6 @@ fn calling_function_with_unspecified_arguments() {
     "#;
 
     assert_eq!(forward(&mut context, scenario), "undefined");
-}
-
-#[test]
-fn to_object() {
-    let mut context = Context::default();
-
-    assert!(JsValue::undefined()
-        .to_object(&mut context)
-        .unwrap_err()
-        .is_object());
-    assert!(JsValue::null()
-        .to_object(&mut context)
-        .unwrap_err()
-        .is_object());
 }
 
 #[test]
@@ -1395,7 +1387,7 @@ fn assignment_to_non_assignable() {
     for case in &test_cases {
         let string = forward(&mut context, case);
 
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+        assert!(string.starts_with("Uncaught SyntaxError: "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1403,15 +1395,15 @@ fn assignment_to_non_assignable() {
 #[test]
 fn assignment_to_non_assignable_ctd() {
     check_output(&[
-        TestAction::TestStartsWith("(()=>{})() -= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() *= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() /= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() %= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() &= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() ^= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() |= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() += 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() = 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() -= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() *= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() /= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() %= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() &= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() ^= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() |= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() += 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() = 5", "Uncaught SyntaxError: "),
     ]);
 }
 
@@ -1426,7 +1418,7 @@ fn multicharacter_assignment_to_non_assignable() {
     for case in &test_cases {
         let string = forward(&mut context, case);
 
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+        assert!(string.starts_with("Uncaught SyntaxError: "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1434,9 +1426,9 @@ fn multicharacter_assignment_to_non_assignable() {
 #[test]
 fn multicharacter_assignment_to_non_assignable_ctd() {
     check_output(&[
-        TestAction::TestStartsWith("(()=>{})() **= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() <<= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() >>= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() **= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() <<= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() >>= 5", "Uncaught SyntaxError: "),
     ]);
 }
 
@@ -1450,7 +1442,7 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
     for case in &test_cases {
         let string = forward(&mut context, case);
 
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+        assert!(string.starts_with("Uncaught SyntaxError: "));
         assert!(string.contains("1:3"));
     }
 }
@@ -1458,27 +1450,27 @@ fn multicharacter_bitwise_assignment_to_non_assignable() {
 #[test]
 fn multicharacter_bitwise_assignment_to_non_assignable_ctd() {
     check_output(&[
-        TestAction::TestStartsWith("(()=>{})() >>>= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() &&= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() ||= 5", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("(()=>{})() ??= 5", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("(()=>{})() >>>= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() &&= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() ||= 5", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("(()=>{})() ??= 5", "Uncaught SyntaxError: "),
     ]);
 }
 
 #[test]
 fn assign_to_array_decl() {
     check_output(&[
-        TestAction::TestStartsWith("[1] = [2]", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("[3, 5] = [7, 8]", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("[6, 8] = [2]", "Uncaught \"SyntaxError\": "),
-        TestAction::TestStartsWith("[6] = [2, 9]", "Uncaught \"SyntaxError\": "),
+        TestAction::TestStartsWith("[1] = [2]", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("[3, 5] = [7, 8]", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("[6, 8] = [2]", "Uncaught SyntaxError: "),
+        TestAction::TestStartsWith("[6] = [2, 9]", "Uncaught SyntaxError: "),
     ]);
 }
 
 #[test]
 fn assign_to_object_decl() {
     const ERR_MSG: &str =
-        "Uncaught \"SyntaxError\": \"unexpected token '=', primary expression at line 1, col 8\"";
+        "Uncaught SyntaxError: unexpected token '=', primary expression at line 1, col 8";
 
     let mut context = Context::default();
 
@@ -1522,7 +1514,7 @@ fn test_conditional_op() {
 #[test]
 fn test_identifier_op() {
     let scenario = "break = 1";
-    assert_eq!(&exec(scenario), "\"SyntaxError\": \"expected token \'identifier\', got \'=\' in binding identifier at line 1, col 7\"");
+    assert_eq!(&exec(scenario), "SyntaxError: expected token \'identifier\', got \'=\' in binding identifier at line 1, col 7");
 }
 
 #[test]
@@ -1537,7 +1529,7 @@ fn test_strict_mode_octal() {
 
     check_output(&[TestAction::TestStartsWith(
         scenario,
-        "Uncaught \"SyntaxError\": ",
+        "Uncaught SyntaxError: ",
     )]);
 }
 
@@ -1557,7 +1549,7 @@ fn test_strict_mode_with() {
 
     check_output(&[TestAction::TestStartsWith(
         scenario,
-        "Uncaught \"SyntaxError\": ",
+        "Uncaught SyntaxError: ",
     )]);
 }
 
@@ -1574,7 +1566,7 @@ fn test_strict_mode_delete() {
 
     check_output(&[TestAction::TestStartsWith(
         scenario,
-        "Uncaught \"SyntaxError\": ",
+        "Uncaught SyntaxError: ",
     )]);
 }
 
@@ -1603,7 +1595,7 @@ fn test_strict_mode_reserved_name() {
 
         let string = forward(&mut context, &scenario);
 
-        assert!(string.starts_with("Uncaught \"SyntaxError\": "));
+        assert!(string.starts_with("Uncaught SyntaxError: "));
     }
 }
 
@@ -1619,7 +1611,7 @@ fn test_strict_mode_dup_func_parameters() {
 
     check_output(&[TestAction::TestStartsWith(
         scenario,
-        "Uncaught \"SyntaxError\": ",
+        "Uncaught SyntaxError: ",
     )]);
 }
 

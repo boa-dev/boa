@@ -1,0 +1,18 @@
+[package]
+name = "boa_macros"
+description = "Macros for the Boa JavaScript engine."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "1.0.21"
+syn = "1.0.103"
+

@@ -7,7 +7,13 @@
 
 use super::left_hand_side::LeftHandSideExpression;
 use crate::syntax::{
-    ast::{node, op::UnaryOp, Node, Punctuator},
+    ast::{
+        expression::{
+            operator::{unary::UnaryOp, Unary},
+            Identifier,
+        },
+        Expression, Punctuator,
+    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
@@ -26,7 +32,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-UpdateExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct UpdateExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
 }
@@ -35,7 +41,7 @@ impl UpdateExpression {
     /// Creates a new `UpdateExpression` parser.
     pub(super) fn new<N, Y, A>(name: N, allow_yield: Y, allow_await: A) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
     {
@@ -51,9 +57,9 @@ impl<R> TokenParser<R> for UpdateExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("UpdateExpression", "Parsing");
 
         let tok = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
@@ -68,12 +74,12 @@ where
                     .parse(cursor, interner)?;
 
                 if cursor.strict_mode() {
-                    if let Node::Identifier(ident) = target {
+                    if let Expression::Identifier(ident) = target {
                         ident.check_strict_arguments_or_eval(position)?;
                     }
                 }
 
-                return Ok(node::UnaryOp::new(UnaryOp::IncrementPre, target).into());
+                return Ok(Unary::new(UnaryOp::IncrementPre, target).into());
             }
             TokenKind::Punctuator(Punctuator::Dec) => {
                 cursor
@@ -84,12 +90,12 @@ where
                     .parse(cursor, interner)?;
 
                 if cursor.strict_mode() {
-                    if let Node::Identifier(ident) = target {
+                    if let Expression::Identifier(ident) = target {
                         ident.check_strict_arguments_or_eval(position)?;
                     }
                 }
 
-                return Ok(node::UnaryOp::new(UnaryOp::DecrementPre, target).into());
+                return Ok(Unary::new(UnaryOp::DecrementPre, target).into());
             }
             _ => {}
         }
@@ -107,13 +113,13 @@ where
                         .expect("Punctuator::Inc token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
-                        Node::Identifier(_) if !strict => true,
-                        Node::Identifier(ident)
+                        Expression::Identifier(_) if !strict => true,
+                        Expression::Identifier(ident)
                             if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
                         {
                             true
                         }
-                        Node::GetConstField(_) | Node::GetField(_) => true,
+                        Expression::PropertyAccess(_) => true,
                         _ => false,
                     };
                     if !ok {
@@ -123,7 +129,7 @@ where
                         )));
                     }
 
-                    return Ok(node::UnaryOp::new(UnaryOp::IncrementPost, lhs).into());
+                    return Ok(Unary::new(UnaryOp::IncrementPost, lhs).into());
                 }
                 TokenKind::Punctuator(Punctuator::Dec) => {
                     cursor
@@ -131,13 +137,13 @@ where
                         .expect("Punctuator::Dec token disappeared");
                     // https://tc39.es/ecma262/#sec-update-expressions-static-semantics-early-errors
                     let ok = match &lhs {
-                        Node::Identifier(_) if !strict => true,
-                        Node::Identifier(ident)
+                        Expression::Identifier(_) if !strict => true,
+                        Expression::Identifier(ident)
                             if ![Sym::EVAL, Sym::ARGUMENTS].contains(&ident.sym()) =>
                         {
                             true
                         }
-                        Node::GetConstField(_) | Node::GetField(_) => true,
+                        Expression::PropertyAccess(_) => true,
                         _ => false,
                     };
                     if !ok {
@@ -147,7 +153,7 @@ where
                         )));
                     }
 
-                    return Ok(node::UnaryOp::new(UnaryOp::DecrementPost, lhs).into());
+                    return Ok(Unary::new(UnaryOp::DecrementPost, lhs).into());
                 }
                 _ => {}
             }

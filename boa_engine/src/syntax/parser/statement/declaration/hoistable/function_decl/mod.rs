@@ -2,10 +2,10 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{node::FunctionDecl, Keyword},
+    ast::{function::Function, Keyword},
     parser::{
         statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, TokenParser,
+        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -78,17 +78,13 @@ impl<R> TokenParser<R> for FunctionDeclaration
 where
     R: Read,
 {
-    type Output = FunctionDecl;
+    type Output = Function;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         cursor.expect((Keyword::Function, false), "function declaration", interner)?;
 
         let result = parse_callable_declaration(&self, cursor, interner)?;
 
-        Ok(FunctionDecl::new(result.0, result.1, result.2))
+        Ok(Function::new(Some(result.0), result.1, result.2))
     }
 }

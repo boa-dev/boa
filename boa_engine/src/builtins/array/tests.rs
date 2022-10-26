@@ -1421,50 +1421,55 @@ fn array_spread_non_iterable() {
 fn get_relative_start() {
     let mut context = Context::default();
 
-    assert_eq!(Array::get_relative_start(&mut context, None, 10), Ok(0));
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::undefined()), 10),
-        Ok(0)
+        Array::get_relative_start(&mut context, None, 10).unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
-        Ok(0)
+        Array::get_relative_start(&mut context, Some(&JsValue::undefined()), 10).unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
-        Ok(10)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10)
+            .unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(-1)), 10),
-        Ok(9)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::INFINITY)), 10).unwrap(),
+        10
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(1)), 10),
-        Ok(1)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-1)), 10).unwrap(),
+        9
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(-11)), 10),
-        Ok(0)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(1)), 10).unwrap(),
+        1
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(11)), 10),
-        Ok(10)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(-11)), 10).unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MIN)), 10),
-        Ok(0)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(11)), 10).unwrap(),
+        10
+    );
+    assert_eq!(
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MIN)), 10).unwrap(),
+        0
     );
     assert_eq!(
         Array::get_relative_start(
             &mut context,
             Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
-        ),
-        Ok(0)
+        )
+        .unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MAX)), 10),
-        Ok(10)
+        Array::get_relative_start(&mut context, Some(&JsValue::new(f64::MAX)), 10).unwrap(),
+        10
     );
 
     // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
@@ -1473,8 +1478,9 @@ fn get_relative_start() {
             &mut context,
             Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
-        ),
-        Ok(10)
+        )
+        .unwrap(),
+        10
     );
 }
 
@@ -1482,50 +1488,51 @@ fn get_relative_start() {
 fn get_relative_end() {
     let mut context = Context::default();
 
-    assert_eq!(Array::get_relative_end(&mut context, None, 10), Ok(10));
+    assert_eq!(Array::get_relative_end(&mut context, None, 10).unwrap(), 10);
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::undefined()), 10),
-        Ok(10)
+        Array::get_relative_end(&mut context, Some(&JsValue::undefined()), 10).unwrap(),
+        10
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10),
-        Ok(0)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::NEG_INFINITY)), 10).unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::INFINITY)), 10),
-        Ok(10)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::INFINITY)), 10).unwrap(),
+        10
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(-1)), 10),
-        Ok(9)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-1)), 10).unwrap(),
+        9
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(1)), 10),
-        Ok(1)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(1)), 10).unwrap(),
+        1
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(-11)), 10),
-        Ok(0)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(-11)), 10).unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(11)), 10),
-        Ok(10)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(11)), 10).unwrap(),
+        10
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MIN)), 10),
-        Ok(0)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MIN)), 10).unwrap(),
+        0
     );
     assert_eq!(
         Array::get_relative_end(
             &mut context,
             Some(&JsValue::new(Number::MIN_SAFE_INTEGER)),
             10
-        ),
-        Ok(0)
+        )
+        .unwrap(),
+        0
     );
     assert_eq!(
-        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MAX)), 10),
-        Ok(10)
+        Array::get_relative_end(&mut context, Some(&JsValue::new(f64::MAX)), 10).unwrap(),
+        10
     );
 
     // This test is relevant only on 32-bit archs (where usize == u32 thus `len` is u32)
@@ -1534,8 +1541,9 @@ fn get_relative_end() {
             &mut context,
             Some(&JsValue::new(Number::MAX_SAFE_INTEGER)),
             10
-        ),
-        Ok(10)
+        )
+        .unwrap(),
+        10
     );
 }
 

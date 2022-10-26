@@ -214,7 +214,8 @@ fn search() {
     assert_eq!(forward(&mut context, "/c/[Symbol.search]('abc')"), "2");
 
     // this-val-non-obj
-    let error = "Uncaught \"TypeError\": \"RegExp.prototype[Symbol.search] method called on incompatible value\"";
+    let error =
+        "Uncaught TypeError: RegExp.prototype[Symbol.search] method called on incompatible value";
     let init = "var search = RegExp.prototype[Symbol.search]";
     eprintln!("{}", forward(&mut context, init));
     assert_eq!(forward(&mut context, "search.call()"), error);

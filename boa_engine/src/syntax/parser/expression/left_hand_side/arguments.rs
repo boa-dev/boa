@@ -8,10 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::syntax::{
-    ast::{node::Spread, Node, Punctuator},
+    ast::{expression::Spread, Expression, Punctuator},
     lexer::{InputElement, TokenKind},
     parser::{
-        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, TokenParser,
+        expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
+        TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -50,18 +51,15 @@ impl<R> TokenParser<R> for Arguments
 where
     R: Read,
 {
-    type Output = Box<[Node]>;
+    type Output = Box<[Expression]>;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("Arguments", "Parsing");
 
         cursor.expect(Punctuator::OpenParen, "arguments", interner)?;
         let mut args = Vec::new();
         loop {
+            cursor.set_goal(InputElement::RegExp);
             let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
             match next_token.kind() {
@@ -105,13 +103,13 @@ where
                     .into(),
                 );
             } else {
-                cursor.set_goal(InputElement::RegExp);
                 args.push(
                     AssignmentExpression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?,
                 );
             }
         }
+        cursor.set_goal(InputElement::Div);
         Ok(args.into_boxed_slice())
     }
 }

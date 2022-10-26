@@ -24,51 +24,12 @@
     },
     {
       "type": "process",
-      "label": "Cargo Run (VM)",
-      "command": "cargo",
-      "args": ["run", "--", "-t", "../tests/js/test.js"],
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "presentation": {
-        "clear": true
-      },
-      "options": {
-        "cwd": "${workspaceFolder}/boa_cli",
-        "env": {
-          "RUST_BACKTRACE": "1"
-        }
-      },
-      "problemMatcher": []
-    },
-    {
-      "type": "process",
       "label": "Cargo Run (Profiler)",
-      "command": "cargo",
-      "args": ["run", "--features", "Boa/profiler", "../tests/js/test.js"],
-      "group": "build",
-      "options": {
-        "env": {
-          "RUST_BACKTRACE": "full"
-        },
-        "cwd": "${workspaceFolder}/boa_cli"
-      },
-      "presentation": {
-        "clear": true
-      },
-      "problemMatcher": []
-    },
-    {
-      "type": "process",
-      "label": "Cargo Run (Profiler & VM)",
       "command": "cargo",
       "args": [
         "run",
         "--features",
-        "Boa/profiler",
-        "--features",
-        "vm",
+        "boa_engine/profiler",
         "../tests/js/test.js"
       ],
       "group": "build",
@@ -85,9 +46,9 @@
     },
     {
       "type": "process",
-      "label": "Get Tokens",
+      "label": "Run with VM trace",
       "command": "cargo",
-      "args": ["run", "--bin", "boa", "--", "-t=Debug", "./tests/js/test.js"],
+      "args": ["run", "--bin", "boa", "--", "-t", "./tests/js/test.js"],
       "group": "build",
       "presentation": {
         "clear": true

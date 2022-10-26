@@ -1,11 +1,15 @@
+use std::convert::TryInto;
+
 use crate::syntax::{
     ast::{
-        node::{Declaration, DeclarationList, Node},
-        Const,
+        declaration::{LexicalDeclaration, VarDeclaration, Variable},
+        expression::literal::Literal,
+        Declaration, Statement,
     },
     parser::tests::{check_invalid, check_parser},
 };
 use boa_interner::Interner;
+use boa_macros::utf16;
 
 /// Checks `var` declaration parsing.
 #[test]
@@ -13,13 +17,14 @@ fn var_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "var a = 5;",
-        vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Some(Const::from(5).into()),
+        vec![Statement::Var(VarDeclaration(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -31,13 +36,16 @@ fn var_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "var yield = 5;",
-        vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield"),
-                Some(Const::from(5).into()),
+        vec![Statement::Var(VarDeclaration(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -45,13 +53,16 @@ fn var_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "var await = 5;",
-        vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await"),
-                Some(Const::from(5).into()),
+        vec![Statement::Var(VarDeclaration(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -63,13 +74,14 @@ fn var_declaration_no_spaces() {
     let mut interner = Interner::default();
     check_parser(
         "var a=5;",
-        vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Some(Const::from(5).into()),
+        vec![Statement::Var(VarDeclaration(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -81,13 +93,14 @@ fn empty_var_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "var a;",
-        vec![DeclarationList::Var(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
+        vec![Statement::Var(VarDeclaration(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
                 None,
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -99,20 +112,24 @@ fn multiple_var_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "var a = 5, b, c = 6;",
-        vec![DeclarationList::Var(
+        vec![Statement::Var(VarDeclaration(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a"),
-                    Some(Const::from(5).into()),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c"),
-                    Some(Const::from(6).into()),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    None,
+                ),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -124,13 +141,14 @@ fn let_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "let a = 5;",
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -142,13 +160,16 @@ fn let_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "let yield = 5;",
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -156,13 +177,16 @@ fn let_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "let await = 5;",
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -174,13 +198,14 @@ fn let_declaration_no_spaces() {
     let mut interner = Interner::default();
     check_parser(
         "let a=5;",
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -192,13 +217,14 @@ fn empty_let_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "let a;",
-        vec![DeclarationList::Let(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
                 None,
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -210,20 +236,24 @@ fn multiple_let_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "let a = 5, b, c = 6;",
-        vec![DeclarationList::Let(
+        vec![Declaration::Lexical(LexicalDeclaration::Let(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a"),
-                    Node::from(Const::from(5)),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(interner.get_or_intern_static("b"), None),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c"),
-                    Node::from(Const::from(6)),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("b", utf16!("b")).into(),
+                    None,
+                ),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -235,13 +265,14 @@ fn const_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "const a = 5;",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -253,13 +284,16 @@ fn const_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "const yield = 5;",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("yield"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("yield", utf16!("yield"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -267,13 +301,16 @@ fn const_declaration_keywords() {
     let mut interner = Interner::default();
     check_parser(
         "const await = 5;",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("await"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner
+                    .get_or_intern_static("await", utf16!("await"))
+                    .into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -285,13 +322,14 @@ fn const_declaration_no_spaces() {
     let mut interner = Interner::default();
     check_parser(
         "const a=5;",
-        vec![DeclarationList::Const(
-            vec![Declaration::new_with_identifier(
-                interner.get_or_intern_static("a"),
-                Node::from(Const::from(5)),
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
+            vec![Variable::from_identifier(
+                interner.get_or_intern_static("a", utf16!("a")).into(),
+                Some(Literal::from(5).into()),
             )]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );
@@ -309,19 +347,20 @@ fn multiple_const_declaration() {
     let mut interner = Interner::default();
     check_parser(
         "const a = 5, c = 6;",
-        vec![DeclarationList::Const(
+        vec![Declaration::Lexical(LexicalDeclaration::Const(
             vec![
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("a"),
-                    Node::from(Const::from(5)),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("a", utf16!("a")).into(),
+                    Some(Literal::from(5).into()),
                 ),
-                Declaration::new_with_identifier(
-                    interner.get_or_intern_static("c"),
-                    Node::from(Const::from(6)),
+                Variable::from_identifier(
+                    interner.get_or_intern_static("c", utf16!("c")).into(),
+                    Some(Literal::from(6).into()),
                 ),
             ]
-            .into(),
-        )
+            .try_into()
+            .unwrap(),
+        ))
         .into()],
         interner,
     );

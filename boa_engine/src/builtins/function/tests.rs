@@ -1,8 +1,10 @@
 use crate::{
-    forward, forward_val,
+    error::JsNativeError,
+    forward, forward_val, js_string,
     object::FunctionBuilder,
     property::{Attribute, PropertyDescriptor},
-    Context, JsString,
+    string::utf16,
+    Context, JsNativeErrorKind,
 };
 
 #[allow(clippy::float_cmp)]
@@ -129,7 +131,7 @@ fn function_prototype_call() {
         "#;
     let value = forward_val(&mut context, func).unwrap();
     assert!(value.is_string());
-    assert_eq!(value.as_string().unwrap(), "[object Error]");
+    assert_eq!(value.as_string().unwrap(), utf16!("[object Error]"));
 }
 
 #[test]
@@ -139,10 +141,15 @@ fn function_prototype_call_throw() {
         let call = Function.prototype.call;
         call(call)
         "#;
-    let value = forward_val(&mut context, throw).unwrap_err();
-    assert!(value.is_object());
-    let string = value.to_string(&mut context).unwrap();
-    assert!(string.starts_with("TypeError"));
+    let err = forward_val(&mut context, throw).unwrap_err();
+    let err = err.as_native().unwrap();
+    assert!(matches!(
+        err,
+        JsNativeError {
+            kind: JsNativeErrorKind::Type,
+            ..
+        }
+    ));
 }
 
 #[test]
@@ -222,7 +229,7 @@ fn function_prototype_apply_on_object() {
 fn closure_capture_clone() {
     let mut context = Context::default();
 
-    let string = JsString::from("Hello");
+    let string = js_string!("Hello");
     let object = context.construct_object();
     object
         .define_property_or_throw(
@@ -241,13 +248,13 @@ fn closure_capture_clone() {
         |_, _, captures, context| {
             let (string, object) = &captures;
 
-            let hw = JsString::concat(
+            let hw = js_string!(
                 string,
-                object
+                &object
                     .__get_own_property__(&"key".into(), context)?
                     .and_then(|prop| prop.value().cloned())
                     .and_then(|val| val.as_string().cloned())
-                    .ok_or_else(|| context.construct_type_error("invalid `key` property"))?,
+                    .ok_or_else(|| JsNativeError::typ().with_message("invalid `key` property"))?
             );
             Ok(hw.into())
         },

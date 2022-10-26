@@ -3,14 +3,14 @@ mod tests;
 
 use crate::syntax::{
     ast::{
-        node::{function_contains_super, AsyncFunctionExpr},
+        expression::Identifier, function::function_contains_super, function::AsyncFunction,
         Keyword, Position, Punctuator,
     },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        AllowYield, Cursor, ParseError, TokenParser,
+        AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::{Interner, Sym};
@@ -27,7 +27,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncFunctionExpression
 #[derive(Debug, Clone, Copy)]
 pub(super) struct AsyncFunctionExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_yield: AllowYield,
 }
 
@@ -35,7 +35,7 @@ impl AsyncFunctionExpression {
     /// Creates a new `AsyncFunctionExpression` parser.
     pub(super) fn new<N, Y>(name: N, allow_yield: Y) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         Y: Into<AllowYield>,
     {
         Self {
@@ -49,13 +49,9 @@ impl<R> TokenParser<R> for AsyncFunctionExpression
 where
     R: Read,
 {
-    type Output = AsyncFunctionExpr;
+    type Output = AsyncFunction;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("AsyncFunctionExpression", "Parsing");
         cursor.peek_expect_no_lineterminator(0, "async function expression", interner)?;
         cursor.expect(
@@ -76,7 +72,7 @@ where
         // Early Error: If BindingIdentifier is present and the source code matching BindingIdentifier is strict mode code,
         // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
         if let Some(name) = name {
-            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name) {
+            if cursor.strict_mode() && [Sym::EVAL, Sym::ARGUMENTS].contains(&name.sym()) {
                 return Err(ParseError::lex(LexError::Syntax(
                     "Unexpected eval or arguments in strict mode".into(),
                     match cursor.peek(0, interner)? {
@@ -142,6 +138,6 @@ where
             )));
         }
 
-        Ok(AsyncFunctionExpr::new(name, params, body))
+        Ok(AsyncFunction::new(name, params, body))
     }
 }

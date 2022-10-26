@@ -8,14 +8,17 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{node::ConditionalOp, Node, Punctuator},
+    ast::{
+        expression::{operator::Conditional, Identifier},
+        Expression, Punctuator,
+    },
     lexer::TokenKind,
     parser::{
         expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -29,7 +32,7 @@ use std::io::Read;
 /// [spec]: https://tc39.es/ecma262/#prod-ConditionalExpression
 #[derive(Debug, Clone, Copy)]
 pub(in crate::syntax::parser::expression) struct ConditionalExpression {
-    name: Option<Sym>,
+    name: Option<Identifier>,
     allow_in: AllowIn,
     allow_yield: AllowYield,
     allow_await: AllowAwait,
@@ -44,7 +47,7 @@ impl ConditionalExpression {
         allow_await: A,
     ) -> Self
     where
-        N: Into<Option<Sym>>,
+        N: Into<Option<Identifier>>,
         I: Into<AllowIn>,
         Y: Into<AllowYield>,
         A: Into<AllowAwait>,
@@ -62,9 +65,9 @@ impl<R> TokenParser<R> for ConditionalExpression
 where
     R: Read,
 {
-    type Output = Node;
+    type Output = Expression;
 
-    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("ConditionalExpression", "Parsing");
         let lhs = ShortCircuitExpression::new(
             self.name,
@@ -93,7 +96,7 @@ where
                     self.allow_await,
                 )
                 .parse(cursor, interner)?;
-                return Ok(ConditionalOp::new(lhs, then_clause, else_clause).into());
+                return Ok(Conditional::new(lhs, then_clause, else_clause).into());
             }
         }
 

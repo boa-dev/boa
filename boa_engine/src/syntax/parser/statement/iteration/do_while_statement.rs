@@ -8,11 +8,11 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 use crate::syntax::{
-    ast::{node::DoWhileLoop, Keyword, Node, Punctuator},
+    ast::{statement::DoWhileLoop, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, TokenParser,
+        ParseError, ParseResult, TokenParser,
     },
 };
 use boa_interner::Interner;
@@ -60,24 +60,23 @@ where
 {
     type Output = DoWhileLoop;
 
-    fn parse(
-        self,
-        cursor: &mut Cursor<R>,
-        interner: &mut Interner,
-    ) -> Result<Self::Output, ParseError> {
+    fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
         let _timer = Profiler::global().start_event("DoWhileStatement", "Parsing");
 
+        cursor.expect((Keyword::Do, false), "do while statement", interner)?;
+
         let position = cursor
-            .expect((Keyword::Do, false), "do while statement", interner)?
+            .peek(0, interner)?
+            .ok_or(ParseError::AbruptEnd)?
             .span()
-            .end();
+            .start();
 
         let body = Statement::new(self.allow_yield, self.allow_await, self.allow_return)
             .parse(cursor, interner)?;
 
         // Early Error: It is a Syntax Error if IsLabelledFunction(Statement) is true.
-        if let Node::FunctionDecl(_) = body {
-            return Err(ParseError::wrong_function_declaration_non_strict(position));
+        if body.is_labelled_function() {
+            return Err(ParseError::wrong_labelled_function_declaration(position));
         }
 
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;

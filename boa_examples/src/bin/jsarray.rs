@@ -1,7 +1,8 @@
 // This example shows how to manipulate a Javascript array using Rust code.
 
 use boa_engine::{
-    object::{FunctionBuilder, JsArray},
+    object::{builtins::JsArray, FunctionBuilder},
+    string::utf16,
     Context, JsResult, JsValue,
 };
 
@@ -52,12 +53,12 @@ fn main() -> JsResult<()> {
 
     // Join the array with an optional separator (default ",").
     let joined_array = array.join(None, context)?;
-    assert_eq!(joined_array, "14,13,12,11,10");
+    assert_eq!(&joined_array, utf16!("14,13,12,11,10"));
 
     array.fill(false, Some(1), Some(4), context)?;
 
     let joined_array = array.join(Some("::".into()), context)?;
-    assert_eq!(joined_array, "14::false::false::false::10");
+    assert_eq!(&joined_array, utf16!("14::false::false::false::10"));
 
     let filter_callback = FunctionBuilder::native(context, |_this, args, _context| {
         Ok(args.get(0).cloned().unwrap_or_default().is_number().into())
@@ -85,7 +86,7 @@ fn main() -> JsResult<()> {
         .concat(&[another_array.into()], context)? // [ 100, 196, 1, 2, 3, 4, 5 ]
         .slice(Some(1), Some(5), context)?; // [ 196, 1, 2, 3 ]
 
-    assert_eq!(chained_array.join(None, context)?, "196,1,2,3");
+    assert_eq!(&chained_array.join(None, context)?, utf16!("196,1,2,3"));
 
     let reduce_callback = FunctionBuilder::native(context, |_this, args, context| {
         let accumulator = args.get(0).cloned().unwrap_or_default();

@@ -43,14 +43,14 @@ impl<R> Tokenizer<R> for PrivateIdentifier {
                     '\\' if cursor.peek()? == Some(b'u') => {
                         let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
                         Ok(Token::new(
-                            TokenKind::PrivateIdentifier(interner.get_or_intern(&name)),
+                            TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
                             Span::new(start_pos, cursor.pos()),
                         ))
                     }
                     _ if Identifier::is_identifier_start(c as u32) => {
                         let (name, _) = Identifier::take_identifier_name(cursor, start_pos, c)?;
                         Ok(Token::new(
-                            TokenKind::PrivateIdentifier(interner.get_or_intern(&name)),
+                            TokenKind::PrivateIdentifier(interner.get_or_intern(name.as_str())),
                             Span::new(start_pos, cursor.pos()),
                         ))
                     }

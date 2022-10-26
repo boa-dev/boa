@@ -6,6 +6,7 @@ use crate::{
         string::string_iterator::StringIterator, ArrayIterator, ForInIterator, MapIterator,
         SetIterator,
     },
+    error::JsNativeError,
     object::{JsObject, ObjectInitializer},
     symbol::WellKnownSymbols,
     Context, JsResult, JsValue,
@@ -190,7 +191,7 @@ impl JsValue {
         // 4. If Type(iterator) is not Object, throw a TypeError exception.
         let iterator_obj = iterator
             .as_object()
-            .ok_or_else(|| context.construct_type_error("the iterator is not an object"))?;
+            .ok_or_else(|| JsNativeError::typ().with_message("the iterator is not an object"))?;
 
         // 5. Let nextMethod be ? GetV(iterator, "next").
         let next_method = iterator.get_v("next", context)?;
@@ -355,7 +356,9 @@ impl IteratorRecord {
         let next_method = if let Some(next_method) = self.next_method.as_callable() {
             next_method
         } else {
-            return context.throw_type_error("iterable next method not a function");
+            return Err(JsNativeError::typ()
+                .with_message("iterable next method not a function")
+                .into());
         };
 
         let result = if let Some(value) = value {
@@ -373,7 +376,9 @@ impl IteratorRecord {
         if let Some(o) = result.as_object() {
             Ok(IteratorResult { object: o.clone() })
         } else {
-            context.throw_type_error("next value should be an object")
+            Err(JsNativeError::typ()
+                .with_message("next value should be an object")
+                .into())
         }
     }
 
@@ -468,7 +473,9 @@ impl IteratorRecord {
             Ok(completion)
         } else {
             // 7. If Type(innerResult.[[Value]]) is not Object, throw a TypeError exception.
-            context.throw_type_error("inner result was not an object")
+            Err(JsNativeError::typ()
+                .with_message("inner result was not an object")
+                .into())
         }
     }
 }

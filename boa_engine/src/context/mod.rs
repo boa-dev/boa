@@ -15,13 +15,14 @@ use crate::{
     builtins::{self, function::NativeFunctionSignature},
     bytecompiler::ByteCompiler,
     class::{Class, ClassBuilder},
+    error::JsNativeError,
     job::JobCallback,
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{ast::node::StatementList, parser::ParseError, Parser},
+    syntax::{ast::StatementList, parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
-    JsResult, JsValue,
+    JsResult, JsString, JsValue,
 };
 
 use boa_gc::Gc;
@@ -47,9 +48,9 @@ pub use icu::BoaProvider;
 ///
 /// ```rust
 /// use boa_engine::{
-///     Context,
 ///     object::ObjectInitializer,
-///     property::{Attribute, PropertyDescriptor}
+///     property::{Attribute, PropertyDescriptor},
+///     Context,
 /// };
 ///
 /// let script = r#"
@@ -70,11 +71,7 @@ pub use icu::BoaProvider;
 /// let arg = ObjectInitializer::new(&mut context)
 ///     .property("x", 12, Attribute::READONLY)
 ///     .build();
-/// context.register_global_property(
-///     "arg",
-///     arg,
-///     Attribute::all()
-/// );
+/// context.register_global_property("arg", arg, Attribute::all());
 ///
 /// let value = context.eval("test(arg)").unwrap();
 ///
@@ -210,7 +207,11 @@ impl Context {
         // 2. If IsCallable(F) is false, throw a TypeError exception.
         // 3. Return ? F.[[Call]](V, argumentsList).
         f.as_callable()
-            .ok_or_else(|| self.construct_type_error("Value is not callable"))
+            .ok_or_else(|| {
+                JsNativeError::typ()
+                    .with_message("Value is not callable")
+                    .into()
+            })
             .and_then(|f| f.call(v, arguments_list, self))
     }
 
@@ -230,7 +231,7 @@ impl Context {
     #[inline]
     pub fn construct_error<M>(&mut self, message: M) -> JsValue
     where
-        M: Into<Box<str>>,
+        M: Into<JsString>,
     {
         crate::builtins::error::Error::constructor(
             &self
@@ -245,185 +246,13 @@ impl Context {
         .expect("Into<String> used as message")
     }
 
-    /// Throws a `Error` with the specified message.
-    #[inline]
-    pub fn throw_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_error(message))
-    }
-
-    /// Constructs a `RangeError` with the specified message.
-    #[inline]
-    pub fn construct_range_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::RangeError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .range_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `RangeError` with the specified message.
-    #[inline]
-    pub fn throw_range_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_range_error(message))
-    }
-
-    /// Constructs a `TypeError` with the specified message.
-    #[inline]
-    pub fn construct_type_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::TypeError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .type_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `TypeError` with the specified message.
-    #[inline]
-    pub fn throw_type_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_type_error(message))
-    }
-
-    /// Constructs a `ReferenceError` with the specified message.
-    #[inline]
-    pub fn construct_reference_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::ReferenceError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .reference_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `ReferenceError` with the specified message.
-    #[inline]
-    pub fn throw_reference_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_reference_error(message))
-    }
-
-    /// Constructs a `SyntaxError` with the specified message.
-    #[inline]
-    pub fn construct_syntax_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::SyntaxError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .syntax_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `SyntaxError` with the specified message.
-    #[inline]
-    pub fn throw_syntax_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_syntax_error(message))
-    }
-
-    /// Constructs a `EvalError` with the specified message.
-    pub fn construct_eval_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::EvalError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .eval_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Constructs a `URIError` with the specified message.
-    pub fn construct_uri_error<M>(&mut self, message: M) -> JsValue
-    where
-        M: Into<Box<str>>,
-    {
-        crate::builtins::error::UriError::constructor(
-            &self
-                .intrinsics()
-                .constructors()
-                .uri_error()
-                .constructor()
-                .into(),
-            &[message.into().into()],
-            self,
-        )
-        .expect("Into<String> used as message")
-    }
-
-    /// Throws a `EvalError` with the specified message.
-    pub fn throw_eval_error<M, R>(&mut self, message: M) -> JsResult<R>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_eval_error(message))
-    }
-
-    /// Throws a `URIError` with the specified message.
-    pub fn throw_uri_error<M>(&mut self, message: M) -> JsResult<JsValue>
-    where
-        M: Into<Box<str>>,
-    {
-        Err(self.construct_uri_error(message))
-    }
-
     /// Register a global native function.
     ///
     /// This is more efficient that creating a closure function, since this does not allocate,
     /// it is just a function pointer.
     ///
-    /// The function will be both `constructable` (call with `new`).
+    /// The function will be both `constructable` (call with `new <name>()`) and `callable` (call
+    /// with `<name>()`).
     ///
     /// The function will be bound to the global object with `writable`, `non-enumerable`
     /// and `configurable` attributes. The same as when you create a function in JavaScript.
@@ -590,36 +419,20 @@ impl Context {
     /// # Example
     /// ```
     /// use boa_engine::{
-    ///     Context,
+    ///     object::ObjectInitializer,
     ///     property::{Attribute, PropertyDescriptor},
-    ///     object::ObjectInitializer
+    ///     Context,
     /// };
     ///
     /// let mut context = Context::default();
     ///
-    /// context.register_global_property(
-    ///     "myPrimitiveProperty",
-    ///     10,
-    ///     Attribute::all()
-    /// );
+    /// context.register_global_property("myPrimitiveProperty", 10, Attribute::all());
     ///
     /// let object = ObjectInitializer::new(&mut context)
-    ///    .property(
-    ///         "x",
-    ///         0,
-    ///         Attribute::all()
-    ///     )
-    ///     .property(
-    ///         "y",
-    ///         1,
-    ///         Attribute::all()
-    ///     )
-    ///    .build();
-    /// context.register_global_property(
-    ///     "myObjectProperty",
-    ///     object,
-    ///     Attribute::all()
-    /// );
+    ///     .property("x", 0, Attribute::all())
+    ///     .property("y", 1, Attribute::all())
+    ///     .build();
+    /// context.register_global_property("myObjectProperty", object, Attribute::all());
     /// ```
     #[inline]
     pub fn register_global_property<K, V>(&mut self, key: K, value: V, attribute: Attribute)
@@ -642,7 +455,7 @@ impl Context {
     ///
     /// # Examples
     /// ```
-    ///# use boa_engine::Context;
+    /// # use boa_engine::Context;
     /// let mut context = Context::default();
     ///
     /// let value = context.eval("1 + 3").unwrap();
@@ -657,14 +470,7 @@ impl Context {
     {
         let main_timer = Profiler::global().start_event("Evaluation", "Main");
 
-        let parsing_result = Parser::new(src.as_ref())
-            .parse_all(self)
-            .map_err(|e| e.to_string());
-
-        let statement_list = match parsing_result {
-            Ok(statement_list) => statement_list,
-            Err(e) => return self.throw_syntax_error(e),
-        };
+        let statement_list = Parser::new(src.as_ref()).parse_all(self)?;
 
         let code_block = self.compile(&statement_list)?;
         let result = self.execute(code_block);
@@ -681,8 +487,8 @@ impl Context {
     pub fn compile(&mut self, statement_list: &StatementList) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        compiler.create_declarations(statement_list.items())?;
-        compiler.compile_statement_list(statement_list.items(), true)?;
+        compiler.create_decls(statement_list);
+        compiler.compile_statement_list(statement_list, true)?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -695,11 +501,7 @@ impl Context {
     ) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        compiler.compile_statement_list_with_new_declarative(
-            statement_list.items(),
-            true,
-            strict || statement_list.strict(),
-        )?;
+        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
         Ok(Gc::new(compiler.finish()))
     }
 
@@ -785,7 +587,6 @@ impl Context {
 /// Additionally, if the `intl` feature is enabled, [`ContextBuilder`] becomes
 /// the only way to create a new [`Context`], since now it requires a
 /// valid data provider for the `Intl` functionality.
-///
 #[cfg_attr(
     feature = "intl",
     doc = "The required data in a valid provider is specified in [`BoaProvider`]"

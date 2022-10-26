@@ -54,9 +54,9 @@ impl PromiseJob {
                         }
                     },
                     //   e. Else, let handlerResult be Completion(HostCallJobCallback(handler, undefined, « argument »)).
-                    Some(handler) => {
-                        handler.call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
-                    }
+                    Some(handler) => handler
+                        .call_job_callback(&JsValue::Undefined, &[argument.clone()], context)
+                        .map_err(|e| e.to_opaque(context)),
                 };
 
                 match promise_capability {
@@ -146,6 +146,7 @@ impl PromiseJob {
 
                 //    c. If thenCallResult is an abrupt completion, then
                 if let Err(value) = then_call_result {
+                    let value = value.to_opaque(context);
                     //    i. Return ? Call(resolvingFunctions.[[Reject]], undefined, « thenCallResult.[[Value]] »).
                     return context.call(
                         &resolving_functions.reject,

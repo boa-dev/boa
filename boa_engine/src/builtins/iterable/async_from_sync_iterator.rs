@@ -6,7 +6,7 @@ use crate::{
     },
     object::{FunctionBuilder, JsObject, ObjectData},
     property::PropertyDescriptor,
-    Context, JsResult, JsValue,
+    Context, JsNativeError, JsResult, JsValue,
 };
 use boa_gc::{Finalize, Trace};
 use boa_profiler::Profiler;
@@ -234,24 +234,25 @@ impl AsyncFromSyncIterator {
         if_abrupt_reject_promise!(result, promise_capability, context);
 
         // 11. If Type(result) is not Object, then
-        let result =
-            if let Some(result) = result.as_object() {
-                result
-            } else {
-                // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
-                promise_capability
-                    .reject()
-                    .call(
-                        &JsValue::Undefined,
-                        &[context
-                            .construct_type_error("iterator return function returned non-object")],
-                        context,
-                    )
-                    .expect("cannot fail according to spec");
+        let result = if let Some(result) = result.as_object() {
+            result
+        } else {
+            // a. Perform ! Call(promiseCapability.[[Reject]], undefined, « a newly created TypeError object »).
+            promise_capability
+                .reject()
+                .call(
+                    &JsValue::Undefined,
+                    &[JsNativeError::typ()
+                        .with_message("iterator return function returned non-object")
+                        .to_opaque(context)
+                        .into()],
+                    context,
+                )
+                .expect("cannot fail according to spec");
 
-                // b. Return promiseCapability.[[Promise]].
-                return Ok(promise_capability.promise().clone().into());
-            };
+            // b. Return promiseCapability.[[Promise]].
+            return Ok(promise_capability.promise().clone().into());
+        };
 
         // 12. Return AsyncFromSyncIteratorContinuation(result, promiseCapability).
         Self::continuation(
@@ -341,7 +342,10 @@ impl AsyncFromSyncIterator {
                 .reject()
                 .call(
                     &JsValue::Undefined,
-                    &[context.construct_type_error("iterator throw function returned non-object")],
+                    &[JsNativeError::typ()
+                        .with_message("iterator throw function returned non-object")
+                        .to_opaque(context)
+                        .into()],
                     context,
                 )
                 .expect("cannot fail according to spec");
