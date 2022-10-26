@@ -223,7 +223,8 @@ impl CodeBlock {
                 *pc += size_of::<u32>();
                 format!("{operand1}, {operand2}")
             }
-            Opcode::GetFunction
+            Opcode::GetArrowFunction
+            | Opcode::GetFunction
             | Opcode::GetFunctionAsync
             | Opcode::GetGenerator
             | Opcode::GetGeneratorAsync => {
@@ -458,6 +459,7 @@ impl ToInternedString for CodeBlock {
 pub(crate) fn create_function_object(
     code: Gc<CodeBlock>,
     r#async: bool,
+    arrow: bool,
     prototype: Option<JsObject>,
     context: &mut Context,
 ) -> JsObject {
@@ -551,7 +553,7 @@ pub(crate) fn create_function_object(
     constructor
         .define_property_or_throw(js_string!("name"), name_property, context)
         .expect("failed to define the name property of the function");
-    if !r#async {
+    if !r#async && !arrow {
         constructor
             .define_property_or_throw(js_string!("prototype"), prototype_property, context)
             .expect("failed to define the prototype property of the function");

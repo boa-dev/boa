@@ -2317,6 +2317,8 @@ impl<'b> ByteCompiler<'b> {
             self.emit(Opcode::GetGenerator, &[index]);
         } else if r#async {
             self.emit(Opcode::GetFunctionAsync, &[index]);
+        } else if arrow {
+            self.emit(Opcode::GetArrowFunction, &[index]);
         } else {
             self.emit(Opcode::GetFunction, &[index]);
         }

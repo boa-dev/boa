@@ -1022,6 +1022,13 @@ pub enum Opcode {
     /// Stack: `value` **=>**
     Default,
 
+    /// Get arrow function from the pre-compiled inner functions.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: **=>** func
+    GetArrowFunction,
+
     /// Get function from the pre-compiled inner functions.
     ///
     /// Operands: address: `u32`
@@ -1441,6 +1448,7 @@ impl Opcode {
             Self::SuperCallDerived => SuperCallDerived::NAME,
             Self::Case => Case::NAME,
             Self::Default => Default::NAME,
+            Self::GetArrowFunction => GetArrowFunction::NAME,
             Self::GetFunction => GetFunction::NAME,
             Self::GetFunctionAsync => GetFunctionAsync::NAME,
             Self::GetGenerator => GetGenerator::NAME,
@@ -1588,6 +1596,7 @@ impl Opcode {
             Self::SuperCallDerived => SuperCallDerived::INSTRUCTION,
             Self::Case => Case::INSTRUCTION,
             Self::Default => Default::INSTRUCTION,
+            Self::GetArrowFunction => GetArrowFunction::INSTRUCTION,
             Self::GetFunction => GetFunction::INSTRUCTION,
             Self::GetFunctionAsync => GetFunctionAsync::INSTRUCTION,
             Self::GetGenerator => GetGenerator::INSTRUCTION,

@@ -3,6 +3,26 @@ use crate::{
     Context, JsResult,
 };
 
+/// `GetArrowFunction` implements the Opcode Operation for `Opcode::GetArrowFunction`
+///
+/// Operation:
+///  - Get arrow function from the pre-compiled inner functions.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct GetArrowFunction;
+
+impl Operation for GetArrowFunction {
+    const NAME: &'static str = "GetArrowFunction";
+    const INSTRUCTION: &'static str = "INST - GetArrowFunction";
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+        let index = context.vm.read::<u32>();
+        let code = context.vm.frame().code.functions[index as usize].clone();
+        let function = create_function_object(code, false, true, None, context);
+        context.vm.push(function);
+        Ok(ShouldExit::False)
+    }
+}
+
 /// `GetFunction` implements the Opcode Operation for `Opcode::GetFunction`
 ///
 /// Operation:
@@ -17,7 +37,7 @@ impl Operation for GetFunction {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
-        let function = create_function_object(code, false, None, context);
+        let function = create_function_object(code, false, false, None, context);
         context.vm.push(function);
         Ok(ShouldExit::False)
     }
@@ -37,7 +57,7 @@ impl Operation for GetFunctionAsync {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
         let code = context.vm.frame().code.functions[index as usize].clone();
-        let function = create_function_object(code, true, None, context);
+        let function = create_function_object(code, true, false, None, context);
         context.vm.push(function);
         Ok(ShouldExit::False)
     }
