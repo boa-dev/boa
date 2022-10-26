@@ -101,10 +101,6 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
-<span id="102">102</span>
-<span id="103">103</span>
-<span id="104">104</span>
-<span id="105">105</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Conditional operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -187,13 +183,9 @@
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
             <span class="kw">if</span> <span class="ident">tok</span>.<span class="ident">kind</span>() <span class="op">==</span> <span class="kw-2">&amp;</span><span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Question</span>) {
                 <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;? character vanished&quot;</span>); <span class="comment">// Consume the token.</span>
-                <span class="kw">let</span> <span class="ident">then_clause</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(
-                    <span class="prelude-val">None</span>,
-                    <span class="self">self</span>.<span class="ident">allow_in</span>,
-                    <span class="self">self</span>.<span class="ident">allow_yield</span>,
-                    <span class="self">self</span>.<span class="ident">allow_await</span>,
-                )
-                .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                <span class="kw">let</span> <span class="ident">then_clause</span> <span class="op">=</span>
+                    <span class="ident">AssignmentExpression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
+                        .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                 <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::Colon</span>, <span class="string">&quot;conditional expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> <span class="ident">else_clause</span> <span class="op">=</span> <span class="ident">AssignmentExpression::new</span>(
