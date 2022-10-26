@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["dense","Types and routines specific to dense DFAs."],["regex","A DFA-backed `Regex`."],["sparse","Types and routines specific to sparse DFAs."]],"struct":[["OverlappingState","Represents the current state of an overlapping search."]],"trait":[["Automaton","A trait describing the interface of a deterministic finite automaton (DFA)."]]});

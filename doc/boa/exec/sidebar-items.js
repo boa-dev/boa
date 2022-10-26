@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["InterpreterState",""]],"struct":[["Interpreter","A Javascript intepreter"]],"trait":[["Executable",""]]});

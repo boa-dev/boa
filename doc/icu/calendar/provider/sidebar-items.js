@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["EraStartDate","The date at which an era started"],["EraStartDateULE","`ULE` type for EraStartDate"],["JapaneseErasV1",""],["JapaneseErasV1Marker","Marker type for [`JapaneseErasV1`]: “calendar/japanese@1”"]]});

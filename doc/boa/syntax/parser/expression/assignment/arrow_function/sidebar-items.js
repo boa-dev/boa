@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ArrowFunction","Arrow function parsing."],["ConciseBody","https://tc39.es/ecma262/#prod-ConciseBody"],["ExpressionBody","https://tc39.es/ecma262/#prod-ExpressionBody"]]});

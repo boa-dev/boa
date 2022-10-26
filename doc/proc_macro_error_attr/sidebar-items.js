@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":[["proc_macro_error",""]]};

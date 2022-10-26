@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["OverflowingAdd","Performs addition with a flag for overflow."],["OverflowingMul","Performs multiplication with a flag for overflow."],["OverflowingSub","Performs substraction with a flag for overflow."]]};

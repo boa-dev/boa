@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["get_locale","Returns the active locale for the system or application."]]};

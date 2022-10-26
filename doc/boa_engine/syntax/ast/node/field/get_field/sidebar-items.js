@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["GetField","This property accessor provides access to an object’s properties by using the bracket notation."]]};

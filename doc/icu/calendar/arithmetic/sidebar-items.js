@@ -1,1 +1,0 @@
-initSidebarItems({"mod":[["week_of",""]]});

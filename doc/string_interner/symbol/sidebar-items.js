@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["SymbolU16","Symbol that is 16-bit in size."],["SymbolU32","Symbol that is 32-bit in size."],["SymbolUsize","Symbol that is the same size as a pointer (`usize`)."]],"trait":[["Symbol","Types implementing this trait can be used as symbols for string interners."]],"type":[["DefaultSymbol","The symbol type that is used by default."]]});

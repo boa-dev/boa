@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["FunctionBody",""]],"struct":[["CodeBlock","The internal representation of a JavaScript function."],["JsVmFunction",""]],"trait":[["Readable","This represents whether a value can be read from [`CodeBlock`] code."]]});

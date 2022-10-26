@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["AsyncFunctionDecl","An async function is used to specify an action (or series of actions) to perform asynchronously."]]});

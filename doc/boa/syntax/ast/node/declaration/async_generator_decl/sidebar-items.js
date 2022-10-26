@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["AsyncGeneratorDecl","The ‘async function*’ defines an async generator function"]]});

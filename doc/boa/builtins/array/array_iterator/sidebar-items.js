@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ArrayIterator","The Array Iterator object represents an iteration over an array. It implements the iterator protocol."]]});

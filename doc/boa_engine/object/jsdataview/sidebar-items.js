@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["JsDataView","`JsDataView` Provides a wrapper for Boa’s implementation of the Javascript `DataView` object"]]};

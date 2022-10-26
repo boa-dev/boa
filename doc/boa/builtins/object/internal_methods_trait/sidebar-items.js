@@ -1,1 +1,0 @@
-initSidebarItems({"trait":[["ObjectInternalMethods","Here lies the internal methods for ordinary objects."]]});

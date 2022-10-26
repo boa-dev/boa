@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Iter","A forward iterator over the strings of an array, casted to `&str`."],["IterBytes","A forward iterator over the strings of an array, casted to `&[u8]`."],["StringArray","A string array structure used by libgit2"]]});

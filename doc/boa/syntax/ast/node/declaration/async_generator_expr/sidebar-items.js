@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["AsyncGeneratorExpr","The `async function*` keyword can be used to define a generator function inside an expression."]]});

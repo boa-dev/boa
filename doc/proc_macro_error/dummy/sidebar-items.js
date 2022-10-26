@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["append_dummy","Same as [`set_dummy`] but, instead of resetting, appends tokens to the existing dummy (if any). Behaves as `set_dummy` if no dummy is present."],["set_dummy","Sets dummy token stream which will be appended to `compile_error!(msg);...` invocations in case you’ll emit any errors."]]};

@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["ParseError","`ParseError` is an enum which represents errors encounted during parsing an expression"]],"trait":[["ErrorContext",""]],"type":[["ParseResult","Result of a parsing operation."]]});

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Entries","An iterator over the key/value pairs in a `Map`."],["Keys","An iterator over the keys in a `Map`."],["Map","An immutable map constructed at compile time."],["Values","An iterator over the values in a `Map`."]]};

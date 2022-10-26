@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["FunctionDeclaration","Function declaration parsing."]]});

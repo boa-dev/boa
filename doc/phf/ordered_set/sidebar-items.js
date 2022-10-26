@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Iter","An iterator over the values in a `OrderedSet`."],["OrderedSet","An order-preserving immutable set constructed at compile time."]]};

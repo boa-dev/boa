@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["ForInIterator","The `ForInIterator` object represents an iteration over some specific object. It implements the iterator protocol."]]});

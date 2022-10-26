@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":[["perf_event_open","The `perf_event_open` system call."]],"mod":[["bindings","Types and constants used with `perf_event_open`."],["ioctls","Ioctls for use with `perf_event_open` file descriptors."]]};

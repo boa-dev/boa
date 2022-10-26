@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":[["UNICODE_VERSION","The version of Unicode that this version of unicode-general-category was generated from."]],"enum":[["GeneralCategory",""]],"fn":[["get_general_category","Look up the general category for a character."]]};

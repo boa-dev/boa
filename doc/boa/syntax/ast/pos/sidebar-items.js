@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["Position","A position in the Javascript source code."]]});

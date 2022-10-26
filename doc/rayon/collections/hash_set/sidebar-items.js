@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Drain","Draining parallel iterator that moves out of a hash set, but keeps the total capacity."],["IntoIter","Parallel iterator over a hash set"],["Iter","Parallel iterator over an immutable reference to a hash set"]]};

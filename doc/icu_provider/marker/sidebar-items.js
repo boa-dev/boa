@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["CowStrMarker","Marker type for [`Cow`]`<str>` where the backing cart is `str`."]],"trait":[["DataMarker","Trait marker for data structs. All types delivered by the data provider must be associated with something implementing this trait."],["ResourceMarker",""]]};

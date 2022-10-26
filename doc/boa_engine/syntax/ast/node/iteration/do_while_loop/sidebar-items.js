@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["DoWhileLoop","The `do...while` statement creates a loop that executes a specified statement until the test condition evaluates to false."]]};

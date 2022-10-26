@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["VarDecl","Individual variable declaration."],["VarDeclList","The `var` statement declares a variable, optionally initializing it to a value."]]});

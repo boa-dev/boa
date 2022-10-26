@@ -1,1 +1,0 @@
-initSidebarItems({"enum":[["TEncoding",""],["TScalarStyle",""],["TokenType",""]],"struct":[["Marker",""],["ScanError",""],["Scanner",""],["Token",""]],"type":[["ScanResult",""]]});

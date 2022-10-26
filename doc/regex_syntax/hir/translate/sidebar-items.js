@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":[["Translator","A translator maps abstract syntax to a high level intermediate representation."],["TranslatorBuilder","A builder for constructing an AST->HIR translator."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["Error",""]],"mod":[["decimal",""],["signum","Sign function for FixedDecimal."]]};

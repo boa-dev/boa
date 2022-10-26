@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["DataExporter","An object capable of exporting data payloads in some form."]]};

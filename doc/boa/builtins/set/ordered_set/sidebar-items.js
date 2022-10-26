@@ -1,1 +1,0 @@
-initSidebarItems({"struct":[["OrderedSet","A type wrapping `indexmap::IndexSet`"]]});

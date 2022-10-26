@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":[["GetTimezoneError","Error types"]],"fn":[["get_timezone","Get the current IANA time zone as a string."]]};

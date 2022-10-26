@@ -1,3 +1,0 @@
-(function() {var implementors = {};
-implementors["boa_interner"] = [{"text":"impl <a class=\"trait\" href=\"string_interner/symbol/trait.Symbol.html\" title=\"trait string_interner::symbol::Symbol\">Symbol</a> for <a class=\"struct\" href=\"boa_interner/struct.Sym.html\" title=\"struct boa_interner::Sym\">Sym</a>","synthetic":false,"types":["boa_interner::Sym"]}];
-if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

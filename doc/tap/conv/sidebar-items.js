@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"trait":[["Conv","Wraps `Into::<T>::into` as a method that can be placed in pipelines."],["TryConv","Wraps `TryInto::<T>::try_into` as a method that can be placed in pipelines."]]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":[["store","Traits for pluggable LiteMap backends."]],"struct":[["LiteMap","A simple “flat” map based on a sorted vector"]]};
