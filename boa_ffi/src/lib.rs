@@ -22,7 +22,7 @@ pub unsafe extern "C" fn boa_exec(src_bytes: *const c_char) -> *mut c_char {
 
     let return_value = match Context::default().eval(c_str.to_bytes()) {
         Ok(value) => value.display().to_string(),
-        Err(error) => error.display().to_string(),
+        Err(error) => error.to_string(),
     };
 
     let s = CString::new(return_value).unwrap();
