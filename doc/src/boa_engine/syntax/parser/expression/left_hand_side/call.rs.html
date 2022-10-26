@@ -149,7 +149,6 @@
 <span id="147">147</span>
 <span id="148">148</span>
 <span id="149">149</span>
-<span id="150">150</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Call expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -164,7 +163,7 @@
     <span class="ident">ast</span>::{
         <span class="self">self</span>,
         <span class="ident">expression</span>::{
-            <span class="ident">access</span>::{<span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>},
+            <span class="ident">access</span>::{<span class="ident">PrivatePropertyAccess</span>, <span class="ident">SimplePropertyAccess</span>},
             <span class="ident">Call</span>,
         },
         <span class="ident">Punctuator</span>,
@@ -247,25 +246,21 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Dot</span>) =&gt; {
                     <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>; <span class="comment">// We move the parser forward.</span>
 
-                    <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>() {
-                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>();
-                        }
+                    <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>.<span class="ident">kind</span>() {
+                        <span class="ident">TokenKind::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>(),
                         <span class="ident">TokenKind::Keyword</span>((<span class="ident">kw</span>, <span class="kw">_</span>)) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>)).<span class="ident">into</span>();
+                            <span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">kw</span>.<span class="ident">to_sym</span>(<span class="ident">interner</span>)).<span class="ident">into</span>()
                         }
                         <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">true</span>) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::TRUE</span>).<span class="ident">into</span>();
+                            <span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::TRUE</span>).<span class="ident">into</span>()
                         }
                         <span class="ident">TokenKind::BooleanLiteral</span>(<span class="bool-val">false</span>) =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::FALSE</span>).<span class="ident">into</span>();
+                            <span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::FALSE</span>).<span class="ident">into</span>()
                         }
-                        <span class="ident">TokenKind::NullLiteral</span> =&gt; {
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::NULL</span>).<span class="ident">into</span>();
-                        }
+                        <span class="ident">TokenKind::NullLiteral</span> =&gt; <span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">Sym::NULL</span>).<span class="ident">into</span>(),
                         <span class="ident">TokenKind::PrivateIdentifier</span>(<span class="ident">name</span>) =&gt; {
                             <span class="ident">cursor</span>.<span class="ident">push_used_private_identifier</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="ident">token</span>.<span class="ident">span</span>().<span class="ident">start</span>())<span class="question-mark">?</span>;
-                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PrivatePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>();
+                            <span class="ident">PrivatePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>()
                         }
                         <span class="kw">_</span> =&gt; {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::expected</span>(
@@ -275,14 +270,17 @@
                                 <span class="string">&quot;call expression&quot;</span>,
                             ));
                         }
-                    }
+                    };
+
+                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">ast::Expression::PropertyAccess</span>(<span class="ident">access</span>);
                 }
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::OpenBracket</span>) =&gt; {
                     <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>)<span class="question-mark">?</span>.<span class="ident">ok_or</span>(<span class="ident">ParseError::AbruptEnd</span>)<span class="question-mark">?</span>; <span class="comment">// We move the parser.</span>
                     <span class="kw">let</span> <span class="ident">idx</span> <span class="op">=</span> <span class="ident">Expression::new</span>(<span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">allow_yield</span>, <span class="self">self</span>.<span class="ident">allow_await</span>)
                         .<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
                     <span class="ident">cursor</span>.<span class="ident">expect</span>(<span class="ident">Punctuator::CloseBracket</span>, <span class="string">&quot;call expression&quot;</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-                    <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">PropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">idx</span>).<span class="ident">into</span>();
+                    <span class="ident">lhs</span> <span class="op">=</span>
+                        <span class="ident">ast::Expression::PropertyAccess</span>(<span class="ident">SimplePropertyAccess::new</span>(<span class="ident">lhs</span>, <span class="ident">idx</span>).<span class="ident">into</span>());
                 }
                 <span class="ident">TokenKind::TemplateNoSubstitution</span> { .. } <span class="op">|</span> <span class="ident">TokenKind::TemplateMiddle</span> { .. } =&gt; {
                     <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">TaggedTemplateLiteral::new</span>(

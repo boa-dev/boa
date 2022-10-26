@@ -754,74 +754,6 @@
 <span id="752">752</span>
 <span id="753">753</span>
 <span id="754">754</span>
-<span id="755">755</span>
-<span id="756">756</span>
-<span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
-<span id="765">765</span>
-<span id="766">766</span>
-<span id="767">767</span>
-<span id="768">768</span>
-<span id="769">769</span>
-<span id="770">770</span>
-<span id="771">771</span>
-<span id="772">772</span>
-<span id="773">773</span>
-<span id="774">774</span>
-<span id="775">775</span>
-<span id="776">776</span>
-<span id="777">777</span>
-<span id="778">778</span>
-<span id="779">779</span>
-<span id="780">780</span>
-<span id="781">781</span>
-<span id="782">782</span>
-<span id="783">783</span>
-<span id="784">784</span>
-<span id="785">785</span>
-<span id="786">786</span>
-<span id="787">787</span>
-<span id="788">788</span>
-<span id="789">789</span>
-<span id="790">790</span>
-<span id="791">791</span>
-<span id="792">792</span>
-<span id="793">793</span>
-<span id="794">794</span>
-<span id="795">795</span>
-<span id="796">796</span>
-<span id="797">797</span>
-<span id="798">798</span>
-<span id="799">799</span>
-<span id="800">800</span>
-<span id="801">801</span>
-<span id="802">802</span>
-<span id="803">803</span>
-<span id="804">804</span>
-<span id="805">805</span>
-<span id="806">806</span>
-<span id="807">807</span>
-<span id="808">808</span>
-<span id="809">809</span>
-<span id="810">810</span>
-<span id="811">811</span>
-<span id="812">812</span>
-<span id="813">813</span>
-<span id="814">814</span>
-<span id="815">815</span>
-<span id="816">816</span>
-<span id="817">817</span>
-<span id="818">818</span>
-<span id="819">819</span>
-<span id="820">820</span>
-<span id="821">821</span>
-<span id="822">822</span>
 </pre><pre class="rust"><code><span class="doccomment">//! A pattern binding or assignment node.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! A [`Pattern`] Corresponds to the [`BindingPattern`][spec1] and the [`AssignmentPattern`][spec2]</span>
@@ -846,13 +778,10 @@
 <span class="doccomment">//! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern</span>
 <span class="doccomment">//! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment</span>
 
-<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 
 <span class="kw">use</span> <span class="kw">super</span>::{
-    <span class="ident">expression</span>::{
-        <span class="ident">access</span>::{<span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>},
-        <span class="ident">Identifier</span>,
-    },
+    <span class="ident">expression</span>::{<span class="ident">access::PropertyAccess</span>, <span class="ident">Identifier</span>},
     <span class="ident">property::PropertyName</span>,
     <span class="ident">ContainsSymbol</span>, <span class="ident">Expression</span>,
 };
@@ -1198,80 +1127,58 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident">ObjectPatternElement::SingleName</span> {
-                <span class="ident">name</span>, <span class="ident">default_init</span>, ..
+                <span class="ident">name</span>,
+                <span class="ident">ident</span>,
+                <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">name</span> {
-                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
-                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">name</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>())
+            }
+            <span class="ident">ObjectPatternElement::RestProperty</span> { <span class="ident">ident</span>, .. } =&gt; <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>,
+            <span class="ident">ObjectPatternElement::AssignmentPropertyAccess</span> {
+                <span class="ident">name</span>,
+                <span class="ident">access</span>,
+                <span class="ident">default_init</span>,
+            } =&gt; {
+                <span class="ident">name</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">access</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>())
             }
             <span class="ident">ObjectPatternElement::AssignmentRestPropertyAccess</span> { <span class="ident">access</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">target</span>().<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
+                <span class="ident">access</span>.<span class="ident">contains_arguments</span>()
             }
             <span class="ident">ObjectPatternElement::Pattern</span> {
                 <span class="ident">name</span>,
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">name</span> {
-                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
-                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="ident">name</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>())
             }
-            <span class="kw">_</span> =&gt; {}
         }
-        <span class="bool-val">false</span>
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::SingleName</span> {
-                <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">node</span>),
-                ..
+                <span class="ident">name</span>, <span class="ident">default_init</span>, ..
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
+                <span class="ident">name</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
             }
-            <span class="ident"><span class="self">Self</span>::AssignmentRestPropertyAccess</span> { <span class="ident">access</span>, .. } =&gt; {
-                <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">target</span>().<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-            }
+            <span class="ident"><span class="self">Self</span>::AssignmentRestPropertyAccess</span> { <span class="ident">access</span>, .. } =&gt; <span class="ident">access</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
             <span class="ident"><span class="self">Self</span>::Pattern</span> {
+                <span class="ident">name</span>,
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
-                ..
             } =&gt; {
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="ident">default_init</span> {
-                    <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
+                <span class="ident">name</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
+                    <span class="op">|</span><span class="op">|</span> <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
             }
-            <span class="kw">_</span> =&gt; {}
+            <span class="kw">_</span> =&gt; <span class="bool-val">false</span>,
         }
-        <span class="bool-val">false</span>
     }
 
     <span class="doccomment">/// Gets the list of identifiers declared by the object binding pattern.</span>
@@ -1499,45 +1406,27 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident"><span class="self">Self</span>::Elision</span> =&gt; <span class="bool-val">false</span>,
             <span class="ident"><span class="self">Self</span>::SingleName</span> {
-                <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">init</span>),
-                ..
+                <span class="ident">ident</span>,
+                <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
+                <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>())
             }
+            <span class="ident"><span class="self">Self</span>::SingleNameRest</span> { <span class="ident">ident</span> } =&gt; <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>,
             <span class="ident"><span class="self">Self</span>::PropertyAccess</span> { <span class="ident">access</span> } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::PropertyAccessRest</span> { <span class="ident">access</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">target</span>().<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                    <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="ident">access</span>.<span class="ident">contains_arguments</span>()
             }
-            <span class="ident"><span class="self">Self</span>::PatternRest</span> { <span class="ident">pattern</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-            }
+            <span class="ident"><span class="self">Self</span>::PatternRest</span> { <span class="ident">pattern</span> } =&gt; <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident"><span class="self">Self</span>::Pattern</span> {
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>() {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
-                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>() {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>()
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains_arguments</span>())
             }
-            <span class="kw">_</span> =&gt; {}
         }
-        <span class="bool-val">false</span>
     }
 
     <span class="doccomment">/// Returns `true` if the node contains the given token.</span>
@@ -1548,47 +1437,22 @@
     <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
-            <span class="ident"><span class="self">Self</span>::SingleName</span> {
-                <span class="ident">default_init</span>: <span class="prelude-val">Some</span>(<span class="ident">node</span>),
-                ..
-            } =&gt; {
-                <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
+            <span class="ident"><span class="self">Self</span>::Elision</span> <span class="op">|</span> <span class="ident"><span class="self">Self</span>::SingleNameRest</span> { .. } =&gt; <span class="bool-val">false</span>,
+            <span class="ident"><span class="self">Self</span>::SingleName</span> { <span class="ident">default_init</span>, .. } =&gt; {
+                <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
             }
             <span class="ident"><span class="self">Self</span>::PropertyAccess</span> { <span class="ident">access</span> } <span class="op">|</span> <span class="ident"><span class="self">Self</span>::PropertyAccessRest</span> { <span class="ident">access</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">access</span>.<span class="ident">target</span>().<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-
-                <span class="kw">if</span> <span class="kw">let</span> <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                    <span class="kw">if</span> <span class="ident">expr</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="ident">access</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
             }
             <span class="ident"><span class="self">Self</span>::Pattern</span> {
                 <span class="ident">pattern</span>,
                 <span class="ident">default_init</span>,
             } =&gt; {
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-
-                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">default_init</span> {
-                    <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                        <span class="kw">return</span> <span class="bool-val">true</span>;
-                    }
-                }
+                <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
+                    <span class="op">|</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">default_init</span>, <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="kw">if</span> <span class="ident">init</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>))
             }
-            <span class="ident"><span class="self">Self</span>::PatternRest</span> { <span class="ident">pattern</span> } =&gt; {
-                <span class="kw">if</span> <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>) {
-                    <span class="kw">return</span> <span class="bool-val">true</span>;
-                }
-            }
-            <span class="kw">_</span> =&gt; {}
+            <span class="ident"><span class="self">Self</span>::PatternRest</span> { <span class="ident">pattern</span> } =&gt; <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
         }
-        <span class="bool-val">false</span>
     }
 
     <span class="doccomment">/// Gets the list of identifiers in the array pattern element.</span>

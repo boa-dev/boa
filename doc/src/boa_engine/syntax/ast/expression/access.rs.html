@@ -245,6 +245,61 @@
 <span id="243">243</span>
 <span id="244">244</span>
 <span id="245">245</span>
+<span id="246">246</span>
+<span id="247">247</span>
+<span id="248">248</span>
+<span id="249">249</span>
+<span id="250">250</span>
+<span id="251">251</span>
+<span id="252">252</span>
+<span id="253">253</span>
+<span id="254">254</span>
+<span id="255">255</span>
+<span id="256">256</span>
+<span id="257">257</span>
+<span id="258">258</span>
+<span id="259">259</span>
+<span id="260">260</span>
+<span id="261">261</span>
+<span id="262">262</span>
+<span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
+<span id="268">268</span>
+<span id="269">269</span>
+<span id="270">270</span>
+<span id="271">271</span>
+<span id="272">272</span>
+<span id="273">273</span>
+<span id="274">274</span>
+<span id="275">275</span>
+<span id="276">276</span>
+<span id="277">277</span>
+<span id="278">278</span>
+<span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
+<span id="289">289</span>
+<span id="290">290</span>
+<span id="291">291</span>
+<span id="292">292</span>
+<span id="293">293</span>
+<span id="294">294</span>
+<span id="295">295</span>
+<span id="296">296</span>
+<span id="297">297</span>
+<span id="298">298</span>
+<span id="299">299</span>
+<span id="300">300</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Property access expressions, as defined by the [spec].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [Property access expressions][access] provide two ways to access properties of an object: *dot notation*</span>
@@ -253,6 +308,10 @@
 <span class="doccomment">//! identifier e.g. `obj.prop`, `arr.$val`.</span>
 <span class="doccomment">//! - *Bracket notation* is used when the name of the property is either variable, not a valid</span>
 <span class="doccomment">//! identifier or a symbol e.g. `arr[var]`, `arr[5]`, `arr[Symbol.iterator]`.</span>
+<span class="doccomment">//!</span>
+<span class="doccomment">//! A property access expression can be represented by a [`SimplePropertyAccess`] (`x.y`), a</span>
+<span class="doccomment">//! [`PrivatePropertyAccess`] (`x.#y`) or a [`SuperPropertyAccess`] (`super[&quot;y&quot;]`), each of them with</span>
+<span class="doccomment">//! slightly different semantics overall.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors</span>
 <span class="doccomment">//! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors</span>
@@ -307,12 +366,62 @@
 <span class="doccomment">/// See the [module level documentation][self] for more information.</span>
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
-<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PropertyAccess</span> {
+<span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">PropertyAccess</span> {
+    <span class="doccomment">/// A simple property access (`x.prop`).</span>
+    <span class="ident">Simple</span>(<span class="ident">SimplePropertyAccess</span>),
+    <span class="doccomment">/// A property access of a private property (`x.#priv`).</span>
+    <span class="ident">Private</span>(<span class="ident">PrivatePropertyAccess</span>),
+    <span class="doccomment">/// A property access of a `super` reference. (`super[&quot;prop&quot;]`).</span>
+    <span class="ident">Super</span>(<span class="ident">SuperPropertyAccess</span>),
+}
+
+<span class="kw">impl</span> <span class="ident">PropertyAccess</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PropertyAccess::Simple</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">contains_arguments</span>(),
+            <span class="ident">PropertyAccess::Private</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>.<span class="ident">contains_arguments</span>(),
+            <span class="ident">PropertyAccess::Super</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">contains_arguments</span>(),
+        }
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PropertyAccess::Simple</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+            <span class="ident">PropertyAccess::Private</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+            <span class="ident">PropertyAccess::Super</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">PropertyAccess::Simple</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident">PropertyAccess::Private</span>(<span class="ident">p</span>) =&gt; <span class="ident">p</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident">PropertyAccess::Super</span>(<span class="ident">s</span>) =&gt; <span class="ident">s</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident">PropertyAccess</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::PropertyAccess</span>(<span class="ident">access</span>)
+    }
+}
+
+<span class="doccomment">/// A simple property access, where the target object is an [`Expression`].</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
+<span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">SimplePropertyAccess</span> {
     <span class="ident">target</span>: <span class="ident">Box</span><span class="op">&lt;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
     <span class="ident">field</span>: <span class="ident">PropertyAccessField</span>,
 }
 
-<span class="kw">impl</span> <span class="ident">PropertyAccess</span> {
+<span class="kw">impl</span> <span class="ident">SimplePropertyAccess</span> {
     <span class="doccomment">/// Gets the target object of the property access.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">target</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="ident">Expression</span> {
@@ -348,7 +457,7 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
+<span class="kw">impl</span> <span class="ident">ToInternedString</span> <span class="kw">for</span> <span class="ident">SimplePropertyAccess</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">to_interned_string</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;</span><span class="ident">Interner</span>) -&gt; <span class="ident">String</span> {
         <span class="kw">let</span> <span class="ident">target</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">target</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>);
@@ -361,17 +470,18 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SimplePropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident">PropertyAccess</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::PropertyAccess</span>(<span class="ident">access</span>)
+    <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident">SimplePropertyAccess</span>) -&gt; <span class="self">Self</span> {
+        <span class="ident"><span class="self">Self</span>::Simple</span>(<span class="ident">access</span>)
     }
 }
 
 <span class="doccomment">/// An access expression to a class object&#39;s [private fields][mdn].</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// Private property accesses differ slightly from plain property accesses, since the accessed</span>
-<span class="doccomment">/// property must be prefixed by `#`, and the bracket notation is not allowed e.g. `this.#a`.</span>
+<span class="doccomment">/// property must be prefixed by `#`, and the bracket notation is not allowed. For example,</span>
+<span class="doccomment">/// `this.#a` is a valid private property access.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// This expression corresponds to the [`MemberExpression.PrivateIdentifier`][spec] production.</span>
 <span class="doccomment">///</span>
@@ -428,10 +538,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PrivatePropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">PrivatePropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident">PrivatePropertyAccess</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::PrivatePropertyAccess</span>(<span class="ident">access</span>)
+        <span class="ident"><span class="self">Self</span>::Private</span>(<span class="ident">access</span>)
     }
 }
 
@@ -466,7 +576,7 @@
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">symbol</span>: <span class="ident">ContainsSymbol</span>) -&gt; <span class="ident">bool</span> {
-        <span class="self">self</span>.<span class="ident">field</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
+        <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::SuperProperty</span> <span class="op">|</span><span class="op">|</span> <span class="self">self</span>.<span class="ident">field</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
     }
 }
 
@@ -484,10 +594,10 @@
     }
 }
 
-<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SuperPropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Expression</span> {
+<span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">SuperPropertyAccess</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">PropertyAccess</span> {
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">access</span>: <span class="ident">SuperPropertyAccess</span>) -&gt; <span class="self">Self</span> {
-        <span class="ident"><span class="self">Self</span>::SuperPropertyAccess</span>(<span class="ident">access</span>)
+        <span class="ident"><span class="self">Self</span>::Super</span>(<span class="ident">access</span>)
     }
 }
 </code></pre></div>

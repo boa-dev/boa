@@ -101,6 +101,14 @@
 <span id="99">99</span>
 <span id="100">100</span>
 <span id="101">101</span>
+<span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
+<span id="106">106</span>
+<span id="107">107</span>
+<span id="108">108</span>
+<span id="109">109</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Iteration nodes</span>
 
 <span class="kw">mod</span> <span class="ident">r#break</span>;
@@ -111,7 +119,11 @@
 <span class="kw">mod</span> <span class="ident">for_of_loop</span>;
 <span class="kw">mod</span> <span class="ident">while_loop</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">expression::Identifier</span>, <span class="ident">pattern::Pattern</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{
+    <span class="ident">declaration::Binding</span>,
+    <span class="ident">expression</span>::{<span class="ident">access::PropertyAccess</span>, <span class="ident">Identifier</span>},
+    <span class="ident">pattern::Pattern</span>,
+};
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="self">self</span>::{
     <span class="ident">do_while_loop::DoWhileLoop</span>,
@@ -139,9 +151,10 @@
 <span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">IterableLoopInitializer</span> {
-    <span class="comment">// TODO: This should also accept property accessors</span>
     <span class="doccomment">/// An already declared variable.</span>
     <span class="ident">Identifier</span>(<span class="ident">Identifier</span>),
+    <span class="doccomment">/// A property access.</span>
+    <span class="ident">Access</span>(<span class="ident">PropertyAccess</span>),
     <span class="doccomment">/// A new var declaration.</span>
     <span class="ident">Var</span>(<span class="ident">Binding</span>),
     <span class="doccomment">/// A new let declaration.</span>
@@ -172,6 +185,7 @@
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">contains_arguments</span>(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>,
+            <span class="ident"><span class="self">Self</span>::Access</span>(<span class="ident">access</span>) =&gt; <span class="ident">access</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident"><span class="self">Self</span>::Var</span>(<span class="ident">bind</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Let</span>(<span class="ident">bind</span>) <span class="op">|</span> <span class="ident"><span class="self">Self</span>::Const</span>(<span class="ident">bind</span>) =&gt; <span class="ident">bind</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident"><span class="self">Self</span>::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>.<span class="ident">contains_arguments</span>(),
         }
@@ -184,6 +198,7 @@
                 <span class="ident">declaration</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>)
             }
             <span class="ident"><span class="self">Self</span>::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="ident">pattern</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+            <span class="ident"><span class="self">Self</span>::Access</span>(<span class="ident">access</span>) =&gt; <span class="ident">access</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
             <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="kw">_</span>) =&gt; <span class="bool-val">false</span>,
         }
     }
@@ -194,6 +209,7 @@
         <span class="kw">let</span> (<span class="ident">binding</span>, <span class="ident">pre</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span> {
             <span class="ident"><span class="self">Self</span>::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="kw">return</span> <span class="ident">ident</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::Pattern</span>(<span class="ident">pattern</span>) =&gt; <span class="kw">return</span> <span class="ident">pattern</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Access</span>(<span class="ident">access</span>) =&gt; <span class="kw">return</span> <span class="ident">access</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::Var</span>(<span class="ident">binding</span>) =&gt; (<span class="ident">binding</span>, <span class="string">&quot;var&quot;</span>),
             <span class="ident"><span class="self">Self</span>::Let</span>(<span class="ident">binding</span>) =&gt; (<span class="ident">binding</span>, <span class="string">&quot;let&quot;</span>),
             <span class="ident"><span class="self">Self</span>::Const</span>(<span class="ident">binding</span>) =&gt; (<span class="ident">binding</span>, <span class="string">&quot;const&quot;</span>),

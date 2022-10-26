@@ -138,6 +138,7 @@
 <span id="136">136</span>
 <span id="137">137</span>
 <span id="138">138</span>
+<span id="139">139</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Unary operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -150,6 +151,7 @@
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
     <span class="ident">ast</span>::{
         <span class="ident">expression</span>::{
+            <span class="ident">access::PropertyAccess</span>,
             <span class="ident">operator</span>::{<span class="ident">unary::UnaryOp</span>, <span class="ident">Unary</span>},
             <span class="ident">Identifier</span>,
         },
@@ -227,7 +229,7 @@
                             <span class="ident">token_start</span>,
                         )));
                     }
-                    <span class="ident">Expression::PrivatePropertyAccess</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="ident">Expression::PropertyAccess</span>(<span class="ident">PropertyAccess::Private</span>(<span class="kw">_</span>)) =&gt; {
                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                             <span class="string">&quot;private fields can not be deleted&quot;</span>,
                             <span class="ident">position</span>,

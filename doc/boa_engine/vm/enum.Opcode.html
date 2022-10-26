@@ -484,7 +484,7 @@ then it jumps to <code>exit</code> address.</p>
 <p>Operands: name_index: <code>u32</code></p>
 <p>Stack: class, method <strong>=&gt;</strong></p>
 </div><h3 id="variant.DeletePropertyByName" class="variant small-section-header"><a href="#variant.DeletePropertyByName" class="anchor field"></a><code>DeletePropertyByName</code></h3><div class="docblock"><p>Deletes a property by name of an object.</p>
-<p>Like <code>delete object.key.</code></p>
+<p>Like <code>delete object.key</code></p>
 <p>Operands: name_index: <code>u32</code></p>
 <p>Stack: object <strong>=&gt;</strong></p>
 </div><h3 id="variant.DeletePropertyByValue" class="variant small-section-header"><a href="#variant.DeletePropertyByValue" class="anchor field"></a><code>DeletePropertyByValue</code></h3><div class="docblock"><p>Deletes a property by value of an object.</p>
@@ -580,7 +580,7 @@ if true jumps to address, otherwise push the second pop’ed value.</p>
 <p>Stack: arguments_array, func, this <strong>=&gt;</strong> result</p>
 </div><h3 id="variant.Call" class="variant small-section-header"><a href="#variant.Call" class="anchor field"></a><code>Call</code></h3><div class="docblock"><p>Call a function.</p>
 <p>Operands: argument_count: <code>u32</code></p>
-<p>Stack: func, this, argument_1, … argument_n <strong>=&gt;</strong> result</p>
+<p>Stack: this, func, argument_1, … argument_n <strong>=&gt;</strong> result</p>
 </div><h3 id="variant.CallSpread" class="variant small-section-header"><a href="#variant.CallSpread" class="anchor field"></a><code>CallSpread</code></h3><div class="docblock"><p>Call a function where the arguments contain spreads.</p>
 <p>Operands:</p>
 <p>Stack: arguments_array, func, this <strong>=&gt;</strong> result</p>

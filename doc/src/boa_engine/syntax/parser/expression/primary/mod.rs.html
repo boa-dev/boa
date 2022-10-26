@@ -1133,7 +1133,7 @@
                     ));
                 }
             },
-            <span class="kw">_</span> =&gt; {
+            <span class="ident">AssignTarget::Access</span>(<span class="kw">_</span>) =&gt; {
                 <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
                     <span class="string">&quot;invalid initialization expression in formal parameter list&quot;</span>,
                     <span class="ident">span</span>.<span class="ident">start</span>(),

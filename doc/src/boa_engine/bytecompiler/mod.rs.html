@@ -3359,6 +3359,19 @@
 <span id="3357">3357</span>
 <span id="3358">3358</span>
 <span id="3359">3359</span>
+<span id="3360">3360</span>
+<span id="3361">3361</span>
+<span id="3362">3362</span>
+<span id="3363">3363</span>
+<span id="3364">3364</span>
+<span id="3365">3365</span>
+<span id="3366">3366</span>
+<span id="3367">3367</span>
+<span id="3368">3368</span>
+<span id="3369">3369</span>
+<span id="3370">3370</span>
+<span id="3371">3371</span>
+<span id="3372">3372</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -3366,7 +3379,7 @@
     <span class="ident">syntax::ast</span>::{
         <span class="ident">declaration</span>::{<span class="ident">Binding</span>, <span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>},
         <span class="ident">expression</span>::{
-            <span class="ident">access</span>::{<span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>},
+            <span class="ident">access</span>::{<span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>},
             <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">TemplateElement</span>},
             <span class="ident">operator</span>::{
                 <span class="ident">assign</span>::{<span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
@@ -3539,9 +3552,26 @@
 <span class="kw">enum</span> <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span> {
     <span class="ident">Variable</span> { <span class="ident">name</span>: <span class="ident">Identifier</span> },
     <span class="ident">Property</span> { <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PropertyAccess</span> },
-    <span class="ident">PrivateProperty</span> { <span class="ident">access</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PrivatePropertyAccess</span> },
-    <span class="ident">SuperProperty</span> { <span class="ident">field</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="ident">PropertyAccessField</span> },
     <span class="ident">This</span>,
+}
+
+<span class="kw">impl</span> <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span> {
+    <span class="kw">fn</span> <span class="ident">from_assign_target</span>(<span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">AssignTarget</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="kw-2">&amp;</span><span class="ident">Pattern</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">target</span> {
+            <span class="ident">AssignTarget::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="kw-2">*</span><span class="ident">ident</span> }),
+            <span class="ident">AssignTarget::Access</span>(<span class="ident">access</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }),
+            <span class="ident">AssignTarget::Pattern</span>(<span class="ident">pat</span>) =&gt; <span class="prelude-val">Err</span>(<span class="ident">pat</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">from_expression</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Expression</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">expr</span> {
+            <span class="ident">Expression::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="kw-2">*</span><span class="ident">name</span> }),
+            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }),
+            <span class="ident">Expression::This</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::This</span>),
+            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
+        }
+    }
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>)]</span>
@@ -3999,16 +4029,6 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">compile_access</span>(<span class="ident">expr</span>: <span class="kw-2">&amp;</span><span class="ident">Expression</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span><span class="op">&gt;</span> {
-        <span class="kw">match</span> <span class="ident">expr</span> {
-            <span class="ident">Expression::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="kw-2">*</span><span class="ident">name</span> }),
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }),
-            <span class="ident">Expression::This</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Access::This</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">None</span>,
-        }
-    }
-
-    <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">fn</span> <span class="ident">access_get</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">access</span> {
             <span class="ident">Access::Variable</span> { <span class="ident">name</span> } =&gt; {
@@ -4016,34 +4036,36 @@
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
-            <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+            <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span> {
+                <span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                },
+                <span class="ident">PropertyAccess::Private</span>(<span class="ident">access</span>) =&gt; {
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                 }
-                <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
-                }
-            },
-            <span class="ident">Access::PrivateProperty</span> { <span class="ident">access</span> } =&gt; {
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-            }
-            <span class="ident">Access::SuperProperty</span> { <span class="ident">field</span> } =&gt; <span class="kw">match</span> <span class="ident">field</span> {
-                <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-                }
-                <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
-                }
+                <span class="ident">PropertyAccess::Super</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                    }
+                },
             },
             <span class="ident">Access::This</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::This</span>, <span class="kw-2">&amp;</span>[]);
@@ -4077,27 +4099,72 @@
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
-            <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
+            <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span> {
+                <span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                },
+                <span class="ident">PropertyAccess::Private</span>(<span class="ident">access</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::AssignPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                 }
-                <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                <span class="ident">PropertyAccess::Super</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Super</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Super</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                },
+            },
+            <span class="ident">Access::This</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;access_set `this`&quot;</span>),
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="attribute">#[<span class="ident">inline</span>]</span>
+    <span class="kw">fn</span> <span class="ident">access_delete</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">access</span> {
+            <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span> {
+                <span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    }
+                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                },
+                <span class="comment">// TODO: throw ReferenceError on super deletion.</span>
+                <span class="ident">PropertyAccess::Super</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushFalse</span>, <span class="kw-2">&amp;</span>[]),
+                <span class="ident">PropertyAccess::Private</span>(<span class="kw">_</span>) =&gt; {
+                    <span class="macro">unreachable!</span>(<span class="string">&quot;deleting private properties should always throw early errors.&quot;</span>)
                 }
             },
-            <span class="ident">Access::PrivateProperty</span> { <span class="ident">access</span> } =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::AssignPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+            <span class="comment">// TODO: implement delete on references.</span>
+            <span class="ident">Access::Variable</span> { .. } =&gt; {
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushFalse</span>, <span class="kw-2">&amp;</span>[]);
             }
-            <span class="comment">// TODO: access_set `super`</span>
-            <span class="ident">Access::SuperProperty</span> { <span class="ident">field</span>: <span class="ident">_field</span> } =&gt; {}
-            <span class="ident">Access::This</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;access_set `this`&quot;</span>),
+            <span class="ident">Access::This</span> =&gt; {
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushTrue</span>, <span class="kw-2">&amp;</span>[]);
+            }
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -4171,7 +4238,7 @@
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
 
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -4182,7 +4249,7 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="comment">// TODO: promote to an early error.</span>
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -4193,7 +4260,7 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::IncPost</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="comment">// TODO: promote to an early error.</span>
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
@@ -4205,39 +4272,21 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DecPost</span>, <span class="kw-2">&amp;</span>[]);
 
                         <span class="comment">// TODO: promote to an early error.</span>
-                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident"><span class="self">Self</span>::compile_access</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                        <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
 
                         <span class="prelude-val">None</span>
                     }
-                    <span class="ident">UnaryOp::Delete</span> =&gt; <span class="kw">match</span> <span class="ident">unary</span>.<span class="ident">target</span>() {
-                        <span class="ident">Expression::PropertyAccess</span>(<span class="kw-2">ref</span> <span class="ident">access</span>) =&gt; {
-                            <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                                <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
-                                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
-                                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-                                }
-                                <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
-                                }
-                            }
-                            <span class="prelude-val">None</span>
-                        }
-                        <span class="comment">// TODO: implement delete on references.</span>
-                        <span class="ident">Expression::Identifier</span>(<span class="kw">_</span>) =&gt; {
-                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushFalse</span>, <span class="kw-2">&amp;</span>[]);
-                            <span class="prelude-val">None</span>
-                        }
-                        <span class="kw">_</span> =&gt; {
+                    <span class="ident">UnaryOp::Delete</span> =&gt; {
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">access</span>) <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()) {
+                            <span class="self">self</span>.<span class="ident">access_delete</span>(<span class="ident">access</span>)<span class="question-mark">?</span>;
+                        } <span class="kw">else</span> {
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushTrue</span>, <span class="kw-2">&amp;</span>[]);
-                            <span class="prelude-val">None</span>
                         }
-                    },
+                        <span class="prelude-val">None</span>
+                    }
                     <span class="ident">UnaryOp::Minus</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Opcode::Neg</span>),
                     <span class="ident">UnaryOp::Plus</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Opcode::Pos</span>),
                     <span class="ident">UnaryOp::Not</span> =&gt; <span class="prelude-val">Some</span>(<span class="ident">Opcode::LogicalNot</span>),
@@ -4353,49 +4402,21 @@
                     }
                 }
             }
-            <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) <span class="kw">if</span> <span class="ident">assign</span>.<span class="ident">op</span>() <span class="op">==</span> <span class="ident">AssignOp::Assign</span> =&gt; <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
-                <span class="ident">AssignTarget::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="self">self</span>.<span class="ident">access_set</span>(
-                    <span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="kw-2">*</span><span class="ident">name</span> },
-                    <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()),
-                    <span class="ident">use_expr</span>,
-                )<span class="question-mark">?</span>,
-                <span class="ident">AssignTarget::PrivateProperty</span>(<span class="ident">access</span>) =&gt; <span class="self">self</span>.<span class="ident">access_set</span>(
-                    <span class="ident">Access::PrivateProperty</span> { <span class="ident">access</span> },
-                    <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()),
-                    <span class="ident">use_expr</span>,
-                )<span class="question-mark">?</span>,
-                <span class="ident">AssignTarget::Property</span>(<span class="ident">access</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                }
-                <span class="ident">AssignTarget::SuperProperty</span>(<span class="ident">access</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">access_set</span>(
-                        <span class="ident">Access::SuperProperty</span> {
-                            <span class="ident">field</span>: <span class="ident">access</span>.<span class="ident">field</span>(),
-                        },
-                        <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()),
-                        <span class="ident">use_expr</span>,
-                    )<span class="question-mark">?</span>;
-                }
-                <span class="ident">AssignTarget::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="kw">if</span> <span class="ident">use_expr</span> {
-                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
+            <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) <span class="kw">if</span> <span class="ident">assign</span>.<span class="ident">op</span>() <span class="op">==</span> <span class="ident">AssignOp::Assign</span> =&gt; {
+                <span class="kw">match</span> <span class="ident">Access::from_assign_target</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>()) {
+                    <span class="prelude-val">Ok</span>(<span class="ident">access</span>) =&gt; <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()), <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">Err</span>(<span class="ident">pattern</span>) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="kw">if</span> <span class="ident">use_expr</span> {
+                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
+                        }
+                        <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::SetName</span>)<span class="question-mark">?</span>;
                     }
-                    <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::SetName</span>)<span class="question-mark">?</span>;
                 }
-            },
+            }
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; {
-                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">lhs</span>() {
-                    <span class="ident">AssignTarget::Identifier</span>(<span class="ident">name</span>) =&gt; <span class="ident">Access::Variable</span> { <span class="ident">name</span>: <span class="kw-2">*</span><span class="ident">name</span> },
-                    <span class="ident">AssignTarget::Property</span>(<span class="ident">access</span>) =&gt; <span class="ident">Access::Property</span> { <span class="ident">access</span> },
-                    <span class="ident">AssignTarget::PrivateProperty</span>(<span class="ident">access</span>) =&gt; <span class="ident">Access::PrivateProperty</span> { <span class="ident">access</span> },
-                    <span class="ident">AssignTarget::SuperProperty</span>(<span class="ident">access</span>) =&gt; <span class="ident">Access::SuperProperty</span> {
-                        <span class="ident">field</span>: <span class="ident">access</span>.<span class="ident">field</span>(),
-                    },
-                    <span class="ident">AssignTarget::Pattern</span>(<span class="kw">_</span>) =&gt; {
-                        <span class="macro">panic!</span>(<span class="string">&quot;tried to use an assignment operator on a pattern&quot;</span>)
-                    }
-                };
+                <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_assign_target</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>())
+                    .<span class="ident">expect</span>(<span class="string">&quot;patterns should throw early errors on complex assignment operators&quot;</span>);
                 <span class="self">self</span>.<span class="ident">access_get</span>(<span class="ident">access</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">op</span>() {
                     <span class="ident">AssignOp::Assign</span> =&gt; <span class="macro">unreachable!</span>(),
@@ -4572,15 +4593,6 @@
             <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">access_get</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">Expression::PrivatePropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">access_get</span>(<span class="ident">Access::PrivateProperty</span> { <span class="ident">access</span> }, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-            }
-            <span class="ident">Expression::SuperPropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="self">self</span>.<span class="ident">access_get</span>(
-                <span class="ident">Access::SuperProperty</span> {
-                    <span class="ident">field</span>: <span class="ident">access</span>.<span class="ident">field</span>(),
-                },
-                <span class="ident">use_expr</span>,
-            )<span class="question-mark">?</span>,
             <span class="ident">Expression::Conditional</span>(<span class="ident">op</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">op</span>.<span class="ident">condition</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">jelse</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
@@ -4707,7 +4719,7 @@
             }
             <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">template</span>) =&gt; {
                 <span class="kw">match</span> <span class="ident">template</span>.<span class="ident">tag</span>() {
-                    <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
+                    <span class="ident">Expression::PropertyAccess</span>(<span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>)) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
                         <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
@@ -4721,6 +4733,12 @@
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
                             }
                         }
+                    }
+                    <span class="ident">Expression::PropertyAccess</span>(<span class="ident">PropertyAccess::Private</span>(<span class="ident">access</span>)) =&gt; {
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">expr</span> =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -5014,6 +5032,9 @@
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
+            <span class="ident">IterableLoopInitializer::Access</span>(<span class="ident">access</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
@@ -5131,6 +5152,9 @@
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+            }
+            <span class="ident">IterableLoopInitializer::Access</span>(<span class="ident">access</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
@@ -5705,48 +5729,50 @@
         };
 
         <span class="kw">match</span> <span class="ident">call</span>.<span class="ident">function</span>() {
-            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-                }
-                <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+            <span class="ident">Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span> {
+                <span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>) =&gt; {
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
                     }
-                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">field</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
-                    }
-                }
-            }
-            <span class="ident">Expression::SuperPropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::This</span>);
-                }
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
-                <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
-                    <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
-                        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-                    }
-                    <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
-                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                    <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                        <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        }
+                        <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">field</span>) =&gt; {
+                            <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                        }
                     }
                 }
-            }
-            <span class="ident">Expression::PrivatePropertyAccess</span>(<span class="ident">access</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                <span class="ident">PropertyAccess::Private</span>(<span class="ident">access</span>) =&gt; {
+                    <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                    <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                 }
-                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
-            }
+                <span class="ident">PropertyAccess::Super</span>(<span class="ident">access</span>) =&gt; {
+                    <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> {
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::This</span>);
+                    }
+                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
+                    <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
+                        <span class="ident">PropertyAccessField::Const</span>(<span class="ident">field</span>) =&gt; {
+                            <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">field</span>).<span class="ident">into</span>());
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        }
+                        <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
+                            <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
+                        }
+                    }
+                }
+            },
             <span class="ident">expr</span> =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="kw">if</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::Call</span> <span class="op">|</span><span class="op">|</span> <span class="ident">kind</span> <span class="op">==</span> <span class="ident">CallKind::CallEval</span> {
