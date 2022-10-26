@@ -501,11 +501,7 @@ impl Context {
     ) -> JsResult<Gc<CodeBlock>> {
         let _timer = Profiler::global().start_event("Compilation", "Main");
         let mut compiler = ByteCompiler::new(Sym::MAIN, statement_list.strict(), self);
-        compiler.compile_statement_list_with_new_declarative(
-            statement_list,
-            true,
-            strict || statement_list.strict(),
-        )?;
+        compiler.compile_statement_list_with_new_declarative(statement_list, true, strict)?;
         Ok(Gc::new(compiler.finish()))
     }
 
