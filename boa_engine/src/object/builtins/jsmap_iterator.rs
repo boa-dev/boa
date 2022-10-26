@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `MapIterator` object
+//! This module implements a wrapper for the `MapIterator` Builtin JavaScript Object
 use crate::{
     builtins::map::map_iterator::MapIterator,
     error::JsNativeError,

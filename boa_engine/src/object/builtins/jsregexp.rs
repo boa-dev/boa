@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `RegExp` Builtin Javascript Object
+//! This module implements a wrapper for the `RegExp` Builtin JavaScript Object
 use crate::{
     builtins::RegExp,
     object::{JsArray, JsObject, JsObjectType},

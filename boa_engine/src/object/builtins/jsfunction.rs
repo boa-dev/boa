@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `Function` Builtin JavaScript Object
 use crate::{
     object::{JsObject, JsObjectType},
     JsValue,

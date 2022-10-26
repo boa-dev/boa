@@ -1,4 +1,4 @@
-//! This module implements a wrapper for the `DataView` Builtin Javascript Object
+//! This module implements a wrapper for the `DataView` Builtin JavaScript Object
 use crate::{
     builtins::DataView,
     context::intrinsics::StandardConstructors,
@@ -12,7 +12,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// `JsDataView` Provides a wrapper for Boa's implementation of the Javascript `DataView` object
+/// `JsDataView` Provides a wrapper for Boa's implementation of the JavaScript `DataView` object
 ///
 /// # Examples
 /// ```

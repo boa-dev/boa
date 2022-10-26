@@ -1,3 +1,4 @@
+//! This module implements a wrapper for the `Array` Builtin JavaScript Object
 use crate::{
     builtins::Array,
     error::JsNativeError,
@@ -8,7 +9,7 @@ use crate::{
 use boa_gc::{Finalize, Trace};
 use std::ops::Deref;
 
-/// JavaScript `Array` rust object.
+/// `JsArray` provides a wrapper for Boa's implementation of the JavaScript `Array` object.
 #[derive(Debug, Clone, Trace, Finalize)]
 pub struct JsArray {
     inner: JsObject,
