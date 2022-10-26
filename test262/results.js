@@ -166,18 +166,19 @@
 
   // Shows the full test data.
   function showData(data, infoIcon) {
-    let infoContainer = $("#info");
+    let infoContainer = $("#infoContainer");
+    let info = $("#info");
     $(infoIcon).attr("class", "spinner-border text-primary small");
 
     setTimeout(
       function () {
-        infoContainer.empty();
+        info.empty();
         let totalTests = data.r.c;
         let passedTests = data.r.o;
         let ignoredTests = data.r.i;
         let failedTests = totalTests - passedTests - ignoredTests;
 
-        infoContainer.append(
+        infoContainer.prepend(
           $('<div class="progress g-0"></div>')
             .append(
               $(
@@ -221,7 +222,7 @@
         );
 
         for (let suite of data.r.s) {
-          addSuite(infoContainer, suite, "info", "test/" + suite.n, data.u);
+          addSuite(info, suite, "info", "test/" + suite.n, data.u);
         }
         infoContainer.collapse("show");
         $(infoIcon).attr("class", "bi-info-square");
@@ -328,7 +329,13 @@
       }
 
       info.attr("aria-controls", newID).attr("data-bs-target", "#" + newID);
-      inner.append(innerInner);
+      inner.on('show.bs.collapse', {elem: innerInner}, function(event){
+        event.data.elem.appendTo(inner);
+      });
+      inner.on('hidden.bs.collapse', {elem: innerInner}, function(event){
+        event.stopPropagation();
+        event.data.elem.detach();
+      });
       li.append(inner);
 
       elm.append(li);
