@@ -47,3 +47,6 @@ pub unsafe extern "C" fn boa_free_string(src_bytes: *mut c_char) {
         CString::from_raw(src_bytes)
     };
 }
+
+#[cfg(test)]
+mod tests;
