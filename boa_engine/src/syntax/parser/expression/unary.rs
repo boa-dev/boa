@@ -84,15 +84,15 @@ where
                 match val {
                     Expression::Identifier(_) if cursor.strict_mode() => {
                         return Err(ParseError::lex(LexError::Syntax(
-                            "Delete <variable> statements not allowed in strict mode".into(),
+                            "cannot delete variables in strict mode".into(),
                             token_start,
                         )));
                     }
                     Expression::PropertyAccess(PropertyAccess::Private(_)) => {
-                        return Err(ParseError::general(
-                            "private fields can not be deleted",
+                        return Err(ParseError::lex(LexError::Syntax(
+                            "cannot delete private fields".into(),
                             position,
-                        ));
+                        )));
                     }
                     _ => {}
                 }
