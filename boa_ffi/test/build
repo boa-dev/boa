@@ -1,2 +1,0 @@
-#!/bin/sh
-gcc -Wall boa_test.c -o boa_test -L../../target/debug -lboa_ffi

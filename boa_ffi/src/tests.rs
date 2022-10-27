@@ -9,7 +9,7 @@ static INIT: Once = Once::new();
 
 fn build_helper() {
     INIT.call_once(|| {
-        let output = Command::new("./build")
+        let output = Command::new("make")
             .current_dir("test")
             .output()
             .unwrap();
