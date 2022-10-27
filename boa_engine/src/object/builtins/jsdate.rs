@@ -9,24 +9,24 @@ use crate::{
 };
 
 /// `JsDate` is a wrapper for JavaScript `JsDate` builtin object
-/// 
+///
 /// # Example
-/// 
+///
 /// Create a `JsDate` object and set date to December 4 1995
-/// 
+///
 /// ```
-/// use boa_engine::{object::JsDate, Context, JsValue};
-/// 
-/// fn main() -> Result<(), JsValue> {
+/// use boa_engine::{object::builtins::JsDate, Context, JsValue, JsResult};
+///
+/// fn main() -> JsResult<()> {
 /// // JS mutable Context
 /// let context = &mut Context::default();
-/// 
+///
 /// let date = JsDate::new(context);
-/// 
+///
 /// date.set_full_year(&[1995.into(), 11.into(), 4.into()], context)?;
-/// 
+///
 /// assert_eq!(date.to_date_string(context)?, JsValue::from("Mon Dec 04 1995"));
-/// 
+///
 /// Ok(())
 /// }
 /// ```

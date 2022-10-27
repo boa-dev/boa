@@ -13,7 +13,7 @@ use crate::{
     string::utf16,
     symbol::WellKnownSymbols,
     value::{JsValue, PreferredType},
-    Context, JsResult,
+    Context, JsError, JsResult,
 };
 use boa_profiler::Profiler;
 use chrono::{prelude::*, Duration, LocalResult};
@@ -48,7 +48,7 @@ fn ignore_ambiguity<T>(result: LocalResult<T>) -> Option<T> {
     }
 }
 
-#[derive(Debug, Finalize, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Date(Option<NaiveDateTime>);
 
 impl Display for Date {
@@ -537,8 +537,12 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getdate
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDate
-    pub fn get_date(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+    pub fn get_date(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.day()))
         } else {
@@ -557,8 +561,8 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getday
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getDay
-    pub fn get_day(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+    pub fn get_day(this: &JsValue, _args: &[JsValue], _context: &mut Context) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.weekday().num_days_from_sunday()))
         } else {
@@ -579,9 +583,9 @@ impl Date {
     pub fn get_full_year(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.year()))
         } else {
@@ -602,9 +606,9 @@ impl Date {
     pub fn get_hours(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.hour()))
         } else {
@@ -625,9 +629,9 @@ impl Date {
     pub fn get_milliseconds(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.timestamp_subsec_millis()))
         } else {
@@ -648,9 +652,9 @@ impl Date {
     pub fn get_minutes(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.minute()))
         } else {
@@ -672,9 +676,9 @@ impl Date {
     pub fn get_month(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.month0()))
         } else {
@@ -695,9 +699,9 @@ impl Date {
     pub fn get_seconds(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             Ok(JsValue::new(local.second()))
         } else {
@@ -718,7 +722,7 @@ impl Date {
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.getyear
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getYear
     pub fn get_year(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let local = Local::now().timezone().from_utc_datetime(&t);
             let year = JsValue::Integer(local.year());
             year.sub(&JsValue::from(1900), context)
@@ -737,8 +741,12 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.gettime
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTime
-    pub fn get_time(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+    pub fn get_time(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.timestamp_millis()))
         } else {
             Ok(JsValue::nan())
@@ -795,9 +803,9 @@ impl Date {
     pub fn get_utc_date(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.day()))
         } else {
             Ok(JsValue::nan())
@@ -818,9 +826,9 @@ impl Date {
     pub fn get_utc_day(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.weekday().num_days_from_sunday()))
         } else {
             Ok(JsValue::nan())
@@ -840,9 +848,9 @@ impl Date {
     pub fn get_utc_full_year(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.year()))
         } else {
             Ok(JsValue::nan())
@@ -862,9 +870,9 @@ impl Date {
     pub fn get_utc_hours(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.hour()))
         } else {
             Ok(JsValue::nan())
@@ -884,9 +892,9 @@ impl Date {
     pub fn get_utc_milliseconds(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.timestamp_subsec_millis()))
         } else {
             Ok(JsValue::nan())
@@ -906,9 +914,9 @@ impl Date {
     pub fn get_utc_minutes(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.minute()))
         } else {
             Ok(JsValue::nan())
@@ -929,9 +937,9 @@ impl Date {
     pub fn get_utc_month(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.month0()))
         } else {
             Ok(JsValue::nan())
@@ -951,9 +959,9 @@ impl Date {
     pub fn get_utc_seconds(
         this: &JsValue,
         _args: &[JsValue],
-        context: &mut Context,
+        _context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.second()))
         } else {
             Ok(JsValue::nan())
@@ -1702,7 +1710,7 @@ impl Date {
         _args: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsValue::new("Function Unimplemented]"))
+        Err(JsError::from_opaque(JsValue::new("Function Unimplemented")))
     }
 
     /// `Date.prototype.toGMTString()`
@@ -1824,7 +1832,9 @@ impl Date {
         _: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsValue::new("Function Unimplemented]"))
+        Err(JsError::from_opaque(JsValue::new(
+            "Function Unimplemented]",
+        )))
     }
 
     /// `Date.prototype.toTimeString()`
@@ -1875,7 +1885,9 @@ impl Date {
         _args: &[JsValue],
         _context: &mut Context,
     ) -> JsResult<JsValue> {
-        Err(JsValue::new("Function Unimplemented]"))
+        Err(JsError::from_opaque(JsValue::new(
+            "Function Unimplemented]",
+        )))
     }
 
     /// `Date.prototype.toUTCString()`
@@ -1893,11 +1905,11 @@ impl Date {
         _args: &[JsValue],
         context: &mut Context,
     ) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+        if let Some(t) = this_time_value(this)?.0 {
             let utc_string = t.format("%a, %d %b %Y %H:%M:%S GMT").to_string();
             Ok(JsValue::new(utc_string))
         } else {
-            context.throw_range_error("Invalid time value")
+            Ok(context.construct_error("Invalid time value"))
         }
     }
 
@@ -1911,8 +1923,12 @@ impl Date {
     ///
     /// [spec]: https://tc39.es/ecma262/#sec-date.prototype.valueof
     /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/valueOf
-    pub fn value_of(this: &JsValue, _args: &[JsValue], context: &mut Context) -> JsResult<JsValue> {
-        if let Some(t) = this_time_value(this, context)?.0 {
+    pub fn value_of(
+        this: &JsValue,
+        _args: &[JsValue],
+        _context: &mut Context,
+    ) -> JsResult<JsValue> {
+        if let Some(t) = this_time_value(this)?.0 {
             Ok(JsValue::new(t.timestamp_millis()))
         } else {
             Ok(JsValue::nan())
@@ -2026,7 +2042,7 @@ impl Date {
         let prototype = context.intrinsics().constructors().date().prototype();
         let date_time = DateTime::parse_from_rfc3339(&value.to_string(context).expect(
             "Utility: Date's string conversion used in limited(internal) area shouldn't fail",
-        ))
+        ).to_std_string().expect("Utility: Conversion of confirmed JsString to std string"))
         .expect("Utility: Parse RFC3339 is used in limited(internal) areas shouldn't fail");
         let internal_date = Date(Some(date_time.naive_local()));
         JsObject::from_proto_and_data(prototype, ObjectData::date(internal_date))

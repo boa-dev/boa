@@ -1,6 +1,6 @@
-use boa_engine::{object::JsDate, Context, JsValue};
+use boa_engine::{object::builtins::JsDate, Context, JsResult, JsValue};
 
-fn main() -> Result<(), JsValue> {
+fn main() -> JsResult<()> {
     let context = &mut Context::default();
 
     let date = JsDate::new(context);
