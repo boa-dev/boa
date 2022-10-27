@@ -30,3 +30,12 @@ fn no_input() {
 fn json_output() {
     assert_eq!(get_output(r#"JSON.stringify({a:7});"#), r#""{"a":7}""#);
 }
+
+#[test]
+fn check_utf8() {
+    // This is a little bit tricky. The first string includes the characters
+    // \u20ac as literal characters. When processed by JSON it yields a
+    // Unicode 20AC (EURO SIGN). Which is then compared to a Rust string with
+    // an encoded \u{20ac}
+    assert_eq!(get_output(r#"JSON.stringify({a:"100\u20ac"});"#), "\"{\"a\":\"100\u{20ac}\"}\"");
+}
