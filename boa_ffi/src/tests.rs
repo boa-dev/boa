@@ -1,10 +1,26 @@
 use std::io::{Write};
 use std::process::{Command, Stdio};
 use std::str;
+use std::sync::Once;
+
+static INIT: Once = Once::new();
+
+// https://stackoverflow.com/questions/58006033/how-to-run-setup-code-before-any-tests-run-in-rust
+
+fn build_helper() {
+    INIT.call_once(|| {
+        let output = Command::new("./build")
+            .current_dir("test")
+            .output()
+            .unwrap();
+    });
+}
 
 // https://stackoverflow.com/questions/49218599/write-to-child-process-stdin-in-rust
 
 fn get_output(input: &str) -> String {
+    build_helper();
+
     let mut child = Command::new("test/boa_test")
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())
