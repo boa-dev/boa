@@ -79,7 +79,7 @@ where
 
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
     #[inline]
-    pub(super) fn peek_n(&mut self, n: u8) -> Result<u32, Error> {
+    pub(super) fn peek_n(&mut self, n: u8) -> Result<&[u8], Error> {
         let _timer = Profiler::global().start_event("cursor::peek_n()", "Lexing");
 
         self.iter.peek_n_bytes(n)
@@ -250,7 +250,7 @@ where
             Some(0xE2) => {
                 // Try to match '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9)
                 let next_bytes = self.peek_n(2)?;
-                if next_bytes == 0xA8_80 || next_bytes == 0xA9_80 {
+                if next_bytes == [0x80, 0xA8] || next_bytes == [0x80, 0xA9] {
                     self.next_line();
                 } else {
                     // 0xE2 is a utf8 first byte
@@ -296,7 +296,7 @@ where
 struct InnerIter<R> {
     iter: Bytes<R>,
     num_peeked_bytes: u8,
-    peeked_bytes: u32,
+    peeked_bytes: [u8; 4],
     peeked_char: Option<Option<u32>>,
 }
 
@@ -307,7 +307,7 @@ impl<R> InnerIter<R> {
         Self {
             iter,
             num_peeked_bytes: 0,
-            peeked_bytes: 0,
+            peeked_bytes: [0; 4],
             peeked_char: None,
         }
     }
@@ -349,13 +349,13 @@ where
     #[inline]
     pub(super) fn peek_byte(&mut self) -> Result<Option<u8>, Error> {
         if self.num_peeked_bytes > 0 {
-            let byte = self.peeked_bytes as u8;
+            let byte = self.peeked_bytes[0];
             Ok(Some(byte))
         } else {
             match self.iter.next().transpose()? {
                 Some(byte) => {
                     self.num_peeked_bytes = 1;
-                    self.peeked_bytes = u32::from(byte);
+                    self.peeked_bytes[0] = byte;
                     Ok(Some(byte))
                 }
                 None => Ok(None),
@@ -365,24 +365,17 @@ where
 
     /// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n <= 4).
     #[inline]
-    pub(super) fn peek_n_bytes(&mut self, n: u8) -> Result<u32, Error> {
+    pub(super) fn peek_n_bytes(&mut self, n: u8) -> Result<&[u8], Error> {
         while self.num_peeked_bytes < n && self.num_peeked_bytes < 4 {
             match self.iter.next().transpose()? {
                 Some(byte) => {
-                    self.peeked_bytes |= u32::from(byte) << (self.num_peeked_bytes * 8);
+                    self.peeked_bytes[usize::from(self.num_peeked_bytes)] = byte;
                     self.num_peeked_bytes += 1;
                 }
                 None => break,
             };
         }
-
-        match n {
-            0 => Ok(0),
-            1 => Ok(self.peeked_bytes & 0xFF),
-            2 => Ok(self.peeked_bytes & 0xFFFF),
-            3 => Ok(self.peeked_bytes & 0xFFFFFF),
-            _ => Ok(self.peeked_bytes),
-        }
+        Ok(&self.peeked_bytes[..usize::from(u8::min(n, self.num_peeked_bytes))])
     }
 
     /// Peeks the next unchecked character in u32 code point.
@@ -392,34 +385,40 @@ where
             Ok(ch)
         } else {
             // Decode UTF-8
-            let x = match self.peek_byte()? {
-                Some(b) if b < 128 => {
-                    self.peeked_char = Some(Some(u32::from(b)));
-                    return Ok(Some(u32::from(b)));
+            let (x, y, z, w) = match self.peek_n_bytes(4)? {
+                [b, ..] if *b < 128 => {
+                    let char = u32::from(*b);
+                    self.peeked_char = Some(Some(char));
+                    return Ok(Some(char));
                 }
-                Some(b) => b,
-                None => {
+                [] => {
                     self.peeked_char = None;
                     return Ok(None);
                 }
+                bytes => (
+                    bytes[0],
+                    bytes.get(1).copied(),
+                    bytes.get(2).copied(),
+                    bytes.get(3).copied(),
+                ),
             };
 
             // Multibyte case follows
             // Decode from a byte combination out of: [[[x y] z] w]
             // NOTE: Performance is sensitive to the exact formulation here
             let init = utf8_first_byte(x, 2);
-            let y = (self.peek_n_bytes(2)? >> 8) as u8;
+            let y = y.unwrap_or_default();
             let mut ch = utf8_acc_cont_byte(init, y);
             if x >= 0xE0 {
                 // [[x y z] w] case
                 // 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid
-                let z = (self.peek_n_bytes(3)? >> 16) as u8;
+                let z = z.unwrap_or_default();
                 let y_z = utf8_acc_cont_byte(u32::from(y & CONT_MASK), z);
                 ch = init << 12 | y_z;
                 if x >= 0xF0 {
                     // [x y z w] case
                     // use only the lower 3 bits of `init`
-                    let w = (self.peek_n_bytes(4)? >> 24) as u8;
+                    let w = w.unwrap_or_default();
                     ch = (init & 7) << 18 | utf8_acc_cont_byte(y_z, w);
                 }
             };
@@ -434,9 +433,9 @@ where
     fn next_byte(&mut self) -> io::Result<Option<u8>> {
         self.peeked_char = None;
         if self.num_peeked_bytes > 0 {
-            let byte = (self.peeked_bytes & 0xFF) as u8;
+            let byte = self.peeked_bytes[0];
             self.num_peeked_bytes -= 1;
-            self.peeked_bytes >>= 8;
+            self.peeked_bytes.rotate_left(1);
             Ok(Some(byte))
         } else {
             self.iter.next().transpose()

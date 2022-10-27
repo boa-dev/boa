@@ -62,3 +62,25 @@ impl Operation for JumpIfNotUndefined {
         Ok(ShouldExit::False)
     }
 }
+
+/// `JumpIfUndefined` implements the Opcode Operation for `Opcode::JumpIfUndefined`
+///
+/// Operation:
+///  - Conditional jump to address.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub(crate) struct JumpIfNullOrUndefined;
+
+impl Operation for JumpIfNullOrUndefined {
+    const NAME: &'static str = "JumpIfNullOrUndefined";
+    const INSTRUCTION: &'static str = "INST - JumpIfNullOrUndefined";
+
+    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
+        let address = context.vm.read::<u32>();
+        let value = context.vm.pop();
+        if value.is_null_or_undefined() {
+            context.vm.frame_mut().pc = address as usize;
+        }
+        context.vm.push(value);
+        Ok(ShouldExit::False)
+    }
+}

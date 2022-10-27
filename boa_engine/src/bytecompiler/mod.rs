@@ -12,7 +12,7 @@ use crate::{
                 binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
                 unary::UnaryOp,
             },
-            Call, Identifier, New,
+            Call, Identifier, New, Optional, OptionalItemKind,
         },
         function::{
             ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
@@ -426,6 +426,14 @@ impl<'b> ByteCompiler<'b> {
     fn jump_if_false(&mut self) -> Label {
         let index = self.next_opcode_location();
         self.emit(Opcode::JumpIfFalse, &[Self::DUMMY_ADDRESS]);
+
+        Label { index }
+    }
+
+    #[inline]
+    fn jump_if_null_or_undefined(&mut self) -> Label {
+        let index = self.next_opcode_location();
+        self.emit(Opcode::JumpIfNullOrUndefined, &[Self::DUMMY_ADDRESS]);
 
         Label { index }
     }
@@ -1109,6 +1117,7 @@ impl<'b> ByteCompiler<'b> {
                             }
                         },
                         PropertyDefinition::MethodDefinition(name, kind) => match kind {
+                            // TODO: set function name for getter and setters
                             MethodDefinition::Get(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
@@ -1123,6 +1132,7 @@ impl<'b> ByteCompiler<'b> {
                                     self.emit_opcode(Opcode::SetPropertyGetterByValue);
                                 }
                             },
+                            // TODO: set function name for getter and setters
                             MethodDefinition::Set(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
@@ -1443,8 +1453,160 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::PushNewTarget);
                 }
             }
+            Expression::Optional(opt) => {
+                self.compile_optional_preserve_this(opt)?;
+
+                self.emit_opcode(Opcode::Swap);
+                self.emit_opcode(Opcode::Pop);
+
+                if !use_expr {
+                    self.emit_opcode(Opcode::Pop);
+                }
+            }
             // TODO: try to remove this variant somehow
             Expression::FormalParameterList(_) => unreachable!(),
+        }
+        Ok(())
+    }
+
+    fn compile_access_preserve_this(&mut self, access: &PropertyAccess) -> JsResult<()> {
+        match access {
+            PropertyAccess::Simple(access) => {
+                self.compile_expr(access.target(), true)?;
+                self.emit_opcode(Opcode::Dup);
+                match access.field() {
+                    PropertyAccessField::Const(field) => {
+                        let index = self.get_or_insert_name((*field).into());
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(field) => {
+                        self.compile_expr(field, true)?;
+                        self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
+                    }
+                }
+            }
+            PropertyAccess::Private(access) => {
+                self.compile_expr(access.target(), true)?;
+                self.emit_opcode(Opcode::Dup);
+                let index = self.get_or_insert_name(access.field().into());
+                self.emit(Opcode::GetPrivateField, &[index]);
+            }
+            PropertyAccess::Super(access) => {
+                self.emit_opcode(Opcode::This);
+                self.emit_opcode(Opcode::Super);
+                match access.field() {
+                    PropertyAccessField::Const(field) => {
+                        let index = self.get_or_insert_name((*field).into());
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.emit_opcode(Opcode::Swap);
+                        self.emit_opcode(Opcode::GetPropertyByValue);
+                    }
+                }
+            }
+        }
+        Ok(())
+    }
+
+    fn compile_optional_preserve_this(&mut self, optional: &Optional) -> JsResult<()> {
+        let mut jumps = Vec::with_capacity(optional.chain().len());
+
+        match optional.target() {
+            Expression::PropertyAccess(access) => {
+                self.compile_access_preserve_this(access)?;
+            }
+            Expression::Optional(opt) => self.compile_optional_preserve_this(opt)?,
+            expr => {
+                self.emit(Opcode::PushUndefined, &[]);
+                self.compile_expr(expr, true)?;
+            }
+        }
+        jumps.push(self.jump_if_null_or_undefined());
+
+        let (first, rest) = optional
+            .chain()
+            .split_first()
+            .expect("chain must have at least one element");
+        assert!(first.shorted());
+
+        self.compile_optional_item_kind(first.kind())?;
+
+        for item in rest {
+            if item.shorted() {
+                jumps.push(self.jump_if_null_or_undefined());
+            }
+            self.compile_optional_item_kind(item.kind())?;
+        }
+        let skip_undef = self.jump();
+
+        for label in jumps {
+            self.patch_jump(label);
+        }
+
+        self.emit_opcode(Opcode::Pop);
+        self.emit_opcode(Opcode::PushUndefined);
+
+        self.patch_jump(skip_undef);
+
+        Ok(())
+    }
+
+    fn compile_optional_item_kind(&mut self, kind: &OptionalItemKind) -> JsResult<()> {
+        match kind {
+            OptionalItemKind::SimplePropertyAccess { field } => {
+                self.emit_opcode(Opcode::Dup);
+                match field {
+                    PropertyAccessField::Const(name) => {
+                        let index = self.get_or_insert_name((*name).into());
+                        self.emit(Opcode::GetPropertyByName, &[index]);
+                    }
+                    PropertyAccessField::Expr(expr) => {
+                        self.compile_expr(expr, true)?;
+                        self.emit(Opcode::Swap, &[]);
+                        self.emit(Opcode::GetPropertyByValue, &[]);
+                    }
+                }
+                self.emit_opcode(Opcode::RotateLeft);
+                self.emit_u8(3);
+                self.emit_opcode(Opcode::Pop);
+            }
+            OptionalItemKind::PrivatePropertyAccess { field } => {
+                self.emit_opcode(Opcode::Dup);
+                let index = self.get_or_insert_name((*field).into());
+                self.emit(Opcode::GetPrivateField, &[index]);
+                self.emit_opcode(Opcode::RotateLeft);
+                self.emit_u8(3);
+                self.emit_opcode(Opcode::Pop);
+            }
+            OptionalItemKind::Call { args } => {
+                let args = &**args;
+                let contains_spread = args.iter().any(|arg| matches!(arg, Expression::Spread(_)));
+
+                if contains_spread {
+                    self.emit_opcode(Opcode::PushNewArray);
+                    for arg in args {
+                        self.compile_expr(arg, true)?;
+                        if let Expression::Spread(_) = arg {
+                            self.emit_opcode(Opcode::InitIterator);
+                            self.emit_opcode(Opcode::PushIteratorToArray);
+                        } else {
+                            self.emit_opcode(Opcode::PushValueToArray);
+                        }
+                    }
+                    self.emit_opcode(Opcode::CallSpread);
+                } else {
+                    for arg in args {
+                        self.compile_expr(arg, true)?;
+                    }
+                    self.emit(Opcode::Call, &[args.len() as u32]);
+                }
+
+                self.emit_opcode(Opcode::PushUndefined);
+                self.emit_opcode(Opcode::Swap);
+            }
         }
         Ok(())
     }
@@ -2292,7 +2454,6 @@ impl<'b> ByteCompiler<'b> {
             function.is_async(),
             function.is_arrow(),
         );
-
         let FunctionSpec {
             name,
             parameters,
@@ -2357,50 +2518,13 @@ impl<'b> ByteCompiler<'b> {
         };
 
         match call.function() {
-            Expression::PropertyAccess(access) => match access {
-                PropertyAccess::Simple(access) => {
-                    self.compile_expr(access.target(), true)?;
-                    if kind == CallKind::Call {
-                        self.emit(Opcode::Dup, &[]);
-                    }
-                    match access.field() {
-                        PropertyAccessField::Const(field) => {
-                            let index = self.get_or_insert_name((*field).into());
-                            self.emit(Opcode::GetPropertyByName, &[index]);
-                        }
-                        PropertyAccessField::Expr(field) => {
-                            self.compile_expr(field, true)?;
-                            self.emit(Opcode::Swap, &[]);
-                            self.emit(Opcode::GetPropertyByValue, &[]);
-                        }
-                    }
-                }
-                PropertyAccess::Private(access) => {
-                    self.compile_expr(access.target(), true)?;
-                    if kind == CallKind::Call {
-                        self.emit(Opcode::Dup, &[]);
-                    }
-                    let index = self.get_or_insert_name(access.field().into());
-                    self.emit(Opcode::GetPrivateField, &[index]);
-                }
-                PropertyAccess::Super(access) => {
-                    if kind == CallKind::Call {
-                        self.emit_opcode(Opcode::This);
-                    }
-                    self.emit_opcode(Opcode::Super);
-                    match access.field() {
-                        PropertyAccessField::Const(field) => {
-                            let index = self.get_or_insert_name((*field).into());
-                            self.emit(Opcode::GetPropertyByName, &[index]);
-                        }
-                        PropertyAccessField::Expr(expr) => {
-                            self.compile_expr(expr, true)?;
-                            self.emit_opcode(Opcode::Swap);
-                            self.emit_opcode(Opcode::GetPropertyByValue);
-                        }
-                    }
-                }
-            },
+            Expression::PropertyAccess(access) if kind == CallKind::Call => {
+                self.compile_access_preserve_this(access)?;
+            }
+
+            Expression::Optional(opt) if kind == CallKind::Call => {
+                self.compile_optional_preserve_this(opt)?;
+            }
             expr => {
                 self.compile_expr(expr, true)?;
                 if kind == CallKind::Call || kind == CallKind::CallEval {
@@ -2958,6 +3082,7 @@ impl<'b> ByteCompiler<'b> {
         self.emit_opcode(Opcode::SetClassPrototype);
         self.emit_opcode(Opcode::Swap);
 
+        // TODO: set function name for getter and setters
         for element in class.elements() {
             match element {
                 ClassElement::StaticMethodDefinition(name, method_definition) => {
@@ -3049,6 +3174,7 @@ impl<'b> ByteCompiler<'b> {
                         },
                     }
                 }
+                // TODO: set names for private methods
                 ClassElement::PrivateStaticMethodDefinition(name, method_definition) => {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
@@ -3218,6 +3344,7 @@ impl<'b> ByteCompiler<'b> {
                     self.emit(Opcode::Call, &[0]);
                     self.emit_opcode(Opcode::Pop);
                 }
+                // TODO: set names for private methods
                 ClassElement::PrivateMethodDefinition(name, method_definition) => {
                     self.emit_opcode(Opcode::Dup);
                     match method_definition {
@@ -3263,6 +3390,7 @@ impl<'b> ByteCompiler<'b> {
             match element {
                 ClassElement::MethodDefinition(name, method_definition) => {
                     self.emit_opcode(Opcode::Dup);
+                    // TODO: set names for getters and setters
                     match method_definition {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {

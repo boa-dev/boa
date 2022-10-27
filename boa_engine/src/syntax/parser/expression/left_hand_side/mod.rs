@@ -13,6 +13,7 @@ mod tests;
 mod arguments;
 mod call;
 mod member;
+mod optional;
 mod template;
 
 use crate::syntax::{
@@ -24,6 +25,7 @@ use crate::syntax::{
     parser::{
         expression::left_hand_side::{
             arguments::Arguments, call::CallExpression, member::MemberExpression,
+            optional::OptionalExpression,
         },
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
@@ -70,32 +72,50 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        fn is_super_call<R: Read>(
+            cursor: &mut Cursor<R>,
+            interner: &mut Interner,
+        ) -> ParseResult<bool> {
+            if let Some(next) = cursor.peek(0, interner)? {
+                if let TokenKind::Keyword((Keyword::Super, _)) = next.kind() {
+                    if let Some(next) = cursor.peek(1, interner)? {
+                        if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                            return Ok(true);
+                        }
+                    }
+                }
+            }
+            Ok(false)
+        }
         let _timer = Profiler::global().start_event("LeftHandSideExpression", "Parsing");
 
         cursor.set_goal(InputElement::TemplateTail);
 
-        if let Some(next) = cursor.peek(0, interner)? {
-            if let TokenKind::Keyword((Keyword::Super, _)) = next.kind() {
-                if let Some(next) = cursor.peek(1, interner)? {
-                    if next.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                        cursor.next(interner).expect("token disappeared");
-                        let args = Arguments::new(self.allow_yield, self.allow_await)
-                            .parse(cursor, interner)?;
-                        return Ok(SuperCall::new(args).into());
-                    }
+        let mut lhs = if is_super_call(cursor, interner)? {
+            cursor.next(interner).expect("token disappeared");
+            let args =
+                Arguments::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
+            SuperCall::new(args).into()
+        } else {
+            let mut member = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            if let Some(tok) = cursor.peek(0, interner)? {
+                if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
+                    member = CallExpression::new(self.allow_yield, self.allow_await, member)
+                        .parse(cursor, interner)?;
                 }
+            }
+            member
+        };
+
+        if let Some(tok) = cursor.peek(0, interner)? {
+            if tok.kind() == &TokenKind::Punctuator(Punctuator::Optional) {
+                lhs = OptionalExpression::new(self.allow_yield, self.allow_await, lhs)
+                    .parse(cursor, interner)?
+                    .into();
             }
         }
 
-        // TODO: Implement NewExpression: new MemberExpression
-        let lhs = MemberExpression::new(self.name, self.allow_yield, self.allow_await)
-            .parse(cursor, interner)?;
-        if let Some(tok) = cursor.peek(0, interner)? {
-            if tok.kind() == &TokenKind::Punctuator(Punctuator::OpenParen) {
-                return CallExpression::new(self.allow_yield, self.allow_await, lhs)
-                    .parse(cursor, interner);
-            }
-        }
         Ok(lhs)
     }
 }

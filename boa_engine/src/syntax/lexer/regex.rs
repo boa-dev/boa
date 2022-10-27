@@ -71,7 +71,9 @@ impl<R> Tokenizer<R> for RegexLiteral {
                                 cursor.pos(),
                             ));
                         }
-                        0xE2 if (cursor.peek_n(2)? == 0xA8_80 || cursor.peek_n(2)? == 0xA9_80) => {
+                        0xE2 if (cursor.peek_n(2)? == [0x80, 0xA8]
+                            || cursor.peek_n(2)? == [0x80, 0xA9]) =>
+                        {
                             // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
                             return Err(Error::syntax(
                                 "new lines are not allowed in regular expressions",
@@ -90,8 +92,8 @@ impl<R> Tokenizer<R> for RegexLiteral {
                                             cursor.pos(),
                                         ));
                                     }
-                                    0xE2 if (cursor.peek_n(2)? == 0xA8_80
-                                        || cursor.peek_n(2)? == 0xA9_80) =>
+                                    0xE2 if (cursor.peek_n(2)? == [0x80, 0xA8]
+                                        || cursor.peek_n(2)? == [0x80, 0xA9]) =>
                                     {
                                         // '\u{2028}' (e2 80 a8) and '\u{2029}' (e2 80 a9) are not allowed
                                         return Err(Error::syntax(

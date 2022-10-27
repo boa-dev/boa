@@ -169,6 +169,11 @@ impl CodeBlock {
         let opcode: Opcode = self.code[*pc].try_into().expect("invalid opcode");
         *pc += size_of::<Opcode>();
         match opcode {
+            Opcode::RotateLeft | Opcode::RotateRight => {
+                let result = self.read::<u8>(*pc).to_string();
+                *pc += size_of::<u8>();
+                result
+            }
             Opcode::PushInt8 => {
                 let result = self.read::<i8>(*pc).to_string();
                 *pc += size_of::<i8>();
@@ -193,6 +198,7 @@ impl CodeBlock {
             | Opcode::Jump
             | Opcode::JumpIfFalse
             | Opcode::JumpIfNotUndefined
+            | Opcode::JumpIfNullOrUndefined
             | Opcode::CatchStart
             | Opcode::FinallySetJump
             | Opcode::Case

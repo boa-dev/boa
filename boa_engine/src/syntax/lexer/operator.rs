@@ -126,21 +126,34 @@ impl<R> Tokenizer<R> for Operator {
             b'&' => op!(cursor, start_pos, Ok(Punctuator::AssignAnd), Ok(Punctuator::And), {
                 Some(b'&') => vop!(cursor, Ok(Punctuator::AssignBoolAnd), Ok(Punctuator::BoolAnd))
             }),
-            b'?' => match cursor.peek()? {
-                Some(b'?') => {
-                    let _ = cursor.next_byte()?.expect("? vanished");
-                    op!(
-                        cursor,
-                        start_pos,
-                        Ok(Punctuator::AssignCoalesce),
-                        Ok(Punctuator::Coalesce)
-                    )
+            b'?' => {
+                let (first, second) = (
+                    cursor.peek_n(2)?.first().copied(),
+                    cursor.peek_n(2)?.get(1).copied(),
+                );
+                match first {
+                    Some(b'?') => {
+                        let _ = cursor.next_byte()?.expect("? vanished");
+                        op!(
+                            cursor,
+                            start_pos,
+                            Ok(Punctuator::AssignCoalesce),
+                            Ok(Punctuator::Coalesce)
+                        )
+                    }
+                    Some(b'.') if !matches!(second, Some(second) if second.is_ascii_digit()) => {
+                        let _ = cursor.next_byte()?.expect(". vanished");
+                        Ok(Token::new(
+                            TokenKind::Punctuator(Punctuator::Optional),
+                            Span::new(start_pos, cursor.pos()),
+                        ))
+                    }
+                    _ => Ok(Token::new(
+                        TokenKind::Punctuator(Punctuator::Question),
+                        Span::new(start_pos, cursor.pos()),
+                    )),
                 }
-                _ => Ok(Token::new(
-                    TokenKind::Punctuator(Punctuator::Question),
-                    Span::new(start_pos, cursor.pos()),
-                )),
-            },
+            }
             b'^' => op!(
                 cursor,
                 start_pos,

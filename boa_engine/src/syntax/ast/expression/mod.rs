@@ -27,6 +27,7 @@ mod r#await;
 mod call;
 mod identifier;
 mod new;
+mod optional;
 mod spread;
 mod tagged_template;
 mod r#yield;
@@ -34,6 +35,7 @@ mod r#yield;
 pub use call::{Call, SuperCall};
 pub use identifier::Identifier;
 pub use new::New;
+pub use optional::{Optional, OptionalItem, OptionalItemKind};
 pub use r#await::Await;
 pub use r#yield::Yield;
 pub use spread::Spread;
@@ -110,10 +112,11 @@ pub enum Expression {
     /// See [`Call`].
     Call(Call),
 
-    /// See [`SuperCall`]
+    /// See [`SuperCall`].
     SuperCall(SuperCall),
 
-    // TODO: Optional chains
+    /// See [`Optional`].
+    Optional(Optional),
 
     // TODO: Import calls
     /// See [`TaggedTemplate`].
@@ -173,6 +176,7 @@ impl Expression {
             Self::New(new) => new.to_interned_string(interner),
             Self::Call(call) => call.to_interned_string(interner),
             Self::SuperCall(supc) => supc.to_interned_string(interner),
+            Self::Optional(opt) => opt.to_interned_string(interner),
             Self::NewTarget => "new.target".to_owned(),
             Self::TaggedTemplate(tag) => tag.to_interned_string(interner),
             Self::Assign(assign) => assign.to_interned_string(interner),
@@ -213,6 +217,7 @@ impl Expression {
             Expression::New(new) => new.contains_arguments(),
             Expression::Call(call) => call.contains_arguments(),
             Expression::SuperCall(call) => call.contains_arguments(),
+            Expression::Optional(opt) => opt.contains_arguments(),
             Expression::TaggedTemplate(tag) => tag.contains_arguments(),
             Expression::Assign(assign) => assign.contains_arguments(),
             Expression::Unary(unary) => unary.contains_arguments(),
@@ -252,6 +257,7 @@ impl Expression {
             Expression::Call(call) => call.contains(symbol),
             Expression::SuperCall(_) if symbol == ContainsSymbol::SuperCall => true,
             Expression::SuperCall(expr) => expr.contains(symbol),
+            Expression::Optional(opt) => opt.contains(symbol),
             Expression::TaggedTemplate(temp) => temp.contains(symbol),
             Expression::NewTarget => symbol == ContainsSymbol::NewTarget,
             Expression::Assign(assign) => assign.contains(symbol),

@@ -137,6 +137,26 @@ pub enum Opcode {
     /// Stack: second, first **=>** first, second
     Swap,
 
+    /// Rotates the top `n` values of the stack to the left by `1`.
+    ///
+    /// Equivalent to calling [`Slice::rotate_left`] with argument `1` on the top `n` values of the
+    /// stack.
+    ///
+    /// Operands: n: `u8`
+    ///
+    /// Stack: v[n], v[n-1], ... , v[1], v[0] **=>** v[n-1], ... , v[1], v[0], v[n]
+    RotateLeft,
+
+    /// Rotates the top `n` values of the stack to the right by `1`.
+    ///
+    /// Equivalent to calling [`Slice::rotate_right`] with argument `1` on the top `n` values of the
+    /// stack.
+    ///
+    /// Operands: n: `u8`
+    ///
+    /// Stack: v[n], v[n-1], ... , v[1], v[0] **=>** v[0], v[n], v[n-1], ... , v[1]
+    RotateRight,
+
     /// Push integer `0` on the stack.
     ///
     /// Operands:
@@ -902,6 +922,15 @@ pub enum Opcode {
     /// Stack: value **=>** value
     JumpIfNotUndefined,
 
+    /// Conditional jump to address.
+    ///
+    /// If the value popped is undefined jump to `address`.
+    ///
+    /// Operands: address: `u32`
+    ///
+    /// Stack: value **=>** value
+    JumpIfNullOrUndefined,
+
     /// Throw exception
     ///
     /// Operands:
@@ -1061,14 +1090,14 @@ pub enum Opcode {
     ///
     /// Operands: argument_count: `u32`
     ///
-    /// Stack: func, this, argument_1, ... argument_n **=>** result
+    /// Stack: this, func, argument_1, ... argument_n **=>** result
     CallEval,
 
     /// Call a function named "eval" where the arguments contain spreads.
     ///
     /// Operands:
     ///
-    /// Stack: arguments_array, func, this **=>** result
+    /// Stack: this, func, arguments_array **=>** result
     CallEvalSpread,
 
     /// Call a function.
@@ -1082,7 +1111,7 @@ pub enum Opcode {
     ///
     /// Operands:
     ///
-    /// Stack: arguments_array, func, this **=>** result
+    /// Stack: this, func, arguments_array **=>** result
     CallSpread,
 
     /// Call construct on a function.
@@ -1330,6 +1359,8 @@ impl Opcode {
             Self::PopIfThrown => PopIfThrown::NAME,
             Self::Dup => Dup::NAME,
             Self::Swap => Swap::NAME,
+            Self::RotateLeft => RotateLeft::NAME,
+            Self::RotateRight => RotateRight::NAME,
             Self::PushZero => PushZero::NAME,
             Self::PushOne => PushOne::NAME,
             Self::PushInt8 => PushInt8::NAME,
@@ -1431,6 +1462,7 @@ impl Opcode {
             Self::Jump => Jump::NAME,
             Self::JumpIfFalse => JumpIfFalse::NAME,
             Self::JumpIfNotUndefined => JumpIfNotUndefined::NAME,
+            Self::JumpIfNullOrUndefined => JumpIfNullOrUndefined::NAME,
             Self::Throw => Throw::NAME,
             Self::TryStart => TryStart::NAME,
             Self::TryEnd => TryEnd::NAME,
@@ -1499,6 +1531,8 @@ impl Opcode {
             Self::PopIfThrown => PopIfThrown::INSTRUCTION,
             Self::Dup => Dup::INSTRUCTION,
             Self::Swap => Swap::INSTRUCTION,
+            Self::RotateLeft => RotateLeft::INSTRUCTION,
+            Self::RotateRight => RotateRight::INSTRUCTION,
             Self::PushZero => PushZero::INSTRUCTION,
             Self::PushOne => PushOne::INSTRUCTION,
             Self::PushInt8 => PushInt8::INSTRUCTION,
@@ -1579,6 +1613,7 @@ impl Opcode {
             Self::Jump => Jump::INSTRUCTION,
             Self::JumpIfFalse => JumpIfFalse::INSTRUCTION,
             Self::JumpIfNotUndefined => JumpIfNotUndefined::INSTRUCTION,
+            Self::JumpIfNullOrUndefined => JumpIfNullOrUndefined::INSTRUCTION,
             Self::Throw => Throw::INSTRUCTION,
             Self::TryStart => TryStart::INSTRUCTION,
             Self::TryEnd => TryEnd::INSTRUCTION,
