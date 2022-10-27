@@ -25,8 +25,6 @@ impl JsValue {
 
             // String concat
             (Self::String(ref x), Self::String(ref y)) => Self::from(js_string!(x, y)),
-            (Self::String(ref x), y) => Self::from(js_string!(x, &y.to_string(context)?)),
-            (x, Self::String(ref y)) => Self::from(js_string!(&x.to_string(context)?, y)),
 
             // Slow path:
             (_, _) => match (
