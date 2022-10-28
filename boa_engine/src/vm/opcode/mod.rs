@@ -139,22 +139,22 @@ pub enum Opcode {
 
     /// Rotates the top `n` values of the stack to the left by `1`.
     ///
-    /// Equivalent to calling [`Slice::rotate_left`] with argument `1` on the top `n` values of the
+    /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the
     /// stack.
     ///
     /// Operands: n: `u8`
     ///
-    /// Stack: v[n], v[n-1], ... , v[1], v[0] **=>** v[n-1], ... , v[1], v[0], v[n]
+    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=>** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]
     RotateLeft,
 
     /// Rotates the top `n` values of the stack to the right by `1`.
     ///
-    /// Equivalent to calling [`Slice::rotate_right`] with argument `1` on the top `n` values of the
+    /// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the
     /// stack.
     ///
     /// Operands: n: `u8`
     ///
-    /// Stack: v[n], v[n-1], ... , v[1], v[0] **=>** v[0], v[n], v[n-1], ... , v[1]
+    /// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=>** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]
     RotateRight,
 
     /// Push integer `0` on the stack.
