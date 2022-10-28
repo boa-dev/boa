@@ -72,6 +72,15 @@ where
     type Output = Expression;
 
     fn parse(self, cursor: &mut Cursor<R>, interner: &mut Interner) -> ParseResult<Self::Output> {
+        /// Checks if we need to parse a super call expression `super()`.
+        ///
+        /// It first checks if the next token is `super`, and if it is, it checks if the second next
+        /// token is the open parenthesis (`(`) punctuator.
+        ///
+        /// This is needed because the `if let` chain is very complex, and putting it inline in the
+        /// initialization of `lhs` would make it very hard to return an expression over all
+        /// possible branches of the `if let`s. Instead, we extract the check into its own function,
+        /// then use it inside the condition of a simple `if ... else` expression.
         fn is_super_call<R: Read>(
             cursor: &mut Cursor<R>,
             interner: &mut Interner,

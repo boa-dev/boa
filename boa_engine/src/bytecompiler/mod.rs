@@ -1469,6 +1469,16 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a property access expression, prepending `this` to the property value in the stack.
+    ///
+    /// This compiles the access in a way that the state of the stack after executing the property
+    /// access becomes `...rest, this, value`. where `...rest` is the rest of the stack, `this` is the
+    /// `this` value of the access, and `value` is the final result of the access.
+    ///
+    /// This is mostly useful for optional chains with calls (`a.b?.()`) and for regular chains
+    /// with calls (`a.b()`), since both of them must have `a` be the value of `this` for the function
+    /// call `b()`, but a regular compilation of the access would lose the `this` value after accessing
+    /// `b`.
     fn compile_access_preserve_this(&mut self, access: &PropertyAccess) -> JsResult<()> {
         match access {
             PropertyAccess::Simple(access) => {
@@ -1511,6 +1521,17 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile an optional chain expression, prepending `this` to the property value in the stack.
+    ///
+    /// This compiles the access in a way that the state of the stack after executing the optional
+    /// chain becomes `...rest, this, value`. where `...rest` is the rest of the stack, `this` is the
+    /// `this` value of the chain, and `value` is the result of the chain.
+    ///
+    /// This is mostly useful for inner optional chains with external calls (`(a?.b)()`), because the
+    /// external call is not in the optional chain, and compiling an optional chain in the usual way
+    /// would only return the result of the chain without preserving the `this` value. In other words,
+    /// `this` would be set to `undefined` for that call, which is incorrect since `a` should be the
+    /// `this` value of the call.
     fn compile_optional_preserve_this(&mut self, optional: &Optional) -> JsResult<()> {
         let mut jumps = Vec::with_capacity(optional.chain().len());
 
@@ -1554,6 +1575,22 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    /// Compile a single operation in an optional chain.
+    ///
+    /// On successful compilation, the state of the stack on execution will become `...rest, this, value`,
+    /// where `this` is the target of the property access (`undefined` on calls), and `value` is the
+    /// result of executing the action.
+    /// For example, in the expression `a?.b.c()`, after compiling and executing:
+    ///
+    /// - `a?.b`, the state of the stack will become `...rest, a, b`.
+    /// - `b.c`, the state of the stack will become `...rest, b, c`.
+    /// - `c()`, the state of the stack will become `...rest, undefined, c()`.
+    ///
+    /// # Requirements
+    /// - This should only be called after verifying that the previous value of the chain
+    /// is not null or undefined (if the operator `?.` was used).
+    /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
+    /// since the operation compiled by this function could be a call.
     fn compile_optional_item_kind(&mut self, kind: &OptionalItemKind) -> JsResult<()> {
         match kind {
             OptionalItemKind::SimplePropertyAccess { field } => {

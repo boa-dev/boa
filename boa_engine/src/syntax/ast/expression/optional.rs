@@ -4,7 +4,7 @@ use crate::syntax::ast::{join_nodes, ContainsSymbol};
 
 use super::{access::PropertyAccessField, Expression};
 
-/// List of valid expressions in an [`Optional`] chain.
+/// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub enum OptionalItemKind {
@@ -44,11 +44,11 @@ impl OptionalItemKind {
     }
 }
 
-/// Item within an [`Optional`] chain.
+/// Operation within an [`Optional`] chain.
 ///
-/// An item within an `Optional` chain can be either shorted or non-shorted. A shorted item
+/// An operation within an `Optional` chain can be either shorted or non-shorted. A shorted operation
 /// (`?.item`) will force the expression to return `undefined` if the target is `undefined` or `null`.
-/// In contrast, a non-shorted item (`.item`) will try to access the property, even if the target
+/// In contrast, a non-shorted operation (`.prop`) will try to access the property, even if the target
 /// is `undefined` or `null`.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -59,15 +59,19 @@ pub struct OptionalItem {
 
 impl OptionalItem {
     /// Creates a new `OptionalItem`.
+    #[inline]
     pub fn new(kind: OptionalItemKind, shorted: bool) -> Self {
         Self { kind, shorted }
     }
     /// Gets the kind of optional chain item.
+    #[inline]
     pub fn kind(&self) -> &OptionalItemKind {
         &self.kind
     }
 
-    /// Returns `true` if the item short-circuits the [`Optional`] chain when `undefined`/`null`.
+    /// Returns `true` if the item short-circuits the [`Optional`] chain when the target is
+    /// `undefined` or `null`.
+    #[inline]
     pub fn shorted(&self) -> bool {
         self.shorted
     }
@@ -84,7 +88,6 @@ impl OptionalItem {
 }
 
 impl ToInternedString for OptionalItem {
-    #[inline]
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.shorted {
             String::from("?.")
@@ -149,6 +152,7 @@ pub struct Optional {
 
 impl Optional {
     /// Creates a new `Optional` expression.
+    #[inline]
     pub fn new(target: Expression, chain: Box<[OptionalItem]>) -> Self {
         Self {
             target: Box::new(target),
@@ -157,11 +161,13 @@ impl Optional {
     }
 
     /// Gets the target of this `Optional` expression.
+    #[inline]
     pub fn target(&self) -> &Expression {
         self.target.as_ref()
     }
 
     /// Gets the chain of accesses and calls that will be applied to the target at runtime.
+    #[inline]
     pub fn chain(&self) -> &[OptionalItem] {
         self.chain.as_ref()
     }
