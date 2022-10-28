@@ -35,7 +35,7 @@ mod r#yield;
 pub use call::{Call, SuperCall};
 pub use identifier::Identifier;
 pub use new::New;
-pub use optional::{Optional, OptionalItem, OptionalItemKind};
+pub use optional::{Optional, OptionalOperation, OptionalOperationKind};
 pub use r#await::Await;
 pub use r#yield::Yield;
 pub use spread::Spread;

@@ -12,7 +12,7 @@ use crate::{
                 binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
                 unary::UnaryOp,
             },
-            Call, Identifier, New, Optional, OptionalItemKind,
+            Call, Identifier, New, Optional, OptionalOperationKind,
         },
         function::{
             ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
@@ -1591,9 +1591,9 @@ impl<'b> ByteCompiler<'b> {
     /// is not null or undefined (if the operator `?.` was used).
     /// - This assumes that the state of the stack before compiling is `...rest, this, value`,
     /// since the operation compiled by this function could be a call.
-    fn compile_optional_item_kind(&mut self, kind: &OptionalItemKind) -> JsResult<()> {
+    fn compile_optional_item_kind(&mut self, kind: &OptionalOperationKind) -> JsResult<()> {
         match kind {
-            OptionalItemKind::SimplePropertyAccess { field } => {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
                 match field {
                     PropertyAccessField::Const(name) => {
@@ -1610,7 +1610,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_u8(3);
                 self.emit_opcode(Opcode::Pop);
             }
-            OptionalItemKind::PrivatePropertyAccess { field } => {
+            OptionalOperationKind::PrivatePropertyAccess { field } => {
                 self.emit_opcode(Opcode::Dup);
                 let index = self.get_or_insert_name((*field).into());
                 self.emit(Opcode::GetPrivateField, &[index]);
@@ -1618,7 +1618,7 @@ impl<'b> ByteCompiler<'b> {
                 self.emit_u8(3);
                 self.emit_opcode(Opcode::Pop);
             }
-            OptionalItemKind::Call { args } => {
+            OptionalOperationKind::Call { args } => {
                 let args = &**args;
                 let contains_spread = args.iter().any(|arg| matches!(arg, Expression::Spread(_)));
 

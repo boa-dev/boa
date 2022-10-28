@@ -9,7 +9,9 @@ use boa_profiler::Profiler;
 use crate::syntax::{
     ast::{
         self,
-        expression::{access::PropertyAccessField, Optional, OptionalItem, OptionalItemKind},
+        expression::{
+            access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind,
+        },
         Punctuator,
     },
     lexer::{Token, TokenKind},
@@ -66,26 +68,26 @@ where
             cursor: &mut Cursor<R>,
             token: &Token,
             interner: &mut Interner,
-        ) -> ParseResult<OptionalItemKind> {
+        ) -> ParseResult<OptionalOperationKind> {
             let item = match token.kind() {
-                TokenKind::Identifier(name) => OptionalItemKind::SimplePropertyAccess {
+                TokenKind::Identifier(name) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(*name),
                 },
-                TokenKind::Keyword((kw, _)) => OptionalItemKind::SimplePropertyAccess {
+                TokenKind::Keyword((kw, _)) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(kw.to_sym(interner)),
                 },
-                TokenKind::BooleanLiteral(true) => OptionalItemKind::SimplePropertyAccess {
+                TokenKind::BooleanLiteral(true) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(Sym::TRUE),
                 },
-                TokenKind::BooleanLiteral(false) => OptionalItemKind::SimplePropertyAccess {
+                TokenKind::BooleanLiteral(false) => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(Sym::FALSE),
                 },
-                TokenKind::NullLiteral => OptionalItemKind::SimplePropertyAccess {
+                TokenKind::NullLiteral => OptionalOperationKind::SimplePropertyAccess {
                     field: PropertyAccessField::Const(Sym::NULL),
                 },
                 TokenKind::PrivateIdentifier(name) => {
                     cursor.push_used_private_identifier(*name, token.span().start())?;
-                    OptionalItemKind::PrivatePropertyAccess { field: *name }
+                    OptionalOperationKind::PrivatePropertyAccess { field: *name }
                 }
                 _ => {
                     return Err(ParseError::expected(
@@ -115,7 +117,7 @@ where
 
                     let item = parse_const_access(cursor, &field, interner)?;
 
-                    items.push(OptionalItem::new(item, false));
+                    items.push(OptionalOperation::new(item, false));
                     continue;
                 }
                 TokenKind::TemplateMiddle(_) | TokenKind::TemplateNoSubstitution(_) => {
@@ -133,7 +135,7 @@ where
                 TokenKind::Punctuator(Punctuator::OpenParen) => {
                     let args = Arguments::new(self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
-                    OptionalItemKind::Call { args }
+                    OptionalOperationKind::Call { args }
                 }
                 TokenKind::Punctuator(Punctuator::OpenBracket) => {
                     cursor
@@ -142,7 +144,7 @@ where
                     let idx = Expression::new(None, true, self.allow_yield, self.allow_await)
                         .parse(cursor, interner)?;
                     cursor.expect(Punctuator::CloseBracket, "optional chain", interner)?;
-                    OptionalItemKind::SimplePropertyAccess {
+                    OptionalOperationKind::SimplePropertyAccess {
                         field: PropertyAccessField::Expr(Box::new(idx)),
                     }
                 }
@@ -158,7 +160,7 @@ where
                 }
             };
 
-            items.push(OptionalItem::new(item, shorted));
+            items.push(OptionalOperation::new(item, shorted));
         }
 
         Ok(Optional::new(self.target, items.into()))

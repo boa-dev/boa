@@ -7,7 +7,7 @@ use super::{access::PropertyAccessField, Expression};
 /// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub enum OptionalItemKind {
+pub enum OptionalOperationKind {
     /// A property access (`a?.prop`).
     SimplePropertyAccess {
         /// The field accessed.
@@ -25,21 +25,21 @@ pub enum OptionalItemKind {
     },
 }
 
-impl OptionalItemKind {
+impl OptionalOperationKind {
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
         match self {
-            OptionalItemKind::SimplePropertyAccess { field } => field.contains_arguments(),
-            OptionalItemKind::PrivatePropertyAccess { .. } => false,
-            OptionalItemKind::Call { args } => args.iter().any(Expression::contains_arguments),
+            OptionalOperationKind::SimplePropertyAccess { field } => field.contains_arguments(),
+            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
+            OptionalOperationKind::Call { args } => args.iter().any(Expression::contains_arguments),
         }
     }
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
         match self {
-            OptionalItemKind::SimplePropertyAccess { field } => field.contains(symbol),
-            OptionalItemKind::PrivatePropertyAccess { .. } => false,
-            OptionalItemKind::Call { args } => args.iter().any(|e| e.contains(symbol)),
+            OptionalOperationKind::SimplePropertyAccess { field } => field.contains(symbol),
+            OptionalOperationKind::PrivatePropertyAccess { .. } => false,
+            OptionalOperationKind::Call { args } => args.iter().any(|e| e.contains(symbol)),
         }
     }
 }
@@ -52,24 +52,24 @@ impl OptionalItemKind {
 /// is `undefined` or `null`.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
-pub struct OptionalItem {
-    kind: OptionalItemKind,
+pub struct OptionalOperation {
+    kind: OptionalOperationKind,
     shorted: bool,
 }
 
-impl OptionalItem {
-    /// Creates a new `OptionalItem`.
+impl OptionalOperation {
+    /// Creates a new `OptionalOperation`.
     #[inline]
-    pub fn new(kind: OptionalItemKind, shorted: bool) -> Self {
+    pub fn new(kind: OptionalOperationKind, shorted: bool) -> Self {
         Self { kind, shorted }
     }
-    /// Gets the kind of optional chain item.
+    /// Gets the kind of operation.
     #[inline]
-    pub fn kind(&self) -> &OptionalItemKind {
+    pub fn kind(&self) -> &OptionalOperationKind {
         &self.kind
     }
 
-    /// Returns `true` if the item short-circuits the [`Optional`] chain when the target is
+    /// Returns `true` if the operation short-circuits the [`Optional`] chain when the target is
     /// `undefined` or `null`.
     #[inline]
     pub fn shorted(&self) -> bool {
@@ -87,35 +87,35 @@ impl OptionalItem {
     }
 }
 
-impl ToInternedString for OptionalItem {
+impl ToInternedString for OptionalOperation {
     fn to_interned_string(&self, interner: &Interner) -> String {
         let mut buf = if self.shorted {
             String::from("?.")
         } else {
-            if let OptionalItemKind::SimplePropertyAccess {
+            if let OptionalOperationKind::SimplePropertyAccess {
                 field: PropertyAccessField::Const(name),
             } = &self.kind
             {
                 return format!(".{}", interner.resolve_expect(*name));
             }
 
-            if let OptionalItemKind::PrivatePropertyAccess { field } = &self.kind {
+            if let OptionalOperationKind::PrivatePropertyAccess { field } = &self.kind {
                 return format!(".#{}", interner.resolve_expect(*field));
             }
 
             String::new()
         };
         buf.push_str(&match &self.kind {
-            OptionalItemKind::SimplePropertyAccess { field } => match field {
+            OptionalOperationKind::SimplePropertyAccess { field } => match field {
                 PropertyAccessField::Const(name) => interner.resolve_expect(*name).to_string(),
                 PropertyAccessField::Expr(expr) => {
                     format!("[{}]", expr.to_interned_string(interner))
                 }
             },
-            OptionalItemKind::PrivatePropertyAccess { field } => {
+            OptionalOperationKind::PrivatePropertyAccess { field } => {
                 format!("#{}", interner.resolve_expect(*field))
             }
-            OptionalItemKind::Call { args } => format!("({})", join_nodes(interner, args)),
+            OptionalOperationKind::Call { args } => format!("({})", join_nodes(interner, args)),
         });
         buf
     }
@@ -147,13 +147,13 @@ impl ToInternedString for OptionalItem {
 #[derive(Clone, Debug, PartialEq)]
 pub struct Optional {
     target: Box<Expression>,
-    chain: Box<[OptionalItem]>,
+    chain: Box<[OptionalOperation]>,
 }
 
 impl Optional {
     /// Creates a new `Optional` expression.
     #[inline]
-    pub fn new(target: Expression, chain: Box<[OptionalItem]>) -> Self {
+    pub fn new(target: Expression, chain: Box<[OptionalOperation]>) -> Self {
         Self {
             target: Box::new(target),
             chain,
@@ -168,13 +168,14 @@ impl Optional {
 
     /// Gets the chain of accesses and calls that will be applied to the target at runtime.
     #[inline]
-    pub fn chain(&self) -> &[OptionalItem] {
+    pub fn chain(&self) -> &[OptionalOperation] {
         self.chain.as_ref()
     }
 
     #[inline]
     pub(crate) fn contains_arguments(&self) -> bool {
-        self.target.contains_arguments() || self.chain.iter().any(OptionalItem::contains_arguments)
+        self.target.contains_arguments()
+            || self.chain.iter().any(OptionalOperation::contains_arguments)
     }
     #[inline]
     pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {

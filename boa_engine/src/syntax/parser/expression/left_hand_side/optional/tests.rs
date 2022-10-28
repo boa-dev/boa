@@ -4,8 +4,8 @@ use boa_macros::utf16;
 use crate::syntax::{
     ast::{
         expression::{
-            access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalItem,
-            OptionalItemKind,
+            access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
+            OptionalOperationKind,
         },
         Expression, Statement,
     },
@@ -21,8 +21,8 @@ fn simple() {
         vec![Statement::Expression(
             Optional::new(
                 Literal::Int(5).into(),
-                vec![OptionalItem::new(
-                    OptionalItemKind::SimplePropertyAccess {
+                vec![OptionalOperation::new(
+                    OptionalOperationKind::SimplePropertyAccess {
                         field: PropertyAccessField::Const(
                             interner.get_or_intern_static("name", utf16!("name")),
                         ),
@@ -48,22 +48,22 @@ fn complex_chain() {
             Optional::new(
                 Identifier::new(interner.get_or_intern_static("a", utf16!("a"))).into(),
                 vec![
-                    OptionalItem::new(
-                        OptionalItemKind::SimplePropertyAccess {
+                    OptionalOperation::new(
+                        OptionalOperationKind::SimplePropertyAccess {
                             field: PropertyAccessField::Const(
                                 interner.get_or_intern_static("b", utf16!("b")),
                             ),
                         },
                         true,
                     ),
-                    OptionalItem::new(
-                        OptionalItemKind::Call {
+                    OptionalOperation::new(
+                        OptionalOperationKind::Call {
                             args: vec![Expression::Literal(Literal::Bool(true))].into(),
                         },
                         false,
                     ),
-                    OptionalItem::new(
-                        OptionalItemKind::SimplePropertyAccess {
+                    OptionalOperation::new(
+                        OptionalOperationKind::SimplePropertyAccess {
                             field: PropertyAccessField::Expr(Box::new(
                                 Literal::String(interner.get_or_intern_static("c", utf16!("c")))
                                     .into(),
