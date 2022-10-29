@@ -113,6 +113,8 @@ pub enum Punctuator {
     OpenBracket,
     /// `(`
     OpenParen,
+    /// `?.`
+    Optional,
     /// `|`
     Or,
     /// `**`
@@ -243,6 +245,7 @@ impl Punctuator {
             Self::OpenBlock => "{",
             Self::OpenBracket => "[",
             Self::OpenParen => "(",
+            Self::Optional => "?.",
             Self::Or => "|",
             Self::Exp => "**",
             Self::Question => "?",
