@@ -1706,6 +1706,41 @@
 <span id="1704">1704</span>
 <span id="1705">1705</span>
 <span id="1706">1706</span>
+<span id="1707">1707</span>
+<span id="1708">1708</span>
+<span id="1709">1709</span>
+<span id="1710">1710</span>
+<span id="1711">1711</span>
+<span id="1712">1712</span>
+<span id="1713">1713</span>
+<span id="1714">1714</span>
+<span id="1715">1715</span>
+<span id="1716">1716</span>
+<span id="1717">1717</span>
+<span id="1718">1718</span>
+<span id="1719">1719</span>
+<span id="1720">1720</span>
+<span id="1721">1721</span>
+<span id="1722">1722</span>
+<span id="1723">1723</span>
+<span id="1724">1724</span>
+<span id="1725">1725</span>
+<span id="1726">1726</span>
+<span id="1727">1727</span>
+<span id="1728">1728</span>
+<span id="1729">1729</span>
+<span id="1730">1730</span>
+<span id="1731">1731</span>
+<span id="1732">1732</span>
+<span id="1733">1733</span>
+<span id="1734">1734</span>
+<span id="1735">1735</span>
+<span id="1736">1736</span>
+<span id="1737">1737</span>
+<span id="1738">1738</span>
+<span id="1739">1739</span>
+<span id="1740">1740</span>
+<span id="1741">1741</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">vm::ShouldExit</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>};
 
@@ -1844,6 +1879,26 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Stack: second, first **=&gt;** first, second</span>
     <span class="ident">Swap</span>,
+
+    <span class="doccomment">/// Rotates the top `n` values of the stack to the left by `1`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the</span>
+    <span class="doccomment">/// stack.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: n: `u8`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[n-1\], ... , v\[1\], v\[0\], v\[n\]</span>
+    <span class="ident">RotateLeft</span>,
+
+    <span class="doccomment">/// Rotates the top `n` values of the stack to the right by `1`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Equivalent to calling [`slice::rotate_right`] with argument `1` on the top `n` values of the</span>
+    <span class="doccomment">/// stack.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: n: `u8`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: v\[n\], v\[n-1\], ... , v\[1\], v\[0\] **=&gt;** v\[0\], v\[n\], v\[n-1\], ... , v\[1\]</span>
+    <span class="ident">RotateRight</span>,
 
     <span class="doccomment">/// Push integer `0` on the stack.</span>
     <span class="doccomment">///</span>
@@ -2610,6 +2665,15 @@
     <span class="doccomment">/// Stack: value **=&gt;** value</span>
     <span class="ident">JumpIfNotUndefined</span>,
 
+    <span class="doccomment">/// Conditional jump to address.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// If the value popped is undefined jump to `address`.</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Operands: address: `u32`</span>
+    <span class="doccomment">///</span>
+    <span class="doccomment">/// Stack: value **=&gt;** value</span>
+    <span class="ident">JumpIfNullOrUndefined</span>,
+
     <span class="doccomment">/// Throw exception</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
@@ -2769,14 +2833,14 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands: argument_count: `u32`</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: func, this, argument_1, ... argument_n **=&gt;** result</span>
+    <span class="doccomment">/// Stack: this, func, argument_1, ... argument_n **=&gt;** result</span>
     <span class="ident">CallEval</span>,
 
     <span class="doccomment">/// Call a function named &quot;eval&quot; where the arguments contain spreads.</span>
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: arguments_array, func, this **=&gt;** result</span>
+    <span class="doccomment">/// Stack: this, func, arguments_array **=&gt;** result</span>
     <span class="ident">CallEvalSpread</span>,
 
     <span class="doccomment">/// Call a function.</span>
@@ -2790,7 +2854,7 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Operands:</span>
     <span class="doccomment">///</span>
-    <span class="doccomment">/// Stack: arguments_array, func, this **=&gt;** result</span>
+    <span class="doccomment">/// Stack: this, func, arguments_array **=&gt;** result</span>
     <span class="ident">CallSpread</span>,
 
     <span class="doccomment">/// Call construct on a function.</span>
@@ -3038,6 +3102,8 @@
             <span class="ident"><span class="self">Self</span>::PopIfThrown</span> =&gt; <span class="ident">PopIfThrown::NAME</span>,
             <span class="ident"><span class="self">Self</span>::Dup</span> =&gt; <span class="ident">Dup::NAME</span>,
             <span class="ident"><span class="self">Self</span>::Swap</span> =&gt; <span class="ident">Swap::NAME</span>,
+            <span class="ident"><span class="self">Self</span>::RotateLeft</span> =&gt; <span class="ident">RotateLeft::NAME</span>,
+            <span class="ident"><span class="self">Self</span>::RotateRight</span> =&gt; <span class="ident">RotateRight::NAME</span>,
             <span class="ident"><span class="self">Self</span>::PushZero</span> =&gt; <span class="ident">PushZero::NAME</span>,
             <span class="ident"><span class="self">Self</span>::PushOne</span> =&gt; <span class="ident">PushOne::NAME</span>,
             <span class="ident"><span class="self">Self</span>::PushInt8</span> =&gt; <span class="ident">PushInt8::NAME</span>,
@@ -3139,6 +3205,7 @@
             <span class="ident"><span class="self">Self</span>::Jump</span> =&gt; <span class="ident">Jump::NAME</span>,
             <span class="ident"><span class="self">Self</span>::JumpIfFalse</span> =&gt; <span class="ident">JumpIfFalse::NAME</span>,
             <span class="ident"><span class="self">Self</span>::JumpIfNotUndefined</span> =&gt; <span class="ident">JumpIfNotUndefined::NAME</span>,
+            <span class="ident"><span class="self">Self</span>::JumpIfNullOrUndefined</span> =&gt; <span class="ident">JumpIfNullOrUndefined::NAME</span>,
             <span class="ident"><span class="self">Self</span>::Throw</span> =&gt; <span class="ident">Throw::NAME</span>,
             <span class="ident"><span class="self">Self</span>::TryStart</span> =&gt; <span class="ident">TryStart::NAME</span>,
             <span class="ident"><span class="self">Self</span>::TryEnd</span> =&gt; <span class="ident">TryEnd::NAME</span>,
@@ -3207,6 +3274,8 @@
             <span class="ident"><span class="self">Self</span>::PopIfThrown</span> =&gt; <span class="ident">PopIfThrown::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::Dup</span> =&gt; <span class="ident">Dup::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::Swap</span> =&gt; <span class="ident">Swap::INSTRUCTION</span>,
+            <span class="ident"><span class="self">Self</span>::RotateLeft</span> =&gt; <span class="ident">RotateLeft::INSTRUCTION</span>,
+            <span class="ident"><span class="self">Self</span>::RotateRight</span> =&gt; <span class="ident">RotateRight::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::PushZero</span> =&gt; <span class="ident">PushZero::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::PushOne</span> =&gt; <span class="ident">PushOne::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::PushInt8</span> =&gt; <span class="ident">PushInt8::INSTRUCTION</span>,
@@ -3287,6 +3356,7 @@
             <span class="ident"><span class="self">Self</span>::Jump</span> =&gt; <span class="ident">Jump::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::JumpIfFalse</span> =&gt; <span class="ident">JumpIfFalse::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::JumpIfNotUndefined</span> =&gt; <span class="ident">JumpIfNotUndefined::INSTRUCTION</span>,
+            <span class="ident"><span class="self">Self</span>::JumpIfNullOrUndefined</span> =&gt; <span class="ident">JumpIfNullOrUndefined::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::Throw</span> =&gt; <span class="ident">Throw::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::TryStart</span> =&gt; <span class="ident">TryStart::INSTRUCTION</span>,
             <span class="ident"><span class="self">Self</span>::TryEnd</span> =&gt; <span class="ident">TryEnd::INSTRUCTION</span>,

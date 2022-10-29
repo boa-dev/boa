@@ -282,6 +282,12 @@
 <span id="280">280</span>
 <span id="281">281</span>
 <span id="282">282</span>
+<span id="283">283</span>
+<span id="284">284</span>
+<span id="285">285</span>
+<span id="286">286</span>
+<span id="287">287</span>
+<span id="288">288</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Expression`] Parse Node, as defined by the [spec].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript expressions include:</span>
@@ -311,6 +317,7 @@
 <span class="kw">mod</span> <span class="ident">call</span>;
 <span class="kw">mod</span> <span class="ident">identifier</span>;
 <span class="kw">mod</span> <span class="ident">new</span>;
+<span class="kw">mod</span> <span class="ident">optional</span>;
 <span class="kw">mod</span> <span class="ident">spread</span>;
 <span class="kw">mod</span> <span class="ident">tagged_template</span>;
 <span class="kw">mod</span> <span class="ident">r#yield</span>;
@@ -318,6 +325,7 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">call</span>::{<span class="ident">Call</span>, <span class="ident">SuperCall</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">identifier::Identifier</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">new::New</span>;
+<span class="kw">pub</span> <span class="kw">use</span> <span class="ident">optional</span>::{<span class="ident">Optional</span>, <span class="ident">OptionalOperation</span>, <span class="ident">OptionalOperationKind</span>};
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#await</span><span class="ident">::Await</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">r#yield</span><span class="ident">::Yield</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">spread::Spread</span>;
@@ -394,10 +402,11 @@
     <span class="doccomment">/// See [`Call`].</span>
     <span class="ident">Call</span>(<span class="ident">Call</span>),
 
-    <span class="doccomment">/// See [`SuperCall`]</span>
+    <span class="doccomment">/// See [`SuperCall`].</span>
     <span class="ident">SuperCall</span>(<span class="ident">SuperCall</span>),
 
-    <span class="comment">// TODO: Optional chains</span>
+    <span class="doccomment">/// See [`Optional`].</span>
+    <span class="ident">Optional</span>(<span class="ident">Optional</span>),
 
     <span class="comment">// TODO: Import calls</span>
     <span class="doccomment">/// See [`TaggedTemplate`].</span>
@@ -457,6 +466,7 @@
             <span class="ident"><span class="self">Self</span>::New</span>(<span class="ident">new</span>) =&gt; <span class="ident">new</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::SuperCall</span>(<span class="ident">supc</span>) =&gt; <span class="ident">supc</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
+            <span class="ident"><span class="self">Self</span>::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::NewTarget</span> =&gt; <span class="string">&quot;new.target&quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident"><span class="self">Self</span>::TaggedTemplate</span>(<span class="ident">tag</span>) =&gt; <span class="ident">tag</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
             <span class="ident"><span class="self">Self</span>::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">to_interned_string</span>(<span class="ident">interner</span>),
@@ -497,6 +507,7 @@
             <span class="ident">Expression::New</span>(<span class="ident">new</span>) =&gt; <span class="ident">new</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident">Expression::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident">Expression::SuperCall</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains_arguments</span>(),
+            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">tag</span>) =&gt; <span class="ident">tag</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">contains_arguments</span>(),
             <span class="ident">Expression::Unary</span>(<span class="ident">unary</span>) =&gt; <span class="ident">unary</span>.<span class="ident">contains_arguments</span>(),
@@ -536,6 +547,7 @@
             <span class="ident">Expression::Call</span>(<span class="ident">call</span>) =&gt; <span class="ident">call</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
             <span class="ident">Expression::SuperCall</span>(<span class="kw">_</span>) <span class="kw">if</span> <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::SuperCall</span> =&gt; <span class="bool-val">true</span>,
             <span class="ident">Expression::SuperCall</span>(<span class="ident">expr</span>) =&gt; <span class="ident">expr</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
+            <span class="ident">Expression::Optional</span>(<span class="ident">opt</span>) =&gt; <span class="ident">opt</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
             <span class="ident">Expression::TaggedTemplate</span>(<span class="ident">temp</span>) =&gt; <span class="ident">temp</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),
             <span class="ident">Expression::NewTarget</span> =&gt; <span class="ident">symbol</span> <span class="op">==</span> <span class="ident">ContainsSymbol::NewTarget</span>,
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; <span class="ident">assign</span>.<span class="ident">contains</span>(<span class="ident">symbol</span>),

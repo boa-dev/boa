@@ -598,6 +598,9 @@
 <span id="596">596</span>
 <span id="597">597</span>
 <span id="598">598</span>
+<span id="599">599</span>
+<span id="600">600</span>
+<span id="601">601</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Virtual Machine (VM) handles generating instructions, then executing them.</span>
 <span class="doccomment">//! This module will provide an instruction set for the AST to use, various traits,</span>
 <span class="doccomment">//! plus an interpreter to execute those instructions</span>
@@ -732,6 +735,8 @@
             <span class="ident">Opcode::PopIfThrown</span> =&gt; <span class="ident">PopIfThrown::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::Dup</span> =&gt; <span class="ident">Dup::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::Swap</span> =&gt; <span class="ident">Swap::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
+            <span class="ident">Opcode::RotateLeft</span> =&gt; <span class="ident">RotateLeft::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
+            <span class="ident">Opcode::RotateRight</span> =&gt; <span class="ident">RotateRight::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::PushUndefined</span> =&gt; <span class="ident">PushUndefined::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::PushNull</span> =&gt; <span class="ident">PushNull::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::PushTrue</span> =&gt; <span class="ident">PushTrue::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
@@ -798,6 +803,7 @@
             <span class="ident">Opcode::Jump</span> =&gt; <span class="ident">Jump::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::JumpIfFalse</span> =&gt; <span class="ident">JumpIfFalse::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::JumpIfNotUndefined</span> =&gt; <span class="ident">JumpIfNotUndefined::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
+            <span class="ident">Opcode::JumpIfNullOrUndefined</span> =&gt; <span class="ident">JumpIfNullOrUndefined::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::LogicalAnd</span> =&gt; <span class="ident">LogicalAnd::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::LogicalOr</span> =&gt; <span class="ident">LogicalOr::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,
             <span class="ident">Opcode::Coalesce</span> =&gt; <span class="ident">Coalesce::execute</span>(<span class="self">self</span>)<span class="question-mark">?</span>,

@@ -217,6 +217,8 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Span</span>, <span class="ident">Tokenizer</span>};
@@ -290,7 +292,9 @@
                                 <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                             ));
                         }
-                        <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA8_80</span> <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA9_80</span>) =&gt; {
+                        <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>]
+                            <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
+                        {
                             <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(
                                 <span class="string">&quot;new lines are not allowed in regular expressions&quot;</span>,
@@ -309,8 +313,8 @@
                                             <span class="ident">cursor</span>.<span class="ident">pos</span>(),
                                         ));
                                     }
-                                    <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA8_80</span>
-                                        <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> <span class="number">0xA9_80</span>) =&gt;
+                                    <span class="number">0xE2</span> <span class="kw">if</span> (<span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>]
+                                        <span class="op">|</span><span class="op">|</span> <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>]) =&gt;
                                     {
                                         <span class="comment">// &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9) are not allowed</span>
                                         <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">Error::syntax</span>(

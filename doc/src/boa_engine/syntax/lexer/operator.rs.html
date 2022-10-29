@@ -184,6 +184,19 @@
 <span id="182">182</span>
 <span id="183">183</span>
 <span id="184">184</span>
+<span id="185">185</span>
+<span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for operators (+, - etc.) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
@@ -312,21 +325,34 @@
             <span class="string">b&#39;&amp;&#39;</span> =&gt; <span class="macro">op!</span>(<span class="ident">cursor</span>, <span class="ident">start_pos</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::And</span>), {
                 <span class="prelude-val">Some</span>(<span class="string">b&#39;&amp;&#39;</span>) =&gt; <span class="macro">vop!</span>(<span class="ident">cursor</span>, <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignBoolAnd</span>), <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::BoolAnd</span>))
             }),
-            <span class="string">b&#39;?&#39;</span> =&gt; <span class="kw">match</span> <span class="ident">cursor</span>.<span class="ident">peek</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="string">b&#39;?&#39;</span>) =&gt; {
-                    <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;? vanished&quot;</span>);
-                    <span class="macro">op!</span>(
-                        <span class="ident">cursor</span>,
-                        <span class="ident">start_pos</span>,
-                        <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignCoalesce</span>),
-                        <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Coalesce</span>)
-                    )
+            <span class="string">b&#39;?&#39;</span> =&gt; {
+                <span class="kw">let</span> (<span class="ident">first</span>, <span class="ident">second</span>) <span class="op">=</span> (
+                    <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span>.<span class="ident">first</span>().<span class="ident">copied</span>(),
+                    <span class="ident">cursor</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">copied</span>(),
+                );
+                <span class="kw">match</span> <span class="ident">first</span> {
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;?&#39;</span>) =&gt; {
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;? vanished&quot;</span>);
+                        <span class="macro">op!</span>(
+                            <span class="ident">cursor</span>,
+                            <span class="ident">start_pos</span>,
+                            <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::AssignCoalesce</span>),
+                            <span class="prelude-val">Ok</span>(<span class="ident">Punctuator::Coalesce</span>)
+                        )
+                    }
+                    <span class="prelude-val">Some</span>(<span class="string">b&#39;.&#39;</span>) <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">second</span>, <span class="prelude-val">Some</span>(<span class="ident">second</span>) <span class="kw">if</span> <span class="ident">second</span>.<span class="ident">is_ascii_digit</span>()) =&gt; {
+                        <span class="kw">let</span> <span class="kw">_</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next_byte</span>()<span class="question-mark">?</span>.<span class="ident">expect</span>(<span class="string">&quot;. vanished&quot;</span>);
+                        <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
+                            <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Optional</span>),
+                            <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
+                        ))
+                    }
+                    <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
+                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Question</span>),
+                        <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
+                    )),
                 }
-                <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="ident">Token::new</span>(
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Question</span>),
-                    <span class="ident">Span::new</span>(<span class="ident">start_pos</span>, <span class="ident">cursor</span>.<span class="ident">pos</span>()),
-                )),
-            },
+            }
             <span class="string">b&#39;^&#39;</span> =&gt; <span class="macro">op!</span>(
                 <span class="ident">cursor</span>,
                 <span class="ident">start_pos</span>,

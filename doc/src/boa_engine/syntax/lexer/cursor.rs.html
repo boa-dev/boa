@@ -526,7 +526,6 @@
 <span id="524">524</span>
 <span id="525">525</span>
 <span id="526">526</span>
-<span id="527">527</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Module implementing the lexer cursor. This is used for managing the input byte stream.</span>
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::Position</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -608,7 +607,7 @@
 
     <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="string">&quot;cursor::peek_n()&quot;</span>, <span class="string">&quot;Lexing&quot;</span>);
 
         <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">peek_n_bytes</span>(<span class="ident">n</span>)
@@ -779,7 +778,7 @@
             <span class="prelude-val">Some</span>(<span class="number">0xE2</span>) =&gt; {
                 <span class="comment">// Try to match &#39;\u{2028}&#39; (e2 80 a8) and &#39;\u{2029}&#39; (e2 80 a9)</span>
                 <span class="kw">let</span> <span class="ident">next_bytes</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peek_n</span>(<span class="number">2</span>)<span class="question-mark">?</span>;
-                <span class="kw">if</span> <span class="ident">next_bytes</span> <span class="op">==</span> <span class="number">0xA8_80</span> <span class="op">|</span><span class="op">|</span> <span class="ident">next_bytes</span> <span class="op">==</span> <span class="number">0xA9_80</span> {
+                <span class="kw">if</span> <span class="ident">next_bytes</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA8</span>] <span class="op">|</span><span class="op">|</span> <span class="ident">next_bytes</span> <span class="op">==</span> [<span class="number">0x80</span>, <span class="number">0xA9</span>] {
                     <span class="self">self</span>.<span class="ident">next_line</span>();
                 } <span class="kw">else</span> {
                     <span class="comment">// 0xE2 is a utf8 first byte</span>
@@ -825,7 +824,7 @@
 <span class="kw">struct</span> <span class="ident">InnerIter</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> {
     <span class="ident">iter</span>: <span class="ident">Bytes</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
     <span class="ident">num_peeked_bytes</span>: <span class="ident">u8</span>,
-    <span class="ident">peeked_bytes</span>: <span class="ident">u32</span>,
+    <span class="ident">peeked_bytes</span>: [<span class="ident">u8</span>; <span class="number">4</span>],
     <span class="ident">peeked_char</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span><span class="op">&gt;</span>,
 }
 
@@ -836,7 +835,7 @@
         <span class="self">Self</span> {
             <span class="ident">iter</span>,
             <span class="ident">num_peeked_bytes</span>: <span class="number">0</span>,
-            <span class="ident">peeked_bytes</span>: <span class="number">0</span>,
+            <span class="ident">peeked_bytes</span>: [<span class="number">0</span>; <span class="number">4</span>],
             <span class="ident">peeked_char</span>: <span class="prelude-val">None</span>,
         }
     }
@@ -878,13 +877,13 @@
     <span class="attribute">#[<span class="ident">inline</span>]</span>
     <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>];
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
         } <span class="kw">else</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">=</span> <span class="number">1</span>;
-                    <span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">=</span> <span class="ident">u32::from</span>(<span class="ident">byte</span>);
+                    <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>] <span class="op">=</span> <span class="ident">byte</span>;
                     <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
                 }
                 <span class="prelude-val">None</span> =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>),
@@ -894,24 +893,17 @@
 
     <span class="doccomment">/// Peeks the next n bytes, the maximum number of peeked bytes is 4 (n &lt;= 4).</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">Error</span><span class="op">&gt;</span> {
+    <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn</span> <span class="ident">peek_n_bytes</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">n</span>: <span class="ident">u8</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="kw-2">&amp;</span>[<span class="ident">u8</span>], <span class="ident">Error</span><span class="op">&gt;</span> {
         <span class="kw">while</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&lt;</span> <span class="ident">n</span> <span class="op">&amp;&amp;</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&lt;</span> <span class="number">4</span> {
             <span class="kw">match</span> <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()<span class="question-mark">?</span> {
                 <span class="prelude-val">Some</span>(<span class="ident">byte</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">|</span><span class="op">=</span> <span class="ident">u32::from</span>(<span class="ident">byte</span>) <span class="op">&lt;</span><span class="op">&lt;</span> (<span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">*</span> <span class="number">8</span>);
+                    <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="ident">usize::from</span>(<span class="self">self</span>.<span class="ident">num_peeked_bytes</span>)] <span class="op">=</span> <span class="ident">byte</span>;
                     <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
                 }
                 <span class="prelude-val">None</span> =&gt; <span class="kw">break</span>,
             };
         }
-
-        <span class="kw">match</span> <span class="ident">n</span> {
-            <span class="number">0</span> =&gt; <span class="prelude-val">Ok</span>(<span class="number">0</span>),
-            <span class="number">1</span> =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">&amp;</span> <span class="number">0xFF</span>),
-            <span class="number">2</span> =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">&amp;</span> <span class="number">0xFFFF</span>),
-            <span class="number">3</span> =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">&amp;</span> <span class="number">0xFFFFFF</span>),
-            <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(<span class="self">self</span>.<span class="ident">peeked_bytes</span>),
-        }
+        <span class="prelude-val">Ok</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">peeked_bytes</span>[..<span class="ident">usize::from</span>(<span class="ident">u8::min</span>(<span class="ident">n</span>, <span class="self">self</span>.<span class="ident">num_peeked_bytes</span>))])
     }
 
     <span class="doccomment">/// Peeks the next unchecked character in u32 code point.</span>
@@ -921,34 +913,40 @@
             <span class="prelude-val">Ok</span>(<span class="ident">ch</span>)
         } <span class="kw">else</span> {
             <span class="comment">// Decode UTF-8</span>
-            <span class="kw">let</span> <span class="ident">x</span> <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_byte</span>()<span class="question-mark">?</span> {
-                <span class="prelude-val">Some</span>(<span class="ident">b</span>) <span class="kw">if</span> <span class="ident">b</span> <span class="op">&lt;</span> <span class="number">128</span> =&gt; {
-                    <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">u32::from</span>(<span class="ident">b</span>)));
-                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">u32::from</span>(<span class="ident">b</span>)));
+            <span class="kw">let</span> (<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">z</span>, <span class="ident">w</span>) <span class="op">=</span> <span class="kw">match</span> <span class="self">self</span>.<span class="ident">peek_n_bytes</span>(<span class="number">4</span>)<span class="question-mark">?</span> {
+                [<span class="ident">b</span>, ..] <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">b</span> <span class="op">&lt;</span> <span class="number">128</span> =&gt; {
+                    <span class="kw">let</span> <span class="ident">char</span> <span class="op">=</span> <span class="ident">u32::from</span>(<span class="kw-2">*</span><span class="ident">b</span>);
+                    <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="prelude-val">Some</span>(<span class="ident">char</span>));
+                    <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">char</span>));
                 }
-                <span class="prelude-val">Some</span>(<span class="ident">b</span>) =&gt; <span class="ident">b</span>,
-                <span class="prelude-val">None</span> =&gt; {
+                [] =&gt; {
                     <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">None</span>;
                     <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
                 }
+                <span class="ident">bytes</span> =&gt; (
+                    <span class="ident">bytes</span>[<span class="number">0</span>],
+                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">1</span>).<span class="ident">copied</span>(),
+                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">2</span>).<span class="ident">copied</span>(),
+                    <span class="ident">bytes</span>.<span class="ident">get</span>(<span class="number">3</span>).<span class="ident">copied</span>(),
+                ),
             };
 
             <span class="comment">// Multibyte case follows</span>
             <span class="comment">// Decode from a byte combination out of: [[[x y] z] w]</span>
             <span class="comment">// NOTE: Performance is sensitive to the exact formulation here</span>
             <span class="kw">let</span> <span class="ident">init</span> <span class="op">=</span> <span class="ident">utf8_first_byte</span>(<span class="ident">x</span>, <span class="number">2</span>);
-            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">peek_n_bytes</span>(<span class="number">2</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">8</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="kw">let</span> <span class="ident">y</span> <span class="op">=</span> <span class="ident">y</span>.<span class="ident">unwrap_or_default</span>();
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">ch</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">init</span>, <span class="ident">y</span>);
             <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xE0</span> {
                 <span class="comment">// [[x y z] w] case</span>
                 <span class="comment">// 5th bit in 0xE0 .. 0xEF is always clear, so `init` is still valid</span>
-                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">peek_n_bytes</span>(<span class="number">3</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">16</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                <span class="kw">let</span> <span class="ident">z</span> <span class="op">=</span> <span class="ident">z</span>.<span class="ident">unwrap_or_default</span>();
                 <span class="kw">let</span> <span class="ident">y_z</span> <span class="op">=</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">u32::from</span>(<span class="ident">y</span> <span class="op">&amp;</span> <span class="ident">CONT_MASK</span>), <span class="ident">z</span>);
                 <span class="ident">ch</span> <span class="op">=</span> <span class="ident">init</span> <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">12</span> <span class="op">|</span> <span class="ident">y_z</span>;
                 <span class="kw">if</span> <span class="ident">x</span> <span class="op">&gt;</span><span class="op">=</span> <span class="number">0xF0</span> {
                     <span class="comment">// [x y z w] case</span>
                     <span class="comment">// use only the lower 3 bits of `init`</span>
-                    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">peek_n_bytes</span>(<span class="number">4</span>)<span class="question-mark">?</span> <span class="op">&gt;</span><span class="op">&gt;</span> <span class="number">24</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+                    <span class="kw">let</span> <span class="ident">w</span> <span class="op">=</span> <span class="ident">w</span>.<span class="ident">unwrap_or_default</span>();
                     <span class="ident">ch</span> <span class="op">=</span> (<span class="ident">init</span> <span class="op">&amp;</span> <span class="number">7</span>) <span class="op">&lt;</span><span class="op">&lt;</span> <span class="number">18</span> <span class="op">|</span> <span class="ident">utf8_acc_cont_byte</span>(<span class="ident">y_z</span>, <span class="ident">w</span>);
                 }
             };
@@ -963,9 +961,9 @@
     <span class="kw">fn</span> <span class="ident">next_byte</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>) -&gt; <span class="ident">io::Result</span><span class="op">&lt;</span><span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">u8</span><span class="op">&gt;</span><span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">peeked_char</span> <span class="op">=</span> <span class="prelude-val">None</span>;
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">&gt;</span> <span class="number">0</span> {
-            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> (<span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">&amp;</span> <span class="number">0xFF</span>) <span class="kw">as</span> <span class="ident">u8</span>;
+            <span class="kw">let</span> <span class="ident">byte</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">peeked_bytes</span>[<span class="number">0</span>];
             <span class="self">self</span>.<span class="ident">num_peeked_bytes</span> <span class="op">-</span><span class="op">=</span> <span class="number">1</span>;
-            <span class="self">self</span>.<span class="ident">peeked_bytes</span> <span class="op">&gt;</span><span class="op">&gt;</span><span class="op">=</span> <span class="number">8</span>;
+            <span class="self">self</span>.<span class="ident">peeked_bytes</span>.<span class="ident">rotate_left</span>(<span class="number">1</span>);
             <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(<span class="ident">byte</span>))
         } <span class="kw">else</span> {
             <span class="self">self</span>.<span class="ident">iter</span>.<span class="ident">next</span>().<span class="ident">transpose</span>()

@@ -279,6 +279,9 @@
 <span id="277">277</span>
 <span id="278">278</span>
 <span id="279">279</span>
+<span id="280">280</span>
+<span id="281">281</span>
+<span id="282">282</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The `Punctuator` enum, which contains all punctuators used in JavaScript.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -394,6 +397,8 @@
     <span class="ident">OpenBracket</span>,
     <span class="doccomment">/// `(`</span>
     <span class="ident">OpenParen</span>,
+    <span class="doccomment">/// `?.`</span>
+    <span class="ident">Optional</span>,
     <span class="doccomment">/// `|`</span>
     <span class="ident">Or</span>,
     <span class="doccomment">/// `**`</span>
@@ -524,6 +529,7 @@
             <span class="ident"><span class="self">Self</span>::OpenBlock</span> =&gt; <span class="string">&quot;{&quot;</span>,
             <span class="ident"><span class="self">Self</span>::OpenBracket</span> =&gt; <span class="string">&quot;[&quot;</span>,
             <span class="ident"><span class="self">Self</span>::OpenParen</span> =&gt; <span class="string">&quot;(&quot;</span>,
+            <span class="ident"><span class="self">Self</span>::Optional</span> =&gt; <span class="string">&quot;?.&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Or</span> =&gt; <span class="string">&quot;|&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Exp</span> =&gt; <span class="string">&quot;**&quot;</span>,
             <span class="ident"><span class="self">Self</span>::Question</span> =&gt; <span class="string">&quot;?&quot;</span>,

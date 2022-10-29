@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["arguments","Argument parsing."],["call","Call expression parsing."],["member","Member expression parsing."],["template",""]],"struct":[["LeftHandSideExpression","Parses a left hand side expression."]]};
+window.SIDEBAR_ITEMS = {"mod":[["arguments","Argument parsing."],["call","Call expression parsing."],["member","Member expression parsing."],["optional",""],["template",""]],"struct":[["LeftHandSideExpression","Parses a left hand side expression."]]};

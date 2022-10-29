@@ -64,6 +64,28 @@
 <span id="62">62</span>
 <span id="63">63</span>
 <span id="64">64</span>
+<span id="65">65</span>
+<span id="66">66</span>
+<span id="67">67</span>
+<span id="68">68</span>
+<span id="69">69</span>
+<span id="70">70</span>
+<span id="71">71</span>
+<span id="72">72</span>
+<span id="73">73</span>
+<span id="74">74</span>
+<span id="75">75</span>
+<span id="76">76</span>
+<span id="77">77</span>
+<span id="78">78</span>
+<span id="79">79</span>
+<span id="80">80</span>
+<span id="81">81</span>
+<span id="82">82</span>
+<span id="83">83</span>
+<span id="84">84</span>
+<span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">vm</span>::{<span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
@@ -125,6 +147,28 @@
             <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">usize</span>;
             <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
         }
+        <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
+    }
+}
+
+<span class="doccomment">/// `JumpIfUndefined` implements the Opcode Operation for `Opcode::JumpIfUndefined`</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// Operation:</span>
+<span class="doccomment">///  - Conditional jump to address.</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">JumpIfNullOrUndefined</span>;
+
+<span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">JumpIfNullOrUndefined</span> {
+    <span class="kw">const</span> <span class="ident">NAME</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;JumpIfNullOrUndefined&quot;</span>;
+    <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - JumpIfNullOrUndefined&quot;</span>;
+
+    <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
+        <span class="kw">let</span> <span class="ident">address</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
+        <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">if</span> <span class="ident">value</span>.<span class="ident">is_null_or_undefined</span>() {
+            <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame_mut</span>().<span class="ident">pc</span> <span class="op">=</span> <span class="ident">address</span> <span class="kw">as</span> <span class="ident">usize</span>;
+        }
+        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
     }
 }
