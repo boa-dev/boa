@@ -29,40 +29,46 @@ thread_local!(pub static GC_DROPPING: StdCell<bool> = StdCell::new(false));
 thread_local!(static BOA_GC: StdRefCell<BoaGc> = StdRefCell::new( BoaGc {
     config: GcConfig::default(),
     runtime: GcRuntimeData::default(),
-    heap_start: StdCell::new(None),
-    stack: StdCell::new(Vec::new()),
+    adult_start: StdCell::new(None),
+    youth_start: StdCell::new(None),
 }));
 
 struct GcConfig {
-    threshold: usize,
+    youth_threshold: usize,
+    youth_threshold_base: usize,
+    adult_threshold: usize,
     growth_ratio: f64,
-    stack_base_capacity: usize,
-    stack_soft_cap: usize,
+    youth_promo_age: u8,
 }
 
 impl Default for GcConfig {
     fn default() -> Self {
         Self {
-            threshold: 100,
+            youth_threshold: 1000,
+            youth_threshold_base: 1000,
+            adult_threshold: 5000,
             growth_ratio: 0.7,
-            stack_base_capacity: 32,
-            stack_soft_cap: 32,
+            youth_promo_age: 3,
         }
     }
 }
 
 struct GcRuntimeData {
     collections: usize,
-    heap_bytes_allocated: usize,
-    stack_allocations: usize,
+    total_bytes_allocated: usize,
+    youth_bytes: usize,
+    adult_bytes: usize,
+    object_allocations: usize,
 }
 
 impl Default for GcRuntimeData {
     fn default() -> Self {
         Self {
             collections: 0,
-            heap_bytes_allocated: 0,
-            stack_allocations: 0,
+            total_bytes_allocated: 0,
+            youth_bytes: 0,
+            adult_bytes: 0,
+            object_allocations: 0,
         }
     }
 }
@@ -70,8 +76,8 @@ impl Default for GcRuntimeData {
 struct BoaGc {
     config: GcConfig,
     runtime: GcRuntimeData,
-    heap_start: StdCell<Option<GcPointer>>,
-    stack: StdCell<Vec<GcPointer>>,
+    adult_start: StdCell<Option<GcPointer>>,
+    youth_start: StdCell<Option<GcPointer>>,
 }
 
 impl Drop for BoaGc {
@@ -114,17 +120,25 @@ impl BoaAlloc {
             let mut gc = st.borrow_mut();
 
             unsafe {
-                Self::manage_state::<T>(&mut *gc);
+                Self::manage_state(&mut *gc);
             }
 
-            let stack_element = Box::into_raw(Box::from(GcBox::new(value)));
-            unsafe {
-                let mut stack = gc.stack.take();
-                stack.push(NonNull::new_unchecked(stack_element));
-                gc.stack.set(stack);
-                gc.runtime.stack_allocations += 1;
+            let gc_box = GcBox::new(value);
 
-                Gc::new(NonNull::new_unchecked(stack_element))
+            let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
+            let element_pointer = Box::into_raw(Box::from(gc_box));
+
+            unsafe {
+                let old_start = gc.youth_start.take();
+                (*element_pointer).set_header_pointer(old_start);
+                gc.youth_start
+                    .set(Some(NonNull::new_unchecked(element_pointer)));
+
+                gc.runtime.object_allocations += 1;
+                gc.runtime.total_bytes_allocated += element_size;
+                gc.runtime.youth_bytes += element_size;
+
+                Gc::new(NonNull::new_unchecked(element_pointer))
             }
         })
     }
@@ -136,18 +150,23 @@ impl BoaAlloc {
             // Manage state preps the internal state for allocation and
             // triggers a collection if the state dictates it.
             unsafe {
-                Self::manage_state::<T>(&mut *gc);
+                Self::manage_state(&mut *gc);
             }
 
-            let cell = Cell::new(value);
-            let stack_element = Box::into_raw(Box::from(GcBox::new(cell)));
-            unsafe {
-                let mut stack = gc.stack.take();
-                stack.push(NonNull::new_unchecked(stack_element));
-                gc.stack.set(stack);
-                gc.runtime.stack_allocations += 1;
+            let gc_box = GcBox::new(Cell::new(value));
+            let element_size = mem::size_of_val::<GcBox<Cell<_>>>(&gc_box);
+            let element_pointer = Box::into_raw(Box::from(gc_box));
 
-                Gc::new(NonNull::new_unchecked(stack_element))
+            unsafe {
+                let old_start = gc.youth_start.take();
+                (*element_pointer).set_header_pointer(old_start);
+                gc.youth_start
+                    .set(Some(NonNull::new_unchecked(element_pointer)));
+
+                gc.runtime.object_allocations += 1;
+                gc.runtime.total_bytes_allocated += element_size;
+
+                Gc::new(NonNull::new_unchecked(element_pointer))
             }
         })
     }
@@ -161,91 +180,128 @@ impl BoaAlloc {
             let mut gc = state.borrow_mut();
 
             unsafe {
-                Self::manage_state::<T>(&mut *gc);
+                Self::manage_state(&mut *gc);
 
                 let ephemeron = Ephemeron::new(value.as_ptr());
-                let stack_element = Box::into_raw(Box::from(GcBox::new_weak(ephemeron)));
-                let mut stack = gc.stack.take();
-                stack.push(NonNull::new_unchecked(stack_element));
-                gc.stack.set(stack);
-                gc.runtime.stack_allocations += 1;
+                let gc_box = GcBox::new_weak(ephemeron);
 
-                WeakGc::new(NonNull::new_unchecked(stack_element))
+                let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
+                let element_pointer = Box::into_raw(Box::from(gc_box));
+
+                let old_start = gc.youth_start.take();
+                (*element_pointer).set_header_pointer(old_start);
+                gc.youth_start
+                    .set(Some(NonNull::new_unchecked(element_pointer)));
+
+                gc.runtime.object_allocations += 1;
+                gc.runtime.total_bytes_allocated += element_size;
+
+                WeakGc::new(NonNull::new_unchecked(element_pointer))
             }
         })
     }
 
     // Possibility here for `new_weak` that takes any value and creates a new WeakGc
 
-    pub(crate) unsafe fn promote_allocs<T: Trace>(
+    pub(crate) unsafe fn promote_to_medium(
         promotions: Vec<NonNull<GcBox<dyn Trace>>>,
         gc: &mut BoaGc,
     ) {
         for node in promotions {
-            (*node.as_ptr()).promote(gc.heap_start.take());
-            gc.heap_start.set(Some(node));
-            gc.runtime.heap_bytes_allocated += mem::size_of::<GcBox<T>>();
+            (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
+            let allocation_bytes= mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
+            gc.runtime.youth_bytes -= allocation_bytes;
+            gc.runtime.adult_bytes += allocation_bytes;
+            gc.adult_start.set(Some(node));
         }
     }
 
-    unsafe fn manage_state<T: Trace>(gc: &mut BoaGc) {
-        if gc.runtime.heap_bytes_allocated > gc.config.threshold {
-            Collector::run_full_collection::<T>(gc);
+    unsafe fn manage_state(gc: &mut BoaGc) {
+        if gc.runtime.adult_bytes > gc.config.adult_threshold {
+            Collector::run_full_collection(gc);
 
-            if gc.runtime.heap_bytes_allocated as f64
-                > gc.config.threshold as f64 * gc.config.growth_ratio
+            if gc.runtime.adult_bytes as f64
+                > gc.config.adult_threshold as f64 * gc.config.growth_ratio
             {
-                gc.config.threshold =
-                    (gc.runtime.heap_bytes_allocated as f64 / gc.config.growth_ratio) as usize
+                gc.config.adult_threshold =
+                    (gc.runtime.adult_bytes as f64 / gc.config.growth_ratio) as usize
             }
         } else {
-            if gc.runtime.stack_allocations > gc.config.stack_soft_cap {
-                Collector::run_stack_collection::<T>(gc);
+            if gc.runtime.youth_bytes > gc.config.youth_threshold {
+                Collector::run_youth_collection(gc);
 
                 // If we are constrained on the top of the stack,
                 // increase the size of capacity, so a garbage collection
                 // isn't triggered on every allocation
-                if gc.runtime.stack_allocations > gc.config.stack_soft_cap {
-                    gc.config.stack_soft_cap += 5
+                if gc.runtime.youth_bytes > gc.config.youth_threshold {
+                    gc.config.youth_threshold =
+                        (gc.runtime.youth_bytes as f64 / gc.config.growth_ratio) as usize
                 }
 
-                // If the soft cap was increased but the allocation has lowered below
-                // the initial base, then reset to the original base
-                if gc.runtime.stack_allocations < gc.config.stack_base_capacity
-                    && gc.config.stack_base_capacity != gc.config.stack_soft_cap
+                // The young object threshold should only be raised in cases of high laod. It 
+                // should retract back to base when the load lessens
+                if gc.runtime.youth_bytes < gc.config.youth_threshold_base
+                    && gc.config.youth_threshold != gc.config.youth_threshold_base
                 {
-                    gc.config.stack_soft_cap = gc.config.stack_base_capacity
+                    gc.config.youth_threshold = gc.config.youth_threshold_base
                 }
             }
         }
     }
 }
 
+// This collector currently functions in four main phases
+//
+// Mark -> Finalize -> Mark -> Sweep
+//
+// Mark nodes as reachable then finalize the unreachable nodes. A remark phase
+// then needs to be retriggered as finalization can potentially resurrect dead
+// nodes.
+//
+// A better appraoch in a more concurrent structure may be to reorder.
+//
+// Mark -> Sweep -> Finalize
 pub struct Collector;
 
 impl Collector {
-    pub(crate) unsafe fn run_stack_collection<T: Trace>(gc: &mut BoaGc) {
+    pub(crate) unsafe fn run_youth_collection(gc: &mut BoaGc) {
         gc.runtime.collections += 1;
-        let stack = gc.stack.take();
-        let unreachable_nodes = Self::mark_stack(&stack);
+        let unreachable_nodes = Self::mark_heap(&gc.youth_start);
         Self::finalize(unreachable_nodes);
-        let _finalized = Self::mark_stack(&stack);
-        let promotions = Self::stack_sweep(gc, stack);
-        BoaAlloc::promote_allocs::<T>(promotions, gc);
+        // The returned unreachable vector must be filled with nodes that are for certain dead (these will be removed during the sweep)
+        let _finalized_unreachable_nodes = Self::mark_heap(&gc.youth_start);
+        let promotion_candidates = Self::sweep_with_promotions(
+            &gc.youth_start,
+            &mut gc.runtime.youth_bytes,
+            &mut gc.runtime.total_bytes_allocated,
+            &gc.config.youth_promo_age,
+        );
+        // Check if there are any candidates for promotion
+        if promotion_candidates.len() > 0 {
+            BoaAlloc::promote_to_medium(promotion_candidates, gc);
+        }
     }
 
-    pub(crate) unsafe fn run_full_collection<T: Trace>(gc: &mut BoaGc) {
+    pub(crate) unsafe fn run_full_collection(gc: &mut BoaGc) {
         gc.runtime.collections += 1;
-        let old_stack = gc.stack.take();
-        let mut unreachable = Self::mark_heap(&gc.heap_start);
-        let stack_unreachable = Self::mark_stack(&old_stack);
-        unreachable.extend(stack_unreachable);
-        Self::finalize(unreachable);
-        let _heap_finalized = Self::mark_heap(&gc.heap_start);
-        let _sweep_finalized = Self::mark_stack(&old_stack);
-        Self::heap_sweep(gc);
-        let promotions = Self::stack_sweep(gc, old_stack);
-        BoaAlloc::promote_allocs::<T>(promotions, gc);
+        let unreachable_adults = Self::mark_heap(&gc.adult_start);
+        let unreachable_youths = Self::mark_heap(&gc.youth_start);
+        Self::finalize(unreachable_adults);
+        Self::finalize(unreachable_youths);
+        let _final_unreachable_adults = Self::mark_heap(&gc.adult_start);
+        let _final_unreachable_youths = Self::mark_heap(&gc.youth_start);
+
+        // Sweep both without promoting any values
+        Self::sweep(
+            &gc.adult_start,
+            &mut gc.runtime.adult_bytes,
+            &mut gc.runtime.total_bytes_allocated,
+        );
+        Self::sweep(
+            &gc.youth_start,
+            &mut gc.runtime.youth_bytes,
+            &mut gc.runtime.total_bytes_allocated,
+        );
     }
 
     pub(crate) unsafe fn mark_heap(
@@ -275,33 +331,6 @@ impl Collector {
 
         // Any left over nodes in the ephemeron queue at this point are
         // unreachable and need to be notified/finalized.
-        finalize.extend(ephemeron_queue);
-
-        finalize
-    }
-
-    pub(crate) unsafe fn mark_stack(
-        stack: &Vec<NonNull<GcBox<dyn Trace>>>,
-    ) -> Vec<NonNull<GcBox<dyn Trace>>> {
-        let mut finalize = Vec::new();
-        let mut ephemeron_queue = Vec::new();
-
-        for node in stack {
-            if (*node.as_ptr()).header.is_ephemeron() {
-                ephemeron_queue.push(*node)
-            } else {
-                if (*node.as_ptr()).header.roots() > 0 {
-                    (*node.as_ptr()).header.mark()
-                } else {
-                    finalize.push(*node)
-                }
-            }
-        }
-
-        if !ephemeron_queue.is_empty() {
-            ephemeron_queue = Self::mark_ephemerons(ephemeron_queue)
-        }
-
         finalize.extend(ephemeron_queue);
 
         finalize
@@ -364,44 +393,56 @@ impl Collector {
         }
     }
 
-    unsafe fn stack_sweep(
-        gc: &mut BoaGc,
-        old_stack: Vec<NonNull<GcBox<dyn Trace>>>,
+    unsafe fn sweep_with_promotions(
+        heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
+        heap_bytes: &mut usize,
+        total_bytes: &mut usize,
+        promotion_age: &u8,
     ) -> Vec<NonNull<GcBox<dyn Trace>>> {
         let _guard = DropGuard::new();
 
-        let mut new_stack = Vec::new();
         let mut promotions = Vec::new();
-
-        for node in old_stack {
+        let mut sweep_head = heap_start;
+        while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
-                (*node.as_ptr()).header.inc_age();
-                if (*node.as_ptr()).header.age() > 10 {
-                    promotions.push(node);
+                if (*node.as_ptr()).header.age() >= *promotion_age {
+                    sweep_head.set((*node.as_ptr()).header.next.take());
+                    promotions.push(node)
                 } else {
-                    new_stack.push(node)
+                    sweep_head = &(*node.as_ptr()).header.next;
                 }
             } else {
-                gc.runtime.stack_allocations -= 1;
+                // Drops occur here
+                let unmarked_node = Box::from_raw(node.as_ptr());
+                let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
+                *heap_bytes -= unallocated_bytes;
+                *total_bytes -= unallocated_bytes;
+                sweep_head.set(unmarked_node.header.next.take());
             }
         }
 
-        gc.stack.set(new_stack);
         promotions
     }
 
-    unsafe fn heap_sweep(gc: &mut BoaGc) {
+    unsafe fn sweep(
+        heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>,
+        bytes_allocated: &mut usize,
+        total_allocated: &mut usize,
+    ) {
         let _guard = DropGuard::new();
 
-        let mut sweep_head = &gc.heap_start;
+        let mut sweep_head = heap_start;
         while let Some(node) = sweep_head.get() {
             if (*node.as_ptr()).is_marked() {
                 (*node.as_ptr()).header.unmark();
                 sweep_head = &(*node.as_ptr()).header.next;
             } else {
+                // Drops occur here
                 let unmarked_node = Box::from_raw(node.as_ptr());
-                gc.runtime.heap_bytes_allocated -= mem::size_of_val::<GcBox<_>>(&*unmarked_node);
+                let unallocated_bytes = mem::size_of_val::<GcBox<_>>(&*unmarked_node);
+                *bytes_allocated -= unallocated_bytes;
+                *total_allocated -= unallocated_bytes;
                 sweep_head.set(unmarked_node.header.next.take());
             }
         }
@@ -409,7 +450,27 @@ impl Collector {
 
     // Clean up the heap when BoaGc is dropped
     unsafe fn dump(gc: &mut BoaGc) {
-        let _unreachable = Self::mark_heap(&gc.heap_start);
-        Self::heap_sweep(gc);
+        Self::drop_heap(&gc.youth_start);
+        Self::drop_heap(&gc.adult_start);
     }
+
+    unsafe fn drop_heap(heap_start: &StdCell<Option<NonNull<GcBox<dyn Trace>>>>) {
+        // Not initializing a dropguard since this should only be invoked when BOA_GC is being dropped.
+
+        let sweep_head = heap_start;
+        while let Some(node) = sweep_head.get() {
+            // Drops every node
+            let unmarked_node = Box::from_raw(node.as_ptr());
+            sweep_head.set(unmarked_node.header.next.take());
+        }
+    }
+}
+
+// A utility function that forces runs through Collector method based off the state.
+//
+// Note:
+//  - This method will not trigger a promotion between generations
+//  - This method is meant solely for testing purposes only
+pub(crate) unsafe fn force_collect() {
+    BOA_GC.with(|internal| todo!())
 }

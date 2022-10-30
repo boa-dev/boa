@@ -12,15 +12,9 @@ const MARK_MASK: usize = 1 << (usize::BITS - 1);
 const ROOTS_MASK: usize = !MARK_MASK;
 const ROOTS_MAX: usize = ROOTS_MASK;
 
-pub enum BoxLoc {
-    Stack,
-    Heap,
-}
-
 pub(crate) struct GcBoxHeader {
     roots: Cell<usize>,
     cycle_age: Cell<u8>,
-    loc: Cell<BoxLoc>,
     pub(crate) next: Cell<Option<NonNull<GcBox<dyn Trace>>>>,
 }
 
@@ -31,7 +25,6 @@ impl GcBoxHeader {
         GcBoxHeader {
             roots: Cell::new(1),
             cycle_age: Cell::new(0_u8),
-            loc: Cell::new(BoxLoc::Stack),
             next: Cell::new(None),
         }
     }
@@ -43,14 +36,12 @@ impl GcBoxHeader {
         GcBoxHeader {
             roots: Cell::new(0),
             cycle_age: Cell::new(cycle_age),
-            loc: Cell::new(BoxLoc::Stack),
             next: Cell::new(None),
         }
     }
 
     #[inline]
-    pub fn promote(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
-        self.loc.set(BoxLoc::Heap);
+    pub fn set_next(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
         self.next.set(next);
     }
 
@@ -144,8 +135,8 @@ impl<T: Trace + ?Sized> GcBox<T> {
         ptr::eq(&this.header, &other.header)
     }
 
-    pub(crate) fn promote(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
-        self.header.promote(next)
+    pub(crate) fn set_header_pointer(&self, next: Option<NonNull<GcBox<dyn Trace>>>) {
+        self.header.set_next(next)
     }
 
     /// Marks this `GcBox` and marks through its data.
