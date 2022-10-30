@@ -2150,7 +2150,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands:</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: key, object **=&gt;** value</span>
+        <span class="doccomment">/// Stack: object, key **=&gt;** value</span>
         <span class="ident">GetPropertyByValue</span>,
 
         <span class="doccomment">/// Get a property by value from an object an push the key and value on the stack.</span>
@@ -2159,7 +2159,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands:</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: key, object **=&gt;** key, value</span>
+        <span class="doccomment">/// Stack: object, key **=&gt;** key, value</span>
         <span class="ident">GetPropertyByValuePush</span>,
 
         <span class="doccomment">/// Sets a property by name of an object.</span>
@@ -2168,21 +2168,21 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;** value</span>
         <span class="ident">SetPropertyByName</span>,
 
         <span class="doccomment">/// Defines a own property of an object by name.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">DefineOwnPropertyByName</span>,
 
         <span class="doccomment">/// Defines a class method by name.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">DefineClassMethodByName</span>,
 
         <span class="doccomment">/// Sets a property by value of an object.</span>
@@ -2191,7 +2191,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands:</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, key, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, key, value **=&gt;** value</span>
         <span class="ident">SetPropertyByValue</span>,
 
         <span class="doccomment">/// Defines a own property of an object by value.</span>
@@ -2214,7 +2214,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">SetPropertyGetterByName</span>,
 
         <span class="doccomment">/// Defines a getter class method by name.</span>
@@ -2223,7 +2223,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">DefineClassGetterByName</span>,
 
         <span class="doccomment">/// Sets a getter property by value of an object.</span>
@@ -2250,7 +2250,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">SetPropertySetterByName</span>,
 
         <span class="doccomment">/// Defines a setter class method by name.</span>
@@ -2259,7 +2259,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: value, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
         <span class="ident">DefineClassSetterByName</span>,
 
         <span class="doccomment">/// Sets a setter property by value of an object.</span>
@@ -2286,7 +2286,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands: name_index: `u32`</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: object, value **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, value **=&gt;** value</span>
         <span class="ident">AssignPrivateField</span>,
 
         <span class="doccomment">/// Set a private property of a class constructor by it&#39;s name.</span>
@@ -2384,7 +2384,7 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Operands:</span>
         <span class="doccomment">///</span>
-        <span class="doccomment">/// Stack: key, object **=&gt;**</span>
+        <span class="doccomment">/// Stack: object, key **=&gt;**</span>
         <span class="ident">DeletePropertyByValue</span>,
 
         <span class="doccomment">/// Copy all properties of one object to another object.</span>

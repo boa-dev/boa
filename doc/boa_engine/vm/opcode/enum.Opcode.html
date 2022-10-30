@@ -401,25 +401,25 @@ then it jumps to <code>exit</code> address.</p>
 </div><h3 id="variant.GetPropertyByValue" class="variant small-section-header"><a href="#variant.GetPropertyByValue" class="anchor field"></a><code>GetPropertyByValue</code></h3><div class="docblock"><p>Get a property by value from an object an push it on the stack.</p>
 <p>Like <code>object[key]</code></p>
 <p>Operands:</p>
-<p>Stack: key, object <strong>=&gt;</strong> value</p>
+<p>Stack: object, key <strong>=&gt;</strong> value</p>
 </div><h3 id="variant.GetPropertyByValuePush" class="variant small-section-header"><a href="#variant.GetPropertyByValuePush" class="anchor field"></a><code>GetPropertyByValuePush</code></h3><div class="docblock"><p>Get a property by value from an object an push the key and value on the stack.</p>
 <p>Like <code>object[key]</code></p>
 <p>Operands:</p>
-<p>Stack: key, object <strong>=&gt;</strong> key, value</p>
+<p>Stack: object, key <strong>=&gt;</strong> key, value</p>
 </div><h3 id="variant.SetPropertyByName" class="variant small-section-header"><a href="#variant.SetPropertyByName" class="anchor field"></a><code>SetPropertyByName</code></h3><div class="docblock"><p>Sets a property by name of an object.</p>
 <p>Like <code>object.name = value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong> value</p>
 </div><h3 id="variant.DefineOwnPropertyByName" class="variant small-section-header"><a href="#variant.DefineOwnPropertyByName" class="anchor field"></a><code>DefineOwnPropertyByName</code></h3><div class="docblock"><p>Defines a own property of an object by name.</p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.DefineClassMethodByName" class="variant small-section-header"><a href="#variant.DefineClassMethodByName" class="anchor field"></a><code>DefineClassMethodByName</code></h3><div class="docblock"><p>Defines a class method by name.</p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.SetPropertyByValue" class="variant small-section-header"><a href="#variant.SetPropertyByValue" class="anchor field"></a><code>SetPropertyByValue</code></h3><div class="docblock"><p>Sets a property by value of an object.</p>
 <p>Like <code>object[key] = value</code></p>
 <p>Operands:</p>
-<p>Stack: value, key, object <strong>=&gt;</strong></p>
+<p>Stack: object, key, value <strong>=&gt;</strong> value</p>
 </div><h3 id="variant.DefineOwnPropertyByValue" class="variant small-section-header"><a href="#variant.DefineOwnPropertyByValue" class="anchor field"></a><code>DefineOwnPropertyByValue</code></h3><div class="docblock"><p>Defines a own property of an object by value.</p>
 <p>Operands:</p>
 <p>Stack: object, key, value <strong>=&gt;</strong></p>
@@ -429,11 +429,11 @@ then it jumps to <code>exit</code> address.</p>
 </div><h3 id="variant.SetPropertyGetterByName" class="variant small-section-header"><a href="#variant.SetPropertyGetterByName" class="anchor field"></a><code>SetPropertyGetterByName</code></h3><div class="docblock"><p>Sets a getter property by name of an object.</p>
 <p>Like <code>get name() value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.DefineClassGetterByName" class="variant small-section-header"><a href="#variant.DefineClassGetterByName" class="anchor field"></a><code>DefineClassGetterByName</code></h3><div class="docblock"><p>Defines a getter class method by name.</p>
 <p>Like <code>get name() value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.SetPropertyGetterByValue" class="variant small-section-header"><a href="#variant.SetPropertyGetterByValue" class="anchor field"></a><code>SetPropertyGetterByValue</code></h3><div class="docblock"><p>Sets a getter property by value of an object.</p>
 <p>Like <code>get [key]() value</code></p>
 <p>Operands:</p>
@@ -445,11 +445,11 @@ then it jumps to <code>exit</code> address.</p>
 </div><h3 id="variant.SetPropertySetterByName" class="variant small-section-header"><a href="#variant.SetPropertySetterByName" class="anchor field"></a><code>SetPropertySetterByName</code></h3><div class="docblock"><p>Sets a setter property by name of an object.</p>
 <p>Like <code>set name() value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.DefineClassSetterByName" class="variant small-section-header"><a href="#variant.DefineClassSetterByName" class="anchor field"></a><code>DefineClassSetterByName</code></h3><div class="docblock"><p>Defines a setter class method by name.</p>
 <p>Like <code>set name() value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: value, object <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong></p>
 </div><h3 id="variant.SetPropertySetterByValue" class="variant small-section-header"><a href="#variant.SetPropertySetterByValue" class="anchor field"></a><code>SetPropertySetterByValue</code></h3><div class="docblock"><p>Sets a setter property by value of an object.</p>
 <p>Like <code>set [key]() value</code></p>
 <p>Operands:</p>
@@ -461,7 +461,7 @@ then it jumps to <code>exit</code> address.</p>
 </div><h3 id="variant.AssignPrivateField" class="variant small-section-header"><a href="#variant.AssignPrivateField" class="anchor field"></a><code>AssignPrivateField</code></h3><div class="docblock"><p>Assign the value of a private property of an object by it’s name.</p>
 <p>Like <code>obj.#name = value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
-<p>Stack: object, value <strong>=&gt;</strong></p>
+<p>Stack: object, value <strong>=&gt;</strong> value</p>
 </div><h3 id="variant.SetPrivateField" class="variant small-section-header"><a href="#variant.SetPrivateField" class="anchor field"></a><code>SetPrivateField</code></h3><div class="docblock"><p>Set a private property of a class constructor by it’s name.</p>
 <p>Like <code>#name = value</code></p>
 <p>Operands: name_index: <code>u32</code></p>
@@ -504,7 +504,7 @@ then it jumps to <code>exit</code> address.</p>
 </div><h3 id="variant.DeletePropertyByValue" class="variant small-section-header"><a href="#variant.DeletePropertyByValue" class="anchor field"></a><code>DeletePropertyByValue</code></h3><div class="docblock"><p>Deletes a property by value of an object.</p>
 <p>Like <code>delete object[key]</code></p>
 <p>Operands:</p>
-<p>Stack: key, object <strong>=&gt;</strong></p>
+<p>Stack: object, key <strong>=&gt;</strong></p>
 </div><h3 id="variant.CopyDataProperties" class="variant small-section-header"><a href="#variant.CopyDataProperties" class="anchor field"></a><code>CopyDataProperties</code></h3><div class="docblock"><p>Copy all properties of one object to another object.</p>
 <p>Operands: excluded_key_count: <code>u32</code>, excluded_key_count_computed: <code>u32</code></p>
 <p>Stack: excluded_key_computed_0 … excluded_key_computed_n, source, value, excluded_key_0 … excluded_key_n <strong>=&gt;</strong> value</p>

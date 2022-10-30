@@ -3539,6 +3539,70 @@
 <span id="3537">3537</span>
 <span id="3538">3538</span>
 <span id="3539">3539</span>
+<span id="3540">3540</span>
+<span id="3541">3541</span>
+<span id="3542">3542</span>
+<span id="3543">3543</span>
+<span id="3544">3544</span>
+<span id="3545">3545</span>
+<span id="3546">3546</span>
+<span id="3547">3547</span>
+<span id="3548">3548</span>
+<span id="3549">3549</span>
+<span id="3550">3550</span>
+<span id="3551">3551</span>
+<span id="3552">3552</span>
+<span id="3553">3553</span>
+<span id="3554">3554</span>
+<span id="3555">3555</span>
+<span id="3556">3556</span>
+<span id="3557">3557</span>
+<span id="3558">3558</span>
+<span id="3559">3559</span>
+<span id="3560">3560</span>
+<span id="3561">3561</span>
+<span id="3562">3562</span>
+<span id="3563">3563</span>
+<span id="3564">3564</span>
+<span id="3565">3565</span>
+<span id="3566">3566</span>
+<span id="3567">3567</span>
+<span id="3568">3568</span>
+<span id="3569">3569</span>
+<span id="3570">3570</span>
+<span id="3571">3571</span>
+<span id="3572">3572</span>
+<span id="3573">3573</span>
+<span id="3574">3574</span>
+<span id="3575">3575</span>
+<span id="3576">3576</span>
+<span id="3577">3577</span>
+<span id="3578">3578</span>
+<span id="3579">3579</span>
+<span id="3580">3580</span>
+<span id="3581">3581</span>
+<span id="3582">3582</span>
+<span id="3583">3583</span>
+<span id="3584">3584</span>
+<span id="3585">3585</span>
+<span id="3586">3586</span>
+<span id="3587">3587</span>
+<span id="3588">3588</span>
+<span id="3589">3589</span>
+<span id="3590">3590</span>
+<span id="3591">3591</span>
+<span id="3592">3592</span>
+<span id="3593">3593</span>
+<span id="3594">3594</span>
+<span id="3595">3595</span>
+<span id="3596">3596</span>
+<span id="3597">3597</span>
+<span id="3598">3598</span>
+<span id="3599">3599</span>
+<span id="3600">3600</span>
+<span id="3601">3601</span>
+<span id="3602">3602</span>
+<span id="3603">3603</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -4219,8 +4283,8 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
                     }
                 },
@@ -4236,8 +4300,8 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Super</span>);
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="kw-2">&amp;</span><span class="kw-2">*</span><span class="kw-2">*</span><span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
                     }
                 },
@@ -4253,62 +4317,95 @@
         <span class="prelude-val">Ok</span>(())
     }
 
+    <span class="comment">// The wrap is needed so it can match the function signature.</span>
+    <span class="attribute">#[<span class="ident">allow</span>(<span class="ident">clippy::unnecessary_wraps</span>)]</span>
+    <span class="kw">fn</span> <span class="ident">access_set_top_of_stack_expr_fn</span>(<span class="ident">compiler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ByteCompiler</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">level</span>: <span class="ident">u8</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+        <span class="kw">match</span> <span class="ident">level</span> {
+            <span class="number">0</span> =&gt; {}
+            <span class="number">1</span> =&gt; <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>),
+            <span class="kw">_</span> =&gt; {
+                <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RotateLeft</span>);
+                <span class="ident">compiler</span>.<span class="ident">emit_u8</span>(<span class="ident">level</span> <span class="op">+</span> <span class="number">1</span>);
+            }
+        }
+        <span class="prelude-val">Ok</span>(())
+    }
+
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">fn</span> <span class="ident">access_set</span>(
-        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
-        <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>,
-        <span class="ident">expr</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="kw-2">&amp;</span><span class="ident">Expression</span><span class="op">&gt;</span>,
-        <span class="ident">use_expr</span>: <span class="ident">bool</span>,
-    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
-        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">expr</span>) <span class="op">=</span> <span class="ident">expr</span> {
-            <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-        }
-
-        <span class="kw">if</span> <span class="ident">use_expr</span> {
-            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
-        }
-
+    <span class="kw">fn</span> <span class="ident">access_set</span><span class="op">&lt;</span><span class="ident">F</span>, <span class="ident">R</span><span class="op">&gt;</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">access</span>: <span class="ident">Access</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>, <span class="ident">expr_fn</span>: <span class="ident">F</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">F</span>: <span class="ident">FnOnce</span>(<span class="kw-2">&amp;mut</span> <span class="ident">ByteCompiler</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">u8</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>,
+    {
         <span class="kw">match</span> <span class="ident">access</span> {
             <span class="ident">Access::Variable</span> { <span class="ident">name</span> } =&gt; {
+                <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">0</span>);
+                <span class="kw">if</span> <span class="ident">use_expr</span> {
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dup</span>, <span class="kw-2">&amp;</span>[]);
+                }
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="ident">name</span>);
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                <span class="ident">result</span>
             }
             <span class="ident">Access::Property</span> { <span class="ident">access</span> } =&gt; <span class="kw">match</span> <span class="ident">access</span> {
                 <span class="ident">PropertyAccess::Simple</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
                     <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">1</span>);
                         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
+
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
+                        }
+                        <span class="ident">result</span>
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">2</span>);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
+                        }
+                        <span class="ident">result</span>
                     }
                 },
                 <span class="ident">PropertyAccess::Private</span>(<span class="ident">access</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                    <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">1</span>);
                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">access</span>.<span class="ident">field</span>().<span class="ident">into</span>());
                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::AssignPrivateField</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                    <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
+                    }
+                    <span class="ident">result</span>
                 }
                 <span class="ident">PropertyAccess::Super</span>(<span class="ident">access</span>) =&gt; <span class="kw">match</span> <span class="ident">access</span>.<span class="ident">field</span>() {
                     <span class="ident">PropertyAccessField::Const</span>(<span class="ident">name</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Super</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">1</span>);
                         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
+                        }
+                        <span class="ident">result</span>
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Super</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="kw">let</span> <span class="ident">result</span> <span class="op">=</span> <span class="ident">expr_fn</span>(<span class="self">self</span>, <span class="number">0</span>);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
+                            <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
+                        }
+                        <span class="ident">result</span>
                     }
                 },
             },
             <span class="ident">Access::This</span> =&gt; <span class="macro">todo!</span>(<span class="string">&quot;access_set `this`&quot;</span>),
         }
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
@@ -4322,8 +4419,8 @@
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
                     }
                 },
@@ -4410,47 +4507,61 @@
             <span class="ident">Expression::Unary</span>(<span class="ident">unary</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">unary</span>.<span class="ident">op</span>() {
                     <span class="ident">UnaryOp::IncrementPre</span> =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
-
+                        <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+
+                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="bool-val">true</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="kw">_</span><span class="op">|</span> {
+                            <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Inc</span>, <span class="kw-2">&amp;</span>[]);
+                            <span class="prelude-val">Ok</span>(())
+                        })<span class="question-mark">?</span>;
+
                         <span class="prelude-val">None</span>
                     }
                     <span class="ident">UnaryOp::DecrementPre</span> =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
-
                         <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+
+                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="bool-val">true</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="kw">_</span><span class="op">|</span> {
+                            <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Dec</span>, <span class="kw-2">&amp;</span>[]);
+                            <span class="prelude-val">Ok</span>(())
+                        })<span class="question-mark">?</span>;
                         <span class="prelude-val">None</span>
                     }
                     <span class="ident">UnaryOp::IncrementPost</span> =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::IncPost</span>, <span class="kw-2">&amp;</span>[]);
-
                         <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid increment operand&quot;</span>)
                         })<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="bool-val">false</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="ident">level</span><span class="op">|</span> {
+                            <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">Opcode::IncPost</span>, <span class="kw-2">&amp;</span>[]);
+                            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RotateRight</span>);
+                            <span class="ident">compiler</span>.<span class="ident">emit_u8</span>(<span class="ident">level</span> <span class="op">+</span> <span class="number">2</span>);
+                            <span class="prelude-val">Ok</span>(())
+                        })<span class="question-mark">?</span>;
 
                         <span class="prelude-val">None</span>
                     }
                     <span class="ident">UnaryOp::DecrementPost</span> =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DecPost</span>, <span class="kw-2">&amp;</span>[]);
-
                         <span class="comment">// TODO: promote to an early error.</span>
                         <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
                             <span class="ident">JsNativeError::syntax</span>().<span class="ident">with_message</span>(<span class="string">&quot;Invalid decrement operand&quot;</span>)
                         })<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+
+                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="bool-val">false</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="ident">level</span><span class="op">|</span> {
+                            <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                            <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DecPost</span>, <span class="kw-2">&amp;</span>[]);
+                            <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RotateRight</span>);
+                            <span class="ident">compiler</span>.<span class="ident">emit_u8</span>(<span class="ident">level</span> <span class="op">+</span> <span class="number">2</span>);
+                            <span class="prelude-val">Ok</span>(())
+                        })<span class="question-mark">?</span>;
 
                         <span class="prelude-val">None</span>
                     }
@@ -4579,7 +4690,10 @@
             }
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) <span class="kw">if</span> <span class="ident">assign</span>.<span class="ident">op</span>() <span class="op">==</span> <span class="ident">AssignOp::Assign</span> =&gt; {
                 <span class="kw">match</span> <span class="ident">Access::from_assign_target</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>()) {
-                    <span class="prelude-val">Ok</span>(<span class="ident">access</span>) =&gt; <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">Some</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>()), <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+                    <span class="prelude-val">Ok</span>(<span class="ident">access</span>) =&gt; <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="ident">use_expr</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="kw">_</span><span class="op">|</span> {
+                        <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                        <span class="prelude-val">Ok</span>(())
+                    })<span class="question-mark">?</span>,
                     <span class="prelude-val">Err</span>(<span class="ident">pattern</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="kw">if</span> <span class="ident">use_expr</span> {
@@ -4592,7 +4706,30 @@
             <span class="ident">Expression::Assign</span>(<span class="ident">assign</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">access</span> <span class="op">=</span> <span class="ident">Access::from_assign_target</span>(<span class="ident">assign</span>.<span class="ident">lhs</span>())
                     .<span class="ident">expect</span>(<span class="string">&quot;patterns should throw early errors on complex assignment operators&quot;</span>);
-                <span class="self">self</span>.<span class="ident">access_get</span>(<span class="ident">access</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+
+                <span class="kw">let</span> <span class="ident">shortcircuit_operator_compilation</span> <span class="op">=</span>
+                    <span class="op">|</span><span class="ident">compiler</span>: <span class="kw-2">&amp;mut</span> <span class="ident">ByteCompiler</span><span class="op">&lt;</span><span class="lifetime">&#39;_</span><span class="op">&gt;</span>, <span class="ident">opcode</span>: <span class="ident">Opcode</span><span class="op">|</span> -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+                        <span class="kw">let</span> (<span class="ident">early_exit</span>, <span class="ident">pop_count</span>) <span class="op">=</span>
+                            <span class="ident">compiler</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="ident">use_expr</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="ident">level</span><span class="op">|</span> {
+                                <span class="ident">compiler</span>.<span class="ident">access_get</span>(<span class="ident">access</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="kw">let</span> <span class="ident">early_exit</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">opcode</span>);
+                                <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                                <span class="prelude-val">Ok</span>((<span class="ident">early_exit</span>, <span class="ident">level</span>))
+                            })<span class="question-mark">?</span>;
+                        <span class="kw">if</span> <span class="ident">pop_count</span> <span class="op">==</span> <span class="number">0</span> {
+                            <span class="ident">compiler</span>.<span class="ident">patch_jump</span>(<span class="ident">early_exit</span>);
+                        } <span class="kw">else</span> {
+                            <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="ident">compiler</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::Jump</span>);
+                            <span class="ident">compiler</span>.<span class="ident">patch_jump</span>(<span class="ident">early_exit</span>);
+                            <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="ident">pop_count</span> {
+                                <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
+                                <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
+                            }
+                            <span class="ident">compiler</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
+                        }
+                        <span class="prelude-val">Ok</span>(())
+                    };
+
                 <span class="kw">let</span> <span class="ident">opcode</span> <span class="op">=</span> <span class="kw">match</span> <span class="ident">assign</span>.<span class="ident">op</span>() {
                     <span class="ident">AssignOp::Assign</span> =&gt; <span class="macro">unreachable!</span>(),
                     <span class="ident">AssignOp::Add</span> =&gt; <span class="ident">Opcode::Add</span>,
@@ -4608,31 +4745,25 @@
                     <span class="ident">AssignOp::Shr</span> =&gt; <span class="ident">Opcode::ShiftRight</span>,
                     <span class="ident">AssignOp::Ushr</span> =&gt; <span class="ident">Opcode::UnsignedShiftRight</span>,
                     <span class="ident">AssignOp::BoolAnd</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::LogicalAnd</span>);
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
+                        <span class="ident">shortcircuit_operator_compilation</span>(<span class="self">self</span>, <span class="ident">Opcode::LogicalAnd</span>)<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                     }
                     <span class="ident">AssignOp::BoolOr</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::LogicalOr</span>);
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
+                        <span class="ident">shortcircuit_operator_compilation</span>(<span class="self">self</span>, <span class="ident">Opcode::LogicalOr</span>)<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                     }
                     <span class="ident">AssignOp::Coalesce</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::Coalesce</span>);
-                        <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
+                        <span class="ident">shortcircuit_operator_compilation</span>(<span class="self">self</span>, <span class="ident">Opcode::Coalesce</span>)<span class="question-mark">?</span>;
                         <span class="kw">return</span> <span class="prelude-val">Ok</span>(());
                     }
                 };
 
-                <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">opcode</span>, <span class="kw-2">&amp;</span>[]);
-                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">access</span>, <span class="ident">use_expr</span>, <span class="op">|</span><span class="ident">compiler</span>, <span class="kw">_</span><span class="op">|</span> {
+                    <span class="ident">compiler</span>.<span class="ident">access_get</span>(<span class="ident">access</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="ident">compiler</span>.<span class="ident">compile_expr</span>(<span class="ident">assign</span>.<span class="ident">rhs</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
+                    <span class="ident">compiler</span>.<span class="ident">emit</span>(<span class="ident">opcode</span>, <span class="kw-2">&amp;</span>[]);
+                    <span class="prelude-val">Ok</span>(())
+                })<span class="question-mark">?</span>;
             }
             <span class="ident">Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushEmptyObject</span>);
@@ -4646,7 +4777,6 @@
                         <span class="ident">PropertyDefinition::Property</span>(<span class="ident">name</span>, <span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -4662,7 +4792,6 @@
                             <span class="ident">MethodDefinition::Get</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyGetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4677,7 +4806,6 @@
                             <span class="ident">MethodDefinition::Set</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertySetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4691,7 +4819,6 @@
                             <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4705,7 +4832,6 @@
                             <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4719,7 +4845,6 @@
                             <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4733,7 +4858,6 @@
                             <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                                 <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                     <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                                 }
@@ -4906,7 +5030,6 @@
                             }
                             <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">field</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
                             }
                         }
@@ -4945,9 +5068,9 @@
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushValueToArray</span>);
                 }
 
-                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>(<span class="ident">Sym::RAW</span>.<span class="ident">into</span>());
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SetPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Pop</span>, <span class="kw-2">&amp;</span>[]);
 
                 <span class="kw">for</span> <span class="ident">expr</span> <span class="kw">in</span> <span class="ident">template</span>.<span class="ident">exprs</span>() {
                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
@@ -5032,7 +5155,6 @@
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">field</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">field</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
                     }
                 }
@@ -5053,7 +5175,6 @@
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
                     }
                 }
@@ -5143,7 +5264,6 @@
                     }
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Swap</span>, <span class="kw-2">&amp;</span>[]);
                         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::GetPropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
                     }
                 }
@@ -5399,7 +5519,11 @@
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">IterableLoopInitializer::Access</span>(<span class="ident">access</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">access_set</span>(
+                    <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                    <span class="bool-val">false</span>,
+                    <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                )<span class="question-mark">?</span>;
             }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
@@ -5520,7 +5644,11 @@
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">IterableLoopInitializer::Access</span>(<span class="ident">access</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">access_set</span>(
+                    <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                    <span class="bool-val">false</span>,
+                    <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                )<span class="question-mark">?</span>;
             }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
@@ -6190,7 +6318,6 @@
                                 }
                                 <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">if</span> <span class="ident">rest_exits</span> {
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValuePush</span>);
                                     } <span class="kw">else</span> {
@@ -6243,7 +6370,11 @@
                                 ));
                             }
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::CopyDataProperties</span>, <span class="kw-2">&amp;</span>[<span class="ident">excluded_keys</span>.<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>, <span class="number">0</span>]);
-                            <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">access_set</span>(
+                                <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                                <span class="bool-val">false</span>,
+                                <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                            )<span class="question-mark">?</span>;
                         }
                         <span class="ident">AssignmentPropertyAccess</span> {
                             <span class="ident">name</span>,
@@ -6258,7 +6389,6 @@
                                 }
                                 <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="kw">if</span> <span class="ident">rest_exits</span> {
                                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValuePush</span>);
                                     } <span class="kw">else</span> {
@@ -6274,7 +6404,11 @@
                                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">skip</span>);
                             }
 
-                            <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">access_set</span>(
+                                <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                                <span class="bool-val">false</span>,
+                                <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                            )<span class="question-mark">?</span>;
 
                             <span class="kw">if</span> <span class="ident">rest_exits</span> <span class="op">&amp;&amp;</span> <span class="ident">name</span>.<span class="ident">computed</span>().<span class="ident">is_some</span>() {
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
@@ -6294,7 +6428,6 @@
                                 }
                                 <span class="ident">PropertyName::Computed</span>(<span class="ident">node</span>) =&gt; {
                                     <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                    <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::GetPropertyByValue</span>);
                                 }
                             }
@@ -6347,7 +6480,11 @@
                         }
                         <span class="ident">PropertyAccess</span> { <span class="ident">access</span> } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::IteratorNext</span>);
-                            <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">access_set</span>(
+                                <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                                <span class="bool-val">false</span>,
+                                <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                            )<span class="question-mark">?</span>;
                         }
                         <span class="comment">// BindingElement : BindingPattern Initializer[opt]</span>
                         <span class="ident">Pattern</span> {
@@ -6372,7 +6509,11 @@
                         }
                         <span class="ident">PropertyAccessRest</span> { <span class="ident">access</span> } =&gt; {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::IteratorToArray</span>);
-                            <span class="self">self</span>.<span class="ident">access_set</span>(<span class="ident">Access::Property</span> { <span class="ident">access</span> }, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                            <span class="self">self</span>.<span class="ident">access_set</span>(
+                                <span class="ident">Access::Property</span> { <span class="ident">access</span> },
+                                <span class="bool-val">false</span>,
+                                <span class="ident"><span class="self">Self</span>::access_set_top_of_stack_expr_fn</span>,
+                            )<span class="question-mark">?</span>;
                         }
                         <span class="comment">// BindingRestElement : ... BindingPattern</span>
                         <span class="ident">PatternRest</span> { <span class="ident">pattern</span> } =&gt; {
@@ -6669,7 +6810,6 @@
                         <span class="ident">MethodDefinition::Get</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassGetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6683,7 +6823,6 @@
                         <span class="ident">MethodDefinition::Set</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassSetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6697,7 +6836,6 @@
                         <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6711,7 +6849,6 @@
                         <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6725,7 +6862,6 @@
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6739,7 +6875,6 @@
                         <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6874,7 +7009,6 @@
                             } <span class="kw">else</span> {
                                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushUndefined</span>);
                             }
-                            <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                             <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineOwnPropertyByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                         }
@@ -6973,7 +7107,6 @@
                         <span class="ident">MethodDefinition::Get</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassGetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -6987,7 +7120,6 @@
                         <span class="ident">MethodDefinition::Set</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassSetterByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -7001,7 +7133,6 @@
                         <span class="ident">MethodDefinition::Ordinary</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -7015,7 +7146,6 @@
                         <span class="ident">MethodDefinition::Async</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -7029,7 +7159,6 @@
                         <span class="ident">MethodDefinition::Generator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }
@@ -7043,7 +7172,6 @@
                         <span class="ident">MethodDefinition::AsyncGenerator</span>(<span class="ident">expr</span>) =&gt; <span class="kw">match</span> <span class="ident">name</span> {
                             <span class="ident">PropertyName::Literal</span>(<span class="ident">name</span>) =&gt; {
                                 <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">expr</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Expression</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Swap</span>);
                                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_name</span>((<span class="kw-2">*</span><span class="ident">name</span>).<span class="ident">into</span>());
                                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefineClassMethodByName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
                             }

@@ -220,6 +220,8 @@
 <span id="218">218</span>
 <span id="219">219</span>
 <span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">property</span>::{<span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">vm</span>::{<span class="ident">opcode::Operation</span>, <span class="ident">ShouldExit</span>},
@@ -240,8 +242,8 @@
     <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
 
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
             <span class="ident">object</span>.<span class="ident">clone</span>()
         } <span class="kw">else</span> {
@@ -255,7 +257,8 @@
             .<span class="ident">into_common</span>::<span class="op">&lt;</span><span class="ident">JsString</span><span class="op">&gt;</span>(<span class="bool-val">false</span>)
             .<span class="ident">into</span>();
 
-        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">name</span>, <span class="ident">value</span>, <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">name</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
     }
 }
@@ -272,9 +275,9 @@
     <span class="kw">const</span> <span class="ident">INSTRUCTION</span>: <span class="kw-2">&amp;</span><span class="lifetime">&#39;static</span> <span class="ident">str</span> <span class="op">=</span> <span class="string">&quot;INST - SetPropertyByValue&quot;</span>;
 
     <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
-        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">object</span>) <span class="op">=</span> <span class="ident">object</span>.<span class="ident">as_object</span>() {
             <span class="ident">object</span>.<span class="ident">clone</span>()
         } <span class="kw">else</span> {
@@ -282,7 +285,8 @@
         };
 
         <span class="kw">let</span> <span class="ident">key</span> <span class="op">=</span> <span class="ident">key</span>.<span class="ident">to_property_key</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
-        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">value</span>, <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">object</span>.<span class="ident">set</span>(<span class="ident">key</span>, <span class="ident">value</span>.<span class="ident">clone</span>(), <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">strict</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
+        <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">stack</span>.<span class="ident">push</span>(<span class="ident">value</span>);
         <span class="prelude-val">Ok</span>(<span class="ident">ShouldExit::False</span>)
     }
 }
@@ -300,8 +304,8 @@
 
     <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>
@@ -377,8 +381,8 @@
 
     <span class="kw">fn</span> <span class="ident">execute</span>(<span class="ident">context</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Context</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span><span class="ident">ShouldExit</span><span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
-        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">value</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
+        <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">pop</span>();
         <span class="kw">let</span> <span class="ident">object</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_object</span>(<span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">frame</span>().<span class="ident">code</span>.<span class="ident">names</span>[<span class="ident">index</span> <span class="kw">as</span> <span class="ident">usize</span>];
         <span class="kw">let</span> <span class="ident">name</span> <span class="op">=</span> <span class="ident">context</span>
