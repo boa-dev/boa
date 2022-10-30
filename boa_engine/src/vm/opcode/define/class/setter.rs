@@ -17,8 +17,8 @@ impl Operation for DefineClassSetterByName {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let object = context.vm.pop();
         let value = context.vm.pop();
+        let object = context.vm.pop();
         let object = object.to_object(context)?;
         value
             .as_object()

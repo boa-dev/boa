@@ -1,4 +1,4 @@
-use crate::{exec, Context, JsValue};
+use crate::{check_output, exec, Context, JsValue, TestAction};
 
 #[test]
 fn typeof_string() {
@@ -188,4 +188,39 @@ fn get_reference_by_super() {
         Context::default().eval(source.as_bytes()).unwrap(),
         JsValue::from("ab")
     );
+}
+
+#[test]
+fn order_of_execution_in_assigment() {
+    let scenario = r#"
+        let i = 0;
+        let array = [[]];
+
+        array[i++][i++] = i++;
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("i", "3"),
+        TestAction::TestEq("array.length", "1"),
+        TestAction::TestEq("array[0].length", "2"),
+    ]);
+}
+
+#[test]
+fn order_of_execution_in_assigment_with_comma_expressions() {
+    let scenario = r#"
+        let result = "";
+        function f(i) {
+            result += i;
+        }
+        let a = [[]];
+    
+        (f(1), a)[(f(2), 0)][(f(3), 0)] = (f(4), 123);
+    "#;
+
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "\"1234\""),
+    ]);
 }

@@ -47,8 +47,8 @@ impl Operation for DeletePropertyByValue {
     const INSTRUCTION: &'static str = "INST - DeletePropertyByValue";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let object = context.vm.pop();
         let key = context.vm.pop();
+        let object = context.vm.pop();
         let result = object
             .to_object(context)?
             .__delete__(&key.to_property_key(context)?, context)?;

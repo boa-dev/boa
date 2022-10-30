@@ -702,7 +702,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: key, object **=>** value
+        /// Stack: object, key **=>** value
         GetPropertyByValue,
 
         /// Get a property by value from an object an push the key and value on the stack.
@@ -711,7 +711,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: key, object **=>** key, value
+        /// Stack: object, key **=>** key, value
         GetPropertyByValuePush,
 
         /// Sets a property by name of an object.
@@ -720,21 +720,21 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>** value
         SetPropertyByName,
 
         /// Defines a own property of an object by name.
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         DefineOwnPropertyByName,
 
         /// Defines a class method by name.
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         DefineClassMethodByName,
 
         /// Sets a property by value of an object.
@@ -743,7 +743,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: value, key, object **=>**
+        /// Stack: object, key, value **=>** value
         SetPropertyByValue,
 
         /// Defines a own property of an object by value.
@@ -766,7 +766,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         SetPropertyGetterByName,
 
         /// Defines a getter class method by name.
@@ -775,7 +775,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         DefineClassGetterByName,
 
         /// Sets a getter property by value of an object.
@@ -802,7 +802,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         SetPropertySetterByName,
 
         /// Defines a setter class method by name.
@@ -811,7 +811,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: value, object **=>**
+        /// Stack: object, value **=>**
         DefineClassSetterByName,
 
         /// Sets a setter property by value of an object.
@@ -838,7 +838,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>**
+        /// Stack: object, value **=>** value
         AssignPrivateField,
 
         /// Set a private property of a class constructor by it's name.
@@ -936,7 +936,7 @@ generate_impl! {
         ///
         /// Operands:
         ///
-        /// Stack: key, object **=>**
+        /// Stack: object, key **=>**
         DeletePropertyByValue,
 
         /// Copy all properties of one object to another object.

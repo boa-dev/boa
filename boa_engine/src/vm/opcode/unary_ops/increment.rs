@@ -41,13 +41,13 @@ impl Operation for IncPost {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let value = context.vm.pop();
         let value = value.to_numeric(context)?;
-        context.vm.push(value.clone());
         match value {
             Numeric::Number(number) => context.vm.push(number + 1f64),
-            Numeric::BigInt(bigint) => {
-                context.vm.push(JsBigInt::add(&bigint, &JsBigInt::one()));
+            Numeric::BigInt(ref bigint) => {
+                context.vm.push(JsBigInt::add(bigint, &JsBigInt::one()));
             }
         }
+        context.vm.push(value);
         Ok(ShouldExit::False)
     }
 }
