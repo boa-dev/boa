@@ -845,7 +845,7 @@ generate_impl! {
         ///
         /// Operands: name_index: `u32`
         ///
-        /// Stack: object, value **=>**
+        /// Stack: object, value **=>** value
         AssignPrivateField,
 
         /// Set a private property of a class constructor by it's name.

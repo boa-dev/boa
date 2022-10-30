@@ -25,7 +25,8 @@ impl Operation for AssignPrivateField {
             let mut object_borrow_mut = object.borrow_mut();
             match object_borrow_mut.get_private_element(name.sym()) {
                 Some(PrivateElement::Field(_)) => {
-                    object_borrow_mut.set_private_element(name.sym(), PrivateElement::Field(value));
+                    object_borrow_mut
+                        .set_private_element(name.sym(), PrivateElement::Field(value.clone()));
                 }
                 Some(PrivateElement::Method(_)) => {
                     return Err(JsNativeError::typ()
@@ -38,7 +39,7 @@ impl Operation for AssignPrivateField {
                 }) => {
                     let setter = setter.clone();
                     drop(object_borrow_mut);
-                    setter.call(&object.clone().into(), &[value], context)?;
+                    setter.call(&object.clone().into(), &[value.clone()], context)?;
                 }
                 None => {
                     return Err(JsNativeError::typ()
@@ -56,6 +57,7 @@ impl Operation for AssignPrivateField {
                 .with_message("cannot set private property on non-object")
                 .into());
         }
+        context.vm.push(value);
         Ok(ShouldExit::False)
     }
 }

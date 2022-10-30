@@ -763,14 +763,13 @@ impl<'b> ByteCompiler<'b> {
                     }
                 },
                 PropertyAccess::Private(access) => {
-                    let result = expr_fn(self, 0);
-                    if use_expr {
-                        self.emit(Opcode::Dup, &[]);
-                    }
                     self.compile_expr(access.target(), true)?;
-                    self.emit_opcode(Opcode::Swap);
+                    let result = expr_fn(self, 1);
                     let index = self.get_or_insert_name(access.field().into());
                     self.emit(Opcode::AssignPrivateField, &[index]);
+                    if !use_expr {
+                        self.emit(Opcode::Pop, &[]);
+                    }
                     result
                 }
                 PropertyAccess::Super(access) => match access.field() {
