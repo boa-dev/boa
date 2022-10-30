@@ -17,8 +17,8 @@ impl Operation for DefineOwnPropertyByName {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let object = context.vm.pop();
         let value = context.vm.pop();
+        let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {

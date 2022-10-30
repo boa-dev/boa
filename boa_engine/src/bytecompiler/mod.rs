@@ -678,8 +678,8 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
                         self.compile_expr(access.target(), true)?;
+                        self.compile_expr(expr, true)?;
                         self.emit(Opcode::GetPropertyByValue, &[]);
                     }
                 },
@@ -695,8 +695,8 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::GetPropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(&**expr, true)?;
                         self.emit_opcode(Opcode::Super);
+                        self.compile_expr(&**expr, true)?;
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 },
@@ -712,62 +712,92 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
+    // The wrap is needed so it can match the function signature.
+    #[allow(clippy::unnecessary_wraps)]
+    fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_>, level: u8) -> JsResult<()> {
+        if level != 0 {
+            compiler.emit_opcode(Opcode::RotateLeft);
+            compiler.emit_u8(level + 1);
+        }
+        Ok(())
+    }
+
     #[inline]
-    fn access_set(
-        &mut self,
-        access: Access<'_>,
-        expr: Option<&Expression>,
-        use_expr: bool,
-    ) -> JsResult<()> {
-        if let Some(expr) = expr {
-            self.compile_expr(expr, true)?;
-        }
-
-        if use_expr {
-            self.emit(Opcode::Dup, &[]);
-        }
-
+    fn access_set<F, R>(&mut self, access: Access<'_>, use_expr: bool, expr_fn: F) -> JsResult<R>
+    where
+        F: FnOnce(&mut ByteCompiler<'_>, u8) -> JsResult<R>,
+    {
         match access {
             Access::Variable { name } => {
+                let result = expr_fn(self, 0);
+                if use_expr {
+                    self.emit(Opcode::Dup, &[]);
+                }
                 let binding = self.context.set_mutable_binding(name);
                 let index = self.get_or_insert_binding(binding);
                 self.emit(Opcode::SetName, &[index]);
+                result
             }
             Access::Property { access } => match access {
                 PropertyAccess::Simple(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         self.compile_expr(access.target(), true)?;
+                        let result = expr_fn(self, 1);
                         let index = self.get_or_insert_name((*name).into());
+
                         self.emit(Opcode::SetPropertyByName, &[index]);
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                        result
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
                         self.compile_expr(access.target(), true)?;
+                        self.compile_expr(expr, true)?;
+                        let result = expr_fn(self, 2);
                         self.emit(Opcode::SetPropertyByValue, &[]);
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                        result
                     }
                 },
                 PropertyAccess::Private(access) => {
+                    let result = expr_fn(self, 0);
+                    if use_expr {
+                        self.emit(Opcode::Dup, &[]);
+                    }
                     self.compile_expr(access.target(), true)?;
                     self.emit_opcode(Opcode::Swap);
                     let index = self.get_or_insert_name(access.field().into());
                     self.emit(Opcode::AssignPrivateField, &[index]);
+                    result
                 }
                 PropertyAccess::Super(access) => match access.field() {
                     PropertyAccessField::Const(name) => {
                         self.emit(Opcode::Super, &[]);
+                        let result = expr_fn(self, 1);
                         let index = self.get_or_insert_name((*name).into());
                         self.emit(Opcode::SetPropertyByName, &[index]);
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                        result
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
                         self.emit(Opcode::Super, &[]);
+                        self.compile_expr(expr, true)?;
+                        let result = expr_fn(self, 0);
                         self.emit(Opcode::SetPropertyByValue, &[]);
+                        if !use_expr {
+                            self.emit(Opcode::Pop, &[]);
+                        }
+                        result
                     }
                 },
             },
             Access::This => todo!("access_set `this`"),
         }
-        Ok(())
     }
 
     #[inline]
@@ -781,8 +811,8 @@ impl<'b> ByteCompiler<'b> {
                         self.emit(Opcode::DeletePropertyByName, &[index]);
                     }
                     PropertyAccessField::Expr(expr) => {
-                        self.compile_expr(expr, true)?;
                         self.compile_expr(access.target(), true)?;
+                        self.compile_expr(expr, true)?;
                         self.emit(Opcode::DeletePropertyByValue, &[]);
                     }
                 },
@@ -869,47 +899,61 @@ impl<'b> ByteCompiler<'b> {
             Expression::Unary(unary) => {
                 let opcode = match unary.op() {
                     UnaryOp::IncrementPre => {
-                        self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::Inc, &[]);
-
+                        // TODO: promote to an early error.
                         let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
-                        self.access_set(access, None, true)?;
+
+                        self.access_set(access, true, |compiler, _| {
+                            compiler.compile_expr(unary.target(), true)?;
+                            compiler.emit(Opcode::Inc, &[]);
+                            Ok(())
+                        })?;
+
                         None
                     }
                     UnaryOp::DecrementPre => {
-                        self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::Dec, &[]);
-
                         // TODO: promote to an early error.
                         let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
-                        self.access_set(access, None, true)?;
+
+                        self.access_set(access, true, |compiler, _| {
+                            compiler.compile_expr(unary.target(), true)?;
+                            compiler.emit(Opcode::Dec, &[]);
+                            Ok(())
+                        })?;
                         None
                     }
                     UnaryOp::IncrementPost => {
-                        self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::IncPost, &[]);
-
                         // TODO: promote to an early error.
                         let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid increment operand")
                         })?;
-                        self.access_set(access, None, false)?;
+
+                        self.access_set(access, false, |compiler, level| {
+                            compiler.compile_expr(unary.target(), true)?;
+                            compiler.emit(Opcode::IncPost, &[]);
+                            compiler.emit_opcode(Opcode::RotateRight);
+                            compiler.emit_u8(level + 2);
+                            Ok(())
+                        })?;
 
                         None
                     }
                     UnaryOp::DecrementPost => {
-                        self.compile_expr(unary.target(), true)?;
-                        self.emit(Opcode::DecPost, &[]);
-
                         // TODO: promote to an early error.
                         let access = Access::from_expression(unary.target()).ok_or_else(|| {
                             JsNativeError::syntax().with_message("Invalid decrement operand")
                         })?;
-                        self.access_set(access, None, false)?;
+
+                        self.access_set(access, false, |compiler, level| {
+                            compiler.compile_expr(unary.target(), true)?;
+                            compiler.emit(Opcode::DecPost, &[]);
+                            compiler.emit_opcode(Opcode::RotateRight);
+                            compiler.emit_u8(level + 2);
+                            Ok(())
+                        })?;
 
                         None
                     }
@@ -1038,7 +1082,10 @@ impl<'b> ByteCompiler<'b> {
             }
             Expression::Assign(assign) if assign.op() == AssignOp::Assign => {
                 match Access::from_assign_target(assign.lhs()) {
-                    Ok(access) => self.access_set(access, Some(assign.rhs()), use_expr)?,
+                    Ok(access) => self.access_set(access, use_expr, |compiler, _| {
+                        compiler.compile_expr(assign.rhs(), true)?;
+                        Ok(())
+                    })?,
                     Err(pattern) => {
                         self.compile_expr(assign.rhs(), true)?;
                         if use_expr {
@@ -1051,7 +1098,30 @@ impl<'b> ByteCompiler<'b> {
             Expression::Assign(assign) => {
                 let access = Access::from_assign_target(assign.lhs())
                     .expect("patterns should throw early errors on complex assignment operators");
-                self.access_get(access, true)?;
+
+                let shortcircuit_operator_compilation =
+                    |compiler: &mut ByteCompiler<'_>, opcode: Opcode| -> JsResult<()> {
+                        let (early_exit, pop_count) =
+                            compiler.access_set(access, use_expr, |compiler, level| {
+                                compiler.access_get(access, true)?;
+                                let early_exit = compiler.emit_opcode_with_operand(opcode);
+                                compiler.compile_expr(assign.rhs(), true)?;
+                                Ok((early_exit, level))
+                            })?;
+                        if pop_count == 0 {
+                            compiler.patch_jump(early_exit);
+                        } else {
+                            let exit = compiler.emit_opcode_with_operand(Opcode::Jump);
+                            compiler.patch_jump(early_exit);
+                            for _ in 0..pop_count {
+                                compiler.emit_opcode(Opcode::Swap);
+                                compiler.emit_opcode(Opcode::Pop);
+                            }
+                            compiler.patch_jump(exit);
+                        }
+                        Ok(())
+                    };
+
                 let opcode = match assign.op() {
                     AssignOp::Assign => unreachable!(),
                     AssignOp::Add => Opcode::Add,
@@ -1067,31 +1137,25 @@ impl<'b> ByteCompiler<'b> {
                     AssignOp::Shr => Opcode::ShiftRight,
                     AssignOp::Ushr => Opcode::UnsignedShiftRight,
                     AssignOp::BoolAnd => {
-                        let exit = self.emit_opcode_with_operand(Opcode::LogicalAnd);
-                        self.compile_expr(assign.rhs(), true)?;
-                        self.access_set(access, None, use_expr)?;
-                        self.patch_jump(exit);
+                        shortcircuit_operator_compilation(self, Opcode::LogicalAnd)?;
                         return Ok(());
                     }
                     AssignOp::BoolOr => {
-                        let exit = self.emit_opcode_with_operand(Opcode::LogicalOr);
-                        self.compile_expr(assign.rhs(), true)?;
-                        self.access_set(access, None, use_expr)?;
-                        self.patch_jump(exit);
+                        shortcircuit_operator_compilation(self, Opcode::LogicalOr)?;
                         return Ok(());
                     }
                     AssignOp::Coalesce => {
-                        let exit = self.emit_opcode_with_operand(Opcode::Coalesce);
-                        self.compile_expr(assign.rhs(), true)?;
-                        self.access_set(access, None, use_expr)?;
-                        self.patch_jump(exit);
+                        shortcircuit_operator_compilation(self, Opcode::Coalesce)?;
                         return Ok(());
                     }
                 };
 
-                self.compile_expr(assign.rhs(), true)?;
-                self.emit(opcode, &[]);
-                self.access_set(access, None, use_expr)?;
+                self.access_set(access, use_expr, |compiler, _| {
+                    compiler.access_get(access, true)?;
+                    compiler.compile_expr(assign.rhs(), true)?;
+                    compiler.emit(opcode, &[]);
+                    Ok(())
+                })?;
             }
             Expression::ObjectLiteral(object) => {
                 self.emit_opcode(Opcode::PushEmptyObject);
@@ -1105,7 +1169,6 @@ impl<'b> ByteCompiler<'b> {
                         PropertyDefinition::Property(name, expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.compile_expr(expr, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                             }
@@ -1121,7 +1184,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::Get(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::SetPropertyGetterByName, &[index]);
                                 }
@@ -1136,7 +1198,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::Set(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::SetPropertySetterByName, &[index]);
                                 }
@@ -1150,7 +1211,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::Ordinary(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
@@ -1164,7 +1224,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::Async(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
@@ -1178,7 +1237,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::Generator(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
@@ -1192,7 +1250,6 @@ impl<'b> ByteCompiler<'b> {
                             MethodDefinition::AsyncGenerator(expr) => match name {
                                 PropertyName::Literal(name) => {
                                     self.function(expr.into(), NodeKind::Expression, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     let index = self.get_or_insert_name((*name).into());
                                     self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                                 }
@@ -1365,7 +1422,6 @@ impl<'b> ByteCompiler<'b> {
                             }
                             PropertyAccessField::Expr(field) => {
                                 self.compile_expr(field, true)?;
-                                self.emit(Opcode::Swap, &[]);
                                 self.emit(Opcode::GetPropertyByValue, &[]);
                             }
                         }
@@ -1404,9 +1460,9 @@ impl<'b> ByteCompiler<'b> {
                     self.emit_opcode(Opcode::PushValueToArray);
                 }
 
-                self.emit_opcode(Opcode::Swap);
                 let index = self.get_or_insert_name(Sym::RAW.into());
                 self.emit(Opcode::SetPropertyByName, &[index]);
+                self.emit(Opcode::Pop, &[]);
 
                 for expr in template.exprs() {
                     self.compile_expr(expr, true)?;
@@ -1491,7 +1547,6 @@ impl<'b> ByteCompiler<'b> {
                     }
                     PropertyAccessField::Expr(field) => {
                         self.compile_expr(field, true)?;
-                        self.emit_opcode(Opcode::Swap);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
@@ -1512,7 +1567,6 @@ impl<'b> ByteCompiler<'b> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true)?;
-                        self.emit_opcode(Opcode::Swap);
                         self.emit_opcode(Opcode::GetPropertyByValue);
                     }
                 }
@@ -1602,7 +1656,6 @@ impl<'b> ByteCompiler<'b> {
                     }
                     PropertyAccessField::Expr(expr) => {
                         self.compile_expr(expr, true)?;
-                        self.emit(Opcode::Swap, &[]);
                         self.emit(Opcode::GetPropertyByValue, &[]);
                     }
                 }
@@ -1858,7 +1911,11 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             IterableLoopInitializer::Access(access) => {
-                self.access_set(Access::Property { access }, None, false)?;
+                self.access_set(
+                    Access::Property { access },
+                    false,
+                    Self::access_set_top_of_stack_expr_fn,
+                )?;
             }
             IterableLoopInitializer::Var(declaration) => match declaration {
                 Binding::Identifier(ident) => {
@@ -1979,7 +2036,11 @@ impl<'b> ByteCompiler<'b> {
                 self.emit(Opcode::DefInitVar, &[index]);
             }
             IterableLoopInitializer::Access(access) => {
-                self.access_set(Access::Property { access }, None, false)?;
+                self.access_set(
+                    Access::Property { access },
+                    false,
+                    Self::access_set_top_of_stack_expr_fn,
+                )?;
             }
             IterableLoopInitializer::Var(declaration) => match declaration {
                 Binding::Identifier(ident) => {
@@ -2649,7 +2710,6 @@ impl<'b> ByteCompiler<'b> {
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     if rest_exits {
                                         self.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } else {
@@ -2702,7 +2762,11 @@ impl<'b> ByteCompiler<'b> {
                                 ));
                             }
                             self.emit(Opcode::CopyDataProperties, &[excluded_keys.len() as u32, 0]);
-                            self.access_set(Access::Property { access }, None, false)?;
+                            self.access_set(
+                                Access::Property { access },
+                                false,
+                                Self::access_set_top_of_stack_expr_fn,
+                            )?;
                         }
                         AssignmentPropertyAccess {
                             name,
@@ -2717,7 +2781,6 @@ impl<'b> ByteCompiler<'b> {
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     if rest_exits {
                                         self.emit_opcode(Opcode::GetPropertyByValuePush);
                                     } else {
@@ -2733,7 +2796,11 @@ impl<'b> ByteCompiler<'b> {
                                 self.patch_jump(skip);
                             }
 
-                            self.access_set(Access::Property { access }, None, false)?;
+                            self.access_set(
+                                Access::Property { access },
+                                false,
+                                Self::access_set_top_of_stack_expr_fn,
+                            )?;
 
                             if rest_exits && name.computed().is_some() {
                                 self.emit_opcode(Opcode::Swap);
@@ -2753,7 +2820,6 @@ impl<'b> ByteCompiler<'b> {
                                 }
                                 PropertyName::Computed(node) => {
                                     self.compile_expr(node, true)?;
-                                    self.emit_opcode(Opcode::Swap);
                                     self.emit_opcode(Opcode::GetPropertyByValue);
                                 }
                             }
@@ -2806,7 +2872,11 @@ impl<'b> ByteCompiler<'b> {
                         }
                         PropertyAccess { access } => {
                             self.emit_opcode(Opcode::IteratorNext);
-                            self.access_set(Access::Property { access }, None, false)?;
+                            self.access_set(
+                                Access::Property { access },
+                                false,
+                                Self::access_set_top_of_stack_expr_fn,
+                            )?;
                         }
                         // BindingElement : BindingPattern Initializer[opt]
                         Pattern {
@@ -2831,7 +2901,11 @@ impl<'b> ByteCompiler<'b> {
                         }
                         PropertyAccessRest { access } => {
                             self.emit_opcode(Opcode::IteratorToArray);
-                            self.access_set(Access::Property { access }, None, false)?;
+                            self.access_set(
+                                Access::Property { access },
+                                false,
+                                Self::access_set_top_of_stack_expr_fn,
+                            )?;
                         }
                         // BindingRestElement : ... BindingPattern
                         PatternRest { pattern } => {
@@ -3128,7 +3202,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassGetterByName, &[index]);
                             }
@@ -3142,7 +3215,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Set(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassSetterByName, &[index]);
                             }
@@ -3156,7 +3228,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Ordinary(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3170,7 +3241,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Async(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3184,7 +3254,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3198,7 +3267,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::AsyncGenerator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3333,7 +3401,6 @@ impl<'b> ByteCompiler<'b> {
                             } else {
                                 self.emit_opcode(Opcode::PushUndefined);
                             }
-                            self.emit_opcode(Opcode::Swap);
                             let index = self.get_or_insert_name((*name).into());
                             self.emit(Opcode::DefineOwnPropertyByName, &[index]);
                         }
@@ -3432,7 +3499,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Get(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassGetterByName, &[index]);
                             }
@@ -3446,7 +3512,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Set(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassSetterByName, &[index]);
                             }
@@ -3460,7 +3525,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Ordinary(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3474,7 +3538,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Async(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3488,7 +3551,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::Generator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }
@@ -3502,7 +3564,6 @@ impl<'b> ByteCompiler<'b> {
                         MethodDefinition::AsyncGenerator(expr) => match name {
                             PropertyName::Literal(name) => {
                                 self.function(expr.into(), NodeKind::Expression, true)?;
-                                self.emit_opcode(Opcode::Swap);
                                 let index = self.get_or_insert_name((*name).into());
                                 self.emit(Opcode::DefineClassMethodByName, &[index]);
                             }

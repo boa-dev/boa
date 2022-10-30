@@ -18,8 +18,8 @@ impl Operation for SetPropertyByName {
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
 
-        let object = context.vm.pop();
         let value = context.vm.pop();
+        let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
@@ -33,7 +33,8 @@ impl Operation for SetPropertyByName {
             .into_common::<JsString>(false)
             .into();
 
-        object.set(name, value, context.vm.frame().code.strict, context)?;
+        object.set(name, value.clone(), context.vm.frame().code.strict, context)?;
+        context.vm.stack.push(value);
         Ok(ShouldExit::False)
     }
 }
@@ -50,9 +51,9 @@ impl Operation for SetPropertyByValue {
     const INSTRUCTION: &'static str = "INST - SetPropertyByValue";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let object = context.vm.pop();
-        let key = context.vm.pop();
         let value = context.vm.pop();
+        let key = context.vm.pop();
+        let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
@@ -60,7 +61,8 @@ impl Operation for SetPropertyByValue {
         };
 
         let key = key.to_property_key(context)?;
-        object.set(key, value, context.vm.frame().code.strict, context)?;
+        object.set(key, value.clone(), context.vm.frame().code.strict, context)?;
+        context.vm.stack.push(value);
         Ok(ShouldExit::False)
     }
 }
@@ -78,8 +80,8 @@ impl Operation for SetPropertyGetterByName {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let object = context.vm.pop();
         let value = context.vm.pop();
+        let object = context.vm.pop();
         let object = object.to_object(context)?;
         let name = context.vm.frame().code.names[index as usize];
         let name = context
@@ -155,8 +157,8 @@ impl Operation for SetPropertySetterByName {
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
         let index = context.vm.read::<u32>();
-        let object = context.vm.pop();
         let value = context.vm.pop();
+        let object = context.vm.pop();
         let object = object.to_object(context)?;
         let name = context.vm.frame().code.names[index as usize];
         let name = context

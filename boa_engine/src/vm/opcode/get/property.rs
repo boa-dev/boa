@@ -50,8 +50,8 @@ impl Operation for GetPropertyByValue {
     const INSTRUCTION: &'static str = "INST - GetPropertyByValue";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let object = context.vm.pop();
         let key = context.vm.pop();
+        let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
@@ -78,8 +78,8 @@ impl Operation for GetPropertyByValuePush {
     const INSTRUCTION: &'static str = "INST - GetPropertyByValuePush";
 
     fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let object = context.vm.pop();
         let key = context.vm.pop();
+        let object = context.vm.pop();
         let object = if let Some(object) = object.as_object() {
             object.clone()
         } else {
