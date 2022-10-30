@@ -195,13 +195,6 @@ generate_impl! {
         /// Stack: second, first **=>** first, second
         Swap,
 
-        /// Swap the top three values on the stack.
-        ///
-        /// Operands:
-        ///
-        /// Stack: third, second, first **=>** first, second, third
-        Swap3,
-
         /// Rotates the top `n` values of the stack to the left by `1`.
         ///
         /// Equivalent to calling [`slice::rotate_left`] with argument `1` on the top `n` values of the

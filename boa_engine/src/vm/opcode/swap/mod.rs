@@ -24,24 +24,6 @@ impl Operation for Swap {
     }
 }
 
-/// `Swap3` implements the Opcode Operation for `Opcode::Swap3`
-///
-/// Operation:
-///  - Swap the top three values on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub(crate) struct Swap3;
-
-impl Operation for Swap3 {
-    const NAME: &'static str = "Swap3";
-    const INSTRUCTION: &'static str = "INST - Swap3";
-
-    fn execute(context: &mut Context) -> JsResult<ShouldExit> {
-        let len = context.vm.stack.len();
-        context.vm.stack.swap(len - 1, len - 3);
-        Ok(ShouldExit::False)
-    }
-}
-
 /// `RotateLeft` implements the Opcode Operation for `Opcode::RotateLeft`
 ///
 /// Operation:
