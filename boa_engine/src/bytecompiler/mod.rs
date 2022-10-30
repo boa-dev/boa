@@ -715,9 +715,13 @@ impl<'b> ByteCompiler<'b> {
     // The wrap is needed so it can match the function signature.
     #[allow(clippy::unnecessary_wraps)]
     fn access_set_top_of_stack_expr_fn(compiler: &mut ByteCompiler<'_>, level: u8) -> JsResult<()> {
-        if level != 0 {
-            compiler.emit_opcode(Opcode::RotateLeft);
-            compiler.emit_u8(level + 1);
+        match level {
+            0 => {}
+            1 => compiler.emit_opcode(Opcode::Swap),
+            _ => {
+                compiler.emit_opcode(Opcode::RotateLeft);
+                compiler.emit_u8(level + 1);
+            }
         }
         Ok(())
     }
