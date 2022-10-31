@@ -292,7 +292,7 @@ impl Context {
         &mut self,
         name: Identifier,
         function_scope: bool,
-        deletable: bool,
+        configurable: bool,
     ) {
         if !self
             .realm
@@ -316,7 +316,7 @@ impl Context {
                         .value(JsValue::Undefined)
                         .writable(true)
                         .enumerable(true)
-                        .configurable(deletable)
+                        .configurable(configurable)
                         .build(),
                 );
             }

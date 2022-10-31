@@ -842,13 +842,13 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         list: &StatementList,
         use_expr: bool,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         if let Some((last, items)) = list.statements().split_last() {
             for node in items {
-                self.compile_stmt_list_item(node, false, deletable_globals)?;
+                self.compile_stmt_list_item(node, false, configurable_globals)?;
             }
-            self.compile_stmt_list_item(last, use_expr, deletable_globals)?;
+            self.compile_stmt_list_item(last, use_expr, configurable_globals)?;
         }
         Ok(())
     }
@@ -1795,11 +1795,11 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         item: &StatementListItem,
         use_expr: bool,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         match item {
             StatementListItem::Statement(stmt) => {
-                self.compile_stmt(stmt, use_expr, deletable_globals)
+                self.compile_stmt(stmt, use_expr, configurable_globals)
             }
             StatementListItem::Declaration(decl) => self.compile_decl(decl),
         }
@@ -1830,7 +1830,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         for_loop: &ForLoop,
         label: Option<Sym>,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
@@ -1839,7 +1839,7 @@ impl<'b> ByteCompiler<'b> {
             match init {
                 ForLoopInitializer::Expression(expr) => self.compile_expr(expr, false)?,
                 ForLoopInitializer::Var(decl) => {
-                    self.create_decls_from_var_decl(decl, deletable_globals);
+                    self.create_decls_from_var_decl(decl, configurable_globals);
                     self.compile_var_decl(decl)?;
                 }
                 ForLoopInitializer::Lexical(decl) => {
@@ -1869,7 +1869,7 @@ impl<'b> ByteCompiler<'b> {
         }
         let exit = self.jump_if_false();
 
-        self.compile_stmt(for_loop.body(), false, deletable_globals)?;
+        self.compile_stmt(for_loop.body(), false, configurable_globals)?;
 
         self.emit(Opcode::Jump, &[start_address]);
 
@@ -1890,7 +1890,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         for_in_loop: &ForInLoop,
         label: Option<Sym>,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         let init_bound_names = for_in_loop.initializer().bound_names();
         if init_bound_names.is_empty() {
@@ -1939,7 +1939,7 @@ impl<'b> ByteCompiler<'b> {
             IterableLoopInitializer::Var(declaration) => match declaration {
                 Binding::Identifier(ident) => {
                     self.context
-                        .create_mutable_binding(*ident, true, deletable_globals);
+                        .create_mutable_binding(*ident, true, configurable_globals);
                     self.emit_binding(BindingOpcode::InitVar, *ident);
                 }
                 Binding::Pattern(pattern) => {
@@ -1981,7 +1981,7 @@ impl<'b> ByteCompiler<'b> {
             }
         }
 
-        self.compile_stmt(for_in_loop.body(), false, deletable_globals)?;
+        self.compile_stmt(for_in_loop.body(), false, configurable_globals)?;
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -2005,7 +2005,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         for_of_loop: &ForOfLoop,
         label: Option<Sym>,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         let init_bound_names = for_of_loop.init().bound_names();
         if init_bound_names.is_empty() {
@@ -2107,7 +2107,7 @@ impl<'b> ByteCompiler<'b> {
             }
         }
 
-        self.compile_stmt(for_of_loop.body(), false, deletable_globals)?;
+        self.compile_stmt(for_of_loop.body(), false, configurable_globals)?;
 
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
@@ -2129,7 +2129,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         while_loop: &WhileLoop,
         label: Option<Sym>,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         self.emit_opcode(Opcode::LoopStart);
         let start_address = self.next_opcode_location();
@@ -2138,7 +2138,7 @@ impl<'b> ByteCompiler<'b> {
 
         self.compile_expr(while_loop.condition(), true)?;
         let exit = self.jump_if_false();
-        self.compile_stmt(while_loop.body(), false, deletable_globals)?;
+        self.compile_stmt(while_loop.body(), false, configurable_globals)?;
         self.emit(Opcode::Jump, &[start_address]);
         self.patch_jump(exit);
 
@@ -2152,7 +2152,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         do_while_loop: &DoWhileLoop,
         label: Option<Sym>,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         self.emit_opcode(Opcode::LoopStart);
         let initial_label = self.jump();
@@ -2167,7 +2167,7 @@ impl<'b> ByteCompiler<'b> {
 
         self.patch_jump(initial_label);
 
-        self.compile_stmt(do_while_loop.body(), false, deletable_globals)?;
+        self.compile_stmt(do_while_loop.body(), false, configurable_globals)?;
         self.emit(Opcode::Jump, &[condition_label_address]);
         self.patch_jump(exit);
 
@@ -2182,7 +2182,7 @@ impl<'b> ByteCompiler<'b> {
         block: &Block,
         label: Option<Sym>,
         use_expr: bool,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         if let Some(label) = label {
             let next = self.next_opcode_location();
@@ -2191,8 +2191,8 @@ impl<'b> ByteCompiler<'b> {
 
         self.context.push_compile_time_environment(false);
         let push_env = self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
-        self.create_decls(block.statement_list(), deletable_globals);
-        self.compile_statement_list(block.statement_list(), use_expr, deletable_globals)?;
+        self.create_decls(block.statement_list(), configurable_globals);
+        self.compile_statement_list(block.statement_list(), use_expr, configurable_globals)?;
         let (num_bindings, compile_environment) = self.context.pop_compile_time_environment();
         let index_compile_environment = self.push_compile_environment(compile_environment);
         self.patch_jump_with_target(push_env.0, num_bindings as u32);
@@ -2211,7 +2211,7 @@ impl<'b> ByteCompiler<'b> {
         &mut self,
         node: &Statement,
         use_expr: bool,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> JsResult<()> {
         match node {
             Statement::Var(var) => self.compile_var_decl(var)?,
@@ -2219,7 +2219,7 @@ impl<'b> ByteCompiler<'b> {
                 self.compile_expr(node.cond(), true)?;
                 let jelse = self.jump_if_false();
 
-                self.compile_stmt(node.body(), false, deletable_globals)?;
+                self.compile_stmt(node.body(), false, configurable_globals)?;
 
                 match node.else_node() {
                     None => {
@@ -2228,60 +2228,60 @@ impl<'b> ByteCompiler<'b> {
                     Some(else_body) => {
                         let exit = self.jump();
                         self.patch_jump(jelse);
-                        self.compile_stmt(else_body, false, deletable_globals)?;
+                        self.compile_stmt(else_body, false, configurable_globals)?;
                         self.patch_jump(exit);
                     }
                 }
             }
             Statement::ForLoop(for_loop) => {
-                self.compile_for_loop(for_loop, None, deletable_globals)?;
+                self.compile_for_loop(for_loop, None, configurable_globals)?;
             }
             Statement::ForInLoop(for_in_loop) => {
-                self.compile_for_in_loop(for_in_loop, None, deletable_globals)?;
+                self.compile_for_in_loop(for_in_loop, None, configurable_globals)?;
             }
             Statement::ForOfLoop(for_of_loop) => {
-                self.compile_for_of_loop(for_of_loop, None, deletable_globals)?;
+                self.compile_for_of_loop(for_of_loop, None, configurable_globals)?;
             }
             Statement::WhileLoop(while_loop) => {
-                self.compile_while_loop(while_loop, None, deletable_globals)?;
+                self.compile_while_loop(while_loop, None, configurable_globals)?;
             }
             Statement::DoWhileLoop(do_while_loop) => {
-                self.compile_do_while_loop(do_while_loop, None, deletable_globals)?;
+                self.compile_do_while_loop(do_while_loop, None, configurable_globals)?;
             }
             Statement::Block(block) => {
-                self.compile_block(block, None, use_expr, deletable_globals)?;
+                self.compile_block(block, None, use_expr, configurable_globals)?;
             }
             Statement::Labelled(labelled) => match labelled.item() {
                 LabelledItem::Statement(stmt) => match stmt {
                     Statement::ForLoop(for_loop) => {
-                        self.compile_for_loop(for_loop, Some(labelled.label()), deletable_globals)?;
+                        self.compile_for_loop(for_loop, Some(labelled.label()), configurable_globals)?;
                     }
                     Statement::ForInLoop(for_in_loop) => {
                         self.compile_for_in_loop(
                             for_in_loop,
                             Some(labelled.label()),
-                            deletable_globals,
+                            configurable_globals,
                         )?;
                     }
                     Statement::ForOfLoop(for_of_loop) => {
                         self.compile_for_of_loop(
                             for_of_loop,
                             Some(labelled.label()),
-                            deletable_globals,
+                            configurable_globals,
                         )?;
                     }
                     Statement::WhileLoop(while_loop) => {
                         self.compile_while_loop(
                             while_loop,
                             Some(labelled.label()),
-                            deletable_globals,
+                            configurable_globals,
                         )?;
                     }
                     Statement::DoWhileLoop(do_while_loop) => {
                         self.compile_do_while_loop(
                             do_while_loop,
                             Some(labelled.label()),
-                            deletable_globals,
+                            configurable_globals,
                         )?;
                     }
                     Statement::Block(block) => {
@@ -2289,10 +2289,10 @@ impl<'b> ByteCompiler<'b> {
                             block,
                             Some(labelled.label()),
                             use_expr,
-                            deletable_globals,
+                            configurable_globals,
                         )?;
                     }
-                    stmt => self.compile_stmt(stmt, use_expr, deletable_globals)?,
+                    stmt => self.compile_stmt(stmt, use_expr, configurable_globals)?,
                 },
                 LabelledItem::Function(f) => {
                     self.function(f.into(), NodeKind::Declaration, false)?;
@@ -2445,7 +2445,7 @@ impl<'b> ByteCompiler<'b> {
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
                 for case in switch.cases() {
-                    self.create_decls(case.body(), deletable_globals);
+                    self.create_decls(case.body(), configurable_globals);
                 }
                 self.emit_opcode(Opcode::LoopStart);
 
@@ -2463,13 +2463,13 @@ impl<'b> ByteCompiler<'b> {
 
                 for (label, case) in labels.into_iter().zip(switch.cases()) {
                     self.patch_jump(label);
-                    self.compile_statement_list(case.body(), false, deletable_globals)?;
+                    self.compile_statement_list(case.body(), false, configurable_globals)?;
                 }
 
                 self.patch_jump(exit);
                 if let Some(body) = switch.default() {
-                    self.create_decls(body, deletable_globals);
-                    self.compile_statement_list(body, false, deletable_globals)?;
+                    self.create_decls(body, configurable_globals);
+                    self.compile_statement_list(body, false, configurable_globals)?;
                 }
 
                 self.pop_switch_control_info();
@@ -2499,11 +2499,11 @@ impl<'b> ByteCompiler<'b> {
                 let push_env =
                     self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                self.create_decls(t.block().statement_list(), deletable_globals);
+                self.create_decls(t.block().statement_list(), configurable_globals);
                 self.compile_statement_list(
                     t.block().statement_list(),
                     use_expr,
-                    deletable_globals,
+                    configurable_globals,
                 )?;
 
                 let (num_bindings, compile_environment) =
@@ -2544,11 +2544,11 @@ impl<'b> ByteCompiler<'b> {
                         self.emit_opcode(Opcode::Pop);
                     }
 
-                    self.create_decls(catch.block().statement_list(), deletable_globals);
+                    self.create_decls(catch.block().statement_list(), configurable_globals);
                     self.compile_statement_list(
                         catch.block().statement_list(),
                         use_expr,
-                        deletable_globals,
+                        configurable_globals,
                     )?;
 
                     let (num_bindings, compile_environment) =
@@ -2585,11 +2585,11 @@ impl<'b> ByteCompiler<'b> {
                     let push_env =
                         self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                    self.create_decls(finally.statement_list(), deletable_globals);
+                    self.create_decls(finally.statement_list(), configurable_globals);
                     self.compile_statement_list(
                         finally.statement_list(),
                         false,
-                        deletable_globals,
+                        configurable_globals,
                     )?;
 
                     let (num_bindings, compile_environment) =
@@ -2993,16 +2993,16 @@ impl<'b> ByteCompiler<'b> {
         Ok(())
     }
 
-    pub(crate) fn create_decls(&mut self, stmt_list: &StatementList, deletable_globals: bool) {
+    pub(crate) fn create_decls(&mut self, stmt_list: &StatementList, configurable_globals: bool) {
         for node in stmt_list.statements() {
-            self.create_decls_from_stmt_list_item(node, deletable_globals);
+            self.create_decls_from_stmt_list_item(node, configurable_globals);
         }
     }
 
     pub(crate) fn create_decls_from_var_decl(
         &mut self,
         list: &VarDeclaration,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> bool {
         let mut has_identifier_argument = false;
         for decl in list.0.as_ref() {
@@ -3013,7 +3013,7 @@ impl<'b> ByteCompiler<'b> {
                         has_identifier_argument = true;
                     }
                     self.context
-                        .create_mutable_binding(*ident, true, deletable_globals);
+                        .create_mutable_binding(*ident, true, configurable_globals);
                 }
                 Binding::Pattern(pattern) => {
                     for ident in pattern.idents() {
@@ -3021,7 +3021,7 @@ impl<'b> ByteCompiler<'b> {
                             has_identifier_argument = true;
                         }
                         self.context
-                            .create_mutable_binding(ident, true, deletable_globals);
+                            .create_mutable_binding(ident, true, configurable_globals);
                     }
                 }
             }
@@ -3082,21 +3082,21 @@ impl<'b> ByteCompiler<'b> {
     pub(crate) fn create_decls_from_decl(
         &mut self,
         declaration: &Declaration,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> bool {
         match declaration {
             Declaration::Lexical(decl) => self.create_decls_from_lexical_decl(decl),
             Declaration::Function(decl) => {
                 let ident = decl.name().expect("function declaration must have a name");
                 self.context
-                    .create_mutable_binding(ident, true, deletable_globals);
+                    .create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::Generator(decl) => {
                 let ident = decl.name().expect("generator declaration must have a name");
 
                 self.context
-                    .create_mutable_binding(ident, true, deletable_globals);
+                    .create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::AsyncFunction(decl) => {
@@ -3104,7 +3104,7 @@ impl<'b> ByteCompiler<'b> {
                     .name()
                     .expect("async function declaration must have a name");
                 self.context
-                    .create_mutable_binding(ident, true, deletable_globals);
+                    .create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::AsyncGenerator(decl) => {
@@ -3112,13 +3112,13 @@ impl<'b> ByteCompiler<'b> {
                     .name()
                     .expect("async generator declaration must have a name");
                 self.context
-                    .create_mutable_binding(ident, true, deletable_globals);
+                    .create_mutable_binding(ident, true, configurable_globals);
                 ident == Sym::ARGUMENTS
             }
             Declaration::Class(decl) => {
                 let ident = decl.name().expect("class declaration must have a name");
                 self.context
-                    .create_mutable_binding(ident, false, deletable_globals);
+                    .create_mutable_binding(ident, false, configurable_globals);
                 false
             }
         }
@@ -3128,25 +3128,25 @@ impl<'b> ByteCompiler<'b> {
     pub(crate) fn create_decls_from_stmt(
         &mut self,
         statement: &Statement,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> bool {
         match statement {
-            Statement::Var(var) => self.create_decls_from_var_decl(var, deletable_globals),
+            Statement::Var(var) => self.create_decls_from_var_decl(var, configurable_globals),
             Statement::DoWhileLoop(do_while_loop) => {
                 if !matches!(do_while_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(do_while_loop.body(), deletable_globals);
+                    self.create_decls_from_stmt(do_while_loop.body(), configurable_globals);
                 }
                 false
             }
             Statement::ForInLoop(for_in_loop) => {
                 if !matches!(for_in_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_in_loop.body(), deletable_globals);
+                    self.create_decls_from_stmt(for_in_loop.body(), configurable_globals);
                 }
                 false
             }
             Statement::ForOfLoop(for_of_loop) => {
                 if !matches!(for_of_loop.body(), Statement::Block(_)) {
-                    self.create_decls_from_stmt(for_of_loop.body(), deletable_globals);
+                    self.create_decls_from_stmt(for_of_loop.body(), configurable_globals);
                 }
                 false
             }
@@ -3158,14 +3158,14 @@ impl<'b> ByteCompiler<'b> {
     pub(crate) fn create_decls_from_stmt_list_item(
         &mut self,
         item: &StatementListItem,
-        deletable_globals: bool,
+        configurable_globals: bool,
     ) -> bool {
         match item {
             StatementListItem::Declaration(decl) => {
-                self.create_decls_from_decl(decl, deletable_globals)
+                self.create_decls_from_decl(decl, configurable_globals)
             }
             StatementListItem::Statement(stmt) => {
-                self.create_decls_from_stmt(stmt, deletable_globals)
+                self.create_decls_from_stmt(stmt, configurable_globals)
             }
         }
     }
