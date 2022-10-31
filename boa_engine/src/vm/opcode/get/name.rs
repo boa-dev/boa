@@ -25,7 +25,7 @@ impl Operation for GetName {
             if let Some(value) = context
                 .realm
                 .environments
-                .get_value_global_poisoned(binding_locator.name())
+                .get_value_if_global_poisoned(binding_locator.name())
             {
                 value
             } else {
@@ -98,7 +98,7 @@ impl Operation for GetNameOrUndefined {
             if let Some(value) = context
                 .realm
                 .environments
-                .get_value_global_poisoned(binding_locator.name())
+                .get_value_if_global_poisoned(binding_locator.name())
             {
                 value
             } else {

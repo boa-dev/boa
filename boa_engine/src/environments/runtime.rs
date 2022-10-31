@@ -556,7 +556,7 @@ impl DeclarativeEnvironmentStack {
     /// This only considers function environments that are poisoned.
     /// All other bindings are accessed via indices.
     #[inline]
-    pub(crate) fn get_value_global_poisoned(&self, name: Identifier) -> Option<JsValue> {
+    pub(crate) fn get_value_if_global_poisoned(&self, name: Identifier) -> Option<JsValue> {
         for env in self.stack.iter().rev() {
             if !env.poisoned.get() {
                 return None;
@@ -689,7 +689,11 @@ impl DeclarativeEnvironmentStack {
     ///
     /// Panics if the environment or binding index are out of range.
     #[inline]
-    pub(crate) fn put_value_global_poisoned(&mut self, name: Identifier, value: &JsValue) -> bool {
+    pub(crate) fn put_value_if_global_poisoned(
+        &mut self,
+        name: Identifier,
+        value: &JsValue,
+    ) -> bool {
         for env in self.stack.iter().rev() {
             if !env.poisoned.get() {
                 return false;
@@ -712,6 +716,37 @@ impl DeclarativeEnvironmentStack {
             }
         }
         false
+    }
+
+    /// Checks if the name only exists as a global property.
+    ///
+    /// A binding could be marked as `global`, and at the same time, exist in a deeper environment
+    /// context; if the global context is poisoned, an `eval` call could have added a binding that is
+    /// not global with the same name as the global binding. This double checks that the binding name
+    /// is truly a global property.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the environment or binding index are out of range.
+    #[inline]
+    pub(crate) fn is_only_global_property(&mut self, name: Identifier) -> bool {
+        for env in self
+            .stack
+            .split_first()
+            .expect("global environment must exist")
+            .1
+            .iter()
+            .rev()
+        {
+            if !env.poisoned.get() {
+                return true;
+            }
+            let compile = env.compile.borrow();
+            if compile.is_function() && compile.get_binding(name).is_some() {
+                return false;
+            }
+        }
+        true
     }
 }
 
