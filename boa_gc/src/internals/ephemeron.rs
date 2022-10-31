@@ -12,11 +12,22 @@ pub struct Ephemeron<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
 }
 
 impl<K: Trace + ?Sized> Ephemeron<K, ()> {
-    pub unsafe fn new(value: *mut GcBox<K>) -> Self {
-        let ptr = NonNull::new_unchecked(value);
+    pub unsafe fn new(value: NonNull<GcBox<K>>) -> Self {
+        let ptr = NonNull::new_unchecked(value.as_ptr());
         Ephemeron {
             key: Cell::new(Some(ptr)),
             value: (),
+        }
+    }
+}
+
+impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
+    pub unsafe fn new_pair(key: NonNull<GcBox<K>>, value: V) -> Self {
+        let ptr = NonNull::new_unchecked(key.as_ptr());
+
+        Ephemeron { 
+            key: Cell::new(Some(ptr)), 
+            value,
         }
     }
 }
@@ -53,7 +64,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
     }
 
     #[inline]
-    pub fn key_value(&self) -> Option<&K> {
+    pub fn key(&self) -> Option<&K> {
         if let Some(key_box) = self.inner_key() {
             Some(key_box.value())
         } else {
@@ -62,7 +73,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
     }
 
     #[inline]
-    pub fn inner_value(&self) -> &V {
+    pub fn value(&self) -> &V {
         &self.value
     }
 

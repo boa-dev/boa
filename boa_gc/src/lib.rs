@@ -20,7 +20,7 @@ pub mod trace;
 pub use crate::trace::{Finalize, Trace};
 pub(crate) use gc_box::GcBox;
 pub use internals::{Ephemeron, GcCell as Cell, GcCellRef as CellRef};
-pub use pointers::{Gc, WeakGc};
+pub use pointers::{Gc, WeakGc, WeakPair};
 
 pub type GcPointer = NonNull<GcBox<dyn Trace>>;
 
@@ -172,7 +172,28 @@ impl BoaAlloc {
     }
 
     pub fn new_weak_pair<V: Trace>(key: GcPointer, value: V) {
-        todo!()
+        BOA_GC.with(|internals| {
+            let mut gc = internals.borrow_mut();
+
+            unsafe {
+                Self::manage_state(&mut *gc);
+                let ephem = Ephemeron::new_pair(key, value);
+                let gc_box = GcBox::new_weak(ephem);
+
+                let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
+                let element_pointer = Box::into_raw(Box::from(gc_box));
+
+                let old_start = gc.youth_start.take();
+                (*element_pointer).set_header_pointer(old_start);
+                gc.youth_start
+                    .set(Some(NonNull::new_unchecked(element_pointer)));
+
+                gc.runtime.object_allocations += 1;
+                gc.runtime.total_bytes_allocated += element_size;
+
+                WeakPair::new(NonNull::new_unchecked(element_pointer))
+            }
+        })
     }
 
     pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<Ephemeron<T, ()>> {
@@ -182,7 +203,7 @@ impl BoaAlloc {
             unsafe {
                 Self::manage_state(&mut *gc);
 
-                let ephemeron = Ephemeron::new(value.as_ptr());
+                let ephemeron = Ephemeron::new(value);
                 let gc_box = GcBox::new_weak(ephemeron);
 
                 let element_size = mem::size_of_val::<GcBox<_>>(&gc_box);
@@ -209,7 +230,7 @@ impl BoaAlloc {
     ) {
         for node in promotions {
             (*node.as_ptr()).set_header_pointer(gc.adult_start.take());
-            let allocation_bytes= mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
+            let allocation_bytes = mem::size_of_val::<GcBox<_>>(&(*node.as_ptr()));
             gc.runtime.youth_bytes -= allocation_bytes;
             gc.runtime.adult_bytes += allocation_bytes;
             gc.adult_start.set(Some(node));
@@ -238,7 +259,7 @@ impl BoaAlloc {
                         (gc.runtime.youth_bytes as f64 / gc.config.growth_ratio) as usize
                 }
 
-                // The young object threshold should only be raised in cases of high laod. It 
+                // The young object threshold should only be raised in cases of high laod. It
                 // should retract back to base when the load lessens
                 if gc.runtime.youth_bytes < gc.config.youth_threshold_base
                     && gc.config.youth_threshold != gc.config.youth_threshold_base
