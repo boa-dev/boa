@@ -136,7 +136,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Binary `!=` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">NotEq</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">NotEq</span> {
@@ -156,7 +156,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Binary `===` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">StrictEq</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">StrictEq</span> {
@@ -175,7 +175,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Binary `!==` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">StrictNotEq</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">StrictNotEq</span> {
@@ -194,7 +194,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Binary `in` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">In</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">In</span> {
@@ -224,7 +224,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Binary `instanceof` operation</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">InstanceOf</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">InstanceOf</span> {

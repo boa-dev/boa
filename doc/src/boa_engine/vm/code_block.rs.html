@@ -1548,6 +1548,8 @@
 <span id="1546">1546</span>
 <span id="1547">1547</span>
 <span id="1548">1548</span>
+<span id="1549">1549</span>
+<span id="1550">1550</span>
 </pre><pre class="rust"><code><span class="doccomment">//! `CodeBlock`</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module is for the `CodeBlock` which implements a function representation in the VM</span>
@@ -1800,7 +1802,8 @@
             <span class="op">|</span> <span class="ident">Opcode::DefInitConst</span>
             <span class="op">|</span> <span class="ident">Opcode::GetName</span>
             <span class="op">|</span> <span class="ident">Opcode::GetNameOrUndefined</span>
-            <span class="op">|</span> <span class="ident">Opcode::SetName</span> =&gt; {
+            <span class="op">|</span> <span class="ident">Opcode::SetName</span>
+            <span class="op">|</span> <span class="ident">Opcode::DeleteName</span> =&gt; {
                 <span class="kw">let</span> <span class="ident">operand</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">read</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>(<span class="kw-2">*</span><span class="ident">pc</span>);
                 <span class="kw-2">*</span><span class="ident">pc</span> <span class="op">+</span><span class="op">=</span> <span class="ident">size_of</span>::<span class="op">&lt;</span><span class="ident">u32</span><span class="op">&gt;</span>();
                 <span class="macro">format!</span>(
@@ -1894,6 +1897,7 @@
             <span class="op">|</span> <span class="ident">Opcode::SetPropertySetterByValue</span>
             <span class="op">|</span> <span class="ident">Opcode::DefineClassSetterByValue</span>
             <span class="op">|</span> <span class="ident">Opcode::DeletePropertyByValue</span>
+            <span class="op">|</span> <span class="ident">Opcode::DeleteSuperThrow</span>
             <span class="op">|</span> <span class="ident">Opcode::ToPropertyKey</span>
             <span class="op">|</span> <span class="ident">Opcode::ToBoolean</span>
             <span class="op">|</span> <span class="ident">Opcode::Throw</span>

@@ -1446,6 +1446,20 @@
 <span id="1444">1444</span>
 <span id="1445">1445</span>
 <span id="1446">1446</span>
+<span id="1447">1447</span>
+<span id="1448">1448</span>
+<span id="1449">1449</span>
+<span id="1450">1450</span>
+<span id="1451">1451</span>
+<span id="1452">1452</span>
+<span id="1453">1453</span>
+<span id="1454">1454</span>
+<span id="1455">1455</span>
+<span id="1456">1456</span>
+<span id="1457">1457</span>
+<span id="1458">1458</span>
+<span id="1459">1459</span>
+<span id="1460">1460</span>
 </pre><pre class="rust"><code><span class="doccomment">/// The opcodes of the vm.</span>
 <span class="kw">use</span> <span class="kw">crate</span>::{<span class="ident">vm::ShouldExit</span>, <span class="ident">Context</span>, <span class="ident">JsResult</span>};
 
@@ -1612,7 +1626,7 @@
 }
 
 <span class="macro">generate_impl!</span> {
-    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+    <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
     <span class="attribute">#[<span class="ident">repr</span>(<span class="ident">u8</span>)]</span>
     <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Opcode</span> {
         <span class="doccomment">/// Pop the top value from the stack.</span>
@@ -2135,6 +2149,13 @@
         <span class="doccomment">/// Stack: value **=&gt;**</span>
         <span class="ident">SetName</span>,
 
+        <span class="doccomment">/// Deletes a property of the global object.</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Operands: name_index: `u32`</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Stack: **=&gt;** deleted</span>
+        <span class="ident">DeleteName</span>,
+
         <span class="doccomment">/// Get a property by name from an object an push it on the stack.</span>
         <span class="doccomment">///</span>
         <span class="doccomment">/// Like `object.name`</span>
@@ -2386,6 +2407,13 @@
         <span class="doccomment">///</span>
         <span class="doccomment">/// Stack: object, key **=&gt;**</span>
         <span class="ident">DeletePropertyByValue</span>,
+
+        <span class="doccomment">/// Throws an error when trying to delete a property of `super`</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Operands:</span>
+        <span class="doccomment">///</span>
+        <span class="doccomment">/// Stack: **=&gt;**</span>
+        <span class="ident">DeleteSuperThrow</span>,
 
         <span class="doccomment">/// Copy all properties of one object to another object.</span>
         <span class="doccomment">///</span>

@@ -156,7 +156,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Declare `var` type variable.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DefVar</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DefVar</span> {
@@ -195,7 +195,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Declare and initialize a function argument.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DefInitVar</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DefInitVar</span> {
@@ -230,7 +230,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Declare `let` type variable.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">DefLet</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">DefLet</span> {
@@ -255,7 +255,7 @@
         <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span> <span class="string">&quot;\n&quot;</span>]</span>
         <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span><span class="string">&quot;Operation:\n&quot;</span>]</span>
         <span class="attribute">#[<span class="ident">doc</span><span class="op">=</span> <span class="macro">concat!</span>(<span class="string">&quot; - &quot;</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">doc_string</span>)]</span>
-        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+        <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
         <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>;
 
         <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span> {

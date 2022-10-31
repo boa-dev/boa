@@ -3603,6 +3603,108 @@
 <span id="3601">3601</span>
 <span id="3602">3602</span>
 <span id="3603">3603</span>
+<span id="3604">3604</span>
+<span id="3605">3605</span>
+<span id="3606">3606</span>
+<span id="3607">3607</span>
+<span id="3608">3608</span>
+<span id="3609">3609</span>
+<span id="3610">3610</span>
+<span id="3611">3611</span>
+<span id="3612">3612</span>
+<span id="3613">3613</span>
+<span id="3614">3614</span>
+<span id="3615">3615</span>
+<span id="3616">3616</span>
+<span id="3617">3617</span>
+<span id="3618">3618</span>
+<span id="3619">3619</span>
+<span id="3620">3620</span>
+<span id="3621">3621</span>
+<span id="3622">3622</span>
+<span id="3623">3623</span>
+<span id="3624">3624</span>
+<span id="3625">3625</span>
+<span id="3626">3626</span>
+<span id="3627">3627</span>
+<span id="3628">3628</span>
+<span id="3629">3629</span>
+<span id="3630">3630</span>
+<span id="3631">3631</span>
+<span id="3632">3632</span>
+<span id="3633">3633</span>
+<span id="3634">3634</span>
+<span id="3635">3635</span>
+<span id="3636">3636</span>
+<span id="3637">3637</span>
+<span id="3638">3638</span>
+<span id="3639">3639</span>
+<span id="3640">3640</span>
+<span id="3641">3641</span>
+<span id="3642">3642</span>
+<span id="3643">3643</span>
+<span id="3644">3644</span>
+<span id="3645">3645</span>
+<span id="3646">3646</span>
+<span id="3647">3647</span>
+<span id="3648">3648</span>
+<span id="3649">3649</span>
+<span id="3650">3650</span>
+<span id="3651">3651</span>
+<span id="3652">3652</span>
+<span id="3653">3653</span>
+<span id="3654">3654</span>
+<span id="3655">3655</span>
+<span id="3656">3656</span>
+<span id="3657">3657</span>
+<span id="3658">3658</span>
+<span id="3659">3659</span>
+<span id="3660">3660</span>
+<span id="3661">3661</span>
+<span id="3662">3662</span>
+<span id="3663">3663</span>
+<span id="3664">3664</span>
+<span id="3665">3665</span>
+<span id="3666">3666</span>
+<span id="3667">3667</span>
+<span id="3668">3668</span>
+<span id="3669">3669</span>
+<span id="3670">3670</span>
+<span id="3671">3671</span>
+<span id="3672">3672</span>
+<span id="3673">3673</span>
+<span id="3674">3674</span>
+<span id="3675">3675</span>
+<span id="3676">3676</span>
+<span id="3677">3677</span>
+<span id="3678">3678</span>
+<span id="3679">3679</span>
+<span id="3680">3680</span>
+<span id="3681">3681</span>
+<span id="3682">3682</span>
+<span id="3683">3683</span>
+<span id="3684">3684</span>
+<span id="3685">3685</span>
+<span id="3686">3686</span>
+<span id="3687">3687</span>
+<span id="3688">3688</span>
+<span id="3689">3689</span>
+<span id="3690">3690</span>
+<span id="3691">3691</span>
+<span id="3692">3692</span>
+<span id="3693">3693</span>
+<span id="3694">3694</span>
+<span id="3695">3695</span>
+<span id="3696">3696</span>
+<span id="3697">3697</span>
+<span id="3698">3698</span>
+<span id="3699">3699</span>
+<span id="3700">3700</span>
+<span id="3701">3701</span>
+<span id="3702">3702</span>
+<span id="3703">3703</span>
+<span id="3704">3704</span>
+<span id="3705">3705</span>
 </pre><pre class="rust"><code><span class="kw">mod</span> <span class="ident">function</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
@@ -4421,33 +4523,39 @@
                     <span class="ident">PropertyAccessField::Expr</span>(<span class="ident">expr</span>) =&gt; {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">access</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
-                        <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeletePropertyByValue</span>, <span class="kw-2">&amp;</span>[]);
+                        <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DeletePropertyByValue</span>);
                     }
                 },
                 <span class="comment">// TODO: throw ReferenceError on super deletion.</span>
-                <span class="ident">PropertyAccess::Super</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushFalse</span>, <span class="kw-2">&amp;</span>[]),
+                <span class="ident">PropertyAccess::Super</span>(<span class="kw">_</span>) =&gt; <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::DeleteSuperThrow</span>),
                 <span class="ident">PropertyAccess::Private</span>(<span class="kw">_</span>) =&gt; {
                     <span class="macro">unreachable!</span>(<span class="string">&quot;deleting private properties should always throw early errors.&quot;</span>)
                 }
             },
-            <span class="comment">// TODO: implement delete on references.</span>
-            <span class="ident">Access::Variable</span> { .. } =&gt; {
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushFalse</span>, <span class="kw-2">&amp;</span>[]);
+            <span class="ident">Access::Variable</span> { <span class="ident">name</span> } =&gt; {
+                <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">get_binding_value</span>(<span class="ident">name</span>);
+                <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
+                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DeleteName</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
             }
             <span class="ident">Access::This</span> =&gt; {
-                <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushTrue</span>, <span class="kw-2">&amp;</span>[]);
+                <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushTrue</span>);
             }
         }
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_statement_list</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>,
+        <span class="ident">use_expr</span>: <span class="ident">bool</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">items</span>)) <span class="op">=</span> <span class="ident">list</span>.<span class="ident">statements</span>().<span class="ident">split_last</span>() {
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">items</span> {
-                <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">node</span>, <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
             }
-            <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">last</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">last</span>, <span class="ident">use_expr</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
         }
         <span class="prelude-val">Ok</span>(())
     }
@@ -4463,13 +4571,13 @@
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="ident">strict</span>);
         <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
-        <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">list</span>);
+        <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">list</span>, <span class="bool-val">true</span>);
 
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">last</span>, <span class="ident">items</span>)) <span class="op">=</span> <span class="ident">list</span>.<span class="ident">statements</span>().<span class="ident">split_last</span>() {
             <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">items</span> {
-                <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">node</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">node</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
             }
-            <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">last</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+            <span class="self">self</span>.<span class="ident">compile_stmt_list_item</span>(<span class="ident">last</span>, <span class="ident">use_expr</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         }
 
         <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
@@ -4569,6 +4677,7 @@
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">access</span>) <span class="op">=</span> <span class="ident">Access::from_expression</span>(<span class="ident">unary</span>.<span class="ident">target</span>()) {
                             <span class="self">self</span>.<span class="ident">access_delete</span>(<span class="ident">access</span>)<span class="question-mark">?</span>;
                         } <span class="kw">else</span> {
+                            <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">unary</span>.<span class="ident">target</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                             <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::PushTrue</span>, <span class="kw-2">&amp;</span>[]);
                         }
                         <span class="prelude-val">None</span>
@@ -5393,9 +5502,12 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">StatementListItem</span>,
         <span class="ident">use_expr</span>: <span class="ident">bool</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">item</span> {
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">stmt</span>, <span class="ident">use_expr</span>),
+            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">stmt</span>, <span class="ident">use_expr</span>, <span class="ident">configurable_globals</span>)
+            }
             <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_decl</span>(<span class="ident">decl</span>),
         }
     }
@@ -5421,7 +5533,12 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_for_loop</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">for_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ForLoop</span>, <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_for_loop</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">for_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ForLoop</span>,
+        <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
         <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
@@ -5429,7 +5546,7 @@
             <span class="kw">match</span> <span class="ident">init</span> {
                 <span class="ident">ForLoopInitializer::Expression</span>(<span class="ident">expr</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">expr</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>,
                 <span class="ident">ForLoopInitializer::Var</span>(<span class="ident">decl</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">create_decls_from_var_decl</span>(<span class="ident">decl</span>);
+                    <span class="self">self</span>.<span class="ident">create_decls_from_var_decl</span>(<span class="ident">decl</span>, <span class="ident">configurable_globals</span>);
                     <span class="self">self</span>.<span class="ident">compile_var_decl</span>(<span class="ident">decl</span>)<span class="question-mark">?</span>;
                 }
                 <span class="ident">ForLoopInitializer::Lexical</span>(<span class="ident">decl</span>) =&gt; {
@@ -5459,7 +5576,7 @@
         }
         <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
 
-        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
 
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Jump</span>, <span class="kw-2">&amp;</span>[<span class="ident">start_address</span>]);
 
@@ -5480,6 +5597,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">for_in_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ForInLoop</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">init_bound_names</span> <span class="op">=</span> <span class="ident">for_in_loop</span>.<span class="ident">initializer</span>().<span class="ident">bound_names</span>();
         <span class="kw">if</span> <span class="ident">init_bound_names</span>.<span class="ident">is_empty</span>() {
@@ -5489,7 +5607,7 @@
             <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
             <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init_bound_names</span> {
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_in_loop</span>.<span class="ident">target</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
@@ -5513,7 +5631,7 @@
 
         <span class="kw">match</span> <span class="ident">for_in_loop</span>.<span class="ident">initializer</span>() {
             <span class="ident">IterableLoopInitializer::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
@@ -5527,24 +5645,25 @@
             }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>
+                        .<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                     <span class="self">self</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitVar</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                 }
                 <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitVar</span>)<span class="question-mark">?</span>;
                 }
             },
             <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     <span class="self">self</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitLet</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                 }
                 <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitLet</span>)<span class="question-mark">?</span>;
                 }
@@ -5563,13 +5682,13 @@
             },
             <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
                 <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitVar</span>)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
         <span class="kw">let</span> <span class="ident">index_compile_environment</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_compile_environment</span>(<span class="ident">compile_environment</span>);
@@ -5593,6 +5712,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">for_of_loop</span>: <span class="kw-2">&amp;</span><span class="ident">ForOfLoop</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">let</span> <span class="ident">init_bound_names</span> <span class="op">=</span> <span class="ident">for_of_loop</span>.<span class="ident">init</span>().<span class="ident">bound_names</span>();
         <span class="kw">if</span> <span class="ident">init_bound_names</span>.<span class="ident">is_empty</span>() {
@@ -5602,7 +5722,7 @@
             <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
             <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">init_bound_names</span> {
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">name</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             }
             <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">for_of_loop</span>.<span class="ident">iterable</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
 
@@ -5638,7 +5758,7 @@
 
         <span class="kw">match</span> <span class="ident">for_of_loop</span>.<span class="ident">init</span>() {
             <span class="ident">IterableLoopInitializer::Identifier</span>(<span class="kw-2">ref</span> <span class="ident">ident</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 <span class="kw">let</span> <span class="ident">binding</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">set_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>);
                 <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">get_or_insert_binding</span>(<span class="ident">binding</span>);
                 <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::DefInitVar</span>, <span class="kw-2">&amp;</span>[<span class="ident">index</span>]);
@@ -5652,24 +5772,24 @@
             }
             <span class="ident">IterableLoopInitializer::Var</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     <span class="self">self</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitVar</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                 }
                 <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitVar</span>)<span class="question-mark">?</span>;
                 }
             },
             <span class="ident">IterableLoopInitializer::Let</span>(<span class="ident">declaration</span>) =&gt; <span class="kw">match</span> <span class="ident">declaration</span> {
                 <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     <span class="self">self</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitLet</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                 }
                 <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                     }
                     <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitLet</span>)<span class="question-mark">?</span>;
                 }
@@ -5688,13 +5808,13 @@
             },
             <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                 <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="bool-val">true</span>);
                 }
                 <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitVar</span>)<span class="question-mark">?</span>;
             }
         }
 
-        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
 
         <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
         <span class="kw">let</span> <span class="ident">index_compile_environment</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_compile_environment</span>(<span class="ident">compile_environment</span>);
@@ -5716,6 +5836,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">while_loop</span>: <span class="kw-2">&amp;</span><span class="ident">WhileLoop</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
         <span class="kw">let</span> <span class="ident">start_address</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
@@ -5724,7 +5845,7 @@
 
         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">while_loop</span>.<span class="ident">condition</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
-        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">while_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">while_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Jump</span>, <span class="kw-2">&amp;</span>[<span class="ident">start_address</span>]);
         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
 
@@ -5738,6 +5859,7 @@
         <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
         <span class="ident">do_while_loop</span>: <span class="kw-2">&amp;</span><span class="ident">DoWhileLoop</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
         <span class="kw">let</span> <span class="ident">initial_label</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump</span>();
@@ -5752,7 +5874,7 @@
 
         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">initial_label</span>);
 
-        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
         <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::Jump</span>, <span class="kw-2">&amp;</span>[<span class="ident">condition_label_address</span>]);
         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
 
@@ -5767,6 +5889,7 @@
         <span class="ident">block</span>: <span class="kw-2">&amp;</span><span class="ident">Block</span>,
         <span class="ident">label</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">Sym</span><span class="op">&gt;</span>,
         <span class="ident">use_expr</span>: <span class="ident">bool</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
     ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">label</span>) <span class="op">=</span> <span class="ident">label</span> {
             <span class="kw">let</span> <span class="ident">next</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">next_opcode_location</span>();
@@ -5775,8 +5898,8 @@
 
         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">false</span>);
         <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
-        <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">block</span>.<span class="ident">statement_list</span>());
-        <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">block</span>.<span class="ident">statement_list</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+        <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">block</span>.<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
+        <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">block</span>.<span class="ident">statement_list</span>(), <span class="ident">use_expr</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
         <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span> <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
         <span class="kw">let</span> <span class="ident">index_compile_environment</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">push_compile_environment</span>(<span class="ident">compile_environment</span>);
         <span class="self">self</span>.<span class="ident">patch_jump_with_target</span>(<span class="ident">push_env</span>.<span class="number">0</span>, <span class="ident">num_bindings</span> <span class="kw">as</span> <span class="ident">u32</span>);
@@ -5791,14 +5914,19 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>, <span class="ident">use_expr</span>: <span class="ident">bool</span>) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">compile_stmt</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">node</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">use_expr</span>: <span class="ident">bool</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">JsResult</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
         <span class="kw">match</span> <span class="ident">node</span> {
             <span class="ident">Statement::Var</span>(<span class="ident">var</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_var_decl</span>(<span class="ident">var</span>)<span class="question-mark">?</span>,
             <span class="ident">Statement::If</span>(<span class="ident">node</span>) =&gt; {
                 <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">node</span>.<span class="ident">cond</span>(), <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                 <span class="kw">let</span> <span class="ident">jelse</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump_if_false</span>();
 
-                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">node</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
 
                 <span class="kw">match</span> <span class="ident">node</span>.<span class="ident">else_node</span>() {
                     <span class="prelude-val">None</span> =&gt; {
@@ -5807,40 +5935,75 @@
                     <span class="prelude-val">Some</span>(<span class="ident">else_body</span>) =&gt; {
                         <span class="kw">let</span> <span class="ident">exit</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">jump</span>();
                         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">jelse</span>);
-                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">else_body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">else_body</span>, <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
                         <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                     }
                 }
             }
-            <span class="ident">Statement::ForLoop</span>(<span class="ident">for_loop</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_for_loop</span>(<span class="ident">for_loop</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
-            <span class="ident">Statement::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_for_in_loop</span>(<span class="ident">for_in_loop</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
-            <span class="ident">Statement::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_for_of_loop</span>(<span class="ident">for_of_loop</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
-            <span class="ident">Statement::WhileLoop</span>(<span class="ident">while_loop</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_while_loop</span>(<span class="ident">while_loop</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>,
-            <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">do_while_loop</span>) =&gt; {
-                <span class="self">self</span>.<span class="ident">compile_do_while_loop</span>(<span class="ident">do_while_loop</span>, <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+            <span class="ident">Statement::ForLoop</span>(<span class="ident">for_loop</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_for_loop</span>(<span class="ident">for_loop</span>, <span class="prelude-val">None</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
             }
-            <span class="ident">Statement::Block</span>(<span class="ident">block</span>) =&gt; <span class="self">self</span>.<span class="ident">compile_block</span>(<span class="ident">block</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+            <span class="ident">Statement::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_for_in_loop</span>(<span class="ident">for_in_loop</span>, <span class="prelude-val">None</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">Statement::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_for_of_loop</span>(<span class="ident">for_of_loop</span>, <span class="prelude-val">None</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">Statement::WhileLoop</span>(<span class="ident">while_loop</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_while_loop</span>(<span class="ident">while_loop</span>, <span class="prelude-val">None</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">do_while_loop</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_do_while_loop</span>(<span class="ident">do_while_loop</span>, <span class="prelude-val">None</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
+            }
+            <span class="ident">Statement::Block</span>(<span class="ident">block</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">compile_block</span>(<span class="ident">block</span>, <span class="prelude-val">None</span>, <span class="ident">use_expr</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
+            }
             <span class="ident">Statement::Labelled</span>(<span class="ident">labelled</span>) =&gt; <span class="kw">match</span> <span class="ident">labelled</span>.<span class="ident">item</span>() {
                 <span class="ident">LabelledItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="kw">match</span> <span class="ident">stmt</span> {
                     <span class="ident">Statement::ForLoop</span>(<span class="ident">for_loop</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_for_loop</span>(<span class="ident">for_loop</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_for_loop</span>(
+                            <span class="ident">for_loop</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
                     <span class="ident">Statement::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_for_in_loop</span>(<span class="ident">for_in_loop</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_for_in_loop</span>(
+                            <span class="ident">for_in_loop</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
                     <span class="ident">Statement::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_for_of_loop</span>(<span class="ident">for_of_loop</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_for_of_loop</span>(
+                            <span class="ident">for_of_loop</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
                     <span class="ident">Statement::WhileLoop</span>(<span class="ident">while_loop</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_while_loop</span>(<span class="ident">while_loop</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_while_loop</span>(
+                            <span class="ident">while_loop</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
                     <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">do_while_loop</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_do_while_loop</span>(<span class="ident">do_while_loop</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()))<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_do_while_loop</span>(
+                            <span class="ident">do_while_loop</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
                     <span class="ident">Statement::Block</span>(<span class="ident">block</span>) =&gt; {
-                        <span class="self">self</span>.<span class="ident">compile_block</span>(<span class="ident">block</span>, <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+                        <span class="self">self</span>.<span class="ident">compile_block</span>(
+                            <span class="ident">block</span>,
+                            <span class="prelude-val">Some</span>(<span class="ident">labelled</span>.<span class="ident">label</span>()),
+                            <span class="ident">use_expr</span>,
+                            <span class="ident">configurable_globals</span>,
+                        )<span class="question-mark">?</span>;
                     }
-                    <span class="ident">stmt</span> =&gt; <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">stmt</span>, <span class="ident">use_expr</span>)<span class="question-mark">?</span>,
+                    <span class="ident">stmt</span> =&gt; <span class="self">self</span>.<span class="ident">compile_stmt</span>(<span class="ident">stmt</span>, <span class="ident">use_expr</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>,
                 },
                 <span class="ident">LabelledItem::Function</span>(<span class="ident">f</span>) =&gt; {
                     <span class="self">self</span>.<span class="ident">function</span>(<span class="ident">f</span>.<span class="ident">into</span>(), <span class="ident">NodeKind::Declaration</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
@@ -5993,7 +6156,7 @@
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
                 <span class="kw">for</span> <span class="ident">case</span> <span class="kw">in</span> <span class="ident">switch</span>.<span class="ident">cases</span>() {
-                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">case</span>.<span class="ident">body</span>());
+                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">case</span>.<span class="ident">body</span>(), <span class="ident">configurable_globals</span>);
                 }
                 <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::LoopStart</span>);
 
@@ -6011,13 +6174,13 @@
 
                 <span class="kw">for</span> (<span class="ident">label</span>, <span class="ident">case</span>) <span class="kw">in</span> <span class="ident">labels</span>.<span class="ident">into_iter</span>().<span class="ident">zip</span>(<span class="ident">switch</span>.<span class="ident">cases</span>()) {
                     <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">label</span>);
-                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">case</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">case</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="self">self</span>.<span class="ident">patch_jump</span>(<span class="ident">exit</span>);
                 <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">body</span>) <span class="op">=</span> <span class="ident">switch</span>.<span class="ident">default</span>() {
-                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">body</span>);
-                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">body</span>, <span class="ident">configurable_globals</span>);
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">body</span>, <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>)<span class="question-mark">?</span>;
                 }
 
                 <span class="self">self</span>.<span class="ident">pop_switch_control_info</span>();
@@ -6047,8 +6210,12 @@
                 <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
-                <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>());
-                <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
+                <span class="self">self</span>.<span class="ident">compile_statement_list</span>(
+                    <span class="ident">t</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(),
+                    <span class="ident">use_expr</span>,
+                    <span class="ident">configurable_globals</span>,
+                )<span class="question-mark">?</span>;
 
                 <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
                     <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
@@ -6074,12 +6241,12 @@
                     <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">binding</span>) <span class="op">=</span> <span class="ident">catch</span>.<span class="ident">parameter</span>() {
                         <span class="kw">match</span> <span class="ident">binding</span> {
                             <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                                 <span class="self">self</span>.<span class="ident">emit_binding</span>(<span class="ident">BindingOpcode::InitLet</span>, <span class="kw-2">*</span><span class="ident">ident</span>);
                             }
                             <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                                 <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                                 }
                                 <span class="self">self</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitLet</span>)<span class="question-mark">?</span>;
                             }
@@ -6088,8 +6255,12 @@
                         <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Pop</span>);
                     }
 
-                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>());
-                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(), <span class="ident">use_expr</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(
+                        <span class="ident">catch</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(),
+                        <span class="ident">use_expr</span>,
+                        <span class="ident">configurable_globals</span>,
+                    )<span class="question-mark">?</span>;
 
                     <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
@@ -6125,8 +6296,12 @@
                     <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
-                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">finally</span>.<span class="ident">statement_list</span>());
-                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(<span class="ident">finally</span>.<span class="ident">statement_list</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">finally</span>.<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
+                    <span class="self">self</span>.<span class="ident">compile_statement_list</span>(
+                        <span class="ident">finally</span>.<span class="ident">statement_list</span>(),
+                        <span class="bool-val">false</span>,
+                        <span class="ident">configurable_globals</span>,
+                    )<span class="question-mark">?</span>;
 
                     <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
@@ -6529,13 +6704,17 @@
         <span class="prelude-val">Ok</span>(())
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt_list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">stmt_list</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">configurable_globals</span>: <span class="ident">bool</span>) {
         <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">stmt_list</span>.<span class="ident">statements</span>() {
-            <span class="self">self</span>.<span class="ident">create_decls_from_stmt_list_item</span>(<span class="ident">node</span>);
+            <span class="self">self</span>.<span class="ident">create_decls_from_stmt_list_item</span>(<span class="ident">node</span>, <span class="ident">configurable_globals</span>);
         }
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_var_decl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">VarDeclaration</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_var_decl</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">list</span>: <span class="kw-2">&amp;</span><span class="ident">VarDeclaration</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">false</span>;
         <span class="kw">for</span> <span class="ident">decl</span> <span class="kw">in</span> <span class="ident">list</span>.<span class="number">0</span>.<span class="ident">as_ref</span>() {
             <span class="kw">match</span> <span class="ident">decl</span>.<span class="ident">binding</span>() {
@@ -6544,14 +6723,16 @@
                     <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
                         <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                     }
-                    <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>);
+                    <span class="self">self</span>.<span class="ident">context</span>
+                        .<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                 }
                 <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                     <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
                         <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
                             <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                         }
-                        <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                        <span class="self">self</span>.<span class="ident">context</span>
+                            .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                     }
                 }
             }
@@ -6570,14 +6751,14 @@
                             <span class="kw">if</span> <span class="kw-2">*</span><span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
                                 <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                             }
-                            <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                            <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                         }
                         <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                             <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
                                 <span class="kw">if</span> <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> {
                                     <span class="ident">has_identifier_argument</span> <span class="op">=</span> <span class="bool-val">true</span>;
                                 }
-                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                             }
                         }
                     }
@@ -6609,61 +6790,74 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_decl</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">declaration</span>: <span class="kw-2">&amp;</span><span class="ident">Declaration</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_decl</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">declaration</span>: <span class="kw-2">&amp;</span><span class="ident">Declaration</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">declaration</span> {
             <span class="ident">Declaration::Lexical</span>(<span class="ident">decl</span>) =&gt; <span class="self">self</span>.<span class="ident">create_decls_from_lexical_decl</span>(<span class="ident">decl</span>),
             <span class="ident">Declaration::Function</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">name</span>().<span class="ident">expect</span>(<span class="string">&quot;function declaration must have a name&quot;</span>);
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                 <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
             }
             <span class="ident">Declaration::Generator</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">name</span>().<span class="ident">expect</span>(<span class="string">&quot;generator declaration must have a name&quot;</span>);
 
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                 <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
             }
             <span class="ident">Declaration::AsyncFunction</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">decl</span>
                     .<span class="ident">name</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;async function declaration must have a name&quot;</span>);
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                 <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
             }
             <span class="ident">Declaration::AsyncGenerator</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">decl</span>
                     .<span class="ident">name</span>()
                     .<span class="ident">expect</span>(<span class="string">&quot;async generator declaration must have a name&quot;</span>);
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>);
+                <span class="self">self</span>.<span class="ident">context</span>
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">true</span>, <span class="ident">configurable_globals</span>);
                 <span class="ident">ident</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span>
             }
             <span class="ident">Declaration::Class</span>(<span class="ident">decl</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">ident</span> <span class="op">=</span> <span class="ident">decl</span>.<span class="ident">name</span>().<span class="ident">expect</span>(<span class="string">&quot;class declaration must have a name&quot;</span>);
-                <span class="self">self</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                <span class="self">self</span>.<span class="ident">context</span>
+                    .<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="ident">configurable_globals</span>);
                 <span class="bool-val">false</span>
             }
         }
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_stmt</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_stmt</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">statement</span>: <span class="kw-2">&amp;</span><span class="ident">Statement</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">statement</span> {
-            <span class="ident">Statement::Var</span>(<span class="ident">var</span>) =&gt; <span class="self">self</span>.<span class="ident">create_decls_from_var_decl</span>(<span class="ident">var</span>),
+            <span class="ident">Statement::Var</span>(<span class="ident">var</span>) =&gt; <span class="self">self</span>.<span class="ident">create_decls_from_var_decl</span>(<span class="ident">var</span>, <span class="ident">configurable_globals</span>),
             <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">do_while_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>(), <span class="ident">Statement::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>());
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">do_while_loop</span>.<span class="ident">body</span>(), <span class="ident">configurable_globals</span>);
                 }
                 <span class="bool-val">false</span>
             }
             <span class="ident">Statement::ForInLoop</span>(<span class="ident">for_in_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>(), <span class="ident">Statement::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>());
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_in_loop</span>.<span class="ident">body</span>(), <span class="ident">configurable_globals</span>);
                 }
                 <span class="bool-val">false</span>
             }
             <span class="ident">Statement::ForOfLoop</span>(<span class="ident">for_of_loop</span>) =&gt; {
                 <span class="kw">if</span> <span class="op">!</span><span class="macro">matches!</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>(), <span class="ident">Statement::Block</span>(<span class="kw">_</span>)) {
-                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>());
+                    <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">for_of_loop</span>.<span class="ident">body</span>(), <span class="ident">configurable_globals</span>);
                 }
                 <span class="bool-val">false</span>
             }
@@ -6672,10 +6866,18 @@
     }
 
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_stmt_list_item</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">StatementListItem</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_decls_from_stmt_list_item</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">item</span>: <span class="kw-2">&amp;</span><span class="ident">StatementListItem</span>,
+        <span class="ident">configurable_globals</span>: <span class="ident">bool</span>,
+    ) -&gt; <span class="ident">bool</span> {
         <span class="kw">match</span> <span class="ident">item</span> {
-            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; <span class="self">self</span>.<span class="ident">create_decls_from_decl</span>(<span class="ident">decl</span>),
-            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">stmt</span>),
+            <span class="ident">StatementListItem::Declaration</span>(<span class="ident">decl</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">create_decls_from_decl</span>(<span class="ident">decl</span>, <span class="ident">configurable_globals</span>)
+            }
+            <span class="ident">StatementListItem::Statement</span>(<span class="ident">stmt</span>) =&gt; {
+                <span class="self">self</span>.<span class="ident">create_decls_from_stmt</span>(<span class="ident">stmt</span>, <span class="ident">configurable_globals</span>)
+            }
         }
     }
 
@@ -6706,7 +6908,7 @@
             <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">params</span> <span class="op">=</span> <span class="ident">expr</span>.<span class="ident">parameters</span>().<span class="ident">clone</span>();
             <span class="ident">compiler</span>
                 .<span class="ident">context</span>
-                .<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>);
+                .<span class="ident">create_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>);
             <span class="ident">compiler</span>.<span class="ident">code_block</span>.<span class="ident">arguments_binding</span> <span class="op">=</span> <span class="prelude-val">Some</span>(
                 <span class="ident">compiler</span>
                     .<span class="ident">context</span>
@@ -6719,7 +6921,9 @@
 
                 <span class="kw">match</span> <span class="ident">parameter</span>.<span class="ident">variable</span>().<span class="ident">binding</span>() {
                     <span class="ident">Binding::Identifier</span>(<span class="ident">ident</span>) =&gt; {
-                        <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>);
+                        <span class="ident">compiler</span>
+                            .<span class="ident">context</span>
+                            .<span class="ident">create_mutable_binding</span>(<span class="kw-2">*</span><span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">init</span>) <span class="op">=</span> <span class="ident">parameter</span>.<span class="ident">variable</span>().<span class="ident">init</span>() {
                             <span class="kw">let</span> <span class="ident">skip</span> <span class="op">=</span>
                                 <span class="ident">compiler</span>.<span class="ident">emit_opcode_with_operand</span>(<span class="ident">Opcode::JumpIfNotUndefined</span>);
@@ -6730,7 +6934,7 @@
                     }
                     <span class="ident">Binding::Pattern</span>(<span class="ident">pattern</span>) =&gt; {
                         <span class="kw">for</span> <span class="ident">ident</span> <span class="kw">in</span> <span class="ident">pattern</span>.<span class="ident">idents</span>() {
-                            <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>);
+                            <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">create_mutable_binding</span>(<span class="ident">ident</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>);
                         }
                         <span class="ident">compiler</span>.<span class="ident">compile_declaration_pattern</span>(<span class="ident">pattern</span>, <span class="ident">BindingOpcode::InitArg</span>)<span class="question-mark">?</span>;
                     }
@@ -6748,8 +6952,8 @@
             } <span class="kw">else</span> {
                 <span class="prelude-val">None</span>
             };
-            <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">expr</span>.<span class="ident">body</span>());
-            <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">expr</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+            <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">expr</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>);
+            <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">expr</span>.<span class="ident">body</span>(), <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
             <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">env_label</span>) <span class="op">=</span> <span class="ident">env_label</span> {
                 <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
                     <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
@@ -7038,8 +7242,8 @@
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::Dup</span>);
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">compiler</span> <span class="op">=</span> <span class="ident">ByteCompiler::new</span>(<span class="ident">Sym::EMPTY_STRING</span>, <span class="bool-val">true</span>, <span class="self">self</span>.<span class="ident">context</span>);
                     <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">push_compile_time_environment</span>(<span class="bool-val">true</span>);
-                    <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">statement_list</span>);
-                    <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">statement_list</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
+                    <span class="ident">compiler</span>.<span class="ident">create_decls</span>(<span class="ident">statement_list</span>, <span class="bool-val">false</span>);
+                    <span class="ident">compiler</span>.<span class="ident">compile_statement_list</span>(<span class="ident">statement_list</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)<span class="question-mark">?</span>;
                     <span class="kw">let</span> (<span class="ident">num_bindings</span>, <span class="ident">compile_environment</span>) <span class="op">=</span>
                         <span class="ident">compiler</span>.<span class="ident">context</span>.<span class="ident">pop_compile_time_environment</span>();
                     <span class="ident">compiler</span>

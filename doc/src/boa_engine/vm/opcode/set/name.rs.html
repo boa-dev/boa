@@ -87,7 +87,7 @@
 <span class="doccomment">///</span>
 <span class="doccomment">/// Operation:</span>
 <span class="doccomment">///  - Find a binding on the environment chain and assign its value.</span>
-<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>, <span class="ident">Hash</span>)]</span>
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>)]</span>
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">struct</span> <span class="ident">SetName</span>;
 
 <span class="kw">impl</span> <span class="ident">Operation</span> <span class="kw">for</span> <span class="ident">SetName</span> {
@@ -104,7 +104,7 @@
             <span class="kw">if</span> <span class="op">!</span><span class="ident">context</span>
                 .<span class="ident">realm</span>
                 .<span class="ident">environments</span>
-                .<span class="ident">put_value_global_poisoned</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>(), <span class="kw-2">&amp;</span><span class="ident">value</span>)
+                .<span class="ident">put_value_if_global_poisoned</span>(<span class="ident">binding_locator</span>.<span class="ident">name</span>(), <span class="kw-2">&amp;</span><span class="ident">value</span>)
             {
                 <span class="kw">let</span> <span class="ident">key</span>: <span class="ident">JsString</span> <span class="op">=</span> <span class="ident">context</span>
                     .<span class="ident">interner</span>()

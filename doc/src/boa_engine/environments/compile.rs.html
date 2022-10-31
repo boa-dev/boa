@@ -377,6 +377,11 @@
 <span id="375">375</span>
 <span id="376">376</span>
 <span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environments::runtime::BindingLocator</span>, <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">syntax::ast::expression::Identifier</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
@@ -667,7 +672,12 @@
     <span class="doccomment">///</span>
     <span class="doccomment">/// Panics if the global environment is not function scoped.</span>
     <span class="attribute">#[<span class="ident">inline</span>]</span>
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>, <span class="ident">name</span>: <span class="ident">Identifier</span>, <span class="ident">function_scope</span>: <span class="ident">bool</span>) {
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn</span> <span class="ident">create_mutable_binding</span>(
+        <span class="kw-2">&amp;mut</span> <span class="self">self</span>,
+        <span class="ident">name</span>: <span class="ident">Identifier</span>,
+        <span class="ident">function_scope</span>: <span class="ident">bool</span>,
+        <span class="ident">configurable</span>: <span class="ident">bool</span>,
+    ) {
         <span class="kw">if</span> <span class="op">!</span><span class="self">self</span>
             .<span class="ident">realm</span>
             .<span class="ident">compile_env</span>
@@ -690,7 +700,7 @@
                         .<span class="ident">value</span>(<span class="ident">JsValue::Undefined</span>)
                         .<span class="ident">writable</span>(<span class="bool-val">true</span>)
                         .<span class="ident">enumerable</span>(<span class="bool-val">true</span>)
-                        .<span class="ident">configurable</span>(<span class="bool-val">true</span>)
+                        .<span class="ident">configurable</span>(<span class="ident">configurable</span>)
                         .<span class="ident">build</span>(),
                 );
             }
