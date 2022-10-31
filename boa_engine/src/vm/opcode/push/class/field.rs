@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push a field to a class.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassField;
 
 impl Operation for PushClassField {
@@ -48,7 +48,7 @@ impl Operation for PushClassField {
 ///
 /// Operation:
 ///  - Push a private field to the class.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassFieldPrivate;
 
 impl Operation for PushClassFieldPrivate {

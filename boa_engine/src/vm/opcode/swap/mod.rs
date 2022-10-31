@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Swap the top two values on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Swap;
 
 impl Operation for Swap {
@@ -28,7 +28,7 @@ impl Operation for Swap {
 ///
 /// Operation:
 ///  - Rotates the n top values to the left.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RotateLeft;
 
 impl Operation for RotateLeft {
@@ -47,7 +47,7 @@ impl Operation for RotateLeft {
 ///
 /// Operation:
 ///  - Rotates the n top values to the right.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RotateRight;
 
 impl Operation for RotateRight {

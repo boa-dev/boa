@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Unconditional jump to address.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Jump;
 
 impl Operation for Jump {
@@ -25,7 +25,7 @@ impl Operation for Jump {
 ///
 /// Operation:
 ///  - Conditional jump to address.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfFalse;
 
 impl Operation for JumpIfFalse {
@@ -45,7 +45,7 @@ impl Operation for JumpIfFalse {
 ///
 /// Operation:
 ///  - Conditional jump to address.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNotUndefined;
 
 impl Operation for JumpIfNotUndefined {
@@ -67,7 +67,7 @@ impl Operation for JumpIfNotUndefined {
 ///
 /// Operation:
 ///  - Conditional jump to address.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct JumpIfNullOrUndefined;
 
 impl Operation for JumpIfNullOrUndefined {

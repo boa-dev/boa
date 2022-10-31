@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Unary logical `!` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LogicalNot;
 
 impl Operation for LogicalNot {

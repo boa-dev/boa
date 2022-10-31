@@ -20,7 +20,7 @@ pub(crate) use void::*;
 ///
 /// Operation:
 ///  - Unary `typeof` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct TypeOf;
 
 impl Operation for TypeOf {
@@ -38,7 +38,7 @@ impl Operation for TypeOf {
 ///
 /// Operation:
 ///  - Unary `+` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Pos;
 
 impl Operation for Pos {
@@ -57,7 +57,7 @@ impl Operation for Pos {
 ///
 /// Operation:
 ///  - Unary `-` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Neg;
 
 impl Operation for Neg {
@@ -78,7 +78,7 @@ impl Operation for Neg {
 ///
 /// Operation:
 ///  - Unary bitwise `~` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct BitNot;
 
 impl Operation for BitNot {

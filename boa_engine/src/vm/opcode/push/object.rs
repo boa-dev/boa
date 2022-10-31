@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push empty object `{}` value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushEmptyObject;
 
 impl Operation for PushEmptyObject {

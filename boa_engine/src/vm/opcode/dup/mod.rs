@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push a copy of the top value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Dup;
 
 impl Operation for Dup {

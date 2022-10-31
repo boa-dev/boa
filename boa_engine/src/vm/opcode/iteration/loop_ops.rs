@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push loop start marker.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LoopStart;
 
 impl Operation for LoopStart {
@@ -25,7 +25,7 @@ impl Operation for LoopStart {
 ///
 /// Operation:
 ///  - Clean up environments when a loop continues.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LoopContinue;
 
 impl Operation for LoopContinue {
@@ -52,7 +52,7 @@ impl Operation for LoopContinue {
 ///
 /// Operation:
 ///  - Clean up enviroments at the end of a lopp.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LoopEnd;
 
 impl Operation for LoopEnd {

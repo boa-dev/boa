@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Start of a try block.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct TryStart;
 
 impl Operation for TryStart {
@@ -37,7 +37,7 @@ impl Operation for TryStart {
 ///
 /// Operation:
 ///  - End of a try block
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct TryEnd;
 
 impl Operation for TryEnd {
@@ -79,7 +79,7 @@ impl Operation for TryEnd {
 ///
 /// Operation:
 ///  - Start of a catch block.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CatchStart;
 
 impl Operation for CatchStart {
@@ -105,7 +105,7 @@ impl Operation for CatchStart {
 ///
 /// Operation:
 ///  - End of a catch block.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CatchEnd;
 
 impl Operation for CatchEnd {
@@ -147,7 +147,7 @@ impl Operation for CatchEnd {
 ///
 /// Operation:
 ///  - End of a catch block
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CatchEnd2;
 
 impl Operation for CatchEnd2 {

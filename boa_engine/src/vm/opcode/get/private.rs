@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Get a private property by name from an object an push it on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPrivateField;
 
 impl Operation for GetPrivateField {

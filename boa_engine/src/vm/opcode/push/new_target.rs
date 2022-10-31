@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push the current new target to the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushNewTarget;
 
 impl Operation for PushNewTarget {

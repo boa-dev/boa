@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Yield from the current execution.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Yield;
 
 impl Operation for Yield {

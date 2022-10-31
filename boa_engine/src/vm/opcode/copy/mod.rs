@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Copy all properties of one object to another object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CopyDataProperties;
 
 impl Operation for CopyDataProperties {

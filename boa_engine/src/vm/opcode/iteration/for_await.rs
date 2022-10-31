@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Move to the next value in a for await..of loop.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ForAwaitOfLoopIterate;
 
 impl Operation for ForAwaitOfLoopIterate {
@@ -43,7 +43,7 @@ impl Operation for ForAwaitOfLoopIterate {
 ///
 /// Operation:
 ///  - Get the value from a for await..of loop next result.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ForAwaitOfLoopNext;
 
 impl Operation for ForAwaitOfLoopNext {

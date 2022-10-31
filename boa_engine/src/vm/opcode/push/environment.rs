@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push a declarative environment
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushDeclarativeEnvironment;
 
 impl Operation for PushDeclarativeEnvironment {
@@ -34,7 +34,7 @@ impl Operation for PushDeclarativeEnvironment {
 ///
 /// Operation:
 ///  - Push a function environment.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushFunctionEnvironment;
 
 impl Operation for PushFunctionEnvironment {

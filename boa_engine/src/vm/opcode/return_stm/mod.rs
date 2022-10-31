@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Return from a function.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Return;
 
 impl Operation for Return {

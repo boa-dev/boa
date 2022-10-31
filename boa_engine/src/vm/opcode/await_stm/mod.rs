@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Stops the current Async function and schedules it to resume later.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Await;
 
 impl Operation for Await {

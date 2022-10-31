@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Call a function named "eval".
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CallEval;
 
 impl Operation for CallEval {
@@ -65,7 +65,7 @@ impl Operation for CallEval {
 ///
 /// Operation:
 ///  - Call a function named "eval" where the arguments contain spreads.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CallEvalSpread;
 
 impl Operation for CallEvalSpread {
@@ -127,7 +127,7 @@ impl Operation for CallEvalSpread {
 ///
 /// Operation:
 ///  - Call a function
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Call;
 
 impl Operation for Call {
@@ -166,7 +166,7 @@ impl Operation for Call {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct CallSpread;
 
 impl Operation for CallSpread {

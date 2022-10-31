@@ -14,7 +14,7 @@ pub(crate) use macro_defined::*;
 ///
 /// Operation:
 ///  - Binary `!=` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct NotEq;
 
 impl Operation for NotEq {
@@ -34,7 +34,7 @@ impl Operation for NotEq {
 ///
 /// Operation:
 ///  - Binary `===` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct StrictEq;
 
 impl Operation for StrictEq {
@@ -53,7 +53,7 @@ impl Operation for StrictEq {
 ///
 /// Operation:
 ///  - Binary `!==` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct StrictNotEq;
 
 impl Operation for StrictNotEq {
@@ -72,7 +72,7 @@ impl Operation for StrictNotEq {
 ///
 /// Operation:
 ///  - Binary `in` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct In;
 
 impl Operation for In {
@@ -102,7 +102,7 @@ impl Operation for In {
 ///
 /// Operation:
 ///  - Binary `instanceof` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct InstanceOf;
 
 impl Operation for InstanceOf {

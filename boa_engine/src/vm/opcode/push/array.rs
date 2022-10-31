@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push an empty array value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushNewArray;
 
 impl Operation for PushNewArray {
@@ -27,7 +27,7 @@ impl Operation for PushNewArray {
 ///
 /// Operation:
 ///  - Push a value to an array.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushValueToArray;
 
 impl Operation for PushValueToArray {
@@ -52,7 +52,7 @@ impl Operation for PushValueToArray {
 ///
 /// Operation:
 ///  - Push an empty element/hole to an array.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushElisionToArray;
 
 impl Operation for PushElisionToArray {
@@ -77,7 +77,7 @@ impl Operation for PushElisionToArray {
 ///
 /// Operation:
 ///  - Push all iterator values to an array.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushIteratorToArray;
 
 impl Operation for PushIteratorToArray {

@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Assign the value of a private property of an object by it's name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct AssignPrivateField;
 
 impl Operation for AssignPrivateField {
@@ -66,7 +66,7 @@ impl Operation for AssignPrivateField {
 ///
 /// Operation:
 ///  - Set a private property of a class constructor by it's name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateField;
 
 impl Operation for SetPrivateField {
@@ -104,7 +104,7 @@ impl Operation for SetPrivateField {
 ///
 /// Operation:
 ///  - Set a private method of a class constructor by it's name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateMethod;
 
 impl Operation for SetPrivateMethod {
@@ -134,7 +134,7 @@ impl Operation for SetPrivateMethod {
 ///
 /// Operation:
 ///  - Set a private setter property of a class constructor by it's name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateSetter;
 
 impl Operation for SetPrivateSetter {
@@ -163,7 +163,7 @@ impl Operation for SetPrivateSetter {
 ///
 /// Operation:
 ///  - Set a private getter property of a class constructor by it's name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPrivateGetter;
 
 impl Operation for SetPrivateGetter {

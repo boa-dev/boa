@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Pops value converts it to boolean and pushes it back.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ToBoolean;
 
 impl Operation for ToBoolean {
@@ -25,7 +25,7 @@ impl Operation for ToBoolean {
 ///
 /// Operation:
 ///  - Call `ToPropertyKey` on the value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ToPropertyKey;
 
 impl Operation for ToPropertyKey {

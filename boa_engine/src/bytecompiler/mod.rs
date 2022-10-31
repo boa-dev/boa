@@ -2254,7 +2254,11 @@ impl<'b> ByteCompiler<'b> {
             Statement::Labelled(labelled) => match labelled.item() {
                 LabelledItem::Statement(stmt) => match stmt {
                     Statement::ForLoop(for_loop) => {
-                        self.compile_for_loop(for_loop, Some(labelled.label()), configurable_globals)?;
+                        self.compile_for_loop(
+                            for_loop,
+                            Some(labelled.label()),
+                            configurable_globals,
+                        )?;
                     }
                     Statement::ForInLoop(for_in_loop) => {
                         self.compile_for_in_loop(

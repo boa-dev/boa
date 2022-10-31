@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push literal value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushLiteral;
 
 impl Operation for PushLiteral {

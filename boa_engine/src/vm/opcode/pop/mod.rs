@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Pop the top value from the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Pop;
 
 impl Operation for Pop {
@@ -24,7 +24,7 @@ impl Operation for Pop {
 ///
 /// Operation:
 ///  - Pop the top value from the stack if the last try block has thrown a value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PopIfThrown;
 
 impl Operation for PopIfThrown {
@@ -45,7 +45,7 @@ impl Operation for PopIfThrown {
 ///
 /// Operation:
 ///  - Pop the current environment.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PopEnvironment;
 
 impl Operation for PopEnvironment {
@@ -64,7 +64,7 @@ impl Operation for PopEnvironment {
 ///
 /// Operation:
 ///  - Add one to the pop on return count.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PopOnReturnAdd;
 
 impl Operation for PopOnReturnAdd {
@@ -81,7 +81,7 @@ impl Operation for PopOnReturnAdd {
 ///
 /// Operation:
 ///  - Subtract one from the pop on return count.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PopOnReturnSub;
 
 impl Operation for PopOnReturnSub {

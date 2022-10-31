@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Find a binding on the environment chain and assign its value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetName;
 
 impl Operation for SetName {

@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Deletes a property by name of an object
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DeletePropertyByName;
 
 impl Operation for DeletePropertyByName {
@@ -39,7 +39,7 @@ impl Operation for DeletePropertyByName {
 ///
 /// Operation:
 ///  - Deletes a property by value of an object
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DeletePropertyByValue;
 
 impl Operation for DeletePropertyByValue {
@@ -66,7 +66,7 @@ impl Operation for DeletePropertyByValue {
 ///
 /// Operation:
 ///  - Deletes a property by value of an object
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DeleteName;
 
 impl Operation for DeleteName {
@@ -123,7 +123,7 @@ impl Operation for DeleteName {
 ///
 /// Operation:
 ///  - Throws an error when trying to delete a property of `super`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DeleteSuperThrow;
 
 impl Operation for DeleteSuperThrow {
