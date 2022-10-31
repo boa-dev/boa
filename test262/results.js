@@ -1,504 +1,368 @@
-"use strict";
+const formatter = new Intl.NumberFormat("en-GB");
 
-(function () {
-  let latest = {};
-  let mainData = [];
-  let formatter = new Intl.NumberFormat("en-GB");
+loadMainData();
+loadMainResults();
 
-  // Load latest complete data from main:
-  fetch("./refs/heads/main/latest.json")
-    .then((response) => response.json())
-    .then((data) => {
-      latest.main = data;
+const response = await fetch(
+  "https://api.github.com/repos/boa-dev/boa/releases"
+);
+const releases = await response.json();
+releases.sort((a, b) => compareVersions(a.tag_name, b.tag_name) * -1);
+const latestTag = releases[0].tag_name;
+loadLatestVersionResults(latestTag);
 
-      let container = $("#main-latest .card-body");
-      container.append(infoLink("main"));
-    });
+const releaseTags = [];
+for (const release of releases) {
+  const tag = release.tag_name;
+  const version = tag.split(".");
 
-  // Load main branch information over time:
-  fetch("./refs/heads/main/results.json")
-    .then((response) => response.json())
-    .then((data) => {
-      mainData = data;
-      let innerContainer = $('<div class="card-body"></div>')
-        .append($("<h2><code>main</code> branch results:</h2>"))
-        .append(createGeneralInfo(data));
-
-      if (typeof latest.main !== "undefined") {
-        innerContainer.append(infoLink("main"));
-      }
-
-      $("#main-latest")
-        .append($('<div class="card"></div>').append(innerContainer))
-        .show();
-    });
-
-  // Tags/releases information.
-  fetch("https://api.github.com/repos/boa-dev/boa/releases")
-    .then((response) => response.json())
-    .then((data) => {
-      data.sort((a, b) => compareVersions(a.tag_name, b.tag_name) * -1);
-      let latestTag = data[0].tag_name;
-
-      // We set the latest version.
-      fetch(`./refs/tags/${getRefTag(latestTag)[1]}/results.json`)
-        .then((response) => response.json())
-        .then((data) => {
-          let innerContainer = $('<div class="card-body"></div>')
-            .append($(`<h2>Latest version (${latestTag}) results:</h2>`))
-            .append(createGeneralInfo(data));
-
-          if (typeof latest[latestTag] !== "undefined") {
-            innerContainer.append(infoLink(latestTag));
-          }
-
-          $("#version-latest")
-            .append($('<div class="card"></div>').append(innerContainer))
-            .show();
-        });
-
-      let versionList = [];
-
-      for (let rel of data) {
-        let [version, tag] = getRefTag(rel.tag_name);
-
-        if (version[0] == "v0" && parseInt(version[1]) < 10) {
-          // We know there is no data for versions lower than v0.10.
-          continue;
-        }
-
-        fetch(`./refs/tags/${tag}/latest.json`)
-          .then((response) => response.json())
-          .then((reldata) => {
-            latest[rel.tag_name] = reldata;
-
-            if (rel.tag_name == latestTag) {
-              let container = $("#version-latest .card-body");
-              container.append(infoLink(rel.tag_name));
-              return;
-            }
-
-            let dataHTML =
-              '<span class="position-absolute top-50 start-50 translate-middle">';
-            dataHTML += `<span class="text-success">${formatter.format(
-              reldata.r.o
-            )}</span>`;
-            dataHTML += ` / <span class="text-warning">${formatter.format(
-              reldata.r.i
-            )}</span>`;
-            dataHTML += ` / <span class="text-danger">${formatter.format(
-              reldata.r.c - reldata.r.o - reldata.r.i
-            )}${
-              reldata.r.p !== 0
-                ? ` (${formatter.format(
-                    reldata.r.p
-                  )} <i class="bi-exclamation-triangle"></i>)`
-                : ""
-            }</span>`;
-            console.log(reldata.r);
-            dataHTML += ` / <b>${formatter.format(
-              Math.round((10000 * reldata.r.o) / reldata.r.c) / 100
-            )}%</b></span>`;
-
-            var tagHTML = `<b class="position-absolute top-50 start-0 translate-middle-y">${tag}</b>`;
-
-            let html = $(
-              `<li class="list-group-item position-relative">${tagHTML}${dataHTML}</li>`
-            );
-            html.append(
-              infoLink(
-                rel.tag_name,
-                "position-absolute top-50 end-0 translate-middle-y"
-              )
-            );
-            versionList.push({ tag, html });
-            //   .append(createGeneralInfo(data));
-
-            // if (typeof latest[latestTag] !== "undefined") {
-            //   innerContainer.append();
-            // }
-
-            if (versionList.length === data.length - 11) {
-              versionList.sort((a, b) => compareVersions(a.tag, b.tag) * -1);
-
-              let versionListHTML = $(
-                '<ul class="list-group list-group-flush"></ul>'
-              );
-              for (version of versionList) {
-                versionListHTML.append(version.html);
-              }
-
-              $("#old-versions")
-                .append(
-                  $('<div class="card"></div>').append(
-                    $('<div class="card-body"></div>')
-                      .append($(`<h2>Older versions</h2>`))
-                      .append(versionListHTML)
-                  )
-                )
-                .show();
-            }
-          });
-      }
-    });
-
-  // Creates a link to show the information about a particular tag / branch
-  function infoLink(tag, extraClass) {
-    let container = $(
-      `<div class="info-link${extraClass ? " " + extraClass : ""}"></div>`
-    );
-
-    if (tag === "main") {
-      container.append(createHistoricalGraph());
-    }
-
-    container.append(
-      $('<a class="card-link"></a>')
-        .append($('<i class="bi-info-square"></i>'))
-        .on("click", (e) => {
-          let data = latest[tag];
-          showData(data, e.target);
-        })
-    );
-
-    return container;
+  // We know there is no data for versions lower than v0.10.
+  if (version[0] == "v0" && parseInt(version[1]) < 10) {
+    continue;
   }
 
-  // Shows the full test data.
-  function showData(data, infoIcon) {
-    let infoContainer = $("#infoContainer");
-    let info = $("#info");
-    $(infoIcon).attr("class", "spinner-border text-primary small");
+  releaseTags.push(tag);
+}
 
-    setTimeout(
-      function () {
-        info.empty();
-        let totalTests = data.r.c;
-        let passedTests = data.r.o;
-        let ignoredTests = data.r.i;
-        let failedTests = totalTests - passedTests - ignoredTests;
+const releaseData = new Map();
 
-        infoContainer.prepend(
-          $('<div class="progress g-0"></div>')
-            .append(
-              $(
-                '<div class="progress-bar progress-bar-striped bg-success"></div>'
-              )
-                .attr("aria-valuenow", passedTests)
-                .attr("aria-valuemax", totalTests)
-                .attr("aria-valuemin", 0)
-                .attr("role", "progressbar")
-                .css(
-                  "width",
-                  `${Math.round((passedTests / totalTests) * 10000) / 100}%`
-                )
-            )
-            .append(
-              $(
-                '<div class="progress-bar progress-bar-striped bg-warning"></div>'
-              )
-                .attr("aria-valuenow", ignoredTests)
-                .attr("aria-valuemax", totalTests)
-                .attr("aria-valuemin", 0)
-                .attr("role", "progressbar")
-                .css(
-                  "width",
-                  `${Math.round((ignoredTests / totalTests) * 10000) / 100}%`
-                )
-            )
-            .append(
-              $(
-                '<div class="progress-bar progress-bar-striped bg-danger"></div>'
-              )
-                .attr("aria-valuenow", failedTests)
-                .attr("aria-valuemax", totalTests)
-                .attr("aria-valuemin", 0)
-                .attr("role", "progressbar")
-                .css(
-                  "width",
-                  `${Math.round((failedTests / totalTests) * 10000) / 100}%`
-                )
-            )
-        );
+const versionListHTMLItems = await Promise.all(
+  releaseTags.map(async (tag) => {
+    const response = await fetch(`./refs/tags/${tag}/latest.json`);
+    const json = await response.json();
 
-        for (let suite of data.r.s) {
-          addSuite(info, suite, "info", "test/" + suite.n, data.u);
-        }
-        infoContainer.collapse("show");
-        $(infoIcon).attr("class", "bi-info-square");
+    releaseData.set(tag, json);
+
+    return `<li class="list-group-item d-flex justify-content-between">
+      <div class="d-flex align-items-center gap-1">
+        <b>${tag}</b>
+        <span class="text-success">${formatter.format(json.r.o)}</span>
+        /
+        <span class="text-warning">${formatter.format(json.r.i)}</span>
+        /
+        <span class="text-danger">${formatter.format(
+          json.r.c - json.r.o - json.r.i
+        )}
+        ${
+          json.r.p !== 0
+            ? ` (${formatter.format(
+                json.r.p
+              )} <i class="bi-exclamation-triangle"></i>)`
+            : ""
+        }</span>
+        /
+        <b>${formatter.format(
+          Math.round((10000 * json.r.o) / json.r.c) / 100
+        )}%</b>
+      </div>
+      <button type="button" class="btn btn-outline-primary" id="old-version-${tag}">
+        Test Results
+      </button>
+    </li>`;
+  })
+);
+
+document.getElementById("old-versions-list").innerHTML =
+  versionListHTMLItems.join("");
+
+document
+  .getElementById("latest-version-info-link")
+  .addEventListener("click", () => {
+    showData(releaseData.get(latestTag));
+  });
+
+releaseData.forEach((data, tag) => {
+  document
+    .getElementById(`old-version-${tag}`)
+    .addEventListener("click", () => {
+      showData(data);
+    });
+});
+
+async function loadMainData() {
+  const response = await fetch("./refs/heads/main/latest.json");
+  const data = await response.json();
+
+  document.getElementById("main-info-link").addEventListener("click", () => {
+    showData(data);
+  });
+}
+
+async function loadMainResults() {
+  const response = await fetch("./refs/heads/main/results.json");
+  const data = await response.json();
+
+  createInfoFromResults(data, "main-results");
+
+  new Chart(document.getElementById("main-graph"), {
+    type: "line",
+    data: {
+      labels: data.map((data) => data.c),
+      datasets: [
+        {
+          label: "Passed",
+          data: data.map((data) => data.o),
+          backgroundColor: "#1fcb4a",
+          borderColor: "#0f6524",
+          borderWidth: 1,
+          fill: true,
+        },
+        {
+          label: "Ignored",
+          data: data.map((data) => data.i),
+          backgroundColor: "#dfa800",
+          borderColor: "#6f5400",
+          borderWidth: 1,
+          fill: true,
+        },
+        {
+          label: "Panics",
+          data: data.map((data) => data.p),
+          backgroundColor: "#a30000",
+          borderColor: "#510000",
+          borderWidth: 1,
+          fill: true,
+        },
+        {
+          label: "Failed",
+          data: data.map((data) => data.t - data.i - data.o - data.p),
+          backgroundColor: "#ff4848",
+          borderColor: "#a30000",
+          borderWidth: 1,
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      elements: {
+        point: {
+          radius: 0,
+        },
       },
-      infoContainer.hasClass("show") ? 500 : 0
-    );
-    infoContainer.collapse("hide");
+      legend: {
+        display: true,
+      },
+      responsive: true,
+      tooltips: {
+        mode: "index",
+      },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+      scales: {
+        x: {
+          display: false,
+          title: {
+            display: false,
+          },
+        },
+        y: {
+          stacked: true,
+          title: {
+            display: true,
+            text: "Tests",
+          },
+        },
+      },
+    },
+  });
+}
 
-    // Adds a suite representation to an element.
-    function addSuite(elm, suite, parentID, namespace, upstream) {
-      let li = $('<div class="card g-0"></div>');
+async function loadLatestVersionResults(tag) {
+  const response = await fetch(`./refs/tags/${tag}/results.json`);
+  const data = await response.json();
 
-      let newID = parentID + suite.n;
-      let headerID = newID + "header";
-      let header = $(
-        `<div id="${headerID}" class="card-header col-md-12 d-grid"></div>`
-      );
+  createInfoFromResults(data, "latest-version-results");
+}
 
-      // Add overal information:
-      let info = $(
-        '<button type="button" aria-expanded="false" data-bs-toggle="collapse" class="btn btn-light text-start"></button>'
-      );
+function createInfoFromResults(resultsData, nodeID) {
+  const latest = resultsData[resultsData.length - 1];
 
-      let name = $('<span class="name"></span>').text(suite.n);
-      info.append(name);
-
-      let dataHTML = ` <span class="text-success">${formatter.format(
-        suite.o
-      )}</span>`;
-      dataHTML += ` / <span class="text-warning">${formatter.format(
-        suite.i
-      )}</span>`;
-      dataHTML += ` / <span class="text-danger">${formatter.format(
-        suite.c - suite.o - suite.i
-      )}${
-        suite.p !== 0
+  document.getElementById(nodeID).insertAdjacentHTML(
+    "afterbegin",
+    `
+    <li class="list-group-item">
+      Latest commit: <a href="https://github.com/boa-dev/boa/commit/${
+        latest.c
+      }" title="Check commit">${latest.c}</a>
+    </li>
+    <li class="list-group-item">
+      Total tests: <span>${formatter.format(latest.t)}</span>
+    </li>
+    <li class="list-group-item">
+      Passed tests: <span class="text-success">${formatter.format(
+        latest.o
+      )}</span>
+    </li>
+    <li class="list-group-item">
+      Ignored tests: <span class="text-warning">${formatter.format(
+        latest.i
+      )}</span>
+    </li>
+    <li class="list-group-item">
+      Failed tests: <span class="text-danger">${formatter.format(
+        latest.t - latest.o - latest.i
+      )}
+      ${
+        latest.p !== 0
           ? ` (${formatter.format(
-              suite.p
+              latest.p
             )} <i class="bi-exclamation-triangle"></i>)`
           : ""
-      }</span>`;
-      dataHTML += ` / <span>${formatter.format(suite.c)}</span>`;
-      info.append($('<span class="data-overview"></span>').html(dataHTML));
+      }</span>
+    </li>
+    <li class="list-group-item">
+      Conformance: <b>${Math.round((10000 * latest.o) / latest.t) / 100}%</b>
+    </li>
+  `
+  );
+}
 
-      header.append(info);
-      li.append(header);
+// Shows the full test data.
+function showData(data) {
+  const infoContainer = document.getElementById("info");
+  const progressInfoContainer = document.getElementById("progress-info");
 
-      // Add sub-suites
-      let inner = $(
-        `<div id="${newID}" data-bs-parent="#${parentID}" class="collapse" aria-labelledby="${headerID}"></div>`
-      );
+  const totalTests = data.r.c;
+  const passedTests = data.r.o;
+  const ignoredTests = data.r.i;
+  const failedTests = totalTests - passedTests - ignoredTests;
 
-      let innerInner = $('<div class="card-body accordion"></div>');
+  infoContainer.innerHTML = "";
+  progressInfoContainer.innerHTML = `<div class="progress g-0">
+    <div
+      class="progress-bar progress-bar bg-success"
+      aria-valuenow="${passedTests}"
+      aria-valuemax="${totalTests}"
+      aria-valuemin="0"
+      role="progressbar"
+      style="width: ${Math.round((passedTests / totalTests) * 10000) / 100}%;"
+    ></div>
+    <div
+      class="progress-bar progress-bar bg-warning"
+      aria-valuenow="${ignoredTests}"
+      aria-valuemax="${totalTests}"
+      aria-valuemin="0"
+      role="progressbar"
+      style="width: ${Math.round((ignoredTests / totalTests) * 10000) / 100}%;"
+    ></div>
+    <div
+      class="progress-bar progress-bar bg-danger"
+      aria-valuenow="${failedTests}"
+      aria-valuemax="${totalTests}"
+      aria-valuemin="0"
+      role="progressbar"
+      style="width: ${Math.round((failedTests / totalTests) * 10000) / 100}%;"
+    ></div>
+  </div>`;
 
-      if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
-        let grid = $('<div class="row card-body"></div>').append(
-          $("<h3>Direct tests:</h3>")
-        );
-        for (let innerTest of suite.t) {
-          let name = namespace + "/" + innerTest.n + ".js";
-          let style;
-          switch (innerTest.r) {
-            case "O":
-              style = "bg-success";
-              break;
-            case "I":
-              style = "bg-warning";
-              break;
-            default:
-              style = "bg-danger";
-          }
+  for (const suite of data.r.s) {
+    infoContainer.insertAdjacentHTML(
+      "beforeend",
+      addSuite(suite, "info", "test/" + suite.n, data.u)
+    );
+  }
+}
 
-          let testCard = $(
-            `<a title="${innerTest.n}" class="card test embed-responsive ${style}"></a>`
-          )
-            .attr(
-              "href",
-              `https://github.com/tc39/test262/blob/${upstream}/${name}`
-            )
-            .attr("target", "_blank");
+function addSuite(suite, parentID, namespace, upstream) {
+  const newID = parentID + suite.n;
+  const headerID = newID + "header";
 
-          if (innerTest.r === "P") {
-            testCard.append($('<i class="bi-exclamation-triangle"></i>'));
-          } else {
-            testCard.addClass("embed-responsive-1by1");
-          }
-
-          grid.append(testCard);
-        }
-
-        innerInner.append($('<div class="card"></div>').append(grid));
+  let testsHTML = "";
+  if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
+    const rows = suite.t.map((innerTest) => {
+      const panics = innerTest.r === "P";
+      let style;
+      switch (innerTest.r) {
+        case "O":
+          style = "bg-success";
+          break;
+        case "I":
+          style = "bg-warning";
+          break;
+        default:
+          style = "bg-danger";
       }
 
-      if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
-        for (let innerSuite of suite.s) {
-          addSuite(
-            innerInner,
-            innerSuite,
-            newID,
-            namespace + "/" + innerSuite.n,
-            upstream
-          );
-        }
-      }
+      return `<a
+        title="${innerTest.n}"
+        class="card test embed-responsive ${style}${
+        panics ? "" : " embed-responsive-1by1"
+      }"
+        target="_blank"
+        href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${
+        innerTest.n
+      }.js"
+      >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
+    });
 
-      info.attr("aria-controls", newID).attr("data-bs-target", "#" + newID);
-      inner.on('show.bs.collapse', {elem: innerInner}, function(event){
-        event.data.elem.appendTo(inner);
-      });
-      inner.on('hidden.bs.collapse', {elem: innerInner}, function(event){
-        event.stopPropagation();
-        event.data.elem.detach();
-      });
-      li.append(inner);
-
-      elm.append(li);
-    }
+    testsHTML = `<div class="card">
+      <div class="row card-body">
+        <h3>Direct tests:</h3>
+        ${rows.join("")}
+      </div>
+    </div>`;
   }
 
-  /// Creates the general information structure.
-  function createGeneralInfo(data) {
-    let latest = data[data.length - 1];
-    return $('<ul class="list-group list-group-flush"></ul>')
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Latest commit: <a href="https://github.com/boa-dev/boa/commit/${latest.c}" title="Check commit">${latest.c}</a>`
-        )
-      )
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Total tests: <span>${formatter.format(latest.t)}</span>`
-        )
-      )
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Passed tests: <span class="text-success">${formatter.format(
-            latest.o
-          )}</span>`
-        )
-      )
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Ignored tests: <span class="text-warning">${formatter.format(
-            latest.i
-          )}</span>`
-        )
-      )
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Failed tests: <span class="text-danger">${formatter.format(
-            latest.t - latest.o - latest.i
-          )}${
-            latest.p !== 0
+  let subSuitesHTML = "";
+  if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
+    const rows = suite.s.map((innerSuite) => {
+      return addSuite(
+        innerSuite,
+        newID,
+        namespace + "/" + innerSuite.n,
+        upstream
+      );
+    });
+
+    subSuitesHTML = `<div class="card accordion">${rows.join("")}</div>`;
+  }
+
+  return `<div class="accordion-item">
+    <h2 id="${headerID}" class="accordion-header">
+      <button
+        type="button"
+        class="accordion-button"
+        aria-expanded="false"
+        data-bs-toggle="collapse"
+        aria-controls="${newID}"
+        data-bs-target="#${newID}"
+      >
+        <span class="data-overview">
+          <span class="name">${suite.n}</span>
+          <span class="text-success">${formatter.format(suite.o)}</span>
+          /
+          <span class="text-warning">${formatter.format(suite.i)}</span>
+          /
+          <span class="text-danger">${formatter.format(
+            suite.c - suite.o - suite.i
+          )}
+          ${
+            suite.p !== 0
               ? ` (${formatter.format(
-                  latest.p
+                  suite.p
                 )} <i class="bi-exclamation-triangle"></i>)`
               : ""
-          }</span>`
-        )
-      )
-      .append(
-        $('<li class="list-group-item"></li>').html(
-          `Conformance: <b>${
-            Math.round((10000 * latest.o) / latest.t) / 100
-          }%</b>`
-        )
-      );
-  }
-
-  function createHistoricalGraph() {
-    $("#graph-modal .modal-body").append(
-      $('<canvas id="main-graph"></canvas>')
-    );
-
-    $("#graph-modal").on("hidden.bs.modal", () => {
-      $("#graph-modal .modal-body").empty();
-      $("#graph-modal .modal-body").append(
-        $('<canvas id="main-graph"></canvas>')
-      );
-    });
-
-    $("#graph-modal").on("shown.bs.modal", () => {
-      new Chart($("#main-graph"), {
-        type: "line",
-        data: {
-          labels: mainData.map((data) => data.c),
-          datasets: [
-            {
-              label: "Passed",
-              data: mainData.map((data) => data.o),
-              backgroundColor: "#1fcb4a",
-              borderColor: "#0f6524",
-              borderWidth: 1,
-              fill: true,
-            },
-            {
-              label: "Ignored",
-              data: mainData.map((data) => data.i),
-              backgroundColor: "#dfa800",
-              borderColor: "#6f5400",
-              borderWidth: 1,
-              fill: true,
-            },
-            {
-              label: "Panics",
-              data: mainData.map((data) => data.p),
-              backgroundColor: "#a30000",
-              borderColor: "#510000",
-              borderWidth: 1,
-              fill: true,
-            },
-            {
-              label: "Failed",
-              data: mainData.map((data) => data.t - data.i - data.o - data.p),
-              backgroundColor: "#ff4848",
-              borderColor: "#a30000",
-              borderWidth: 1,
-              fill: true,
-            },
-          ],
-        },
-        options: {
-          elements: {
-            point: {
-              radius: 0,
-            },
-          },
-          legend: {
-            display: true,
-          },
-          responsive: true,
-          tooltips: {
-            mode: "index",
-          },
-          interaction: {
-            mode: "nearest",
-            axis: "x",
-            intersect: false,
-          },
-          scales: {
-            x: {
-              display: false,
-              title: {
-                display: false,
-              },
-            },
-            y: {
-              stacked: true,
-              title: {
-                display: true,
-                text: "Tests",
-              },
-            },
-          },
-        },
-      });
-    });
-
-    return $('<a class="card-link" href="#""></a>')
-      .append($('<i class="bi-graph-up"></i>'))
-      .click(() => {
-        $("#graph-modal").modal("show");
-      });
-  }
-
-  function getRefTag(tag) {
-    let version = tag.split(".");
-
-    return [version, tag];
-  }
-})();
+          }</span>
+          /
+          <span>${formatter.format(suite.c)}</span>
+        </span>
+      </button>
+    </h2>
+    <div id="${newID}" class="accordion-collapse collapse" aria-labelledby="${headerID}" data-bs-parent="#${parentID}">
+      <div class="accordion-body">
+        ${testsHTML}
+        ${subSuitesHTML}
+      </div>
+    </div>
+  </div>`;
+}
 
 function compareVersions(a, b) {
   a = splitVersion(a);
   b = splitVersion(b);
-
   if (a[0] > b[0]) {
     return 1;
   } else if (b[0] > a[0]) {
@@ -516,17 +380,14 @@ function compareVersions(a, b) {
   }
 }
 
-function splitVersion(ver) {
-  ver = ver[0] === "v" ? ver.slice(1) : ver;
-  ver = ver.split(".").map((x) => parseInt(x));
-
-  if (ver.length === 1) {
-    ver.push(0);
+function splitVersion(version) {
+  version = version[0] === "v" ? version.slice(1) : version;
+  version = version.split(".").map((x) => parseInt(x));
+  if (version.length === 1) {
+    version.push(0);
   }
-
-  if (ver.length === 2) {
-    ver.push(0);
+  if (version.length === 2) {
+    version.push(0);
   }
-
-  return ver;
+  return version;
 }
