@@ -8,7 +8,7 @@ use crate::{
 /// Operation:
 ///  - Pop the two values of the stack, strict equal compares the two values,
 ///    if true jumps to address, otherwise push the second pop'ed value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Case;
 
 impl Operation for Case {
@@ -33,7 +33,7 @@ impl Operation for Case {
 ///
 /// Operation:
 ///  - Pops the top of stack and jump to address.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Default;
 
 impl Operation for Default {

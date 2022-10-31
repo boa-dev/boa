@@ -25,7 +25,7 @@ macro_rules! implement_push_generics {
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
         impl Operation for $name {

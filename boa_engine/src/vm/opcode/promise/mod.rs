@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Start of a finally block.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct FinallyStart;
 
 impl Operation for FinallyStart {
@@ -29,7 +29,7 @@ impl Operation for FinallyStart {
 ///
 /// Operation:
 ///  - End of a finally block.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct FinallyEnd;
 
 impl Operation for FinallyEnd {
@@ -60,7 +60,7 @@ impl Operation for FinallyEnd {
 ///
 /// Operation:
 ///  - Set the address for a finally jump.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct FinallySetJump;
 
 impl Operation for FinallySetJump {

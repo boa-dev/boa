@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - No-operation instruction, does nothing
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Nop;
 
 impl Operation for Nop {

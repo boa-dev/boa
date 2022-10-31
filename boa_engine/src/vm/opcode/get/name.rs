@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Find a binding on the environment chain and push its value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetName;
 
 impl Operation for GetName {
@@ -25,7 +25,7 @@ impl Operation for GetName {
             if let Some(value) = context
                 .realm
                 .environments
-                .get_value_global_poisoned(binding_locator.name())
+                .get_value_if_global_poisoned(binding_locator.name())
             {
                 value
             } else {
@@ -83,7 +83,7 @@ impl Operation for GetName {
 ///
 /// Operation:
 ///  - Find a binding on the environment chain and push its value. If the binding does not exist push undefined.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetNameOrUndefined;
 
 impl Operation for GetNameOrUndefined {
@@ -98,7 +98,7 @@ impl Operation for GetNameOrUndefined {
             if let Some(value) = context
                 .realm
                 .environments
-                .get_value_global_poisoned(binding_locator.name())
+                .get_value_if_global_poisoned(binding_locator.name())
             {
                 value
             } else {

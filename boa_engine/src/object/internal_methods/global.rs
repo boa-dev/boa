@@ -387,9 +387,24 @@ pub(crate) fn global_set_no_receiver(
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
 #[inline]
-#[allow(clippy::unnecessary_wraps)]
+#[allow(clippy::unnecessary_wraps, clippy::needless_pass_by_value)]
 pub(crate) fn global_delete(
     _obj: &JsObject,
+    key: &PropertyKey,
+    context: &mut Context,
+) -> JsResult<bool> {
+    global_delete_no_receiver(key, context)
+}
+
+/// Abstract operation `OrdinaryDelete`.
+///
+/// More information:
+///  - [ECMAScript reference][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-ordinarydelete
+#[inline]
+#[allow(clippy::unnecessary_wraps)]
+pub(crate) fn global_delete_no_receiver(
     key: &PropertyKey,
     context: &mut Context,
 ) -> JsResult<bool> {

@@ -164,7 +164,7 @@ pub(crate) trait Operation {
 }
 
 generate_impl! {
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy)]
     #[repr(u8)]
     pub enum Opcode {
         /// Pop the top value from the stack.
@@ -687,6 +687,13 @@ generate_impl! {
         /// Stack: value **=>**
         SetName,
 
+        /// Deletes a property of the global object.
+        ///
+        /// Operands: name_index: `u32`
+        ///
+        /// Stack: **=>** deleted
+        DeleteName,
+
         /// Get a property by name from an object an push it on the stack.
         ///
         /// Like `object.name`
@@ -938,6 +945,13 @@ generate_impl! {
         ///
         /// Stack: object, key **=>**
         DeletePropertyByValue,
+
+        /// Throws an error when trying to delete a property of `super`
+        ///
+        /// Operands:
+        ///
+        /// Stack: **=>**
+        DeleteSuperThrow,
 
         /// Copy all properties of one object to another object.
         ///

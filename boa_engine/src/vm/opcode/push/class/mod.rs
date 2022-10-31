@@ -15,7 +15,7 @@ pub(crate) use private::*;
 ///
 /// Operation:
 ///  - Get the prototype of a superclass and push it on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrototype;
 
 impl Operation for PushClassPrototype {

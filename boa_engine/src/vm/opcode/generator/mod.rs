@@ -20,7 +20,7 @@ pub(crate) use yield_stm::*;
 ///
 /// Operation:
 ///  - Resumes the current generator function.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GeneratorNext;
 
 impl Operation for GeneratorNext {
@@ -62,7 +62,7 @@ impl Operation for GeneratorNext {
 ///
 /// Operation:
 ///  - Resumes the current generator function.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct AsyncGeneratorNext;
 
 impl Operation for AsyncGeneratorNext {
@@ -126,7 +126,7 @@ impl Operation for AsyncGeneratorNext {
 ///
 /// Operation:
 ///  - Delegates the current generator function another generator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GeneratorNextDelegate;
 
 impl Operation for GeneratorNextDelegate {

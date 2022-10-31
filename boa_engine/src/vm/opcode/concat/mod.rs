@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Concat multiple stack objects into a string.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ConcatToString;
 
 impl Operation for ConcatToString {

@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Get arrow function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetArrowFunction;
 
 impl Operation for GetArrowFunction {
@@ -27,7 +27,7 @@ impl Operation for GetArrowFunction {
 ///
 /// Operation:
 ///  - Get function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetFunction;
 
 impl Operation for GetFunction {
@@ -47,7 +47,7 @@ impl Operation for GetFunction {
 ///
 /// Operation:
 ///  - Get async function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetFunctionAsync;
 
 impl Operation for GetFunctionAsync {

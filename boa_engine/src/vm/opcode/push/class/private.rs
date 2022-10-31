@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Push a private method to the class.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateMethod;
 
 impl Operation for PushClassPrivateMethod {
@@ -36,7 +36,7 @@ impl Operation for PushClassPrivateMethod {
 ///
 /// Operation:
 ///  - Push a private getter to the class.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateGetter;
 
 impl Operation for PushClassPrivateGetter {
@@ -70,7 +70,7 @@ impl Operation for PushClassPrivateGetter {
 ///
 /// Operation:
 ///  - Push a private setter to the class.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct PushClassPrivateSetter;
 
 impl Operation for PushClassPrivateSetter {

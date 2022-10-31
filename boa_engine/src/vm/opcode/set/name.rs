@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Find a binding on the environment chain and assign its value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetName;
 
 impl Operation for SetName {
@@ -25,7 +25,7 @@ impl Operation for SetName {
             if !context
                 .realm
                 .environments
-                .put_value_global_poisoned(binding_locator.name(), &value)
+                .put_value_if_global_poisoned(binding_locator.name(), &value)
             {
                 let key: JsString = context
                     .interner()

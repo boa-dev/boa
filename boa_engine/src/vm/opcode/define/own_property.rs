@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Defines a own property of an object by name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineOwnPropertyByName;
 
 impl Operation for DefineOwnPropertyByName {
@@ -47,7 +47,7 @@ impl Operation for DefineOwnPropertyByName {
 ///
 /// Operation:
 ///  - Defines a own property of an object by value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineOwnPropertyByValue;
 
 impl Operation for DefineOwnPropertyByValue {

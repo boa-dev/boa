@@ -288,7 +288,12 @@ impl Context {
     ///
     /// Panics if the global environment is not function scoped.
     #[inline]
-    pub(crate) fn create_mutable_binding(&mut self, name: Identifier, function_scope: bool) {
+    pub(crate) fn create_mutable_binding(
+        &mut self,
+        name: Identifier,
+        function_scope: bool,
+        configurable: bool,
+    ) {
         if !self
             .realm
             .compile_env
@@ -311,7 +316,7 @@ impl Context {
                         .value(JsValue::Undefined)
                         .writable(true)
                         .enumerable(true)
-                        .configurable(true)
+                        .configurable(configurable)
                         .build(),
                 );
             }

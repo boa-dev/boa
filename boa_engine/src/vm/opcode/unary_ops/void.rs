@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Unary `void` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Void;
 
 impl Operation for Void {

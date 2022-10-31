@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Defines a class setter by name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassSetterByName;
 
 impl Operation for DefineClassSetterByName {
@@ -56,7 +56,7 @@ impl Operation for DefineClassSetterByName {
 ///
 /// Operation:
 ///  - Defines a class setter by value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassSetterByValue;
 
 impl Operation for DefineClassSetterByValue {

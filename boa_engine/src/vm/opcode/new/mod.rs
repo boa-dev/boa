@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Call construct on a function.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct New;
 
 impl Operation for New {
@@ -47,7 +47,7 @@ impl Operation for New {
 ///
 /// Operation:
 ///  - Call construct on a function where the arguments contain spreads.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct NewSpread;
 
 impl Operation for NewSpread {

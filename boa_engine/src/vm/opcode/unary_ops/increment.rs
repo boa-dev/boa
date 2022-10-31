@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Unary `++` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Inc;
 
 impl Operation for Inc {
@@ -31,7 +31,7 @@ impl Operation for Inc {
 ///
 /// Operation:
 ///  - Unary postfix `++` operator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct IncPost;
 
 impl Operation for IncPost {

@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Sets a property by name of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyByName;
 
 impl Operation for SetPropertyByName {
@@ -43,7 +43,7 @@ impl Operation for SetPropertyByName {
 ///
 /// Operation:
 ///  - Sets a property by value of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyByValue;
 
 impl Operation for SetPropertyByValue {
@@ -71,7 +71,7 @@ impl Operation for SetPropertyByValue {
 ///
 /// Operation:
 ///  - Sets a getter property by name of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyGetterByName;
 
 impl Operation for SetPropertyGetterByName {
@@ -112,7 +112,7 @@ impl Operation for SetPropertyGetterByName {
 ///
 /// Operation:
 ///  - Sets a getter property by value of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertyGetterByValue;
 
 impl Operation for SetPropertyGetterByValue {
@@ -148,7 +148,7 @@ impl Operation for SetPropertyGetterByValue {
 ///
 /// Operation:
 ///  - Sets a setter property by name of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertySetterByName;
 
 impl Operation for SetPropertySetterByName {
@@ -189,7 +189,7 @@ impl Operation for SetPropertySetterByName {
 ///
 /// Operation:
 ///  - Sets a setter property by value of an object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetPropertySetterByValue;
 
 impl Operation for SetPropertySetterByValue {

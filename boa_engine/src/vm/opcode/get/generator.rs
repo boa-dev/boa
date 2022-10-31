@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Get generator function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetGenerator;
 
 impl Operation for GetGenerator {
@@ -27,7 +27,7 @@ impl Operation for GetGenerator {
 ///
 /// Operation:
 ///  - Get async generator function from the pre-compiled inner functions.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetGeneratorAsync;
 
 impl Operation for GetGeneratorAsync {

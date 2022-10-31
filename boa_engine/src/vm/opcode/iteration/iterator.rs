@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Advance the iterator by one and put the value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorNext;
 
 impl Operation for IteratorNext {
@@ -46,7 +46,7 @@ impl Operation for IteratorNext {
 ///
 /// Operation:
 ///  - Close an iterator
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorClose;
 
 impl Operation for IteratorClose {
@@ -74,7 +74,7 @@ impl Operation for IteratorClose {
 ///
 /// Operation:
 ///  - Consume the iterator and construct and array with all the values.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct IteratorToArray;
 
 impl Operation for IteratorToArray {

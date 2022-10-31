@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Set the prototype of a class object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetClassPrototype;
 
 impl Operation for SetClassPrototype {

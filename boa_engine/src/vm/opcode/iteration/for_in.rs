@@ -10,7 +10,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Initialize the iterator for a for..in loop or jump to after the loop if object is null or undefined.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ForInLoopInitIterator;
 
 impl Operation for ForInLoopInitIterator {
@@ -46,7 +46,7 @@ impl Operation for ForInLoopInitIterator {
 ///
 /// Operation:
 ///  - Move to the next value in a for..in loop or jump to exit of the loop if done.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct ForInLoopNext;
 
 impl Operation for ForInLoopNext {

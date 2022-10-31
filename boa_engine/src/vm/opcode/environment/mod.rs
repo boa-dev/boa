@@ -9,7 +9,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Pushes `this` value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct This;
 
 impl Operation for This {
@@ -33,7 +33,7 @@ impl Operation for This {
 ///
 /// Operation:
 ///  - Pushes the current `super` value to the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Super;
 
 impl Operation for Super {
@@ -75,7 +75,7 @@ impl Operation for Super {
 ///
 /// Operation:
 ///  - Execute the `super()` method.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCall;
 
 impl Operation for SuperCall {
@@ -141,7 +141,7 @@ impl Operation for SuperCall {
 ///
 /// Operation:
 ///  - Execute the `super()` method where the arguments contain spreads.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCallSpread;
 
 impl Operation for SuperCallSpread {
@@ -212,7 +212,7 @@ impl Operation for SuperCallSpread {
 ///
 /// Operation:
 ///  - Execute the `super()` method when no constructor of the class is defined.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SuperCallDerived;
 
 impl Operation for SuperCallDerived {

@@ -9,7 +9,7 @@ macro_rules! implement_push_numbers_with_conversion {
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
         impl Operation for $name {
@@ -31,7 +31,7 @@ macro_rules! implement_push_numbers_no_conversion {
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
         impl Operation for $name {

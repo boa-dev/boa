@@ -109,7 +109,7 @@ impl FunctionCompiler {
         if !(self.arrow) && !parameters.has_arguments() {
             compiler
                 .context
-                .create_mutable_binding(Sym::ARGUMENTS.into(), false);
+                .create_mutable_binding(Sym::ARGUMENTS.into(), false, false);
             compiler.code_block.arguments_binding = Some(
                 compiler
                     .context
@@ -124,7 +124,9 @@ impl FunctionCompiler {
 
             match parameter.variable().binding() {
                 Binding::Identifier(ident) => {
-                    compiler.context.create_mutable_binding(*ident, false);
+                    compiler
+                        .context
+                        .create_mutable_binding(*ident, false, false);
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
                         let skip = compiler.emit_opcode_with_operand(Opcode::JumpIfNotUndefined);
@@ -135,7 +137,7 @@ impl FunctionCompiler {
                 }
                 Binding::Pattern(pattern) => {
                     for ident in pattern.idents() {
-                        compiler.context.create_mutable_binding(ident, false);
+                        compiler.context.create_mutable_binding(ident, false, false);
                     }
                     // TODO: throw custom error if ident is in init
                     if let Some(init) = parameter.variable().init() {
@@ -168,8 +170,8 @@ impl FunctionCompiler {
             compiler.emit_opcode(Opcode::Yield);
         }
 
-        compiler.create_decls(body);
-        compiler.compile_statement_list(body, false)?;
+        compiler.create_decls(body, false);
+        compiler.compile_statement_list(body, false, false)?;
 
         if let Some(env_label) = env_label {
             let (num_bindings, compile_environment) =

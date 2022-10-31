@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Initialize the rest parameter value of a function from the remaining arguments.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RestParameterInit;
 
 impl Operation for RestParameterInit {
@@ -42,7 +42,7 @@ impl Operation for RestParameterInit {
 ///
 /// Operation:
 ///  - Pop the remaining arguments of a function.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RestParameterPop;
 
 impl Operation for RestParameterPop {

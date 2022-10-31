@@ -14,7 +14,7 @@ pub(crate) use own_property::*;
 ///
 /// Operation:
 ///  - Declare `var` type variable.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefVar;
 
 impl Operation for DefVar {
@@ -53,7 +53,7 @@ impl Operation for DefVar {
 ///
 /// Operation:
 ///  - Declare and initialize a function argument.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefInitVar;
 
 impl Operation for DefInitVar {
@@ -88,7 +88,7 @@ impl Operation for DefInitVar {
 ///
 /// Operation:
 ///  - Declare `let` type variable.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefLet;
 
 impl Operation for DefLet {
@@ -113,7 +113,7 @@ macro_rules! implement_declaritives {
         #[doc= "\n"]
         #[doc="Operation:\n"]
         #[doc= concat!(" - ", $doc_string)]
-        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone, Copy)]
         pub(crate) struct $name;
 
         impl Operation for $name {

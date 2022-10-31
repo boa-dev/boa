@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Binary logical `&&` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LogicalAnd;
 
 impl Operation for LogicalAnd {
@@ -29,7 +29,7 @@ impl Operation for LogicalAnd {
 ///
 /// Operation:
 ///  - Binary logical `||` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct LogicalOr;
 
 impl Operation for LogicalOr {
@@ -51,7 +51,7 @@ impl Operation for LogicalOr {
 ///
 /// Operation:
 ///  - Binary logical `||` operation
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Coalesce;
 
 impl Operation for Coalesce {

@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Initialize an iterator
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct InitIterator;
 
 impl Operation for InitIterator {
@@ -29,7 +29,7 @@ impl Operation for InitIterator {
 ///
 /// Operation:
 ///  - Initialize an async iterator.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct InitIteratorAsync;
 
 impl Operation for InitIteratorAsync {

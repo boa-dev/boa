@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Defines a class method by name.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassMethodByName;
 
 impl Operation for DefineClassMethodByName {
@@ -51,7 +51,7 @@ impl Operation for DefineClassMethodByName {
 ///
 /// Operation:
 ///  - Defines a class method by value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct DefineClassMethodByValue;
 
 impl Operation for DefineClassMethodByValue {

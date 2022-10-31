@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Set home object internal slot of a function object.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct SetHomeObject;
 
 impl Operation for SetHomeObject {

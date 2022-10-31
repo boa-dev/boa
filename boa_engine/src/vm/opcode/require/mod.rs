@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Call `RequireObjectCoercible` on the stack value.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct RequireObjectCoercible;
 
 impl Operation for RequireObjectCoercible {

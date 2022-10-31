@@ -7,7 +7,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Throw exception.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Throw;
 
 impl Operation for Throw {

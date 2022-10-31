@@ -8,7 +8,7 @@ use crate::{
 ///
 /// Operation:
 ///  - Get a property by name from an object an push it on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByName;
 
 impl Operation for GetPropertyByName {
@@ -42,7 +42,7 @@ impl Operation for GetPropertyByName {
 ///
 /// Operation:
 ///  - Get a property by value from an object an push it on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValue;
 
 impl Operation for GetPropertyByValue {
@@ -70,7 +70,7 @@ impl Operation for GetPropertyByValue {
 ///
 /// Operation:
 ///  - Get a property by value from an object an push the key and value on the stack.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct GetPropertyByValuePush;
 
 impl Operation for GetPropertyByValuePush {
