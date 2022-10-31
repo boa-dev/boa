@@ -15,4 +15,4 @@ profiler = ["measureme", "once_cell"]
 
 [dependencies]
 measureme = { version = "10.1.0", optional = true }
-once_cell = { version = "1.15.0", optional = true }
+once_cell = { version = "1.16.0", optional = true }
