@@ -24,6 +24,7 @@ use crate::syntax::ast::*;
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
+        #[must_use]
         fn $fn_name(&mut self, node: &'ast $type_name) -> core::ops::ControlFlow<Self::BreakTy> {
             node.visit_with(self)
         }
@@ -34,6 +35,7 @@ macro_rules! define_visit {
 macro_rules! define_visit_mut {
     ($fn_name:ident, $type_name:ident) => {
         #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
+        #[must_use]
         fn $fn_name(
             &mut self,
             node: &'ast mut $type_name,
@@ -80,6 +82,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_try, Try);
     define_visit!(visit_identifier, Identifier);
     define_visit!(visit_formal_parameter_list, FormalParameterList);
+    define_visit!(visit_class_element, ClassElement);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -119,6 +122,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_try_mut, Try);
     define_visit_mut!(visit_identifier_mut, Identifier);
     define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList);
+    define_visit_mut!(visit_class_element_mut, ClassElement);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its

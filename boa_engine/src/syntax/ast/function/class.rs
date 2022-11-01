@@ -1,5 +1,7 @@
 use std::borrow::Cow;
+use std::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     string::ToStringEscaped,
     syntax::ast::{
@@ -9,6 +11,7 @@ use crate::{
         property::{MethodDefinition, PropertyName},
         ContainsSymbol, Declaration, StatementList, StatementListItem,
     },
+    try_break,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 
@@ -443,6 +446,46 @@ impl ClassElement {
             Self::StaticBlock(_statement_list) => false,
             _ => false,
         }
+    }
+}
+
+impl VisitWith for Class {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(ident) = &self.name {
+            try_break!(visitor.visit_identifier(ident));
+        }
+        if let Some(expr) = &self.super_ref {
+            try_break!(visitor.visit_expression(expr));
+        }
+        if let Some(func) = &self.constructor {
+            try_break!(visitor.visit_function(func));
+        }
+        for elem in self.elements.iter() {
+            try_break!(visitor.visit_class_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(ident) = &mut self.name {
+            try_break!(visitor.visit_identifier_mut(ident));
+        }
+        if let Some(expr) = &mut self.super_ref {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        if let Some(func) = &mut self.constructor {
+            try_break!(visitor.visit_function_mut(func));
+        }
+        for elem in self.elements.iter_mut() {
+            try_break!(visitor.visit_class_element_mut(elem));
+        }
+        ControlFlow::Continue(())
     }
 }
 
