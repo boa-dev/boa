@@ -1,5 +1,4 @@
 use crate::syntax::{
-    ast::{statement::Return, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::{Cursor, SemicolonResult},
@@ -7,6 +6,7 @@ use crate::syntax::{
         AllowAwait, AllowYield, ParseResult, TokenParser,
     },
 };
+use boa_ast::{statement::Return, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

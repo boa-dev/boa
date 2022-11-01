@@ -9,10 +9,10 @@
 
 use super::AssignmentExpression;
 use crate::syntax::{
-    ast::{expression::Yield, Expression, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{AllowAwait, AllowIn, Cursor, ParseError, ParseResult, TokenParser},
 };
+use boa_ast::{expression::Yield, Expression, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

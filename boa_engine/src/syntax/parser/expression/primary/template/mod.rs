@@ -8,15 +8,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-template-literals
 
 use crate::syntax::{
-    ast::{
-        expression::literal::{self, TemplateElement},
-        Position, Punctuator,
-    },
     lexer::TokenKind,
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
     },
+};
+use boa_ast::{
+    expression::literal::{self, TemplateElement},
+    Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;

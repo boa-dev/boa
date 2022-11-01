@@ -20,29 +20,29 @@ pub(in crate::syntax::parser) mod await_expr;
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        self,
-        expression::{
-            operator::{
-                binary::{BinaryOp, LogicalOp},
-                Binary,
-            },
-            Identifier,
-        },
-        Keyword, Punctuator,
-    },
     lexer::{InputElement, TokenKind},
     parser::{
         expression::assignment::ExponentiationExpression, AllowAwait, AllowIn, AllowYield, Cursor,
         ParseError, ParseResult, TokenParser,
     },
 };
-use boa_interner::Interner;
+
+use boa_ast::{
+    self as ast,
+    expression::{
+        operator::{
+            binary::{BinaryOp, LogicalOp},
+            Binary,
+        },
+        Identifier,
+    },
+    Keyword, Position, Punctuator,
+};
+use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
 
 pub(super) use self::{assignment::AssignmentExpression, primary::Initializer};
-pub(in crate::syntax) use identifiers::RESERVED_IDENTIFIERS_STRICT;
 pub(in crate::syntax::parser) use {
     identifiers::{BindingIdentifier, LabelIdentifier},
     left_hand_side::LeftHandSideExpression,
@@ -50,22 +50,6 @@ pub(in crate::syntax::parser) use {
         AsyncGeneratorMethod, AsyncMethod, GeneratorMethod, PropertyName,
     },
 };
-
-// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
-// Always returns false.
-impl PartialEq<Keyword> for Punctuator {
-    fn eq(&self, _other: &Keyword) -> bool {
-        false
-    }
-}
-
-// For use in the expression! macro to allow for both Punctuator and Keyword parameters.
-// Always returns false.
-impl PartialEq<Punctuator> for Keyword {
-    fn eq(&self, _other: &Punctuator) -> bool {
-        false
-    }
-}
 
 /// Generates an expression parser for a number of expressions whose production rules are of the following pattern.
 ///
@@ -84,48 +68,42 @@ impl PartialEq<Punctuator> for Keyword {
 /// A list of punctuators (operands between the <TargetExpression> and <InnerExpression>) are passed as the third parameter.
 ///
 /// The fifth parameter is an Option<InputElement> which sets the goal symbol to set before parsing (or None to leave it as is).
-macro_rules! expression { ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
-    impl<R> TokenParser<R> for $name
-    where
-        R: Read
-    {
-        type Output = ast::Expression;
+macro_rules! expression {
+    ($name:ident, $lower:ident, [$( $op:path ),*], [$( $low_param:ident ),*], $goal:expr ) => {
+        impl<R> TokenParser<R> for $name
+        where
+            R: Read
+        {
+            type Output = ast::Expression;
 
-        fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
-            let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
+            fn parse(mut self, cursor: &mut Cursor<R>, interner: &mut Interner)-> ParseResult<ast::Expression> {
+                let _timer = Profiler::global().start_event(stringify!($name), "Parsing");
 
-            if $goal.is_some() {
-                cursor.set_goal($goal.unwrap());
-            }
-
-            let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
-            self.name = None;
-            while let Some(tok) = cursor.peek(0, interner)? {
-                match *tok.kind() {
-                    TokenKind::Punctuator(op) if $( op == $op )||* => {
-                        let _next = cursor.next(interner).expect("token disappeared");
-                        lhs = Binary::new(
-                            op.as_binary_op().expect("Could not get binary operation."),
-                            lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor, interner)?
-                        ).into();
-                    }
-                    TokenKind::Keyword((op, false)) if $( op == $op )||* => {
-                        let _next = cursor.next(interner).expect("token disappeared");
-                        lhs = Binary::new(
-                            op.as_binary_op().expect("Could not get binary operation."),
-                            lhs,
-                            $lower::new($( self.$low_param ),*).parse(cursor, interner)?
-                        ).into();
-                    }
-                    _ => break
+                if $goal.is_some() {
+                    cursor.set_goal($goal.unwrap());
                 }
-            }
 
-            Ok(lhs)
+                let mut lhs = $lower::new($( self.$low_param ),*).parse(cursor, interner)?;
+                self.name = None;
+                while let Some(tok) = cursor.peek(0, interner)? {
+                    match *tok.kind() {
+                        TokenKind::Punctuator(op) if $( op == $op )||* => {
+                            let _next = cursor.next(interner).expect("token disappeared");
+                            lhs = Binary::new(
+                                op.as_binary_op().expect("Could not get binary operation."),
+                                lhs,
+                                $lower::new($( self.$low_param ),*).parse(cursor, interner)?
+                            ).into();
+                        }
+                        _ => break
+                    }
+                }
+
+                Ok(lhs)
+            }
         }
-    }
-} }
+    };
+}
 
 /// Expression parsing.
 ///
@@ -762,3 +740,18 @@ expression!(
     [name, allow_yield, allow_await],
     Some(InputElement::Div)
 );
+
+/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.
+fn check_strict_arguments_or_eval(ident: Identifier, position: Position) -> Result<(), ParseError> {
+    match ident.sym() {
+        Sym::ARGUMENTS => Err(ParseError::general(
+            "unexpected identifier 'arguments' in strict mode",
+            position,
+        )),
+        Sym::EVAL => Err(ParseError::general(
+            "unexpected identifier 'eval' in strict mode",
+            position,
+        )),
+        _ => Ok(()),
+    }
+}

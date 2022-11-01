@@ -1,9 +1,7 @@
-use crate::syntax::{
-    ast::{
-        function::{AsyncGenerator, FormalParameterList},
-        Declaration, StatementList,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    function::{AsyncGenerator, FormalParameterList},
+    Declaration, StatementList,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

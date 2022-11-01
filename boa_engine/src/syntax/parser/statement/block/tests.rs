@@ -2,19 +2,17 @@
 
 use std::convert::TryInto;
 
-use crate::syntax::{
-    ast::{
-        declaration::{VarDeclaration, Variable},
-        expression::{
-            literal::Literal,
-            operator::{assign::AssignOp, unary::UnaryOp, Assign, Unary},
-            Call, Identifier,
-        },
-        function::{FormalParameterList, Function},
-        statement::{Block, Return},
-        Declaration, Expression, Statement, StatementListItem,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    declaration::{VarDeclaration, Variable},
+    expression::{
+        literal::Literal,
+        operator::{assign::AssignOp, unary::UnaryOp, Assign, Unary},
+        Call, Identifier,
     },
-    parser::tests::check_parser,
+    function::{FormalParameterList, Function},
+    statement::{Block, Return},
+    Declaration, Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

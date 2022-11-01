@@ -1,16 +1,12 @@
 //! Tests for the lexer.
 #![allow(clippy::indexing_slicing)]
 
+use boa_ast::Keyword;
 use boa_interner::Sym;
 
 // use super::regex::RegExpFlags;
-use super::token::Numeric;
-use super::*;
-use super::{Error, Position};
-use crate::{
-    string::utf16,
-    syntax::{ast::Keyword, lexer::template::TemplateString},
-};
+use super::{token::Numeric, Error, Position, *};
+use crate::{string::utf16, syntax::lexer::template::TemplateString};
 use std::str;
 
 fn span(start: (u32, u32), end: (u32, u32)) -> Span {

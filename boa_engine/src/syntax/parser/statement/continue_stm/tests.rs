@@ -1,10 +1,8 @@
-use crate::syntax::{
-    ast::{
-        expression::literal::Literal,
-        statement::{Block, Continue, WhileLoop},
-        Statement, StatementListItem,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    expression::literal::Literal,
+    statement::{Block, Continue, WhileLoop},
+    Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

@@ -1,15 +1,13 @@
 use boa_interner::Interner;
 use boa_macros::utf16;
 
-use crate::syntax::{
-    ast::{
-        expression::{
-            access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
-            OptionalOperationKind,
-        },
-        Expression, Statement,
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    expression::{
+        access::PropertyAccessField, literal::Literal, Identifier, Optional, OptionalOperation,
+        OptionalOperationKind,
     },
-    parser::tests::{check_invalid, check_parser},
+    Expression, Statement,
 };
 
 #[test]

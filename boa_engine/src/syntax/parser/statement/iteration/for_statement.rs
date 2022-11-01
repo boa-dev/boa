@@ -8,17 +8,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-for-statement
 
 use crate::syntax::{
-    ast::{
-        self,
-        expression::operator::assign::{
-            array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
-        },
-        statement::{
-            iteration::{ForLoopInitializer, IterableLoopInitializer},
-            ForInLoop, ForLoop, ForOfLoop,
-        },
-        Keyword, Position, Punctuator,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::Expression,
@@ -26,6 +15,14 @@ use crate::syntax::{
         statement::{variable::VariableDeclarationList, Statement},
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast,
+    statement::{
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
+        ForInLoop, ForLoop, ForOfLoop,
+    },
+    Keyword, Position, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -357,26 +354,20 @@ fn initializer_to_iterable_loop_initializer(
                 )))
             }
             ast::Expression::Identifier(ident) => Ok(IterableLoopInitializer::Identifier(ident)),
-            ast::Expression::ArrayLiteral(array) => {
-                array_decl_to_declaration_pattern(&array, strict)
-                    .ok_or(ParseError::General {
-                        message: "
-            invalid array destructuring pattern in iterable loop initializer
-            ",
-                        position,
-                    })
-                    .map(|arr| IterableLoopInitializer::Pattern(arr.into()))
-            }
-            ast::Expression::ObjectLiteral(object) => {
-                object_decl_to_declaration_pattern(&object, strict)
-                    .ok_or(ParseError::General {
-                        message: "
-            invalid object destructuring pattern in iterable loop initializer
-            ",
-                        position,
-                    })
-                    .map(|obj| IterableLoopInitializer::Pattern(obj.into()))
-            }
+            ast::Expression::ArrayLiteral(array) => array
+                .to_pattern(strict)
+                .ok_or(ParseError::General {
+                    message: "invalid array destructuring pattern in iterable loop initializer",
+                    position,
+                })
+                .map(|arr| IterableLoopInitializer::Pattern(arr.into())),
+            ast::Expression::ObjectLiteral(object) => object
+                .to_pattern(strict)
+                .ok_or(ParseError::General {
+                    message: "invalid object destructuring pattern in iterable loop initializer",
+                    position,
+                })
+                .map(|obj| IterableLoopInitializer::Pattern(obj.into())),
             ast::Expression::PropertyAccess(access) => Ok(IterableLoopInitializer::Access(access)),
             _ => Err(ParseError::lex(LexError::Syntax(
                 "invalid variable for iterable loop".into(),

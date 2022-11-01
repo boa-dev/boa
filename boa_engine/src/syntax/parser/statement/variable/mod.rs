@@ -1,19 +1,17 @@
 //! Variable statement parsing.
 
 use crate::syntax::{
-    ast::{
-        declaration::{VarDeclaration, Variable},
-        Keyword, Punctuator, Statement,
-    },
     lexer::TokenKind,
     parser::{
-        cursor::Cursor, expression::Initializer, statement::BindingIdentifier, AllowAwait, AllowIn,
-        AllowYield, ParseError, TokenParser,
+        cursor::Cursor,
+        expression::Initializer,
+        statement::{ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
+        AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
-    parser::{
-        statement::{ArrayBindingPattern, ObjectBindingPattern},
-        ParseResult,
-    },
+};
+use boa_ast::{
+    declaration::{VarDeclaration, Variable},
+    Keyword, Punctuator, Statement,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

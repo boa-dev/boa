@@ -1,10 +1,7 @@
-use crate::syntax::{
-    ast::{statement, Keyword},
-    parser::{
-        statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult,
-        TokenParser,
-    },
+use crate::syntax::parser::{
+    statement::block::Block, AllowAwait, AllowReturn, AllowYield, Cursor, ParseResult, TokenParser,
 };
+use boa_ast::{statement, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

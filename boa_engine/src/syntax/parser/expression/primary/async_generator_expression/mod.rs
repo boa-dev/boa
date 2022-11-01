@@ -11,17 +11,15 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        expression::Identifier, function::function_contains_super, function::AsyncGenerator,
-        Keyword, Position, Punctuator,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        Cursor, ParseError, ParseResult, TokenParser,
+        function_contains_super, name_in_lexically_declared_names, Cursor, ParseError, ParseResult,
+        TokenParser,
     },
 };
+use boa_ast::{expression::Identifier, function::AsyncGenerator, Keyword, Position, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -158,7 +156,8 @@ where
 
         // It is a Syntax Error if any element of the BoundNames of FormalParameters
         // also occurs in the LexicallyDeclaredNames of FunctionBody.
-        params.name_in_lexically_declared_names(
+        name_in_lexically_declared_names(
+            &params,
             &body.lexically_declared_names_top_level(),
             params_start_position,
         )?;

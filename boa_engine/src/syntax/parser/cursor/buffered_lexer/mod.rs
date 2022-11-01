@@ -1,8 +1,8 @@
 use crate::syntax::{
-    ast::Position,
     lexer::{InputElement, Lexer, Token, TokenKind},
     parser::error::ParseError,
 };
+use boa_ast::Position;
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

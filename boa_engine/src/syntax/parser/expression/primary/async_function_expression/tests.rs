@@ -1,12 +1,10 @@
-use crate::syntax::{
-    ast::{
-        declaration::{Declaration, LexicalDeclaration, Variable},
-        expression::literal::Literal,
-        function::{AsyncFunction, FormalParameterList},
-        statement::Return,
-        Statement, StatementListItem,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    declaration::{Declaration, LexicalDeclaration, Variable},
+    expression::literal::Literal,
+    function::{AsyncFunction, FormalParameterList},
+    statement::Return,
+    Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

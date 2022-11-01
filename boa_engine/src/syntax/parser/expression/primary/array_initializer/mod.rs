@@ -11,15 +11,15 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        expression::{literal, Spread},
-        Punctuator,
-    },
     lexer::TokenKind,
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
     },
+};
+use boa_ast::{
+    expression::{literal, Spread},
+    Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

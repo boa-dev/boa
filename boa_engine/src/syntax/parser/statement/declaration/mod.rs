@@ -19,10 +19,10 @@ use hoistable::HoistableDeclaration;
 pub(in crate::syntax::parser) use lexical::LexicalDeclaration;
 
 use crate::syntax::{
-    ast::{self, Keyword},
     lexer::TokenKind,
     parser::{AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
+use boa_ast::{self as ast, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

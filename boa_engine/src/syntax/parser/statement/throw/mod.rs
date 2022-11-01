@@ -2,10 +2,10 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{statement::Throw, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{expression::Expression, AllowAwait, AllowYield, Cursor, ParseResult, TokenParser},
 };
+use boa_ast::{statement::Throw, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

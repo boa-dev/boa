@@ -9,19 +9,19 @@
 
 use super::arguments::Arguments;
 use crate::syntax::{
-    ast::{
-        self,
-        expression::{
-            access::{PrivatePropertyAccess, SimplePropertyAccess},
-            Call,
-        },
-        Punctuator,
-    },
     lexer::TokenKind,
     parser::{
         expression::{left_hand_side::template::TaggedTemplateLiteral, Expression},
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast,
+    expression::{
+        access::{PrivatePropertyAccess, SimplePropertyAccess},
+        Call,
+    },
+    Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;

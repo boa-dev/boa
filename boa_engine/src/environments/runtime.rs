@@ -1,11 +1,11 @@
 use std::cell::Cell;
 
 use crate::{
-    environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject,
-    syntax::ast::expression::Identifier, Context, JsValue,
+    environments::CompileTimeEnvironment, error::JsNativeError, object::JsObject, Context, JsValue,
 };
 use boa_gc::{Cell as GcCell, Finalize, Gc, Trace};
 
+use boa_ast::expression::Identifier;
 use rustc_hash::FxHashSet;
 
 /// A declarative environment holds binding values at runtime.

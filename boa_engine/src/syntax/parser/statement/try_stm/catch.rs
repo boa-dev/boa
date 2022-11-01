@@ -1,11 +1,11 @@
 use crate::syntax::{
-    ast::{declaration::Binding, statement, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         statement::{block::Block, ArrayBindingPattern, BindingIdentifier, ObjectBindingPattern},
         AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
+use boa_ast::{declaration::Binding, statement, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::FxHashSet;

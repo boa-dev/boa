@@ -7,10 +7,10 @@ mod tests;
 use self::{catch::Catch, finally::Finally};
 use super::block::Block;
 use crate::syntax::{
-    ast::{statement::Try, Keyword},
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
+use boa_ast::{statement::Try, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

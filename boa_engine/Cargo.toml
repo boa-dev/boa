@@ -13,7 +13,7 @@ rust-version.workspace = true
 
 [features]
 profiler = ["boa_profiler/profiler"]
-deser = ["boa_interner/serde"]
+deser = ["boa_interner/serde", "boa_ast/serde"]
 intl = [
     "dep:icu_locale_canonicalizer",
     "dep:icu_locid",
@@ -33,6 +33,7 @@ boa_interner.workspace = true
 boa_gc.workspace = true
 boa_profiler.workspace = true
 boa_macros.workspace = true
+boa_ast.workspace = true
 gc = "0.4.1"
 serde = { version = "1.0.147", features = ["derive", "rc"] }
 serde_json = "1.0.87"

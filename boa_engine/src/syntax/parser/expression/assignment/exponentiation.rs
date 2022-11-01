@@ -9,18 +9,18 @@
 
 use super::ParseError;
 use crate::syntax::{
-    ast::{
-        expression::{
-            operator::{binary::ArithmeticOp, Binary},
-            Identifier,
-        },
-        Expression, Keyword, Punctuator,
-    },
     lexer::TokenKind,
     parser::{
         expression::{unary::UnaryExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{
+        operator::{binary::ArithmeticOp, Binary},
+        Identifier,
+    },
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

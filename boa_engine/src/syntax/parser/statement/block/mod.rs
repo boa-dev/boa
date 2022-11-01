@@ -12,10 +12,10 @@ mod tests;
 
 use super::StatementList;
 use crate::syntax::{
-    ast::{expression::Identifier, statement, Punctuator},
     lexer::TokenKind,
     parser::{AllowAwait, AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser},
 };
+use boa_ast::{expression::Identifier, statement, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use rustc_hash::{FxHashMap, FxHashSet};

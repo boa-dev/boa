@@ -26,10 +26,11 @@ use crate::{
     property::{Attribute, PropertyDescriptor, PropertyKey},
     string::utf16,
     symbol::WellKnownSymbols,
-    syntax::{ast::function::FormalParameterList, ast::StatementList, Parser},
+    syntax::Parser,
     value::IntegerOrInfinity,
     Context, JsResult, JsString, JsValue,
 };
+use boa_ast::{function::FormalParameterList, StatementList};
 use boa_gc::{self, custom_trace, Finalize, Gc, Trace};
 use boa_interner::Sym;
 use boa_profiler::Profiler;
@@ -493,7 +494,7 @@ impl BuiltInFunctionObject {
         let prototype = get_prototype_from_constructor(new_target, default, context)?;
         if let Some((body_arg, args)) = args.split_last() {
             let parameters = if args.is_empty() {
-                FormalParameterList::empty()
+                FormalParameterList::default()
             } else {
                 let mut parameters = Vec::with_capacity(args.len());
                 for arg in args {
@@ -554,7 +555,7 @@ impl BuiltInFunctionObject {
             // Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,
             // it is a Syntax Error if the StringValue of BindingIdentifier is "eval" or "arguments".
             if body.strict() {
-                for parameter in parameters.parameters.iter() {
+                for parameter in parameters.as_ref() {
                     for name in parameter.names() {
                         if name == Sym::ARGUMENTS || name == Sym::EVAL {
                             return Err(JsNativeError::syntax()
@@ -588,7 +589,7 @@ impl BuiltInFunctionObject {
             // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
             {
                 let lexically_declared_names = body.lexically_declared_names();
-                for param in parameters.parameters.as_ref() {
+                for param in parameters.as_ref() {
                     for param_name in param.names() {
                         if lexically_declared_names
                             .iter()
@@ -627,7 +628,7 @@ impl BuiltInFunctionObject {
                 .name(Sym::ANONYMOUS)
                 .generator(true)
                 .compile(
-                    &FormalParameterList::empty(),
+                    &FormalParameterList::default(),
                     &StatementList::default(),
                     context,
                 )?;
@@ -640,7 +641,7 @@ impl BuiltInFunctionObject {
             Ok(function_object)
         } else {
             let code = FunctionCompiler::new().name(Sym::ANONYMOUS).compile(
-                &FormalParameterList::empty(),
+                &FormalParameterList::default(),
                 &StatementList::default(),
                 context,
             )?;

@@ -1,11 +1,9 @@
 // ! Tests for array initializer parsing.
 
-use crate::syntax::{
-    ast::{
-        expression::literal::{ArrayLiteral, Literal},
-        Expression, Statement,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    expression::literal::{ArrayLiteral, Literal},
+    Expression, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;

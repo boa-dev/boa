@@ -1,15 +1,13 @@
 use std::convert::TryInto;
 
-use crate::syntax::{
-    ast::{
-        declaration::{VarDeclaration, Variable},
-        expression::{literal::Literal, Identifier},
-        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-        property::PropertyName,
-        statement::{Block, Catch, Finally, Try},
-        Statement, StatementListItem,
-    },
-    parser::tests::{check_invalid, check_parser},
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{VarDeclaration, Variable},
+    expression::{literal::Literal, Identifier},
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    property::PropertyName,
+    statement::{Block, Catch, Finally, Try},
+    Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

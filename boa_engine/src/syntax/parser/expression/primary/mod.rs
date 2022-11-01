@@ -27,24 +27,6 @@ use self::{
     object_initializer::ObjectLiteral,
 };
 use crate::syntax::{
-    ast::{
-        self,
-        declaration::Variable,
-        expression::{
-            literal::Literal,
-            operator::{
-                assign::{
-                    array_decl_to_declaration_pattern, object_decl_to_declaration_pattern,
-                    AssignTarget,
-                },
-                binary::BinaryOp,
-            },
-            Call, Identifier, New,
-        },
-        function::{FormalParameter, FormalParameterList},
-        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-        Keyword, Punctuator, Span,
-    },
     lexer::{token::Numeric, InputElement, Token, TokenKind},
     parser::{
         expression::{
@@ -54,6 +36,18 @@ use crate::syntax::{
         statement::{ArrayBindingPattern, ObjectBindingPattern},
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast,
+    declaration::Variable,
+    expression::{
+        literal::Literal,
+        operator::{assign::AssignTarget, binary::BinaryOp},
+        Call, Identifier, New,
+    },
+    function::{FormalParameter, FormalParameterList},
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    Keyword, Punctuator, Span,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -549,34 +543,30 @@ fn expression_to_formal_parameters(
             }
         },
         ast::Expression::ObjectLiteral(object) => {
-            let decl = object_decl_to_declaration_pattern(object, strict);
-
-            if let Some(pattern) = decl {
-                parameters.push(FormalParameter::new(
-                    Variable::from_pattern(pattern.into(), None),
-                    false,
-                ));
-            } else {
-                return Err(ParseError::general(
+            let pattern = object.to_pattern(strict).ok_or_else(|| {
+                ParseError::general(
                     "invalid object binding pattern in formal parameter list",
                     span.start(),
-                ));
-            }
+                )
+            })?;
+
+            parameters.push(FormalParameter::new(
+                Variable::from_pattern(pattern.into(), None),
+                false,
+            ));
         }
         ast::Expression::ArrayLiteral(array) => {
-            let decl = array_decl_to_declaration_pattern(array, strict);
-
-            if let Some(pattern) = decl {
-                parameters.push(FormalParameter::new(
-                    Variable::from_pattern(pattern.into(), None),
-                    false,
-                ));
-            } else {
-                return Err(ParseError::general(
+            let pattern = array.to_pattern(strict).ok_or_else(|| {
+                ParseError::general(
                     "invalid array binding pattern in formal parameter list",
                     span.start(),
-                ));
-            }
+                )
+            })?;
+
+            parameters.push(FormalParameter::new(
+                Variable::from_pattern(pattern.into(), None),
+                false,
+            ));
         }
         _ => {
             return Err(ParseError::unexpected(

@@ -9,10 +9,10 @@
 
 use super::unary::UnaryExpression;
 use crate::syntax::{
-    ast::{expression::Await, Keyword},
     lexer::TokenKind,
     parser::{AllowYield, Cursor, ParseResult, TokenParser},
 };
+use boa_ast::{expression::Await, Keyword};
 use boa_interner::Interner;
 use std::io::Read;
 

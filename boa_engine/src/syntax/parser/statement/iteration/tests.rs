@@ -1,18 +1,14 @@
-use crate::syntax::{
-    ast::{
-        declaration::{VarDeclaration, Variable},
-        expression::{
-            access::SimplePropertyAccess,
-            literal::Literal,
-            operator::{
-                assign::AssignOp, binary::RelationalOp, unary::UnaryOp, Assign, Binary, Unary,
-            },
-            Call, Identifier,
-        },
-        statement::{Block, Break, DoWhileLoop, WhileLoop},
-        Expression, Statement, StatementListItem,
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{VarDeclaration, Variable},
+    expression::{
+        access::SimplePropertyAccess,
+        literal::Literal,
+        operator::{assign::AssignOp, binary::RelationalOp, unary::UnaryOp, Assign, Binary, Unary},
+        Call, Identifier,
     },
-    parser::tests::{check_invalid, check_parser},
+    statement::{Block, Break, DoWhileLoop, WhileLoop},
+    Expression, Statement, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

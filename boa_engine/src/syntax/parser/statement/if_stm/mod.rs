@@ -2,15 +2,15 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        statement::{Block, If},
-        Declaration, Keyword, Punctuator, StatementListItem,
-    },
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::declaration::FunctionDeclaration, AllowAwait,
         AllowReturn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    statement::{Block, If},
+    Declaration, Keyword, Punctuator, StatementListItem,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

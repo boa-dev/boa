@@ -8,13 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#sec-do-while-statement
 
 use crate::syntax::{
-    ast::{statement::DoWhileLoop, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
         ParseError, ParseResult, TokenParser,
     },
 };
+use boa_ast::{statement::DoWhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

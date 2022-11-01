@@ -1,11 +1,11 @@
 use crate::syntax::{
-    ast::{expression::Identifier, function::Class, Keyword},
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier, statement::ClassTail, AllowAwait, AllowYield, Cursor,
         ParseError, ParseResult, TokenParser,
     },
 };
+use boa_ast::{expression::Identifier, function::Class, Keyword};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

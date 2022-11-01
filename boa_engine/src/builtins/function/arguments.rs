@@ -3,9 +3,9 @@ use crate::{
     object::{JsObject, ObjectData},
     property::PropertyDescriptor,
     symbol::{self, WellKnownSymbols},
-    syntax::ast::function::FormalParameterList,
     Context, JsValue,
 };
+use boa_ast::function::FormalParameterList;
 use boa_gc::{Finalize, Gc, Trace};
 use rustc_hash::FxHashMap;
 
@@ -199,7 +199,7 @@ impl Arguments {
 
         let mut bindings = FxHashMap::default();
         let mut property_index = 0;
-        'outer: for formal in formals.parameters.iter() {
+        'outer: for formal in formals.as_ref() {
             for name in formal.names() {
                 if property_index >= len {
                     break 'outer;
