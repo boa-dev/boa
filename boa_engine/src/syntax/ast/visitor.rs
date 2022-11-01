@@ -112,6 +112,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_yield, Yield);
     define_visit!(visit_for_loop_initializer, ForLoopInitializer);
     define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
+    define_visit!(visit_case, Case);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -176,6 +177,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_yield_mut, Yield);
     define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
     define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
+    define_visit_mut!(visit_case_mut, Case);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
