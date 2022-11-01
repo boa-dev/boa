@@ -118,6 +118,7 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_labelled_item, LabelledItem);
     define_visit!(visit_catch, Catch);
     define_visit!(visit_finally, Finally);
+    define_visit!(visit_formal_parameter, FormalParameter);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -187,6 +188,7 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_labelled_item_mut, LabelledItem);
     define_visit_mut!(visit_catch_mut, Catch);
     define_visit_mut!(visit_finally_mut, Finally);
+    define_visit_mut!(visit_formal_parameter_mut, FormalParameter);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its

@@ -1,3 +1,4 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::{
     ast::{
         declaration::{Binding, Variable},
@@ -7,9 +8,11 @@ use crate::syntax::{
     },
     parser::ParseError,
 };
+use crate::try_break;
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
 use rustc_hash::FxHashSet;
+use std::ops::ControlFlow;
 
 /// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].
 ///
@@ -208,6 +211,28 @@ impl From<FormalParameter> for FormalParameterList {
             flags,
             length,
         }
+    }
+}
+
+impl VisitWith for FormalParameterList {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for parameter in self.parameters.iter() {
+            try_break!(visitor.visit_formal_parameter(parameter));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for parameter in self.parameters.iter_mut() {
+            try_break!(visitor.visit_formal_parameter_mut(parameter));
+        }
+        ControlFlow::Continue(())
     }
 }
 
