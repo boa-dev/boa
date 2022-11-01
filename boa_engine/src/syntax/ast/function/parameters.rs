@@ -232,6 +232,7 @@ impl VisitWith for FormalParameterList {
         for parameter in self.parameters.iter_mut() {
             try_break!(visitor.visit_formal_parameter_mut(parameter));
         }
+        // TODO recompute flags
         ControlFlow::Continue(())
     }
 }
