@@ -28,7 +28,9 @@ pub use self::{
     switch::{Case, Switch},
     throw::Throw,
 };
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use rustc_hash::FxHashSet;
 use tap::Tap;
@@ -311,5 +313,23 @@ impl ToIndentedString for Statement {
         buf.push_str(&self.to_no_indent_string(interner, indentation));
 
         buf
+    }
+}
+
+impl<V> VisitWith<V> for Statement {
+    fn visit_with<'a>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        // TODO implement
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        // TODO implement
+        ControlFlow::Continue(())
     }
 }

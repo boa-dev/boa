@@ -1,8 +1,10 @@
 //! Statement list node.
 
 use super::{declaration::Binding, Declaration};
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Identifier, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, ToIndentedString};
+use core::ops::ControlFlow;
 use rustc_hash::FxHashSet;
 use std::cmp::Ordering;
 
@@ -114,6 +116,30 @@ impl From<Declaration> for StatementListItem {
     #[inline]
     fn from(decl: Declaration) -> Self {
         StatementListItem::Declaration(decl)
+    }
+}
+
+impl<V> VisitWith<V> for StatementListItem {
+    fn visit_with<'a>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            StatementListItem::Statement(statement) => visitor.visit_statement(statement),
+            StatementListItem::Declaration(declaration) => visitor.visit_declaration(declaration),
+        }
+    }
+
+    fn visit_with_mut<'a>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            StatementListItem::Statement(statement) => visitor.visit_statement_mut(statement),
+            StatementListItem::Declaration(declaration) => {
+                visitor.visit_declaration_mut(declaration)
+            }
+        }
     }
 }
 
@@ -276,5 +302,27 @@ impl ToIndentedString for StatementList {
             buf.push('\n');
         }
         buf
+    }
+}
+
+impl<V> VisitWith<V> for StatementList {
+    fn visit_with<'a>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for statement in self.statements.iter() {
+            visitor.visit_statement_list_item(statement);
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for statement in self.statements.iter_mut() {
+            visitor.visit_statement_list_item_mut(statement);
+        }
+        ControlFlow::Continue(())
     }
 }

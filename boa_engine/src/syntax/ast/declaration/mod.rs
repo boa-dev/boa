@@ -20,10 +20,12 @@ use super::{
     ContainsSymbol,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 use tap::Tap;
 
 mod variable;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 pub use variable::*;
 
 /// The `Declaration` Parse Node.
@@ -163,5 +165,23 @@ impl ToIndentedString for Declaration {
             Declaration::Class(c) => c.to_indented_string(interner, indentation),
             Declaration::Lexical(l) => l.to_interned_string(interner).tap_mut(|s| s.push(';')),
         }
+    }
+}
+
+impl<V> VisitWith<V> for Declaration {
+    fn visit_with<'a>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        // TODO implement
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        // TODO implement
+        ControlFlow::Continue(())
     }
 }
