@@ -18,7 +18,7 @@ use crate::syntax::ast::{Declaration, Statement, StatementList, StatementListIte
 
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {
-        #[allow(missing_docs)]
+        #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor")]
         fn $fn_name(&mut self, node: &'ast $type_name) -> core::ops::ControlFlow<Self::BreakTy> {
             node.visit_with(self)
         }
@@ -27,7 +27,7 @@ macro_rules! define_visit {
 
 macro_rules! define_visit_mut {
     ($fn_name:ident, $type_name:ident) => {
-        #[allow(missing_docs)]
+        #[doc = concat!("Visits a `", stringify!($type_name), "` with this visitor, mutably")]
         fn $fn_name(
             &mut self,
             node: &'ast mut $type_name,
