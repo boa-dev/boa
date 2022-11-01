@@ -4,7 +4,7 @@ use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
 /// the condition is [`falsy`][falsy], another statement can be executed.

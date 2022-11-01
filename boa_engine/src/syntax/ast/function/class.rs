@@ -1,5 +1,5 @@
+use core::ops::ControlFlow;
 use std::borrow::Cow;
-use std::ops::ControlFlow;
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{

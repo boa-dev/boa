@@ -18,7 +18,7 @@ use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// A property access field.
 ///

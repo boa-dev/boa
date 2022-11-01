@@ -1,7 +1,7 @@
 //! Template literal Expression.
 
+use core::ops::ControlFlow;
 use std::borrow::Cow;
-use std::ops::ControlFlow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 

@@ -3,7 +3,7 @@ use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{function::Function, ContainsSymbol};
 use crate::try_break;
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// The set of Parse Nodes that can be preceded by a label, as defined by the [spec].
 ///

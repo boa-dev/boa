@@ -13,8 +13,8 @@
 //! [not]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Bitwise_NOT
 mod op;
 
+use core::ops::ControlFlow;
 pub use op::*;
-use std::ops::ControlFlow;
 
 use boa_interner::{Interner, ToInternedString};
 

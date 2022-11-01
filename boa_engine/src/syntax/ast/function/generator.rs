@@ -3,7 +3,7 @@ use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes, Declaration, StatementList,
 };
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::try_break;

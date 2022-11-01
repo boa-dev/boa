@@ -13,7 +13,7 @@ use crate::syntax::ast::{
     expression::{access::PropertyAccess, Identifier},
     pattern::Pattern,
 };
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 pub use self::{
     do_while_loop::DoWhileLoop,

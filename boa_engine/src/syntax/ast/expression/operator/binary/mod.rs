@@ -16,8 +16,8 @@
 
 mod op;
 
+use core::ops::ControlFlow;
 pub use op::*;
-use std::ops::ControlFlow;
 
 use boa_interner::{Interner, ToInternedString};
 

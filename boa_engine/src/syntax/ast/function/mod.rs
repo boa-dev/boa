@@ -31,9 +31,9 @@ pub use arrow_function::ArrowFunction;
 pub use async_function::AsyncFunction;
 pub use async_generator::AsyncGenerator;
 pub use class::{Class, ClassElement};
+use core::ops::ControlFlow;
 pub use generator::Generator;
 pub use parameters::{FormalParameter, FormalParameterList};
-use std::ops::ControlFlow;
 
 pub(crate) use parameters::FormalParameterListFlags;
 

@@ -6,7 +6,7 @@ use crate::{
     syntax::{ast::Position, parser::ParseError},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use super::Expression;
 

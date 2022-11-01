@@ -1,7 +1,7 @@
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.

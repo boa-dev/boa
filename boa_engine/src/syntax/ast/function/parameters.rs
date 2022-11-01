@@ -11,8 +11,8 @@ use crate::syntax::{
 use crate::try_break;
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 use rustc_hash::FxHashSet;
-use std::ops::ControlFlow;
 
 /// A list of `FormalParameter`s that describes the parameters of a function, as defined by the [spec].
 ///

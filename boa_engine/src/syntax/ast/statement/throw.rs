@@ -1,7 +1,7 @@
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{statement::Statement, ContainsSymbol, Expression};
 use boa_interner::{Interner, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// The `throw` statement throws a user-defined exception.
 ///

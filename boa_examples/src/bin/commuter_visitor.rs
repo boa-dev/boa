@@ -9,10 +9,10 @@ use boa_engine::syntax::ast::Expression;
 use boa_engine::syntax::Parser;
 use boa_engine::Context;
 use boa_interner::ToInternedString;
+use core::ops::ControlFlow;
 use std::convert::Infallible;
 use std::fs::File;
 use std::io::BufReader;
-use std::ops::ControlFlow;
 
 /// Visitor which, when applied to a binary expression, will swap the operands. Use in other
 /// circumstances is undefined.

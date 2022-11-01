@@ -6,7 +6,7 @@ use crate::syntax::ast::{
 };
 use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// A `for...in` loop statement, as defined by the [spec].
 ///

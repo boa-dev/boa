@@ -10,7 +10,7 @@
 //! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
 
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use self::{
     access::PropertyAccess,

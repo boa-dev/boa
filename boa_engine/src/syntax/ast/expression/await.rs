@@ -1,7 +1,7 @@
 //! Await expression Expression.
 
 use crate::syntax::ast::ContainsSymbol;
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use super::Expression;
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};

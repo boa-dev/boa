@@ -4,7 +4,7 @@ use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, StatementList};
 use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use super::ContainsSymbol;
 

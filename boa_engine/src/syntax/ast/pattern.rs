@@ -25,7 +25,7 @@
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use super::{
     expression::{access::PropertyAccess, Identifier},

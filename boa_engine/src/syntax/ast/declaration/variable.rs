@@ -1,7 +1,7 @@
 //! Variable related declarations.
 
+use core::ops::ControlFlow;
 use std::convert::TryFrom;
-use std::ops::ControlFlow;
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{

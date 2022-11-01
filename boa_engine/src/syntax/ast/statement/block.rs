@@ -4,7 +4,7 @@ use super::Statement;
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
 use boa_interner::{Interner, ToIndentedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// A `block` statement (or compound statement in other languages) is used to group zero or
 /// more statements.

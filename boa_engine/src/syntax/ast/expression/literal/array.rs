@@ -4,7 +4,7 @@ use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use crate::try_break;
 use boa_interner::{Interner, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
 /// language).

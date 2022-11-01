@@ -1,7 +1,7 @@
 use crate::syntax::ast::statement::Statement;
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// The `continue` statement terminates execution of the statements in the current iteration of
 /// the current or labeled loop, and continues execution of the loop with the next iteration.

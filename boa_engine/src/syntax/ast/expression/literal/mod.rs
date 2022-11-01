@@ -12,8 +12,8 @@ mod object;
 mod template;
 
 pub use array::ArrayLiteral;
+use core::ops::ControlFlow;
 pub use object::ObjectLiteral;
-use std::ops::ControlFlow;
 pub use template::{TemplateElement, TemplateLiteral};
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};

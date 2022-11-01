@@ -13,7 +13,7 @@ use crate::syntax::ast::{
 };
 use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.

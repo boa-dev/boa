@@ -1,5 +1,5 @@
 use boa_interner::{Interner, Sym, ToInternedString};
-use std::ops::ControlFlow;
+use core::ops::ControlFlow;
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{join_nodes, ContainsSymbol};
