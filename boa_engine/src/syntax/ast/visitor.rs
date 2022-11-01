@@ -17,6 +17,7 @@ macro_rules! try_break {
 use crate::syntax::ast::declaration::*;
 use crate::syntax::ast::expression::*;
 use crate::syntax::ast::function::*;
+use crate::syntax::ast::pattern::*;
 use crate::syntax::ast::statement::*;
 use crate::syntax::ast::*;
 
@@ -83,6 +84,10 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_identifier, Identifier);
     define_visit!(visit_formal_parameter_list, FormalParameterList);
     define_visit!(visit_class_element, ClassElement);
+    define_visit!(visit_variable_list, VariableList);
+    define_visit!(visit_variable, Variable);
+    define_visit!(visit_binding, Binding);
+    define_visit!(visit_pattern, Pattern);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -123,6 +128,10 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_identifier_mut, Identifier);
     define_visit_mut!(visit_formal_parameter_list_mut, FormalParameterList);
     define_visit_mut!(visit_class_element_mut, ClassElement);
+    define_visit_mut!(visit_variable_list_mut, VariableList);
+    define_visit_mut!(visit_variable_mut, Variable);
+    define_visit_mut!(visit_binding_mut, Binding);
+    define_visit_mut!(visit_pattern_mut, Pattern);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
