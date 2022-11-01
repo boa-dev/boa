@@ -18,6 +18,7 @@ use crate::syntax::ast::{Declaration, Statement, StatementList, StatementListIte
 
 macro_rules! define_visit {
     ($fn_name:ident, $type_name:ident) => {
+        #[allow(missing_docs)]
         fn $fn_name(&mut self, node: &'ast $type_name) -> core::ops::ControlFlow<Self::BreakTy> {
             node.visit_with(self)
         }
@@ -26,6 +27,7 @@ macro_rules! define_visit {
 
 macro_rules! define_visit_mut {
     ($fn_name:ident, $type_name:ident) => {
+        #[allow(missing_docs)]
         fn $fn_name(
             &mut self,
             node: &'ast mut $type_name,
@@ -40,7 +42,6 @@ macro_rules! define_visit_mut {
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
 #[allow(unused_variables)]
-#[allow(missing_docs)]
 pub trait Visitor<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
