@@ -1,5 +1,8 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use std::ops::ControlFlow;
 
 /// The `while` statement creates a loop that executes a specified statement as long as the
 /// test condition evaluates to `true`.
@@ -66,5 +69,23 @@ impl From<WhileLoop> for Statement {
     #[inline]
     fn from(while_loop: WhileLoop) -> Self {
         Self::WhileLoop(while_loop)
+    }
+}
+
+impl VisitWith for WhileLoop {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.condition));
+        visitor.visit_statement(&*self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        visitor.visit_statement_mut(&mut *self.body)
     }
 }

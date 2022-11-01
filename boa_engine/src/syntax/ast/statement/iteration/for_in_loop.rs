@@ -1,9 +1,12 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     expression::Expression,
     statement::{iteration::IterableLoopInitializer, Statement},
     ContainsSymbol,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use std::ops::ControlFlow;
 
 /// A `for...in` loop statement, as defined by the [spec].
 ///
@@ -81,5 +84,25 @@ impl From<ForInLoop> for Statement {
     #[inline]
     fn from(for_in: ForInLoop) -> Self {
         Self::ForInLoop(for_in)
+    }
+}
+
+impl VisitWith for ForInLoop {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_iterable_loop_initializer(&self.initializer));
+        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_statement(&*self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_iterable_loop_initializer_mut(&mut self.initializer));
+        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_statement_mut(&mut *self.body)
     }
 }

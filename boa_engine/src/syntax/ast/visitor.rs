@@ -21,6 +21,7 @@ use crate::syntax::ast::expression::operator::*;
 use crate::syntax::ast::expression::*;
 use crate::syntax::ast::function::*;
 use crate::syntax::ast::pattern::*;
+use crate::syntax::ast::statement::iteration::*;
 use crate::syntax::ast::statement::*;
 use crate::syntax::ast::*;
 
@@ -109,6 +110,8 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_conditional, Conditional);
     define_visit!(visit_await, Await);
     define_visit!(visit_yield, Yield);
+    define_visit!(visit_for_loop_initializer, ForLoopInitializer);
+    define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -171,6 +174,8 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_conditional_mut, Conditional);
     define_visit_mut!(visit_await_mut, Await);
     define_visit_mut!(visit_yield_mut, Yield);
+    define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
+    define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
