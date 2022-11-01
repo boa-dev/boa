@@ -121,6 +121,28 @@ impl VisitWith for TemplateLiteral {
     }
 }
 
+impl VisitWith for TemplateElement {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            TemplateElement::String(sym) => visitor.visit_sym(sym),
+            TemplateElement::Expr(expr) => visitor.visit_expression(expr),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            TemplateElement::String(sym) => visitor.visit_sym_mut(sym),
+            TemplateElement::Expr(expr) => visitor.visit_expression_mut(expr),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::exec;

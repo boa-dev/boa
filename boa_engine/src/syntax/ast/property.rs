@@ -1,6 +1,7 @@
 //! Property definition related types, used in object literals and class definitions.
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::ops::ControlFlow;
 
@@ -115,6 +116,52 @@ impl PropertyDefinition {
     }
 }
 
+impl VisitWith for PropertyDefinition {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyDefinition::IdentifierReference(id) => visitor.visit_identifier(id),
+            PropertyDefinition::Property(pn, expr) => {
+                try_break!(visitor.visit_property_name(pn));
+                visitor.visit_expression(expr)
+            }
+            PropertyDefinition::MethodDefinition(pn, md) => {
+                try_break!(visitor.visit_property_name(pn));
+                visitor.visit_method_definition(md)
+            }
+            PropertyDefinition::SpreadObject(expr) => visitor.visit_expression(expr),
+            PropertyDefinition::CoverInitializedName(id, expr) => {
+                try_break!(visitor.visit_identifier(id));
+                visitor.visit_expression(expr)
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyDefinition::IdentifierReference(id) => visitor.visit_identifier_mut(id),
+            PropertyDefinition::Property(pn, expr) => {
+                try_break!(visitor.visit_property_name_mut(pn));
+                visitor.visit_expression_mut(expr)
+            }
+            PropertyDefinition::MethodDefinition(pn, md) => {
+                try_break!(visitor.visit_property_name_mut(pn));
+                visitor.visit_method_definition_mut(md)
+            }
+            PropertyDefinition::SpreadObject(expr) => visitor.visit_expression_mut(expr),
+            PropertyDefinition::CoverInitializedName(id, expr) => {
+                try_break!(visitor.visit_identifier_mut(id));
+                visitor.visit_expression_mut(expr)
+            }
+        }
+    }
+}
+
 /// Method definition.
 ///
 /// Starting with ECMAScript 2015, a shorter syntax for method definitions on objects initializers is introduced.
@@ -223,6 +270,36 @@ impl MethodDefinition {
             MethodDefinition::Generator(expr) => expr.parameters(),
             MethodDefinition::AsyncGenerator(expr) => expr.parameters(),
             MethodDefinition::Async(expr) => expr.parameters(),
+        }
+    }
+}
+
+impl VisitWith for MethodDefinition {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
+                visitor.visit_function(f)
+            }
+            MethodDefinition::Generator(g) => visitor.visit_generator(g),
+            MethodDefinition::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            MethodDefinition::Async(af) => visitor.visit_async_function(af),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            MethodDefinition::Get(f) | MethodDefinition::Set(f) | MethodDefinition::Ordinary(f) => {
+                visitor.visit_function_mut(f)
+            }
+            MethodDefinition::Generator(g) => visitor.visit_generator_mut(g),
+            MethodDefinition::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            MethodDefinition::Async(af) => visitor.visit_async_function_mut(af),
         }
     }
 }

@@ -124,6 +124,22 @@ impl ToInternedString for OptionalOperation {
     }
 }
 
+impl VisitWith for OptionalOperation {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_optional_operation_kind(&self.kind)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_optional_operation_kind_mut(&mut self.kind)
+    }
+}
+
 /// An optional chain expression, as defined by the [spec].
 ///
 /// [Optional chaining][mdn] allows for short-circuiting property accesses and function calls, which

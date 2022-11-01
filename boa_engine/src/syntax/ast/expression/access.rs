@@ -16,6 +16,7 @@
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::ops::ControlFlow;
 
@@ -201,6 +202,24 @@ impl From<SimplePropertyAccess> for PropertyAccess {
     }
 }
 
+impl VisitWith for SimplePropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&*self.target));
+        visitor.visit_property_access_field(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut *self.target));
+        visitor.visit_property_access_field_mut(&mut self.field)
+    }
+}
+
 /// An access expression to a class object's [private fields][mdn].
 ///
 /// Private property accesses differ slightly from plain property accesses, since the accessed
@@ -269,6 +288,24 @@ impl From<PrivatePropertyAccess> for PropertyAccess {
     }
 }
 
+impl VisitWith for PrivatePropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&*self.target));
+        visitor.visit_sym(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut *self.target));
+        visitor.visit_sym_mut(&mut self.field)
+    }
+}
+
 /// A property access of an object's parent, as defined by the [spec].
 ///
 /// A `SuperPropertyAccess` is much like a regular [`PropertyAccess`], but where its `target` object
@@ -322,5 +359,21 @@ impl From<SuperPropertyAccess> for PropertyAccess {
     #[inline]
     fn from(access: SuperPropertyAccess) -> Self {
         Self::Super(access)
+    }
+}
+
+impl VisitWith for SuperPropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_property_access_field(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_property_access_field_mut(&mut self.field)
     }
 }

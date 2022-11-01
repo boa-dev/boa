@@ -132,6 +132,10 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_super_property_access, SuperPropertyAccess);
     define_visit!(visit_optional_operation, OptionalOperation);
     define_visit!(visit_assign_target, AssignTarget);
+    define_visit!(visit_object_pattern_element, ObjectPatternElement);
+    define_visit!(visit_array_pattern_element, ArrayPatternElement);
+    define_visit!(visit_property_access_field, PropertyAccessField);
+    define_visit!(visit_optional_operation_kind, OptionalOperationKind);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -213,6 +217,10 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_super_property_access_mut, SuperPropertyAccess);
     define_visit_mut!(visit_optional_operation_mut, OptionalOperation);
     define_visit_mut!(visit_assign_target_mut, AssignTarget);
+    define_visit_mut!(visit_object_pattern_element_mut, ObjectPatternElement);
+    define_visit_mut!(visit_array_pattern_element_mut, ArrayPatternElement);
+    define_visit_mut!(visit_property_access_field_mut, PropertyAccessField);
+    define_visit_mut!(visit_optional_operation_kind_mut, OptionalOperationKind);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its

@@ -23,6 +23,7 @@
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
 use std::ops::ControlFlow;
 
@@ -221,6 +222,28 @@ impl ObjectPattern {
     }
 }
 
+impl VisitWith for ObjectPattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for elem in self.0.iter() {
+            try_break!(visitor.visit_object_pattern_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for elem in self.0.iter_mut() {
+            try_break!(visitor.visit_object_pattern_element_mut(elem));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// An array binding or assignment pattern.
 ///
 /// Corresponds to the [`ArrayBindingPattern`][spec1] and the [`ArrayAssignmentPattern`][spec2]
@@ -289,6 +312,28 @@ impl ArrayPattern {
             .iter()
             .flat_map(ArrayPatternElement::idents)
             .collect()
+    }
+}
+
+impl VisitWith for ArrayPattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for elem in self.0.iter() {
+            try_break!(visitor.visit_array_pattern_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for elem in self.0.iter_mut() {
+            try_break!(visitor.visit_array_pattern_element_mut(elem));
+        }
+        ControlFlow::Continue(())
     }
 }
 
