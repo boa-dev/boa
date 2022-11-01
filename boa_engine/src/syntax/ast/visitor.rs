@@ -3,9 +3,6 @@
 //! This module contains visitors which can be used to inspect or modify AST nodes. This allows for
 //! fine-grained manipulation of ASTs for analysis, rewriting, or instrumentation.
 
-#[cfg(doc)]
-use super::statement_list::StatementListVisitor;
-
 /// `Try`-like conditional unwrapping of `ControlFlow`.
 #[macro_export]
 macro_rules! try_break {
