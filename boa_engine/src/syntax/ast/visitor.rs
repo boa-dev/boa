@@ -57,7 +57,6 @@ pub trait Visitor<'ast>: Sized {
 /// This implementation is based largely on [chalk](https://github.com/rust-lang/chalk/blob/23d39c90ceb9242fbd4c43e9368e813e7c2179f7/chalk-ir/src/visit.rs)'s
 /// visitor pattern.
 #[allow(unused_variables)]
-#[allow(missing_docs)]
 pub trait VisitorMut<'ast>: Sized {
     /// Type which will be propagated from the visitor if completing early.
     type BreakTy;
