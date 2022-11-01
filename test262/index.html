@@ -3,7 +3,7 @@
   <head>
     <title>Boa EcmaScript conformance</title>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="../assets/favicon.png" />
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
@@ -26,8 +26,8 @@
         width: 5em;
       }
 
-      .card:not(.test) {
-        width: 100%;
+      #progress-info {
+        margin-top: 1em;
       }
 
       #info {
@@ -60,13 +60,10 @@
         font-size: 0.75rem;
       }
 
-      #old-versions li {
-        padding: 1.5em;
-      }
-
       #old-versions ul {
         max-height: 18em;
         overflow-y: auto;
+        scrollbar-width: thin;
       }
     </style>
   </head>
@@ -75,32 +72,73 @@
     <div class="container-fluid">
       <div class="row">
         <h1>
-          <img class="logo col-md-12" src="../assets/logo.svg" />EcmaScript
-          conformance test results for Boa
+          <img class="logo col-md-12" src="../assets/logo.svg" />
+          EcmaScript conformance test results for Boa
         </h1>
       </div>
       <div class="row">
-        <section
-          class="col-md-4"
-          style="display: none"
-          id="version-latest"
-        ></section>
-
-        <section
-          class="col-md-4"
-          style="display: none"
-          id="main-latest"
-        ></section>
-
-        <section
-          class="col-md-4"
-          style="display: none"
-          id="old-versions"
-        ></section>
+        <section class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title">Latest version results:</h2>
+              <ul
+                class="list-group list-group-flush"
+                id="latest-version-results"
+              ></ul>
+              <div class="info-link">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  id="latest-version-info-link"
+                >
+                  Test Results
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="col-md-4">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title"><code>main</code> branch results:</h2>
+              <ul class="list-group list-group-flush" id="main-results"></ul>
+              <div class="info-link">
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  data-bs-toggle="modal"
+                  data-bs-target="#graph-modal"
+                >
+                  Result History
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline-primary"
+                  id="main-info-link"
+                >
+                  Test Results
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section class="col-md-4" id="old-versions">
+          <div class="card">
+            <div class="card-body">
+              <h2 class="card-title">Older versions</h2>
+              <ul
+                class="list-group list-group-flush"
+                id="old-versions-list"
+              ></ul>
+            </div>
+          </div>
+        </section>
       </div>
-      <div class="row col-md-12 collapse" id="infoContainer">
-        <div class="card-body accordion" id="info">
-        </div>
+      <div class="row">
+        <div class="col-md-12" id="progress-info"></div>
+      </div>
+      <div class="row">
+        <div class="accordion col-md-12" id="info"></div>
       </div>
       <div
         id="graph-modal"
@@ -121,16 +159,13 @@
                 aria-label="Close"
               ></button>
             </div>
-            <div class="modal-body"></div>
+            <div class="modal-body">
+              <canvas id="main-graph"></canvas>
+            </div>
           </div>
         </div>
       </div>
     </div>
-    <script
-      src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"
-      integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ="
-      crossorigin="anonymous"
-    ></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.min.js"
       integrity="sha256-h1OMS35Ij1pJ0S+Y1qBK/GHQDyankPMZVpeZrNQ062U="
@@ -141,6 +176,6 @@
       integrity="sha256-+8RZJua0aEWg+QVVKg4LEzEEm/8RFez5Tb4JBNiV5xA="
       crossorigin="anonymous"
     ></script>
-    <script src="./results.js"></script>
+    <script type="module" src="./results.js"></script>
   </body>
 </html>
