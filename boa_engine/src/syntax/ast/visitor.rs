@@ -24,6 +24,7 @@ use crate::syntax::ast::pattern::*;
 use crate::syntax::ast::statement::iteration::*;
 use crate::syntax::ast::statement::*;
 use crate::syntax::ast::*;
+use boa_interner::Sym;
 
 /// Creates the default visit function implementation for a particular type
 macro_rules! define_visit {
@@ -113,6 +114,10 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_for_loop_initializer, ForLoopInitializer);
     define_visit!(visit_iterable_loop_initializer, IterableLoopInitializer);
     define_visit!(visit_case, Case);
+    define_visit!(visit_sym, Sym);
+    define_visit!(visit_labelled_item, LabelledItem);
+    define_visit!(visit_catch, Catch);
+    define_visit!(visit_finally, Finally);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -178,6 +183,10 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_for_loop_initializer_mut, ForLoopInitializer);
     define_visit_mut!(visit_iterable_loop_initializer_mut, IterableLoopInitializer);
     define_visit_mut!(visit_case_mut, Case);
+    define_visit_mut!(visit_sym_mut, Sym);
+    define_visit_mut!(visit_labelled_item_mut, LabelledItem);
+    define_visit_mut!(visit_catch_mut, Catch);
+    define_visit_mut!(visit_finally_mut, Finally);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its

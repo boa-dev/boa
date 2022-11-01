@@ -1,11 +1,14 @@
 //! Error handling statements
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     declaration::Binding,
     statement::{Block, Statement},
     StatementListItem,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use std::ops::ControlFlow;
 
 use super::ContainsSymbol;
 
@@ -109,6 +112,36 @@ impl From<Try> for Statement {
     #[inline]
     fn from(try_catch: Try) -> Self {
         Self::Try(try_catch)
+    }
+}
+
+impl VisitWith for Try {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_block(&self.block));
+        if let Some(catch) = &self.catch {
+            try_break!(visitor.visit_catch(catch));
+        }
+        if let Some(finally) = &self.finally {
+            try_break!(visitor.visit_finally(finally));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_block_mut(&mut self.block));
+        if let Some(catch) = &mut self.catch {
+            try_break!(visitor.visit_catch_mut(catch));
+        }
+        if let Some(finally) = &mut self.finally {
+            try_break!(visitor.visit_finally_mut(finally));
+        }
+        ControlFlow::Continue(())
     }
 }
 

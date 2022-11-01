@@ -1,5 +1,8 @@
 use crate::syntax::ast::statement::Statement;
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
+
 /// The `continue` statement terminates execution of the statements in the current iteration of
 /// the current or labeled loop, and continues execution of the loop with the next iteration.
 ///
@@ -49,5 +52,29 @@ impl ToInternedString for Continue {
 impl From<Continue> for Statement {
     fn from(cont: Continue) -> Self {
         Self::Continue(cont)
+    }
+}
+
+impl VisitWith for Continue {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(sym) = &self.label {
+            visitor.visit_sym(sym)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(sym) = &mut self.label {
+            visitor.visit_sym_mut(sym)
+        } else {
+            ControlFlow::Continue(())
+        }
     }
 }

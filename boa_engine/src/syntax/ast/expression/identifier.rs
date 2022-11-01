@@ -1,10 +1,12 @@
 //! Local identifier Expression.
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     string::ToStringEscaped,
     syntax::{ast::Position, parser::ParseError},
 };
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
 
 use super::Expression;
 
@@ -103,5 +105,21 @@ impl From<Identifier> for Expression {
     #[inline]
     fn from(local: Identifier) -> Self {
         Self::Identifier(local)
+    }
+}
+
+impl VisitWith for Identifier {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_sym(&self.ident)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_sym_mut(&mut self.ident)
     }
 }

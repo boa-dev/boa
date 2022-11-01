@@ -1,6 +1,9 @@
 use super::Statement;
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{function::Function, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
+use std::ops::ControlFlow;
 
 /// The set of Parse Nodes that can be preceded by a label, as defined by the [spec].
 ///
@@ -123,5 +126,23 @@ impl ToInternedString for Labelled {
 impl From<Labelled> for Statement {
     fn from(labelled: Labelled) -> Self {
         Self::Labelled(labelled)
+    }
+}
+
+impl VisitWith for Labelled {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_labelled_item(&*self.item));
+        visitor.visit_sym(&self.label)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_labelled_item_mut(&mut *self.item));
+        visitor.visit_sym_mut(&mut self.label)
     }
 }
