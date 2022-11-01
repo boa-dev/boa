@@ -40,8 +40,8 @@ mod r#type;
 
 pub use conversions::*;
 pub use display::ValueDisplay;
-// pub use equality::*;
-// pub use hash::*;
+pub use equality::*;
+pub use hash::*;
 pub use integer::IntegerOrInfinity;
 pub use operations::*;
 pub use r#type::Type;
