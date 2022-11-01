@@ -119,8 +119,8 @@ impl From<Declaration> for StatementListItem {
     }
 }
 
-impl<V> VisitWith<V> for StatementListItem {
-    fn visit_with<'a>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+impl VisitWith for StatementListItem {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
     {
@@ -130,7 +130,7 @@ impl<V> VisitWith<V> for StatementListItem {
         }
     }
 
-    fn visit_with_mut<'a>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
@@ -305,8 +305,8 @@ impl ToIndentedString for StatementList {
     }
 }
 
-impl<V> VisitWith<V> for StatementList {
-    fn visit_with<'a>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+impl VisitWith for StatementList {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
     {
@@ -316,7 +316,7 @@ impl<V> VisitWith<V> for StatementList {
         ControlFlow::Continue(())
     }
 
-    fn visit_with_mut<'a>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {

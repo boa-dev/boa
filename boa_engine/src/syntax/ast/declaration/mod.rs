@@ -168,20 +168,32 @@ impl ToIndentedString for Declaration {
     }
 }
 
-impl<V> VisitWith<V> for Declaration {
-    fn visit_with<'a>(&'a self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+impl VisitWith for Declaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
     {
-        // TODO implement
-        ControlFlow::Continue(())
+        match self {
+            Declaration::Function(f) => visitor.visit_function(f),
+            Declaration::Generator(g) => visitor.visit_generator(g),
+            Declaration::AsyncFunction(af) => visitor.visit_async_function(af),
+            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            Declaration::Class(c) => visitor.visit_class(c),
+            Declaration::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+        }
     }
 
-    fn visit_with_mut<'a>(&'a mut self, _visitor: &mut V) -> ControlFlow<V::BreakTy>
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        // TODO implement
-        ControlFlow::Continue(())
+        match self {
+            Declaration::Function(f) => visitor.visit_function_mut(f),
+            Declaration::Generator(g) => visitor.visit_generator_mut(g),
+            Declaration::AsyncFunction(af) => visitor.visit_async_function_mut(af),
+            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            Declaration::Class(c) => visitor.visit_class_mut(c),
+            Declaration::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+        }
     }
 }
