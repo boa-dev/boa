@@ -3,6 +3,7 @@
 use super::{declaration::Binding, Declaration};
 use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Identifier, statement::Statement, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 use rustc_hash::FxHashSet;
@@ -311,7 +312,7 @@ impl VisitWith for StatementList {
         V: Visitor<'a>,
     {
         for statement in self.statements.iter() {
-            visitor.visit_statement_list_item(statement);
+            try_break!(visitor.visit_statement_list_item(statement));
         }
         ControlFlow::Continue(())
     }
@@ -321,7 +322,7 @@ impl VisitWith for StatementList {
         V: VisitorMut<'a>,
     {
         for statement in self.statements.iter_mut() {
-            visitor.visit_statement_list_item_mut(statement);
+            try_break!(visitor.visit_statement_list_item_mut(statement));
         }
         ControlFlow::Continue(())
     }

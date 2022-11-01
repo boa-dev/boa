@@ -62,6 +62,28 @@ impl From<Expression> for PropertyAccessField {
     }
 }
 
+impl VisitWith for PropertyAccessField {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyAccessField::Const(sym) => visitor.visit_sym(sym),
+            PropertyAccessField::Expr(expr) => visitor.visit_expression(&*expr),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyAccessField::Const(sym) => visitor.visit_sym_mut(sym),
+            PropertyAccessField::Expr(expr) => visitor.visit_expression_mut(&mut *expr),
+        }
+    }
+}
+
 /// A property access expression.
 ///
 /// See the [module level documentation][self] for more information.

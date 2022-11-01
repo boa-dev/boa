@@ -47,6 +47,44 @@ impl OptionalOperationKind {
     }
 }
 
+impl VisitWith for OptionalOperationKind {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                visitor.visit_property_access_field(field)
+            }
+            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym(field),
+            OptionalOperationKind::Call { args } => {
+                for arg in args.iter() {
+                    try_break!(visitor.visit_expression(arg));
+                }
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                visitor.visit_property_access_field_mut(field)
+            }
+            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym_mut(field),
+            OptionalOperationKind::Call { args } => {
+                for arg in args.iter_mut() {
+                    try_break!(visitor.visit_expression_mut(arg));
+                }
+                ControlFlow::Continue(())
+            }
+        }
+    }
+}
+
 /// Operation within an [`Optional`] chain.
 ///
 /// An operation within an `Optional` chain can be either shorted or non-shorted. A shorted operation
