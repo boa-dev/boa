@@ -4,7 +4,7 @@
 
 use boa_engine::syntax::ast::expression::operator::binary::{ArithmeticOp, BinaryOp};
 use boa_engine::syntax::ast::expression::operator::Binary;
-use boa_engine::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
+use boa_engine::syntax::ast::visitor::{VisitWith, VisitorMut};
 use boa_engine::syntax::ast::Expression;
 use boa_engine::syntax::Parser;
 use boa_engine::Context;
@@ -12,9 +12,7 @@ use boa_interner::ToInternedString;
 use std::convert::Infallible;
 use std::fs::File;
 use std::io::BufReader;
-use std::marker::PhantomData;
 use std::ops::ControlFlow;
-use std::os::linux::raw::stat;
 
 /// Visitor which, when applied to a binary expression, will swap the operands. Use in other
 /// circumstances is undefined.
@@ -52,7 +50,10 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
                     ArithmeticOp::Add | ArithmeticOp::Mul => {
                         // set up the exchanger and swap lhs and rhs
                         let mut exchanger = OpExchanger::default();
-                        exchanger.visit_binary_mut(node);
+                        assert!(matches!(
+                            exchanger.visit_binary_mut(node),
+                            ControlFlow::Break(_)
+                        ));
                     }
                     _ => {}
                 }
