@@ -14,17 +14,37 @@ macro_rules! try_break {
     };
 }
 
-use crate::syntax::ast::declaration::{Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList};
-use crate::syntax::ast::expression::access::{PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess};
-use crate::syntax::ast::expression::literal::{ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral};
+use crate::syntax::ast::declaration::{
+    Binding, Declaration, LexicalDeclaration, VarDeclaration, Variable, VariableList,
+};
+use crate::syntax::ast::expression::access::{
+    PrivatePropertyAccess, PropertyAccess, PropertyAccessField, SimplePropertyAccess,
+    SuperPropertyAccess,
+};
+use crate::syntax::ast::expression::literal::{
+    ArrayLiteral, Literal, ObjectLiteral, TemplateElement, TemplateLiteral,
+};
 use crate::syntax::ast::expression::operator::assign::{Assign, AssignTarget};
 use crate::syntax::ast::expression::operator::{Binary, Conditional, Unary};
-use crate::syntax::ast::expression::{Await, Call, Expression, Identifier, New, Optional, OptionalOperation, OptionalOperationKind, Spread, SuperCall, TaggedTemplate, Yield};
-use crate::syntax::ast::function::{ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter, FormalParameterList, Function, Generator};
-use crate::syntax::ast::pattern::{ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern};
+use crate::syntax::ast::expression::{
+    Await, Call, Expression, Identifier, New, Optional, OptionalOperation, OptionalOperationKind,
+    Spread, SuperCall, TaggedTemplate, Yield,
+};
+use crate::syntax::ast::function::{
+    ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameter,
+    FormalParameterList, Function, Generator,
+};
+use crate::syntax::ast::pattern::{
+    ArrayPattern, ArrayPatternElement, ObjectPattern, ObjectPatternElement, Pattern,
+};
 use crate::syntax::ast::property::{MethodDefinition, PropertyDefinition, PropertyName};
-use crate::syntax::ast::statement::iteration::{Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop, IterableLoopInitializer, WhileLoop};
-use crate::syntax::ast::statement::{Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw, Try};
+use crate::syntax::ast::statement::iteration::{
+    Break, Continue, DoWhileLoop, ForInLoop, ForLoop, ForLoopInitializer, ForOfLoop,
+    IterableLoopInitializer, WhileLoop,
+};
+use crate::syntax::ast::statement::{
+    Block, Case, Catch, Finally, If, Labelled, LabelledItem, Return, Statement, Switch, Throw, Try,
+};
 use crate::syntax::ast::{StatementList, StatementListItem};
 use boa_interner::Sym;
 
