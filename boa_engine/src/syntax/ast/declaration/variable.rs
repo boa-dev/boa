@@ -71,6 +71,22 @@ impl ToInternedString for VarDeclaration {
     }
 }
 
+impl VisitWith for VarDeclaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_variable_list(&self.0)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_variable_list_mut(&mut self.0)
+    }
+}
+
 /// A **[lexical declaration]** defines variables that are scoped to the lexical environment of
 /// the variable declaration.
 ///
