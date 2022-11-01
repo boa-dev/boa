@@ -259,68 +259,16 @@ function showData(data) {
   </div>`;
 
   for (const suite of data.r.s) {
-    infoContainer.insertAdjacentHTML(
-      "beforeend",
-      addSuite(suite, "info", "test/" + suite.n, data.u)
-    );
+    addSuite(suite, "info", "test/" + suite.n, data.u);
   }
 }
 
 function addSuite(suite, parentID, namespace, upstream) {
   const newID = parentID + suite.n;
+  const newInnerID = newID + "-inner";
   const headerID = newID + "header";
 
-  let testsHTML = "";
-  if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
-    const rows = suite.t.map((innerTest) => {
-      const panics = innerTest.r === "P";
-      let style;
-      switch (innerTest.r) {
-        case "O":
-          style = "bg-success";
-          break;
-        case "I":
-          style = "bg-warning";
-          break;
-        default:
-          style = "bg-danger";
-      }
-
-      return `<a
-        title="${innerTest.n}"
-        class="card test embed-responsive ${style}${
-        panics ? "" : " embed-responsive-1by1"
-      }"
-        target="_blank"
-        href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${
-        innerTest.n
-      }.js"
-      >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
-    });
-
-    testsHTML = `<div class="card">
-      <div class="row card-body">
-        <h3>Direct tests:</h3>
-        ${rows.join("")}
-      </div>
-    </div>`;
-  }
-
-  let subSuitesHTML = "";
-  if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
-    const rows = suite.s.map((innerSuite) => {
-      return addSuite(
-        innerSuite,
-        newID,
-        namespace + "/" + innerSuite.n,
-        upstream
-      );
-    });
-
-    subSuitesHTML = `<div class="card accordion">${rows.join("")}</div>`;
-  }
-
-  return `<div class="accordion-item">
+  const html = `<div class="accordion-item">
     <h2 id="${headerID}" class="accordion-header">
       <button
         type="button"
@@ -352,12 +300,72 @@ function addSuite(suite, parentID, namespace, upstream) {
       </button>
     </h2>
     <div id="${newID}" class="accordion-collapse collapse" aria-labelledby="${headerID}" data-bs-parent="#${parentID}">
-      <div class="accordion-body">
-        ${testsHTML}
-        ${subSuitesHTML}
+      <div id="${newInnerID}" class="accordion-body">
       </div>
     </div>
   </div>`;
+
+  document.getElementById(parentID).insertAdjacentHTML("beforeend", html);
+
+  const newContainer = document.getElementById(newID);
+  const newInnerContainer = document.getElementById(newInnerID);
+
+  newContainer.addEventListener("show.bs.collapse", (event) => {
+    event.stopPropagation();
+
+    if (typeof suite.t !== "undefined" && suite.t.length !== 0) {
+      const rows = suite.t.map((innerTest) => {
+        const panics = innerTest.r === "P";
+        let style;
+        switch (innerTest.r) {
+          case "O":
+            style = "bg-success";
+            break;
+          case "I":
+            style = "bg-warning";
+            break;
+          default:
+            style = "bg-danger";
+        }
+
+        return `<a
+          title="${innerTest.n}"
+          class="card test embed-responsive ${style}${
+          panics ? "" : " embed-responsive-1by1"
+        }"
+          target="_blank"
+          href="https://github.com/tc39/test262/blob/${upstream}/${namespace}/${
+          innerTest.n
+        }.js"
+        >${panics ? '<i class="bi-exclamation-triangle"></i>' : ""}</a>`;
+      });
+
+      const testsHTML = `<div class="card">
+        <div class="row card-body">
+          <h3>Direct tests:</h3>
+          ${rows.join("")}
+        </div>
+      </div>`;
+
+      newInnerContainer.insertAdjacentHTML("beforeend", testsHTML);
+    }
+
+    if (typeof suite.s !== "undefined" && suite.s.length !== 0) {
+      for (const innerSuite of suite.s) {
+        addSuite(
+          innerSuite,
+          newInnerID,
+          namespace + "/" + innerSuite.n,
+          upstream
+        );
+      }
+    }
+  });
+
+  newContainer.addEventListener("hidden.bs.collapse", (event) => {
+    event.stopPropagation();
+    newInnerContainer.innerHTML = "";
+  });
 }
 
 function compareVersions(a, b) {
