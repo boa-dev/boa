@@ -171,7 +171,7 @@ impl BoaAlloc {
         })
     }
 
-    pub fn new_weak_pair<V: Trace>(key: GcPointer, value: V) {
+    pub fn new_weak_pair<K: Trace, V: Trace>(key: NonNull<GcBox<K>>, value: V) -> WeakPair<K, V> {
         BOA_GC.with(|internals| {
             let mut gc = internals.borrow_mut();
 
@@ -196,7 +196,7 @@ impl BoaAlloc {
         })
     }
 
-    pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<Ephemeron<T, ()>> {
+    pub fn new_weak_ref<T: Trace>(value: NonNull<GcBox<T>>) -> WeakGc<T> {
         BOA_GC.with(|state| {
             let mut gc = state.borrow_mut();
 

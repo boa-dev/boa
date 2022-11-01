@@ -21,7 +21,7 @@ impl<K: Trace + ?Sized> Ephemeron<K, ()> {
     }
 }
 
-impl<K: Trace + ?Sized, V: Trace> Ephemeron<K, V> {
+impl<K: Trace, V: Trace> Ephemeron<K, V> {
     pub unsafe fn new_pair(key: NonNull<GcBox<K>>, value: V) -> Self {
         let ptr = NonNull::new_unchecked(key.as_ptr());
 
@@ -86,7 +86,7 @@ impl<K: Trace + ?Sized, V: Trace + ?Sized> Ephemeron<K, V> {
 
     #[inline]
     unsafe fn weak_trace_value(&self) {
-        self.inner_value().weak_trace()
+        self.value().weak_trace()
     }
 }
 

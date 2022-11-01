@@ -13,8 +13,6 @@ use std::sync::atomic::{
     AtomicU64, AtomicU8, AtomicUsize,
 };
 
-use crate::GcPointer;
-
 /// The Finalize trait, which needs to be implemented on
 /// garbage-collected objects to define finalization logic.
 pub trait Finalize {

@@ -30,18 +30,13 @@ impl<T: Trace + ?Sized> WeakGc<T> {
     }
 
     #[inline]
-    fn value(&self) -> T {
-        self.inner_ptr()
-    }
-
-    #[inline]
     fn inner(&self) -> &GcBox<Ephemeron<T, ()>> {
         unsafe { &*self.inner_ptr() }
     }
 
     #[inline]
     pub fn value(&self) -> Option<&T> {
-        self.inner().key()
+        self.inner().value().key()
     }
 }
 

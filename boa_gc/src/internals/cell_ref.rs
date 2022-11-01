@@ -9,7 +9,7 @@ use crate::{
         borrow_flag::{BorrowFlag, BorrowState},
         GcCell,
     },
-    trace::{Finalize, Trace},
+    trace::Trace,
 };
 
 /// A wrapper type for an immutably borrowed value from a `GcCell<T>`.
@@ -43,17 +43,6 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     /// This is an associated function that needs to be used as `GcCellRef::map(...)`.
     /// A method would interfere with methods of the same name on the contents
     /// of a `GcCellRef` used through `Deref`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use gc::{GcCell, GcCellRef};
-    ///
-    /// let c = GcCell::new((5, 'b'));
-    /// let b1: GcCellRef<(u32, char)> = c.borrow();
-    /// let b2: GcCellRef<u32> = GcCellRef::map(b1, |t| &t.0);
-    /// //assert_eq!(b2, 5);
-    /// ```
     #[inline]
     pub fn map<U, F>(orig: Self, f: F) -> GcCellRef<'a, U>
     where
@@ -78,18 +67,6 @@ impl<'a, T: ?Sized> GcCellRef<'a, T> {
     ///
     /// This is an associated function that needs to be used as GcCellRef::map_split(...).
     /// A method would interfere with methods of the same name on the contents of a `GcCellRef` used through `Deref`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use gc::{GcCell, GcCellRef};
-    ///
-    /// let cell = GcCell::new((1, 'c'));
-    /// let borrow = cell.borrow();
-    /// let (first, second) = GcCellRef::map_split(borrow, |x| (&x.0, &x.1));
-    /// assert_eq!(*first, 1);
-    /// assert_eq!(*second, 'c');
-    /// ```
     #[inline]
     pub fn map_split<U, V, F>(orig: Self, f: F) -> (GcCellRef<'a, U>, GcCellRef<'a, V>)
     where
@@ -163,21 +140,6 @@ impl<'a, T: Trace + ?Sized, U: ?Sized> GcCellRefMut<'a, T, U> {
     /// This is an associated function that needs to be used as
     /// `GcCellRefMut::map(...)`. A method would interfere with methods of the same
     /// name on the contents of a `GcCell` used through `Deref`.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use gc::{GcCell, GcCellRefMut};
-    ///
-    /// let c = GcCell::new((5, 'b'));
-    /// {
-    ///     let b1: GcCellRefMut<(u32, char)> = c.borrow_mut();
-    ///     let mut b2: GcCellRefMut<(u32, char), u32> = GcCellRefMut::map(b1, |t| &mut t.0);
-    ///     assert_eq!(*b2, 5);
-    ///     *b2 = 42;
-    /// }
-    /// assert_eq!(*c.borrow(), (42, 'b'));
-    /// ```
     #[inline]
     pub fn map<V, F>(orig: Self, f: F) -> GcCellRefMut<'a, T, V>
     where

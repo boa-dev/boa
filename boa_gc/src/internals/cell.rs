@@ -78,23 +78,6 @@ impl<T: Trace + ?Sized> GcCell<T> {
     ///
     /// This is the non-panicking variant of [`borrow`](#method.borrow).
     ///
-    /// # Examples
-    ///
-    /// ```
-    /// use gc::GcCell;
-    ///
-    /// let c = GcCell::new(5);
-    ///
-    /// {
-    ///     let m = c.borrow_mut();
-    ///     assert!(c.try_borrow().is_err());
-    /// }
-    ///
-    /// {
-    ///     let m = c.borrow();
-    ///     assert!(c.try_borrow().is_ok());
-    /// }
-    /// ```
     pub fn try_borrow(&self) -> Result<GcCellRef<'_, T>, BorrowError> {
         if self.flags.get().borrowed() == BorrowState::Writing {
             return Err(BorrowError);
@@ -119,21 +102,6 @@ impl<T: Trace + ?Sized> GcCell<T> {
     /// The value cannot be borrowed while this borrow is active.
     ///
     /// This is the non-panicking variant of [`borrow_mut`](#method.borrow_mut).
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use gc::GcCell;
-    ///
-    /// let c = GcCell::new(5);
-    ///
-    /// {
-    ///     let m = c.borrow();
-    ///     assert!(c.try_borrow_mut().is_err());
-    /// }
-    ///
-    /// assert!(c.try_borrow_mut().is_ok());
-    /// ```
     pub fn try_borrow_mut(&self) -> Result<GcCellRefMut<'_, T>, BorrowMutError> {
         if self.flags.get().borrowed() != BorrowState::Unused {
             return Err(BorrowMutError);

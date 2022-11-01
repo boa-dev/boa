@@ -7,11 +7,11 @@ use crate::{
 use std::cell::Cell;
 use std::ptr::NonNull;
 
-pub struct WeakPair<K: Trace + ?Sized + 'static, V: Trace + ?Sized, 'static> {
+pub struct WeakPair<K: Trace + ?Sized + 'static, V: Trace + ?Sized + 'static> {
     inner_ptr: Cell<NonNull<GcBox<Ephemeron<K, V>>>>,
 }
 
-impl<K: Trace, V: Trace> WeakPair<K, V> {
+impl<K: Trace + ?Sized, V: Trace + ?Sized> WeakPair<K, V> {
     pub fn new(value: NonNull<GcBox<Ephemeron<K, V>>>) -> Self {
         unsafe {
             Self {
@@ -36,12 +36,12 @@ impl<K: Trace + ?Sized, V: Trace> WeakPair<K, V> {
 
     #[inline]
     pub fn key(&self) -> Option<&K> {
-        self.inner().key()
+        self.inner().value().key()
     }
 
     #[inline]
     pub fn value(&self) -> &V {
-        self.inner().value()
+        self.inner().value().value()
     }
 }
 

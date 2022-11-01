@@ -1,5 +1,4 @@
-use crate::pointers::Gc;
-use crate::{Finalize, Trace};
+use crate::Trace;
 use std::cell::Cell;
 use std::ptr::{self, NonNull};
 
