@@ -99,15 +99,15 @@ impl VisitWith for Binary {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&*self.lhs));
-        visitor.visit_expression(&*self.rhs)
+        try_break!(visitor.visit_expression(&self.lhs));
+        visitor.visit_expression(&self.rhs)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut *self.lhs));
-        visitor.visit_expression_mut(&mut *self.rhs)
+        try_break!(visitor.visit_expression_mut(&mut self.lhs));
+        visitor.visit_expression_mut(&mut self.rhs)
     }
 }

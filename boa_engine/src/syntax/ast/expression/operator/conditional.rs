@@ -94,17 +94,17 @@ impl VisitWith for Conditional {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&*self.condition));
-        try_break!(visitor.visit_expression(&*self.if_true));
-        visitor.visit_expression(&*self.if_false)
+        try_break!(visitor.visit_expression(&self.condition));
+        try_break!(visitor.visit_expression(&self.if_true));
+        visitor.visit_expression(&self.if_false)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut *self.condition));
-        try_break!(visitor.visit_expression_mut(&mut *self.if_true));
-        visitor.visit_expression_mut(&mut *self.if_false)
+        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        try_break!(visitor.visit_expression_mut(&mut self.if_true));
+        visitor.visit_expression_mut(&mut self.if_false)
     }
 }

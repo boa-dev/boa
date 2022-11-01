@@ -78,7 +78,7 @@ impl VisitWith for WhileLoop {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.condition));
-        visitor.visit_statement(&*self.body)
+        visitor.visit_statement(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -86,6 +86,6 @@ impl VisitWith for WhileLoop {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.condition));
-        visitor.visit_statement_mut(&mut *self.body)
+        visitor.visit_statement_mut(&mut self.body)
     }
 }

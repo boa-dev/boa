@@ -104,9 +104,9 @@ impl VisitWith for If {
         V: Visitor<'a>,
     {
         try_break!(visitor.visit_expression(&self.condition));
-        try_break!(visitor.visit_statement(&*self.body));
+        try_break!(visitor.visit_statement(&self.body));
         if let Some(stmt) = &self.else_node {
-            try_break!(visitor.visit_statement(&**stmt));
+            try_break!(visitor.visit_statement(stmt));
         }
         ControlFlow::Continue(())
     }
@@ -116,9 +116,9 @@ impl VisitWith for If {
         V: VisitorMut<'a>,
     {
         try_break!(visitor.visit_expression_mut(&mut self.condition));
-        try_break!(visitor.visit_statement_mut(&mut *self.body));
+        try_break!(visitor.visit_statement_mut(&mut self.body));
         if let Some(stmt) = &mut self.else_node {
-            try_break!(visitor.visit_statement_mut(&mut **stmt));
+            try_break!(visitor.visit_statement_mut(stmt));
         }
         ControlFlow::Continue(())
     }

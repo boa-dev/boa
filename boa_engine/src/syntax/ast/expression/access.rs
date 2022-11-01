@@ -69,7 +69,7 @@ impl VisitWith for PropertyAccessField {
     {
         match self {
             PropertyAccessField::Const(sym) => visitor.visit_sym(sym),
-            PropertyAccessField::Expr(expr) => visitor.visit_expression(&*expr),
+            PropertyAccessField::Expr(expr) => visitor.visit_expression(expr),
         }
     }
 
@@ -229,7 +229,7 @@ impl VisitWith for SimplePropertyAccess {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&*self.target));
+        try_break!(visitor.visit_expression(&self.target));
         visitor.visit_property_access_field(&self.field)
     }
 
@@ -237,7 +237,7 @@ impl VisitWith for SimplePropertyAccess {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut *self.target));
+        try_break!(visitor.visit_expression_mut(&mut self.target));
         visitor.visit_property_access_field_mut(&mut self.field)
     }
 }
@@ -315,7 +315,7 @@ impl VisitWith for PrivatePropertyAccess {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&*self.target));
+        try_break!(visitor.visit_expression(&self.target));
         visitor.visit_sym(&self.field)
     }
 
@@ -323,7 +323,7 @@ impl VisitWith for PrivatePropertyAccess {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut *self.target));
+        try_break!(visitor.visit_expression_mut(&mut self.target));
         visitor.visit_sym_mut(&mut self.field)
     }
 }

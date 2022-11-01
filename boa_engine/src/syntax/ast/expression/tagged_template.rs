@@ -101,7 +101,7 @@ impl VisitWith for TaggedTemplate {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_expression(&*self.tag));
+        try_break!(visitor.visit_expression(&self.tag));
         for raw in self.raws.iter() {
             try_break!(visitor.visit_sym(raw));
         }
@@ -118,7 +118,7 @@ impl VisitWith for TaggedTemplate {
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_expression_mut(&mut *self.tag));
+        try_break!(visitor.visit_expression_mut(&mut self.tag));
         for raw in self.raws.iter_mut() {
             try_break!(visitor.visit_sym_mut(raw));
         }

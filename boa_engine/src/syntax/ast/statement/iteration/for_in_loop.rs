@@ -94,7 +94,7 @@ impl VisitWith for ForInLoop {
     {
         try_break!(visitor.visit_iterable_loop_initializer(&self.initializer));
         try_break!(visitor.visit_expression(&self.target));
-        visitor.visit_statement(&*self.body)
+        visitor.visit_statement(&self.body)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
@@ -103,6 +103,6 @@ impl VisitWith for ForInLoop {
     {
         try_break!(visitor.visit_iterable_loop_initializer_mut(&mut self.initializer));
         try_break!(visitor.visit_expression_mut(&mut self.target));
-        visitor.visit_statement_mut(&mut *self.body)
+        visitor.visit_statement_mut(&mut self.body)
     }
 }

@@ -69,14 +69,14 @@ impl VisitWith for Await {
     where
         V: Visitor<'a>,
     {
-        visitor.visit_expression(&*self.target)
+        visitor.visit_expression(&self.target)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        visitor.visit_expression_mut(&mut *self.target)
+        visitor.visit_expression_mut(&mut self.target)
     }
 }
 

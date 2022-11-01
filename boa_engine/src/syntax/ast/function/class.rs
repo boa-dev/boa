@@ -110,7 +110,7 @@ impl ToIndentedString for Class {
                 if let Some(sup) = &self.super_ref {
                     format!(" extends {}", sup.to_interned_string(interner))
                 } else {
-                    "".to_string()
+                    String::new()
                 }
             );
         }
@@ -120,7 +120,7 @@ impl ToIndentedString for Class {
             if let Some(sup) = &self.super_ref {
                 format!("extends {}", sup.to_interned_string(interner))
             } else {
-                "".to_string()
+                String::new()
             }
         );
         if let Some(expr) = &self.constructor {

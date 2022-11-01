@@ -118,16 +118,16 @@ impl VisitWith for Assign {
     where
         V: Visitor<'a>,
     {
-        try_break!(visitor.visit_assign_target(&*self.lhs));
-        visitor.visit_expression(&*self.rhs)
+        try_break!(visitor.visit_assign_target(&self.lhs));
+        visitor.visit_expression(&self.rhs)
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        try_break!(visitor.visit_assign_target_mut(&mut *self.lhs));
-        visitor.visit_expression_mut(&mut *self.rhs)
+        try_break!(visitor.visit_assign_target_mut(&mut self.lhs));
+        visitor.visit_expression_mut(&mut self.rhs)
     }
 }
 

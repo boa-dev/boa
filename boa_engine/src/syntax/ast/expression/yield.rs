@@ -79,7 +79,7 @@ impl VisitWith for Yield {
         V: Visitor<'a>,
     {
         if let Some(expr) = &self.target {
-            visitor.visit_expression(&**expr)
+            visitor.visit_expression(expr)
         } else {
             ControlFlow::Continue(())
         }
@@ -90,7 +90,7 @@ impl VisitWith for Yield {
         V: VisitorMut<'a>,
     {
         if let Some(expr) = &mut self.target {
-            visitor.visit_expression_mut(&mut **expr)
+            visitor.visit_expression_mut(expr)
         } else {
             ControlFlow::Continue(())
         }
