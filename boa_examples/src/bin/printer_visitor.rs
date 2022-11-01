@@ -2,10 +2,10 @@ use boa_engine::syntax::ast::visitor::{VisitWith, Visitor};
 use boa_engine::syntax::ast::{Declaration, Statement, StatementList, StatementListItem};
 use boa_engine::syntax::Parser;
 use boa_engine::Context;
+use core::ops::ControlFlow;
 use std::convert::Infallible;
 use std::fs::File;
 use std::io::BufReader;
-use core::ops::ControlFlow;
 
 #[derive(Debug, Clone, Default)]
 struct PrinterVisitor {
