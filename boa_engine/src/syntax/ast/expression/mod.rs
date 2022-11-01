@@ -10,6 +10,7 @@
 //! [lhs]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators#left-hand-side_expressions
 
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
+use std::ops::ControlFlow;
 
 use self::{
     access::PropertyAccess,
@@ -32,6 +33,7 @@ mod spread;
 mod tagged_template;
 mod r#yield;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 pub use call::{Call, SuperCall};
 pub use identifier::Identifier;
 pub use new::New;
@@ -284,5 +286,81 @@ impl ToIndentedString for Expression {
     #[inline]
     fn to_indented_string(&self, interner: &Interner, indentation: usize) -> String {
         self.to_no_indent_string(interner, indentation)
+    }
+}
+
+impl VisitWith for Expression {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            Expression::Identifier(id) => visitor.visit_identifier(id),
+            Expression::Literal(lit) => visitor.visit_literal(lit),
+            Expression::ArrayLiteral(arlit) => visitor.visit_array_literal(arlit),
+            Expression::ObjectLiteral(olit) => visitor.visit_object_literal(olit),
+            Expression::Spread(sp) => visitor.visit_spread(sp),
+            Expression::Function(f) => visitor.visit_function(f),
+            Expression::ArrowFunction(af) => visitor.visit_arrow_function(af),
+            Expression::Generator(g) => visitor.visit_generator(g),
+            Expression::AsyncFunction(af) => visitor.visit_async_function(af),
+            Expression::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            Expression::Class(c) => visitor.visit_class(&**c),
+            Expression::TemplateLiteral(tlit) => visitor.visit_template_literal(tlit),
+            Expression::PropertyAccess(pa) => visitor.visit_property_access(pa),
+            Expression::New(n) => visitor.visit_new(n),
+            Expression::Call(c) => visitor.visit_call(c),
+            Expression::SuperCall(sc) => visitor.visit_super_call(sc),
+            Expression::Optional(opt) => visitor.visit_optional(opt),
+            Expression::TaggedTemplate(tt) => visitor.visit_tagged_template(tt),
+            Expression::Assign(a) => visitor.visit_assign(a),
+            Expression::Unary(u) => visitor.visit_unary(u),
+            Expression::Binary(b) => visitor.visit_binary(b),
+            Expression::Conditional(c) => visitor.visit_conditional(c),
+            Expression::Await(a) => visitor.visit_await(a),
+            Expression::Yield(y) => visitor.visit_yield(y),
+            Expression::FormalParameterList(fpl) => visitor.visit_formal_parameter_list(fpl),
+            Expression::This | Expression::NewTarget => {
+                // do nothing; can be handled as special case by visitor
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            Expression::Identifier(id) => visitor.visit_identifier_mut(id),
+            Expression::Literal(lit) => visitor.visit_literal_mut(lit),
+            Expression::ArrayLiteral(arlit) => visitor.visit_array_literal_mut(arlit),
+            Expression::ObjectLiteral(olit) => visitor.visit_object_literal_mut(olit),
+            Expression::Spread(sp) => visitor.visit_spread_mut(sp),
+            Expression::Function(f) => visitor.visit_function_mut(f),
+            Expression::ArrowFunction(af) => visitor.visit_arrow_function_mut(af),
+            Expression::Generator(g) => visitor.visit_generator_mut(g),
+            Expression::AsyncFunction(af) => visitor.visit_async_function_mut(af),
+            Expression::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            Expression::Class(c) => visitor.visit_class_mut(&mut **c),
+            Expression::TemplateLiteral(tlit) => visitor.visit_template_literal_mut(tlit),
+            Expression::PropertyAccess(pa) => visitor.visit_property_access_mut(pa),
+            Expression::New(n) => visitor.visit_new_mut(n),
+            Expression::Call(c) => visitor.visit_call_mut(c),
+            Expression::SuperCall(sc) => visitor.visit_super_call_mut(sc),
+            Expression::Optional(opt) => visitor.visit_optional_mut(opt),
+            Expression::TaggedTemplate(tt) => visitor.visit_tagged_template_mut(tt),
+            Expression::Assign(a) => visitor.visit_assign_mut(a),
+            Expression::Unary(u) => visitor.visit_unary_mut(u),
+            Expression::Binary(b) => visitor.visit_binary_mut(b),
+            Expression::Conditional(c) => visitor.visit_conditional_mut(c),
+            Expression::Await(a) => visitor.visit_await_mut(a),
+            Expression::Yield(y) => visitor.visit_yield_mut(y),
+            Expression::FormalParameterList(fpl) => visitor.visit_formal_parameter_list_mut(fpl),
+            Expression::This | Expression::NewTarget => {
+                // do nothing; can be handled as special case by visitor
+                ControlFlow::Continue(())
+            }
+        }
     }
 }

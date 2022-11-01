@@ -15,6 +15,9 @@ macro_rules! try_break {
 }
 
 use crate::syntax::ast::declaration::*;
+use crate::syntax::ast::expression::access::*;
+use crate::syntax::ast::expression::literal::*;
+use crate::syntax::ast::expression::operator::*;
 use crate::syntax::ast::expression::*;
 use crate::syntax::ast::function::*;
 use crate::syntax::ast::pattern::*;
@@ -88,6 +91,24 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_variable, Variable);
     define_visit!(visit_binding, Binding);
     define_visit!(visit_pattern, Pattern);
+    define_visit!(visit_literal, Literal);
+    define_visit!(visit_array_literal, ArrayLiteral);
+    define_visit!(visit_object_literal, ObjectLiteral);
+    define_visit!(visit_spread, Spread);
+    define_visit!(visit_arrow_function, ArrowFunction);
+    define_visit!(visit_template_literal, TemplateLiteral);
+    define_visit!(visit_property_access, PropertyAccess);
+    define_visit!(visit_new, New);
+    define_visit!(visit_call, Call);
+    define_visit!(visit_super_call, SuperCall);
+    define_visit!(visit_optional, Optional);
+    define_visit!(visit_tagged_template, TaggedTemplate);
+    define_visit!(visit_assign, Assign);
+    define_visit!(visit_unary, Unary);
+    define_visit!(visit_binary, Binary);
+    define_visit!(visit_conditional, Conditional);
+    define_visit!(visit_await, Await);
+    define_visit!(visit_yield, Yield);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -132,6 +153,24 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_variable_mut, Variable);
     define_visit_mut!(visit_binding_mut, Binding);
     define_visit_mut!(visit_pattern_mut, Pattern);
+    define_visit_mut!(visit_literal_mut, Literal);
+    define_visit_mut!(visit_array_literal_mut, ArrayLiteral);
+    define_visit_mut!(visit_object_literal_mut, ObjectLiteral);
+    define_visit_mut!(visit_spread_mut, Spread);
+    define_visit_mut!(visit_arrow_function_mut, ArrowFunction);
+    define_visit_mut!(visit_template_literal_mut, TemplateLiteral);
+    define_visit_mut!(visit_property_access_mut, PropertyAccess);
+    define_visit_mut!(visit_new_mut, New);
+    define_visit_mut!(visit_call_mut, Call);
+    define_visit_mut!(visit_super_call_mut, SuperCall);
+    define_visit_mut!(visit_optional_mut, Optional);
+    define_visit_mut!(visit_tagged_template_mut, TaggedTemplate);
+    define_visit_mut!(visit_assign_mut, Assign);
+    define_visit_mut!(visit_unary_mut, Unary);
+    define_visit_mut!(visit_binary_mut, Binary);
+    define_visit_mut!(visit_conditional_mut, Conditional);
+    define_visit_mut!(visit_await_mut, Await);
+    define_visit_mut!(visit_yield_mut, Yield);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its
