@@ -13,6 +13,7 @@ use crate::syntax::ast::{
     expression::{access::PropertyAccess, Identifier},
     pattern::Pattern,
 };
+use std::ops::ControlFlow;
 
 pub use self::{
     do_while_loop::DoWhileLoop,
@@ -23,6 +24,7 @@ pub use self::{
     r#continue::Continue,
     while_loop::WhileLoop,
 };
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 
 use super::ContainsSymbol;
@@ -105,5 +107,35 @@ impl ToInternedString for IterableLoopInitializer {
         };
 
         format!("{pre} {}", binding.to_interned_string(interner))
+    }
+}
+
+impl VisitWith for IterableLoopInitializer {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            IterableLoopInitializer::Identifier(id) => visitor.visit_identifier(id),
+            IterableLoopInitializer::Access(pa) => visitor.visit_property_access(pa),
+            IterableLoopInitializer::Var(b)
+            | IterableLoopInitializer::Let(b)
+            | IterableLoopInitializer::Const(b) => visitor.visit_binding(b),
+            IterableLoopInitializer::Pattern(p) => visitor.visit_pattern(p),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            IterableLoopInitializer::Identifier(id) => visitor.visit_identifier_mut(id),
+            IterableLoopInitializer::Access(pa) => visitor.visit_property_access_mut(pa),
+            IterableLoopInitializer::Var(b)
+            | IterableLoopInitializer::Let(b)
+            | IterableLoopInitializer::Const(b) => visitor.visit_binding_mut(b),
+            IterableLoopInitializer::Pattern(p) => visitor.visit_pattern_mut(p),
+        }
     }
 }

@@ -1,8 +1,10 @@
 //! Await expression Expression.
 
 use crate::syntax::ast::ContainsSymbol;
+use std::ops::ControlFlow;
 
 use super::Expression;
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 
 /// An await expression is used within an async function to pause execution and wait for a
@@ -59,6 +61,22 @@ impl From<Await> for Expression {
     #[inline]
     fn from(awaitexpr: Await) -> Self {
         Self::Await(awaitexpr)
+    }
+}
+
+impl VisitWith for Await {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_expression(&*self.target)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_expression_mut(&mut *self.target)
     }
 }
 

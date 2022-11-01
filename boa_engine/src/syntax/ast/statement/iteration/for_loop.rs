@@ -285,3 +285,27 @@ impl From<VarDeclaration> for ForLoopInitializer {
         ForLoopInitializer::Var(list)
     }
 }
+
+impl VisitWith for ForLoopInitializer {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            ForLoopInitializer::Expression(expr) => visitor.visit_expression(expr),
+            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration(vd),
+            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            ForLoopInitializer::Expression(expr) => visitor.visit_expression_mut(expr),
+            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration_mut(vd),
+            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+        }
+    }
+}

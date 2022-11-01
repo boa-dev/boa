@@ -1,5 +1,8 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToInternedString};
+use std::ops::ControlFlow;
 
 /// The `conditional` (ternary) operation is the only JavaScript operation that takes three
 /// operands.
@@ -83,5 +86,25 @@ impl From<Conditional> for Expression {
     #[inline]
     fn from(cond_op: Conditional) -> Self {
         Self::Conditional(cond_op)
+    }
+}
+
+impl VisitWith for Conditional {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&*self.condition));
+        try_break!(visitor.visit_expression(&*self.if_true));
+        visitor.visit_expression(&*self.if_false)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut *self.condition));
+        try_break!(visitor.visit_expression_mut(&mut *self.if_true));
+        visitor.visit_expression_mut(&mut *self.if_false)
     }
 }
