@@ -33,10 +33,13 @@ pub use async_generator::AsyncGenerator;
 pub use class::{Class, ClassElement};
 pub use generator::Generator;
 pub use parameters::{FormalParameter, FormalParameterList};
+use std::ops::ControlFlow;
 
 pub(crate) use parameters::FormalParameterListFlags;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{block_to_string, join_nodes, StatementList};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString};
 
 use super::expression::{Expression, Identifier};
@@ -163,6 +166,30 @@ pub(crate) fn has_direct_super(body: &StatementList, parameters: &FormalParamete
         }
     }
     false
+}
+
+impl VisitWith for Function {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(ident) = &self.name {
+            try_break!(visitor.visit_identifier(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_statement_list(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(ident) = &mut self.name {
+            try_break!(visitor.visit_identifier_mut(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_statement_list_mut(&mut self.body)
+    }
 }
 
 #[cfg(test)]
