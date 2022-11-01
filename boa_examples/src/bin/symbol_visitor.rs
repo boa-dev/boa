@@ -1,3 +1,7 @@
+// This example demonstrates how to use a visitor to perform simple operations over the Javascript
+// AST, namely: finding all the `Sym`s present in a script. See commuter_visitor.rs for an example
+// which mutates the AST.
+
 use boa_engine::syntax::ast::visitor::Visitor;
 use boa_engine::syntax::Parser;
 use boa_engine::Context;
