@@ -380,6 +380,46 @@ impl From<Class> for Declaration {
     }
 }
 
+impl VisitWith for Class {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(ident) = &self.name {
+            try_break!(visitor.visit_identifier(ident));
+        }
+        if let Some(expr) = &self.super_ref {
+            try_break!(visitor.visit_expression(expr));
+        }
+        if let Some(func) = &self.constructor {
+            try_break!(visitor.visit_function(func));
+        }
+        for elem in self.elements.iter() {
+            try_break!(visitor.visit_class_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(ident) = &mut self.name {
+            try_break!(visitor.visit_identifier_mut(ident));
+        }
+        if let Some(expr) = &mut self.super_ref {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        if let Some(func) = &mut self.constructor {
+            try_break!(visitor.visit_function_mut(func));
+        }
+        for elem in self.elements.iter_mut() {
+            try_break!(visitor.visit_class_element_mut(elem));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// An element that can be within a [`Class`], as defined by the [spec].
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ClassElement
@@ -449,43 +489,79 @@ impl ClassElement {
     }
 }
 
-impl VisitWith for Class {
+impl VisitWith for ClassElement {
     fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: Visitor<'a>,
     {
-        if let Some(ident) = &self.name {
-            try_break!(visitor.visit_identifier(ident));
+        match self {
+            ClassElement::MethodDefinition(pn, md)
+            | ClassElement::StaticMethodDefinition(pn, md) => {
+                try_break!(visitor.visit_property_name(pn));
+                visitor.visit_method_definition(md)
+            }
+            ClassElement::FieldDefinition(pn, maybe_expr)
+            | ClassElement::StaticFieldDefinition(pn, maybe_expr) => {
+                try_break!(visitor.visit_property_name(pn));
+                if let Some(expr) = maybe_expr {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ClassElement::PrivateMethodDefinition(sym, md)
+            | ClassElement::PrivateStaticMethodDefinition(sym, md) => {
+                try_break!(visitor.visit_sym(sym));
+                visitor.visit_method_definition(md)
+            }
+            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
+            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) => {
+                try_break!(visitor.visit_sym(sym));
+                if let Some(expr) = maybe_expr {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ClassElement::StaticBlock(sl) => visitor.visit_statement_list(sl),
         }
-        if let Some(expr) = &self.super_ref {
-            try_break!(visitor.visit_expression(expr));
-        }
-        if let Some(func) = &self.constructor {
-            try_break!(visitor.visit_function(func));
-        }
-        for elem in self.elements.iter() {
-            try_break!(visitor.visit_class_element(elem));
-        }
-        ControlFlow::Continue(())
     }
 
     fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
     where
         V: VisitorMut<'a>,
     {
-        if let Some(ident) = &mut self.name {
-            try_break!(visitor.visit_identifier_mut(ident));
+        match self {
+            ClassElement::MethodDefinition(pn, md)
+            | ClassElement::StaticMethodDefinition(pn, md) => {
+                try_break!(visitor.visit_property_name_mut(pn));
+                visitor.visit_method_definition_mut(md)
+            }
+            ClassElement::FieldDefinition(pn, maybe_expr)
+            | ClassElement::StaticFieldDefinition(pn, maybe_expr) => {
+                try_break!(visitor.visit_property_name_mut(pn));
+                if let Some(expr) = maybe_expr {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ClassElement::PrivateMethodDefinition(sym, md)
+            | ClassElement::PrivateStaticMethodDefinition(sym, md) => {
+                try_break!(visitor.visit_sym_mut(sym));
+                visitor.visit_method_definition_mut(md)
+            }
+            ClassElement::PrivateFieldDefinition(sym, maybe_expr)
+            | ClassElement::PrivateStaticFieldDefinition(sym, maybe_expr) => {
+                try_break!(visitor.visit_sym_mut(sym));
+                if let Some(expr) = maybe_expr {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ClassElement::StaticBlock(sl) => visitor.visit_statement_list_mut(sl),
         }
-        if let Some(expr) = &mut self.super_ref {
-            try_break!(visitor.visit_expression_mut(expr));
-        }
-        if let Some(func) = &mut self.constructor {
-            try_break!(visitor.visit_function_mut(func));
-        }
-        for elem in self.elements.iter_mut() {
-            try_break!(visitor.visit_class_element_mut(elem));
-        }
-        ControlFlow::Continue(())
     }
 }
 
