@@ -206,6 +206,28 @@ impl ToIndentedString for Catch {
     }
 }
 
+impl VisitWith for Catch {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(binding) = &self.parameter {
+            try_break!(visitor.visit_binding(binding));
+        }
+        visitor.visit_block(&self.block)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(binding) = &mut self.parameter {
+            try_break!(visitor.visit_binding_mut(binding));
+        }
+        visitor.visit_block_mut(&mut self.block)
+    }
+}
+
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -252,5 +274,21 @@ impl From<Block> for Finally {
     #[inline]
     fn from(block: Block) -> Self {
         Self { block }
+    }
+}
+
+impl VisitWith for Finally {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_block(&self.block)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_block_mut(&mut self.block)
     }
 }

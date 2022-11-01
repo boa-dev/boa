@@ -61,6 +61,24 @@ impl Case {
     }
 }
 
+impl VisitWith for Case {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.condition));
+        visitor.visit_statement_list(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        visitor.visit_statement_list_mut(&mut self.body)
+    }
+}
+
 /// The `switch` statement evaluates an expression, matching the expression's value to a case
 /// clause, and executes statements associated with that case, as well as statements in cases
 /// that follow the matching case.

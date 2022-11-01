@@ -1,6 +1,8 @@
 //! Property definition related types, used in object literals and class definitions.
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
 
 use super::{
     expression::{literal::Literal, Identifier},
@@ -314,6 +316,28 @@ impl From<Sym> for PropertyName {
 impl From<Expression> for PropertyName {
     fn from(name: Expression) -> Self {
         Self::Computed(name)
+    }
+}
+
+impl VisitWith for PropertyName {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyName::Literal(sym) => visitor.visit_sym(sym),
+            PropertyName::Computed(expr) => visitor.visit_expression(expr),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyName::Literal(sym) => visitor.visit_sym_mut(sym),
+            PropertyName::Computed(expr) => visitor.visit_expression_mut(expr),
+        }
     }
 }
 

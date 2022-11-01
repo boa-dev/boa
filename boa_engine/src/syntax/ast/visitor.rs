@@ -229,3 +229,20 @@ pub trait VisitWith {
     where
         V: VisitorMut<'a>;
 }
+
+// implementation for Sym as it is out-of-crate
+impl VisitWith for Sym {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        core::ops::ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> core::ops::ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        core::ops::ControlFlow::Continue(())
+    }
+}

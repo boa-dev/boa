@@ -342,3 +342,19 @@ impl ToInternedString for FormalParameter {
         buf
     }
 }
+
+impl VisitWith for FormalParameter {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_variable(&self.variable)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_variable_mut(&mut self.variable)
+    }
+}

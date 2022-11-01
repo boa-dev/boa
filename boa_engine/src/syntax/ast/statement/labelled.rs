@@ -66,6 +66,28 @@ impl From<Statement> for LabelledItem {
     }
 }
 
+impl VisitWith for LabelledItem {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            LabelledItem::Function(f) => visitor.visit_function(f),
+            LabelledItem::Statement(s) => visitor.visit_statement(s),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            LabelledItem::Function(f) => visitor.visit_function_mut(f),
+            LabelledItem::Statement(s) => visitor.visit_statement_mut(s),
+        }
+    }
+}
+
 /// Labelled statement nodes, as defined by the [spec].
 ///
 /// The method [`Labelled::item`] doesn't return a [`Statement`] for compatibility reasons.
