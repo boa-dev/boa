@@ -14,8 +14,10 @@
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
 
 /// A property access field.
 ///
@@ -108,6 +110,30 @@ impl From<PropertyAccess> for Expression {
     #[inline]
     fn from(access: PropertyAccess) -> Self {
         Self::PropertyAccess(access)
+    }
+}
+
+impl VisitWith for PropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access(spa),
+            PropertyAccess::Private(ppa) => visitor.visit_private_property_access(ppa),
+            PropertyAccess::Super(supa) => visitor.visit_super_property_access(supa),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access_mut(spa),
+            PropertyAccess::Private(ppa) => visitor.visit_private_property_access_mut(ppa),
+            PropertyAccess::Super(supa) => visitor.visit_super_property_access_mut(supa),
+        }
     }
 }
 

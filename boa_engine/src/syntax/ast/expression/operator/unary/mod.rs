@@ -14,9 +14,11 @@
 mod op;
 
 pub use op::*;
+use std::ops::ControlFlow;
 
 use boa_interner::{Interner, ToInternedString};
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
 
 /// A unary expression is an operation with only one operand.
@@ -85,5 +87,21 @@ impl From<Unary> for Expression {
     #[inline]
     fn from(op: Unary) -> Self {
         Self::Unary(op)
+    }
+}
+
+impl VisitWith for Unary {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_expression(&*self.target)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_expression_mut(&mut *self.target)
     }
 }

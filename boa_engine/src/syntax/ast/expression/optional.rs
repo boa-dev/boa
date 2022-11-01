@@ -1,6 +1,9 @@
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{join_nodes, ContainsSymbol};
+use crate::try_break;
 
 use super::{access::PropertyAccessField, Expression};
 
@@ -148,6 +151,30 @@ impl ToInternedString for OptionalOperation {
 pub struct Optional {
     target: Box<Expression>,
     chain: Box<[OptionalOperation]>,
+}
+
+impl VisitWith for Optional {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.target));
+        for op in self.chain.iter() {
+            try_break!(visitor.visit_optional_operation(op));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.target));
+        for op in self.chain.iter_mut() {
+            try_break!(visitor.visit_optional_operation_mut(op));
+        }
+        ControlFlow::Continue(())
+    }
 }
 
 impl Optional {

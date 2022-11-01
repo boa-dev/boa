@@ -22,7 +22,9 @@
 //! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
+use std::ops::ControlFlow;
 
 use super::{
     expression::{access::PropertyAccess, Identifier},
@@ -111,6 +113,28 @@ impl Pattern {
         match self {
             Pattern::Object(object) => object.contains(symbol),
             Pattern::Array(array) => array.contains(symbol),
+        }
+    }
+}
+
+impl VisitWith for Pattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            Pattern::Object(op) => visitor.visit_object_pattern(op),
+            Pattern::Array(ap) => visitor.visit_array_pattern(ap),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            Pattern::Object(op) => visitor.visit_object_pattern_mut(op),
+            Pattern::Array(ap) => visitor.visit_array_pattern_mut(ap),
         }
     }
 }

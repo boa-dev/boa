@@ -1,12 +1,15 @@
 //! Template literal Expression.
 
 use std::borrow::Cow;
+use std::ops::ControlFlow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     string::ToStringEscaped,
     syntax::ast::{expression::Expression, ContainsSymbol},
+    try_break,
 };
 
 /// Template literals are string literals allowing embedded expressions.
@@ -93,6 +96,28 @@ impl ToInternedString for TemplateLiteral {
         buf.push('`');
 
         buf
+    }
+}
+
+impl VisitWith for TemplateLiteral {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for element in self.elements.iter() {
+            try_break!(visitor.visit_template_element(element));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for element in self.elements.iter_mut() {
+            try_break!(visitor.visit_template_element_mut(element));
+        }
+        ControlFlow::Continue(())
     }
 }
 

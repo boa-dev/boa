@@ -17,6 +17,7 @@ macro_rules! try_break {
 use crate::syntax::ast::declaration::*;
 use crate::syntax::ast::expression::access::*;
 use crate::syntax::ast::expression::literal::*;
+use crate::syntax::ast::expression::operator::assign::*;
 use crate::syntax::ast::expression::operator::*;
 use crate::syntax::ast::expression::*;
 use crate::syntax::ast::function::*;
@@ -122,6 +123,15 @@ pub trait Visitor<'ast>: Sized {
     define_visit!(visit_formal_parameter, FormalParameter);
     define_visit!(visit_property_name, PropertyName);
     define_visit!(visit_method_definition, MethodDefinition);
+    define_visit!(visit_object_pattern, ObjectPattern);
+    define_visit!(visit_array_pattern, ArrayPattern);
+    define_visit!(visit_property_definition, PropertyDefinition);
+    define_visit!(visit_template_element, TemplateElement);
+    define_visit!(visit_simple_property_access, SimplePropertyAccess);
+    define_visit!(visit_private_property_access, PrivatePropertyAccess);
+    define_visit!(visit_super_property_access, SuperPropertyAccess);
+    define_visit!(visit_optional_operation, OptionalOperation);
+    define_visit!(visit_assign_target, AssignTarget);
 }
 
 /// Represents an AST visitor which can modify AST content.
@@ -194,6 +204,15 @@ pub trait VisitorMut<'ast>: Sized {
     define_visit_mut!(visit_formal_parameter_mut, FormalParameter);
     define_visit_mut!(visit_property_name_mut, PropertyName);
     define_visit_mut!(visit_method_definition_mut, MethodDefinition);
+    define_visit_mut!(visit_object_pattern_mut, ObjectPattern);
+    define_visit_mut!(visit_array_pattern_mut, ArrayPattern);
+    define_visit_mut!(visit_property_definition_mut, PropertyDefinition);
+    define_visit_mut!(visit_template_element_mut, TemplateElement);
+    define_visit_mut!(visit_simple_property_access_mut, SimplePropertyAccess);
+    define_visit_mut!(visit_private_property_access_mut, PrivatePropertyAccess);
+    define_visit_mut!(visit_super_property_access_mut, SuperPropertyAccess);
+    define_visit_mut!(visit_optional_operation_mut, OptionalOperation);
+    define_visit_mut!(visit_assign_target_mut, AssignTarget);
 }
 
 /// Denotes that a type may be visited, providing a method which allows a visitor to traverse its

@@ -13,9 +13,11 @@
 mod op;
 
 pub use op::*;
+use std::ops::ControlFlow;
 
 use boa_interner::{Interner, Sym, ToInternedString};
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::{
     ast::{
         expression::{
@@ -32,6 +34,8 @@ use crate::syntax::{
     },
     parser::RESERVED_IDENTIFIERS_STRICT,
 };
+use crate::try_break;
+
 /// An assignment operator expression.
 ///
 /// See the [module level documentation][self] for more information.
@@ -106,6 +110,24 @@ impl From<Assign> for Expression {
     #[inline]
     fn from(op: Assign) -> Self {
         Self::Assign(op)
+    }
+}
+
+impl VisitWith for Assign {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_assign_target(&*self.lhs));
+        visitor.visit_expression(&*self.rhs)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_assign_target_mut(&mut *self.lhs));
+        visitor.visit_expression_mut(&mut *self.rhs)
     }
 }
 
@@ -426,4 +448,28 @@ pub(crate) fn array_decl_to_declaration_pattern(
         }
     }
     Some(ArrayPattern::new(bindings.into()))
+}
+
+impl VisitWith for AssignTarget {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            AssignTarget::Identifier(id) => visitor.visit_identifier(id),
+            AssignTarget::Access(pa) => visitor.visit_property_access(pa),
+            AssignTarget::Pattern(pat) => visitor.visit_pattern(pat),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            AssignTarget::Identifier(id) => visitor.visit_identifier_mut(id),
+            AssignTarget::Access(pa) => visitor.visit_property_access_mut(pa),
+            AssignTarget::Pattern(pat) => visitor.visit_pattern_mut(pat),
+        }
+    }
 }

@@ -13,8 +13,10 @@ mod template;
 
 pub use array::ArrayLiteral;
 pub use object::ObjectLiteral;
+use std::ops::ControlFlow;
 pub use template::{TemplateElement, TemplateLiteral};
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use boa_interner::{Interner, Sym, ToInternedString};
 use num_bigint::BigInt;
 
@@ -181,6 +183,30 @@ impl ToInternedString for Literal {
             Self::Bool(v) => v.to_string(),
             Self::Null => "null".to_owned(),
             Self::Undefined => "undefined".to_owned(),
+        }
+    }
+}
+
+impl VisitWith for Literal {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Literal::String(sym) = self {
+            visitor.visit_sym(sym)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Literal::String(sym) = self {
+            visitor.visit_sym_mut(sym)
+        } else {
+            ControlFlow::Continue(())
         }
     }
 }

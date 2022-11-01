@@ -15,11 +15,15 @@
 //! [comma]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Comma_Operator
 
 mod op;
+
 pub use op::*;
+use std::ops::ControlFlow;
 
 use boa_interner::{Interner, ToInternedString};
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::try_break;
 
 /// Binary operations require two operands, one before the operator and one after the operator.
 ///
@@ -87,5 +91,23 @@ impl From<Binary> for Expression {
     #[inline]
     fn from(op: Binary) -> Self {
         Self::Binary(op)
+    }
+}
+
+impl VisitWith for Binary {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&*self.lhs));
+        visitor.visit_expression(&*self.rhs)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut *self.lhs));
+        visitor.visit_expression_mut(&mut *self.rhs)
     }
 }
