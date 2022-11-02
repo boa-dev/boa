@@ -45,7 +45,8 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
         assert_eq!(
             first,
             second,
-            "Expected the same AST after two intern passes, but found dissimilar.\nFirst:\n{}\nSecond:\n{}",
+            "Expected the same AST after two intern passes, but found dissimilar.\nOriginal:\n{}\nFirst:\n{}\nSecond:\n{}",
+            original,
             first_interned,
             second.to_interned_string(data.context.interner())
         );
