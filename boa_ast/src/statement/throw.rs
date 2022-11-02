@@ -21,6 +21,10 @@ use core::ops::ControlFlow;
 /// [spec]: https://tc39.es/ecma262/#prod-ThrowStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/throw
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Throw {
     target: Expression,

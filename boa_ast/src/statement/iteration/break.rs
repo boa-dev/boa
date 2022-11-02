@@ -19,6 +19,10 @@ use crate::Statement;
 /// [spec]: https://tc39.es/ecma262/#prod-BreakStatement
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/break
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Break {
     label: Option<Sym>,

@@ -43,6 +43,10 @@ pub const RESERVED_IDENTIFIERS_STRICT: [Sym; 9] = [
     derive(serde::Serialize, serde::Deserialize),
     serde(transparent)
 )]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[repr(transparent)]
 pub struct Identifier {

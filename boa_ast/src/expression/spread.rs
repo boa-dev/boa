@@ -23,6 +23,10 @@ use super::Expression;
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Spread {
     target: Box<Expression>,

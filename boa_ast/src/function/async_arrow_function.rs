@@ -19,6 +19,10 @@ use boa_interner::{Interner, ToIndentedString};
 /// [spec]: https://tc39.es/ecma262/#prod-AsyncArrowFunction
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct AsyncArrowFunction {
     name: Option<Identifier>,

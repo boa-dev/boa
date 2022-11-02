@@ -1,0 +1,36 @@
+[package]
+name = "boa_engine-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.boa_ast]
+path = "../../boa_ast"
+features = ["fuzzer-not-safe-for-production"]
+
+[dependencies.boa_engine]
+path = ".."
+features = ["fuzzer-not-safe-for-production"]
+
+[dependencies.boa_interner]
+path = "../../boa_interner"
+features = ["fuzzer-not-safe-for-production"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "parser-idempotency"
+path = "fuzz_targets/parser-idempotency.rs"
+test = false
+doc = false

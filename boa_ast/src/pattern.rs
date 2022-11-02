@@ -36,6 +36,10 @@ use core::ops::ControlFlow;
 ///
 /// See the [module level documentation][self] for more information.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Pattern {
     /// An object pattern (`let {a, b, c} = object`).
@@ -108,6 +112,10 @@ impl VisitWith for Pattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-ObjectBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ObjectAssignmentPattern
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ObjectPattern(Box<[ObjectPatternElement]>);
 
@@ -196,6 +204,10 @@ impl VisitWith for ObjectPattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-ArrayBindingPattern
 /// [spec2]: https://tc39.es/ecma262/#prod-ArrayAssignmentPattern
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ArrayPattern(Box<[ArrayPatternElement]>);
 
@@ -270,6 +282,10 @@ impl VisitWith for ArrayPattern {
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingProperty
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentProperty
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ObjectPatternElement {
     /// SingleName represents one of the following properties:
@@ -569,6 +585,10 @@ impl VisitWith for ObjectPatternElement {
 /// [spec1]: https://tc39.es/ecma262/#prod-BindingElement
 /// [spec2]: https://tc39.es/ecma262/#prod-AssignmentElement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum ArrayPatternElement {
     /// Elision represents the elision of an item in the array binding pattern.

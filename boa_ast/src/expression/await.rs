@@ -16,6 +16,10 @@ use boa_interner::{Interner, ToIndentedString, ToInternedString};
 /// [spec]: https://tc39.es/ecma262/#prod-AwaitExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Await {
     target: Box<Expression>,

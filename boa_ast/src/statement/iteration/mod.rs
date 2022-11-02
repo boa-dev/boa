@@ -35,6 +35,10 @@ use boa_interner::{Interner, ToInternedString};
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum IterableLoopInitializer {
     /// An already declared variable.

@@ -9,6 +9,10 @@ use super::{access::PropertyAccessField, Expression};
 
 /// List of valid operations in an [`Optional`] chain.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum OptionalOperationKind {
     /// A property access (`a?.prop`).
@@ -73,6 +77,10 @@ impl VisitWith for OptionalOperationKind {
 /// In contrast, a non-shorted operation (`.prop`) will try to access the property, even if the target
 /// is `undefined` or `null`.
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct OptionalOperation {
     kind: OptionalOperationKind,
@@ -175,6 +183,10 @@ impl VisitWith for OptionalOperation {
 /// [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#prod-OptionalExpression
 /// [mdn]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct Optional {
     target: Box<Expression>,

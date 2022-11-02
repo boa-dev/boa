@@ -6,6 +6,7 @@ use crate::{
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
+use arbitrary::Unstructured;
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -18,6 +19,10 @@ use std::cmp::Ordering;
 ///
 /// [spec]: https://tc39.es/ecma262/#prod-StatementListItem
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum StatementListItem {
     /// See [`Statement`].
@@ -196,5 +201,15 @@ impl VisitWith for StatementList {
             try_break!(visitor.visit_statement_list_item_mut(statement));
         }
         ControlFlow::Continue(())
+    }
+}
+
+#[cfg(feature = "fuzzer-not-safe-for-production")]
+impl<'a> arbitrary::Arbitrary<'a> for StatementList {
+    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+        Ok(Self {
+            statements: u.arbitrary()?,
+            strict: false, // disable strictness; this is *not* in source data
+        })
     }
 }

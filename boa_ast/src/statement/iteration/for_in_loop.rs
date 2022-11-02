@@ -15,6 +15,10 @@ use core::ops::ControlFlow;
 /// [forin]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
 /// [spec]: https://tc39.es/ecma262/#prod-ForInOfStatement
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[derive(Clone, Debug, PartialEq)]
 pub struct ForInLoop {
     initializer: IterableLoopInitializer,

@@ -24,6 +24,8 @@ intl = [
     "dep:sys-locale"
 ]
 
+fuzzer-not-safe-for-production = ["boa_ast/fuzzer-not-safe-for-production", "boa_interner/fuzzer-not-safe-for-production"]
+
 # Enable Boa's WHATWG console object implementation.
 console = []
 
