@@ -5,7 +5,6 @@ use crate::{
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
-use arbitrary::Unstructured;
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
 use core::ops::ControlFlow;
@@ -169,7 +168,7 @@ impl VisitWith for FormalParameterList {
 
 #[cfg(feature = "fuzzer-not-safe-for-production")]
 impl<'a> arbitrary::Arbitrary<'a> for FormalParameterList {
-    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         let params: Vec<FormalParameter> = u.arbitrary()?;
         Ok(Self::from(params))
     }
