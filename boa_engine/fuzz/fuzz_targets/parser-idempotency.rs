@@ -24,9 +24,9 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
         assert_eq!(
             before,
             after_first,
-            "The number of interned symbols changed; a new string was read.\nBefore:\n{}\nAfter:\n{}",
-            original,
-            first_interned
+            "The number of interned symbols changed; a new string was read.\nBefore:\n{:#?}\nAfter:\n{:#?}",
+            data.ast,
+            first
         );
         let mut parser = Parser::new(Cursor::new(&first_interned));
 
