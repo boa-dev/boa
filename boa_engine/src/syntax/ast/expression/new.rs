@@ -1,5 +1,7 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Call, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 use super::Expression;
 
@@ -71,6 +73,22 @@ impl From<New> for Expression {
     #[inline]
     fn from(new: New) -> Self {
         Self::New(new)
+    }
+}
+
+impl VisitWith for New {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_call(&self.call)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_call_mut(&mut self.call)
     }
 }
 

@@ -1,7 +1,10 @@
 //! Array declaration Expression.
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// An array is an ordered collection of data (either primitive or object depending upon the
 /// language).
@@ -102,6 +105,28 @@ impl From<ArrayLiteral> for Expression {
     #[inline]
     fn from(arr: ArrayLiteral) -> Self {
         Self::ArrayLiteral(arr)
+    }
+}
+
+impl VisitWith for ArrayLiteral {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for expr in self.arr.iter().flatten() {
+            try_break!(visitor.visit_expression(expr));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for expr in self.arr.iter_mut().flatten() {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        ControlFlow::Continue(())
     }
 }
 

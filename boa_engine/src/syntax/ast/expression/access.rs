@@ -14,8 +14,11 @@
 //! [spec]: https://tc39.es/ecma262/multipage/ecmascript-language-expressions.html#sec-property-accessors
 //! [access]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Property_Accessors
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
 /// A property access field.
 ///
@@ -56,6 +59,28 @@ impl From<Expression> for PropertyAccessField {
     #[inline]
     fn from(expr: Expression) -> Self {
         Self::Expr(Box::new(expr))
+    }
+}
+
+impl VisitWith for PropertyAccessField {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyAccessField::Const(sym) => visitor.visit_sym(sym),
+            PropertyAccessField::Expr(expr) => visitor.visit_expression(expr),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyAccessField::Const(sym) => visitor.visit_sym_mut(sym),
+            PropertyAccessField::Expr(expr) => visitor.visit_expression_mut(&mut *expr),
+        }
     }
 }
 
@@ -108,6 +133,30 @@ impl From<PropertyAccess> for Expression {
     #[inline]
     fn from(access: PropertyAccess) -> Self {
         Self::PropertyAccess(access)
+    }
+}
+
+impl VisitWith for PropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access(spa),
+            PropertyAccess::Private(ppa) => visitor.visit_private_property_access(ppa),
+            PropertyAccess::Super(supa) => visitor.visit_super_property_access(supa),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            PropertyAccess::Simple(spa) => visitor.visit_simple_property_access_mut(spa),
+            PropertyAccess::Private(ppa) => visitor.visit_private_property_access_mut(ppa),
+            PropertyAccess::Super(supa) => visitor.visit_super_property_access_mut(supa),
+        }
     }
 }
 
@@ -172,6 +221,24 @@ impl From<SimplePropertyAccess> for PropertyAccess {
     #[inline]
     fn from(access: SimplePropertyAccess) -> Self {
         Self::Simple(access)
+    }
+}
+
+impl VisitWith for SimplePropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_property_access_field(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_property_access_field_mut(&mut self.field)
     }
 }
 
@@ -243,6 +310,24 @@ impl From<PrivatePropertyAccess> for PropertyAccess {
     }
 }
 
+impl VisitWith for PrivatePropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.target));
+        visitor.visit_sym(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.target));
+        visitor.visit_sym_mut(&mut self.field)
+    }
+}
+
 /// A property access of an object's parent, as defined by the [spec].
 ///
 /// A `SuperPropertyAccess` is much like a regular [`PropertyAccess`], but where its `target` object
@@ -296,5 +381,21 @@ impl From<SuperPropertyAccess> for PropertyAccess {
     #[inline]
     fn from(access: SuperPropertyAccess) -> Self {
         Self::Super(access)
+    }
+}
+
+impl VisitWith for SuperPropertyAccess {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_property_access_field(&self.field)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_property_access_field_mut(&mut self.field)
     }
 }

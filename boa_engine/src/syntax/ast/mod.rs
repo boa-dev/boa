@@ -24,6 +24,7 @@ pub mod keyword;
 pub mod pattern;
 pub mod property;
 pub mod statement;
+pub mod visitor;
 
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 

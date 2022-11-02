@@ -3,7 +3,10 @@ use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes, Declaration, StatementList,
 };
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString};
 
 use super::FormalParameterList;
@@ -86,5 +89,29 @@ impl From<Generator> for Declaration {
     #[inline]
     fn from(f: Generator) -> Self {
         Self::Generator(f)
+    }
+}
+
+impl VisitWith for Generator {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(ident) = &self.name {
+            try_break!(visitor.visit_identifier(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_statement_list(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(ident) = &mut self.name {
+            try_break!(visitor.visit_identifier_mut(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_statement_list_mut(&mut self.body)
     }
 }

@@ -1,6 +1,9 @@
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{join_nodes, ContainsSymbol};
+use crate::try_break;
 
 use super::{access::PropertyAccessField, Expression};
 
@@ -40,6 +43,44 @@ impl OptionalOperationKind {
             OptionalOperationKind::SimplePropertyAccess { field } => field.contains(symbol),
             OptionalOperationKind::PrivatePropertyAccess { .. } => false,
             OptionalOperationKind::Call { args } => args.iter().any(|e| e.contains(symbol)),
+        }
+    }
+}
+
+impl VisitWith for OptionalOperationKind {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                visitor.visit_property_access_field(field)
+            }
+            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym(field),
+            OptionalOperationKind::Call { args } => {
+                for arg in args.iter() {
+                    try_break!(visitor.visit_expression(arg));
+                }
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            OptionalOperationKind::SimplePropertyAccess { field } => {
+                visitor.visit_property_access_field_mut(field)
+            }
+            OptionalOperationKind::PrivatePropertyAccess { field } => visitor.visit_sym_mut(field),
+            OptionalOperationKind::Call { args } => {
+                for arg in args.iter_mut() {
+                    try_break!(visitor.visit_expression_mut(arg));
+                }
+                ControlFlow::Continue(())
+            }
         }
     }
 }
@@ -121,6 +162,22 @@ impl ToInternedString for OptionalOperation {
     }
 }
 
+impl VisitWith for OptionalOperation {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_optional_operation_kind(&self.kind)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_optional_operation_kind_mut(&mut self.kind)
+    }
+}
+
 /// An optional chain expression, as defined by the [spec].
 ///
 /// [Optional chaining][mdn] allows for short-circuiting property accesses and function calls, which
@@ -148,6 +205,30 @@ impl ToInternedString for OptionalOperation {
 pub struct Optional {
     target: Box<Expression>,
     chain: Box<[OptionalOperation]>,
+}
+
+impl VisitWith for Optional {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.target));
+        for op in self.chain.iter() {
+            try_break!(visitor.visit_optional_operation(op));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.target));
+        for op in self.chain.iter_mut() {
+            try_break!(visitor.visit_optional_operation_mut(op));
+        }
+        ControlFlow::Continue(())
+    }
 }
 
 impl Optional {

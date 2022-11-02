@@ -1,8 +1,11 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes, ContainsSymbol, StatementList,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString};
+use core::ops::ControlFlow;
 
 use super::FormalParameterList;
 
@@ -102,6 +105,30 @@ impl ToIndentedString for ArrowFunction {
 impl From<ArrowFunction> for Expression {
     fn from(decl: ArrowFunction) -> Self {
         Self::ArrowFunction(decl)
+    }
+}
+
+impl VisitWith for ArrowFunction {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(ident) = &self.name {
+            try_break!(visitor.visit_identifier(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list(&self.parameters));
+        visitor.visit_statement_list(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(ident) = &mut self.name {
+            try_break!(visitor.visit_identifier_mut(ident));
+        }
+        try_break!(visitor.visit_formal_parameter_list_mut(&mut self.parameters));
+        visitor.visit_statement_list_mut(&mut self.body)
     }
 }
 

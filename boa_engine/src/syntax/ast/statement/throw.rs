@@ -1,5 +1,7 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{statement::Statement, ContainsSymbol, Expression};
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// The `throw` statement throws a user-defined exception.
 ///
@@ -52,6 +54,22 @@ impl ToInternedString for Throw {
 impl From<Throw> for Statement {
     fn from(trw: Throw) -> Self {
         Self::Throw(trw)
+    }
+}
+
+impl VisitWith for Throw {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_expression(&self.target)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_expression_mut(&mut self.target)
     }
 }
 

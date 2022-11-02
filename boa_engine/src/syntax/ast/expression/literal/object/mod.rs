@@ -3,6 +3,7 @@
 #[cfg(test)]
 mod tests;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     block_to_string,
     expression::Expression,
@@ -10,7 +11,9 @@ use crate::syntax::ast::{
     property::{MethodDefinition, PropertyDefinition},
     ContainsSymbol,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 /// Objects in JavaScript may be defined as an unordered collection of related data, of
 /// primitive or reference types, in the form of “key: value” pairs.
@@ -151,5 +154,27 @@ impl From<ObjectLiteral> for Expression {
     #[inline]
     fn from(obj: ObjectLiteral) -> Self {
         Self::ObjectLiteral(obj)
+    }
+}
+
+impl VisitWith for ObjectLiteral {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for pd in self.properties.iter() {
+            try_break!(visitor.visit_property_definition(pd));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for pd in self.properties.iter_mut() {
+            try_break!(visitor.visit_property_definition_mut(pd));
+        }
+        ControlFlow::Continue(())
     }
 }

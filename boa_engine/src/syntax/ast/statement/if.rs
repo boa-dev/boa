@@ -1,7 +1,10 @@
 //! If statement
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 /// The `if` statement executes a statement if a specified condition is [`truthy`][truthy]. If
 /// the condition is [`falsy`][falsy], another statement can be executed.
@@ -92,6 +95,32 @@ impl ToIndentedString for If {
 impl From<If> for Statement {
     fn from(if_stm: If) -> Self {
         Self::If(if_stm)
+    }
+}
+
+impl VisitWith for If {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.condition));
+        try_break!(visitor.visit_statement(&self.body));
+        if let Some(stmt) = &self.else_node {
+            try_break!(visitor.visit_statement(stmt));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        try_break!(visitor.visit_statement_mut(&mut self.body));
+        if let Some(stmt) = &mut self.else_node {
+            try_break!(visitor.visit_statement_mut(stmt));
+        }
+        ControlFlow::Continue(())
     }
 }
 

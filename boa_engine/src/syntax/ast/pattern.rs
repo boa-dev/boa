@@ -22,7 +22,10 @@
 //! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
+use crate::try_break;
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
 use super::{
     expression::{access::PropertyAccess, Identifier},
@@ -115,6 +118,28 @@ impl Pattern {
     }
 }
 
+impl VisitWith for Pattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            Pattern::Object(op) => visitor.visit_object_pattern(op),
+            Pattern::Array(ap) => visitor.visit_array_pattern(ap),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            Pattern::Object(op) => visitor.visit_object_pattern_mut(op),
+            Pattern::Array(ap) => visitor.visit_array_pattern_mut(ap),
+        }
+    }
+}
+
 /// An object binding or assignment pattern.
 ///
 /// Corresponds to the [`ObjectBindingPattern`][spec1] and the [`ObjectAssignmentPattern`][spec2]
@@ -197,6 +222,28 @@ impl ObjectPattern {
     }
 }
 
+impl VisitWith for ObjectPattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for elem in self.0.iter() {
+            try_break!(visitor.visit_object_pattern_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for elem in self.0.iter_mut() {
+            try_break!(visitor.visit_object_pattern_element_mut(elem));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// An array binding or assignment pattern.
 ///
 /// Corresponds to the [`ArrayBindingPattern`][spec1] and the [`ArrayAssignmentPattern`][spec2]
@@ -265,6 +312,28 @@ impl ArrayPattern {
             .iter()
             .flat_map(ArrayPatternElement::idents)
             .collect()
+    }
+}
+
+impl VisitWith for ArrayPattern {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for elem in self.0.iter() {
+            try_break!(visitor.visit_array_pattern_element(elem));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for elem in self.0.iter_mut() {
+            try_break!(visitor.visit_array_pattern_element_mut(elem));
+        }
+        ControlFlow::Continue(())
     }
 }
 
@@ -541,6 +610,142 @@ impl ToInternedString for ObjectPatternElement {
     }
 }
 
+impl VisitWith for ObjectPatternElement {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            ObjectPatternElement::SingleName {
+                name,
+                ident,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name(name));
+                try_break!(visitor.visit_identifier(ident));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ObjectPatternElement::RestProperty {
+                ident,
+                excluded_keys,
+            } => {
+                try_break!(visitor.visit_identifier(ident));
+                for key in excluded_keys {
+                    try_break!(visitor.visit_identifier(key));
+                }
+                ControlFlow::Continue(())
+            }
+            ObjectPatternElement::AssignmentPropertyAccess {
+                name,
+                access,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name(name));
+                try_break!(visitor.visit_property_access(access));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ObjectPatternElement::AssignmentRestPropertyAccess {
+                access,
+                excluded_keys,
+            } => {
+                try_break!(visitor.visit_property_access(access));
+                for key in excluded_keys {
+                    try_break!(visitor.visit_identifier(key));
+                }
+                ControlFlow::Continue(())
+            }
+            ObjectPatternElement::Pattern {
+                name,
+                pattern,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name(name));
+                try_break!(visitor.visit_pattern(pattern));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            ObjectPatternElement::SingleName {
+                name,
+                ident,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name_mut(name));
+                try_break!(visitor.visit_identifier_mut(ident));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ObjectPatternElement::RestProperty {
+                ident,
+                excluded_keys,
+            } => {
+                try_break!(visitor.visit_identifier_mut(ident));
+                for key in excluded_keys {
+                    try_break!(visitor.visit_identifier_mut(key));
+                }
+                ControlFlow::Continue(())
+            }
+            ObjectPatternElement::AssignmentPropertyAccess {
+                name,
+                access,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name_mut(name));
+                try_break!(visitor.visit_property_access_mut(access));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ObjectPatternElement::AssignmentRestPropertyAccess {
+                access,
+                excluded_keys,
+            } => {
+                try_break!(visitor.visit_property_access_mut(access));
+                for key in excluded_keys {
+                    try_break!(visitor.visit_identifier_mut(key));
+                }
+                ControlFlow::Continue(())
+            }
+            ObjectPatternElement::Pattern {
+                name,
+                pattern,
+                default_init,
+            } => {
+                try_break!(visitor.visit_property_name_mut(name));
+                try_break!(visitor.visit_pattern_mut(pattern));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+        }
+    }
+}
+
 /// The different types of bindings that an array binding pattern may contain.
 ///
 /// Corresponds to the [`BindingElement`][spec1] and the [`AssignmentElement`][spec2] nodes.
@@ -748,6 +953,88 @@ impl ToInternedString for ArrayPatternElement {
             }
             Self::PatternRest { pattern } => {
                 format!(" ... {}", pattern.to_interned_string(interner))
+            }
+        }
+    }
+}
+
+impl VisitWith for ArrayPatternElement {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            ArrayPatternElement::SingleName {
+                ident,
+                default_init,
+            } => {
+                try_break!(visitor.visit_identifier(ident));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ArrayPatternElement::PropertyAccess { access }
+            | ArrayPatternElement::PropertyAccessRest { access } => {
+                visitor.visit_property_access(access)
+            }
+            ArrayPatternElement::Pattern {
+                pattern,
+                default_init,
+            } => {
+                try_break!(visitor.visit_pattern(pattern));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ArrayPatternElement::SingleNameRest { ident } => visitor.visit_identifier(ident),
+            ArrayPatternElement::PatternRest { pattern } => visitor.visit_pattern(pattern),
+            ArrayPatternElement::Elision => {
+                // special case to be handled by user
+                ControlFlow::Continue(())
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            ArrayPatternElement::SingleName {
+                ident,
+                default_init,
+            } => {
+                try_break!(visitor.visit_identifier_mut(ident));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ArrayPatternElement::PropertyAccess { access }
+            | ArrayPatternElement::PropertyAccessRest { access } => {
+                visitor.visit_property_access_mut(access)
+            }
+            ArrayPatternElement::Pattern {
+                pattern,
+                default_init,
+            } => {
+                try_break!(visitor.visit_pattern_mut(pattern));
+                if let Some(expr) = default_init {
+                    visitor.visit_expression_mut(expr)
+                } else {
+                    ControlFlow::Continue(())
+                }
+            }
+            ArrayPatternElement::SingleNameRest { ident } => visitor.visit_identifier_mut(ident),
+            ArrayPatternElement::PatternRest { pattern } => visitor.visit_pattern_mut(pattern),
+            ArrayPatternElement::Elision => {
+                // special case to be handled by user
+                ControlFlow::Continue(())
             }
         }
     }

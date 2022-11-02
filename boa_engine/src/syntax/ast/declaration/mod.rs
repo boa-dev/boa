@@ -20,10 +20,12 @@ use super::{
     ContainsSymbol,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 use tap::Tap;
 
 mod variable;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 pub use variable::*;
 
 /// The `Declaration` Parse Node.
@@ -162,6 +164,36 @@ impl ToIndentedString for Declaration {
             Declaration::AsyncGenerator(ag) => ag.to_indented_string(interner, indentation),
             Declaration::Class(c) => c.to_indented_string(interner, indentation),
             Declaration::Lexical(l) => l.to_interned_string(interner).tap_mut(|s| s.push(';')),
+        }
+    }
+}
+
+impl VisitWith for Declaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            Declaration::Function(f) => visitor.visit_function(f),
+            Declaration::Generator(g) => visitor.visit_generator(g),
+            Declaration::AsyncFunction(af) => visitor.visit_async_function(af),
+            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator(ag),
+            Declaration::Class(c) => visitor.visit_class(c),
+            Declaration::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            Declaration::Function(f) => visitor.visit_function_mut(f),
+            Declaration::Generator(g) => visitor.visit_generator_mut(g),
+            Declaration::AsyncFunction(af) => visitor.visit_async_function_mut(af),
+            Declaration::AsyncGenerator(ag) => visitor.visit_async_generator_mut(ag),
+            Declaration::Class(c) => visitor.visit_class_mut(c),
+            Declaration::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
         }
     }
 }

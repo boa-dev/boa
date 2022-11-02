@@ -1,5 +1,7 @@
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::ContainsSymbol;
 
 use super::Expression;
@@ -67,6 +69,30 @@ impl ToInternedString for Yield {
             format!("{y} {}", ex.to_interned_string(interner))
         } else {
             y.to_owned()
+        }
+    }
+}
+
+impl VisitWith for Yield {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(expr) = &self.target {
+            visitor.visit_expression(expr)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(expr) = &mut self.target {
+            visitor.visit_expression_mut(expr)
+        } else {
+            ControlFlow::Continue(())
         }
     }
 }

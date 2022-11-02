@@ -1,5 +1,8 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{join_nodes, ContainsSymbol};
+use crate::try_break;
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 use super::Expression;
 
@@ -75,6 +78,30 @@ impl From<Call> for Expression {
     }
 }
 
+impl VisitWith for Call {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.function));
+        for expr in self.args.iter() {
+            try_break!(visitor.visit_expression(expr));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.function));
+        for expr in self.args.iter_mut() {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// The `super` keyword is used to access and call functions on an object's parent.
 ///
 /// More information:
@@ -125,6 +152,28 @@ impl From<SuperCall> for Expression {
     #[inline]
     fn from(call: SuperCall) -> Self {
         Self::SuperCall(call)
+    }
+}
+
+impl VisitWith for SuperCall {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for expr in self.args.iter() {
+            try_break!(visitor.visit_expression(expr));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for expr in self.args.iter_mut() {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        ControlFlow::Continue(())
     }
 }
 

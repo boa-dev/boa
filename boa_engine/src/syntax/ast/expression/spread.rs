@@ -1,5 +1,7 @@
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::ContainsSymbol;
 
 use super::Expression;
@@ -64,6 +66,22 @@ impl From<Spread> for Expression {
     #[inline]
     fn from(spread: Spread) -> Self {
         Self::Spread(spread)
+    }
+}
+
+impl VisitWith for Spread {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_expression(&self.target)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_expression_mut(&mut self.target)
     }
 }
 

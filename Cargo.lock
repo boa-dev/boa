@@ -119,6 +119,7 @@ version = "0.16.0"
 dependencies = [
  "boa_engine",
  "boa_gc",
+ "boa_interner",
  "gc",
 ]
 

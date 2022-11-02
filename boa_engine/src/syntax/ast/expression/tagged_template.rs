@@ -1,6 +1,9 @@
 use boa_interner::{Interner, Sym, ToInternedString};
+use core::ops::ControlFlow;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::ContainsSymbol;
+use crate::try_break;
 
 use super::Expression;
 
@@ -90,6 +93,42 @@ impl From<TaggedTemplate> for Expression {
     #[inline]
     fn from(template: TaggedTemplate) -> Self {
         Self::TaggedTemplate(template)
+    }
+}
+
+impl VisitWith for TaggedTemplate {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.tag));
+        for raw in self.raws.iter() {
+            try_break!(visitor.visit_sym(raw));
+        }
+        for cooked in self.cookeds.iter().flatten() {
+            try_break!(visitor.visit_sym(cooked));
+        }
+        for expr in self.exprs.iter() {
+            try_break!(visitor.visit_expression(expr));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.tag));
+        for raw in self.raws.iter_mut() {
+            try_break!(visitor.visit_sym_mut(raw));
+        }
+        for cooked in self.cookeds.iter_mut().flatten() {
+            try_break!(visitor.visit_sym_mut(cooked));
+        }
+        for expr in self.exprs.iter_mut() {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        ControlFlow::Continue(())
     }
 }
 

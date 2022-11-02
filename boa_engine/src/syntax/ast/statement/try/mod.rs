@@ -1,11 +1,14 @@
 //! Error handling statements
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     declaration::Binding,
     statement::{Block, Statement},
     StatementListItem,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 use super::ContainsSymbol;
 
@@ -112,6 +115,36 @@ impl From<Try> for Statement {
     }
 }
 
+impl VisitWith for Try {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_block(&self.block));
+        if let Some(catch) = &self.catch {
+            try_break!(visitor.visit_catch(catch));
+        }
+        if let Some(finally) = &self.finally {
+            try_break!(visitor.visit_finally(finally));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_block_mut(&mut self.block));
+        if let Some(catch) = &mut self.catch {
+            try_break!(visitor.visit_catch_mut(catch));
+        }
+        if let Some(finally) = &mut self.finally {
+            try_break!(visitor.visit_finally_mut(finally));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// Catch block.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -173,6 +206,28 @@ impl ToIndentedString for Catch {
     }
 }
 
+impl VisitWith for Catch {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(binding) = &self.parameter {
+            try_break!(visitor.visit_binding(binding));
+        }
+        visitor.visit_block(&self.block)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(binding) = &mut self.parameter {
+            try_break!(visitor.visit_binding_mut(binding));
+        }
+        visitor.visit_block_mut(&mut self.block)
+    }
+}
+
 /// Finally block.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -219,5 +274,21 @@ impl From<Block> for Finally {
     #[inline]
     fn from(block: Block) -> Self {
         Self { block }
+    }
+}
+
+impl VisitWith for Finally {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_block(&self.block)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_block_mut(&mut self.block)
     }
 }

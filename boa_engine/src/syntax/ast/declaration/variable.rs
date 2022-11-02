@@ -1,13 +1,16 @@
 //! Variable related declarations.
 
+use core::ops::ControlFlow;
 use std::convert::TryFrom;
 
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
     ContainsSymbol, Statement,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToInternedString};
 
 use super::Declaration;
@@ -65,6 +68,22 @@ impl From<VarDeclaration> for Statement {
 impl ToInternedString for VarDeclaration {
     fn to_interned_string(&self, interner: &Interner) -> String {
         format!("var {}", self.0.to_interned_string(interner))
+    }
+}
+
+impl VisitWith for VarDeclaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_variable_list(&self.0)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_variable_list_mut(&mut self.0)
     }
 }
 
@@ -141,6 +160,30 @@ impl ToInternedString for LexicalDeclaration {
     }
 }
 
+impl VisitWith for LexicalDeclaration {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) => {
+                visitor.visit_variable_list(vars)
+            }
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            LexicalDeclaration::Const(vars) | LexicalDeclaration::Let(vars) => {
+                visitor.visit_variable_list_mut(vars)
+            }
+        }
+    }
+}
+
 /// List of variables in a variable declaration.
 #[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
@@ -168,6 +211,28 @@ impl AsRef<[Variable]> for VariableList {
 impl ToInternedString for VariableList {
     fn to_interned_string(&self, interner: &Interner) -> String {
         join_nodes(interner, self.list.as_ref())
+    }
+}
+
+impl VisitWith for VariableList {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        for variable in self.list.iter() {
+            try_break!(visitor.visit_variable(variable));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        for variable in self.list.iter_mut() {
+            try_break!(visitor.visit_variable_mut(variable));
+        }
+        ControlFlow::Continue(())
     }
 }
 
@@ -288,6 +353,30 @@ impl Variable {
     }
 }
 
+impl VisitWith for Variable {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_binding(&self.binding));
+        if let Some(init) = &self.init {
+            try_break!(visitor.visit_expression(init));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_binding_mut(&mut self.binding));
+        if let Some(init) = &mut self.init {
+            try_break!(visitor.visit_expression_mut(init));
+        }
+        ControlFlow::Continue(())
+    }
+}
+
 /// Binding represents either an individual binding or a binding pattern.
 ///
 /// More information:
@@ -344,6 +433,28 @@ impl ToInternedString for Binding {
         match self {
             Binding::Identifier(id) => id.to_interned_string(interner),
             Binding::Pattern(ref pattern) => pattern.to_interned_string(interner),
+        }
+    }
+}
+
+impl VisitWith for Binding {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            Binding::Identifier(id) => visitor.visit_identifier(id),
+            Binding::Pattern(pattern) => visitor.visit_pattern(pattern),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            Binding::Identifier(id) => visitor.visit_identifier_mut(id),
+            Binding::Pattern(pattern) => visitor.visit_pattern_mut(pattern),
         }
     }
 }

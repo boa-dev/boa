@@ -1,8 +1,10 @@
 //! Block AST node.
 
 use super::Statement;
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Identifier, ContainsSymbol, StatementList};
 use boa_interner::{Interner, ToIndentedString};
+use core::ops::ControlFlow;
 
 /// A `block` statement (or compound statement in other languages) is used to group zero or
 /// more statements.
@@ -77,6 +79,22 @@ impl From<Block> for Statement {
     #[inline]
     fn from(block: Block) -> Self {
         Self::Block(block)
+    }
+}
+
+impl VisitWith for Block {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        visitor.visit_statement_list(&self.statements)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        visitor.visit_statement_list_mut(&mut self.statements)
     }
 }
 

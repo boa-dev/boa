@@ -1,7 +1,10 @@
 //! Switch node.
 //!
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, StatementList};
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 use super::ContainsSymbol;
 
@@ -55,6 +58,24 @@ impl Case {
                 .statements()
                 .iter()
                 .any(|stmt| stmt.contains(symbol))
+    }
+}
+
+impl VisitWith for Case {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.condition));
+        visitor.visit_statement_list(&self.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.condition));
+        visitor.visit_statement_list_mut(&mut self.body)
     }
 }
 
@@ -153,5 +174,35 @@ impl From<Switch> for Statement {
     #[inline]
     fn from(switch: Switch) -> Self {
         Self::Switch(switch)
+    }
+}
+
+impl VisitWith for Switch {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        try_break!(visitor.visit_expression(&self.val));
+        for case in self.cases.iter() {
+            try_break!(visitor.visit_case(case));
+        }
+        if let Some(sl) = &self.default {
+            try_break!(visitor.visit_statement_list(sl));
+        }
+        ControlFlow::Continue(())
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        try_break!(visitor.visit_expression_mut(&mut self.val));
+        for case in self.cases.iter_mut() {
+            try_break!(visitor.visit_case_mut(case));
+        }
+        if let Some(sl) = &mut self.default {
+            try_break!(visitor.visit_statement_list_mut(sl));
+        }
+        ControlFlow::Continue(())
     }
 }

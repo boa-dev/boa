@@ -1,5 +1,7 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{expression::Expression, statement::Statement, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// The `return` statement ends function execution and specifies a value to be returned to the
 /// function caller.
@@ -56,6 +58,30 @@ impl ToInternedString for Return {
         match self.target() {
             Some(ex) => format!("return {}", ex.to_interned_string(interner)),
             None => "return".to_owned(),
+        }
+    }
+}
+
+impl VisitWith for Return {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(expr) = &self.target {
+            visitor.visit_expression(expr)
+        } else {
+            ControlFlow::Continue(())
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(expr) = &mut self.target {
+            visitor.visit_expression_mut(expr)
+        } else {
+            ControlFlow::Continue(())
         }
     }
 }

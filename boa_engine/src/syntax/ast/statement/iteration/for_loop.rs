@@ -1,10 +1,13 @@
+use crate::syntax::ast::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::syntax::ast::{
     declaration::{LexicalDeclaration, VarDeclaration, Variable},
     expression::Identifier,
     statement::Statement,
     ContainsSymbol, Expression,
 };
+use crate::try_break;
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
+use core::ops::ControlFlow;
 
 /// The `for` statement creates a loop that consists of three optional expressions.
 ///
@@ -107,6 +110,40 @@ impl From<ForLoop> for Statement {
     #[inline]
     fn from(for_loop: ForLoop) -> Self {
         Self::ForLoop(for_loop)
+    }
+}
+
+impl VisitWith for ForLoop {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        if let Some(fli) = &self.inner.init {
+            try_break!(visitor.visit_for_loop_initializer(fli));
+        }
+        if let Some(expr) = &self.inner.condition {
+            try_break!(visitor.visit_expression(expr));
+        }
+        if let Some(expr) = &self.inner.final_expr {
+            try_break!(visitor.visit_expression(expr));
+        }
+        visitor.visit_statement(&self.inner.body)
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        if let Some(fli) = &mut self.inner.init {
+            try_break!(visitor.visit_for_loop_initializer_mut(fli));
+        }
+        if let Some(expr) = &mut self.inner.condition {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        if let Some(expr) = &mut self.inner.final_expr {
+            try_break!(visitor.visit_expression_mut(expr));
+        }
+        visitor.visit_statement_mut(&mut self.inner.body)
     }
 }
 
@@ -246,5 +283,29 @@ impl From<VarDeclaration> for ForLoopInitializer {
     #[inline]
     fn from(list: VarDeclaration) -> Self {
         ForLoopInitializer::Var(list)
+    }
+}
+
+impl VisitWith for ForLoopInitializer {
+    fn visit_with<'a, V>(&'a self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: Visitor<'a>,
+    {
+        match self {
+            ForLoopInitializer::Expression(expr) => visitor.visit_expression(expr),
+            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration(vd),
+            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration(ld),
+        }
+    }
+
+    fn visit_with_mut<'a, V>(&'a mut self, visitor: &mut V) -> ControlFlow<V::BreakTy>
+    where
+        V: VisitorMut<'a>,
+    {
+        match self {
+            ForLoopInitializer::Expression(expr) => visitor.visit_expression_mut(expr),
+            ForLoopInitializer::Var(vd) => visitor.visit_var_declaration_mut(vd),
+            ForLoopInitializer::Lexical(ld) => visitor.visit_lexical_declaration_mut(ld),
+        }
     }
 }
