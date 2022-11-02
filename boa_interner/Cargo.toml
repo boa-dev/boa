@@ -10,6 +10,9 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[features]
+fuzzer-not-safe-for-production = ["arbitrary"]
+
 [dependencies]
 boa_macros.workspace = true
 serde = { version = "1.0.147", features = ["derive"], optional = true }
@@ -18,4 +21,4 @@ rustc-hash = "1.1.0"
 static_assertions = "1.1.0"
 once_cell = "1.16.0"
 indexmap = "1.9.1"
-
+arbitrary = { version = "1", optional = true, features = ["derive"] }

@@ -13,6 +13,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[cfg_attr(feature = "serde", serde(transparent))]
+#[cfg_attr(
+    feature = "fuzzer-not-safe-for-production",
+    derive(arbitrary::Arbitrary)
+)]
 #[allow(clippy::unsafe_derive_deserialize)]
 pub struct Sym {
     value: NonZeroUsize,
@@ -126,8 +130,16 @@ impl Sym {
     }
 
     /// Returns the internal value of the [`Sym`]
+    #[cfg(not(feature = "fuzzer-not-safe-for-production"))]
     #[inline]
     pub(super) const fn get(self) -> usize {
+        self.value.get()
+    }
+
+    /// Returns the internal value of the [`Sym`]
+    #[cfg(feature = "fuzzer-not-safe-for-production")]
+    #[inline]
+    pub const fn get(self) -> usize {
         self.value.get()
     }
 }

@@ -99,6 +99,7 @@ dependencies = [
 name = "boa_engine"
 version = "0.16.0"
 dependencies = [
+ "arbitrary",
  "bitflags",
  "boa_ast",
  "boa_gc",
