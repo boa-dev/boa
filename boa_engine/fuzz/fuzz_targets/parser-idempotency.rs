@@ -38,9 +38,9 @@ fn do_fuzz(mut data: FuzzData) -> Result<(), Box<dyn Error>> {
         assert_eq!(
             after_first,
             after_second,
-            "The number of interned symbols changed; a new string was read.\nBefore:\n{}\nAfter:\n{}",
-            first_interned,
-            second.to_interned_string(data.context.interner())
+            "The number of interned symbols changed; a new string was read.\nBefore:\n{:#?}\nAfter:\n{:#?}",
+            first,
+            second
         );
         assert_eq!(
             first,
