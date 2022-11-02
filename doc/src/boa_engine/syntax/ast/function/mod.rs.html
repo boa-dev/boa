@@ -197,6 +197,33 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
+<span id="213">213</span>
+<span id="214">214</span>
+<span id="215">215</span>
+<span id="216">216</span>
+<span id="217">217</span>
+<span id="218">218</span>
+<span id="219">219</span>
+<span id="220">220</span>
+<span id="221">221</span>
+<span id="222">222</span>
+<span id="223">223</span>
+<span id="224">224</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Functions and classes nodes, as defined by the [spec].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [Functions][func] are mainly subprograms that can be called by external code to execute a sequence of</span>
@@ -230,12 +257,15 @@
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_function::AsyncFunction</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">async_generator::AsyncGenerator</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">class</span>::{<span class="ident">Class</span>, <span class="ident">ClassElement</span>};
+<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">generator::Generator</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">parameters</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>};
 
 <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use</span> <span class="ident">parameters::FormalParameterListFlags</span>;
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">block_to_string</span>, <span class="ident">join_nodes</span>, <span class="ident">StatementList</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>};
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::expression</span>::{<span class="ident">Expression</span>, <span class="ident">Identifier</span>};
@@ -362,6 +392,30 @@
         }
     }
     <span class="bool-val">false</span>
+}
+
+<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Function</span> {
+    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">name</span> {
+            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_identifier</span>(<span class="ident">ident</span>));
+        }
+        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">parameters</span>));
+        <span class="ident">visitor</span>.<span class="ident">visit_statement_list</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">body</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">name</span> {
+            <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_identifier_mut</span>(<span class="ident">ident</span>));
+        }
+        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_formal_parameter_list_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">parameters</span>));
+        <span class="ident">visitor</span>.<span class="ident">visit_statement_list_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">body</span>)
+    }
 }
 
 <span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>

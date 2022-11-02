@@ -186,6 +186,32 @@
 <span id="184">184</span>
 <span id="185">185</span>
 <span id="186">186</span>
+<span id="187">187</span>
+<span id="188">188</span>
+<span id="189">189</span>
+<span id="190">190</span>
+<span id="191">191</span>
+<span id="192">192</span>
+<span id="193">193</span>
+<span id="194">194</span>
+<span id="195">195</span>
+<span id="196">196</span>
+<span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
+<span id="205">205</span>
+<span id="206">206</span>
+<span id="207">207</span>
+<span id="208">208</span>
+<span id="209">209</span>
+<span id="210">210</span>
+<span id="211">211</span>
+<span id="212">212</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module contains all literal expressions, which represents the primitive values in JavaScript.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -200,9 +226,11 @@
 <span class="kw">mod</span> <span class="ident">template</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">array::ArrayLiteral</span>;
+<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">object::ObjectLiteral</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">template</span>::{<span class="ident">TemplateElement</span>, <span class="ident">TemplateLiteral</span>};
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
 
@@ -369,6 +397,30 @@
             <span class="ident"><span class="self">Self</span>::Bool</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>.<span class="ident">to_string</span>(),
             <span class="ident"><span class="self">Self</span>::Null</span> =&gt; <span class="string">&quot;null&quot;</span>.<span class="ident">to_owned</span>(),
             <span class="ident"><span class="self">Self</span>::Undefined</span> =&gt; <span class="string">&quot;undefined&quot;</span>.<span class="ident">to_owned</span>(),
+        }
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Literal</span> {
+    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Literal::String</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">visitor</span>.<span class="ident">visit_sym</span>(<span class="ident">sym</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">ControlFlow::Continue</span>(())
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Literal::String</span>(<span class="ident">sym</span>) <span class="op">=</span> <span class="self">self</span> {
+            <span class="ident">visitor</span>.<span class="ident">visit_sym_mut</span>(<span class="ident">sym</span>)
+        } <span class="kw">else</span> {
+            <span class="ident">ControlFlow::Continue</span>(())
         }
     }
 }

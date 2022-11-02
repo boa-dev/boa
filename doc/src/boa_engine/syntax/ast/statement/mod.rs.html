@@ -315,6 +315,66 @@
 <span id="313">313</span>
 <span id="314">314</span>
 <span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
+<span id="328">328</span>
+<span id="329">329</span>
+<span id="330">330</span>
+<span id="331">331</span>
+<span id="332">332</span>
+<span id="333">333</span>
+<span id="334">334</span>
+<span id="335">335</span>
+<span id="336">336</span>
+<span id="337">337</span>
+<span id="338">338</span>
+<span id="339">339</span>
+<span id="340">340</span>
+<span id="341">341</span>
+<span id="342">342</span>
+<span id="343">343</span>
+<span id="344">344</span>
+<span id="345">345</span>
+<span id="346">346</span>
+<span id="347">347</span>
+<span id="348">348</span>
+<span id="349">349</span>
+<span id="350">350</span>
+<span id="351">351</span>
+<span id="352">352</span>
+<span id="353">353</span>
+<span id="354">354</span>
+<span id="355">355</span>
+<span id="356">356</span>
+<span id="357">357</span>
+<span id="358">358</span>
+<span id="359">359</span>
+<span id="360">360</span>
+<span id="361">361</span>
+<span id="362">362</span>
+<span id="363">363</span>
+<span id="364">364</span>
+<span id="365">365</span>
+<span id="366">366</span>
+<span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The [`Statement`] Parse Node, as defined by the [spec].</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Javascript [statements] are mainly composed of control flow operations, such as [`If`],</span>
@@ -345,7 +405,9 @@
     <span class="ident">switch</span>::{<span class="ident">Case</span>, <span class="ident">Switch</span>},
     <span class="ident">throw::Throw</span>,
 };
+<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
 
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 <span class="kw">use</span> <span class="ident">tap::Tap</span>;
@@ -628,6 +690,64 @@
         <span class="ident">buf</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">to_no_indent_string</span>(<span class="ident">interner</span>, <span class="ident">indentation</span>));
 
         <span class="ident">buf</span>
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Statement</span> {
+    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Statement::Block</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_block</span>(<span class="ident">b</span>),
+            <span class="ident">Statement::Var</span>(<span class="ident">v</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_var_declaration</span>(<span class="ident">v</span>),
+            <span class="ident">Statement::Empty</span> =&gt; {
+                <span class="comment">// do nothing; there is nothing to visit here</span>
+                <span class="ident">ControlFlow::Continue</span>(())
+            }
+            <span class="ident">Statement::Expression</span>(<span class="ident">e</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_expression</span>(<span class="ident">e</span>),
+            <span class="ident">Statement::If</span>(<span class="ident">i</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_if</span>(<span class="ident">i</span>),
+            <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">dw</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_do_while_loop</span>(<span class="ident">dw</span>),
+            <span class="ident">Statement::WhileLoop</span>(<span class="ident">w</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_while_loop</span>(<span class="ident">w</span>),
+            <span class="ident">Statement::ForLoop</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_loop</span>(<span class="ident">f</span>),
+            <span class="ident">Statement::ForInLoop</span>(<span class="ident">fi</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_in_loop</span>(<span class="ident">fi</span>),
+            <span class="ident">Statement::ForOfLoop</span>(<span class="ident">fo</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_of_loop</span>(<span class="ident">fo</span>),
+            <span class="ident">Statement::Switch</span>(<span class="ident">s</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_switch</span>(<span class="ident">s</span>),
+            <span class="ident">Statement::Continue</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_continue</span>(<span class="ident">c</span>),
+            <span class="ident">Statement::Break</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_break</span>(<span class="ident">b</span>),
+            <span class="ident">Statement::Return</span>(<span class="ident">r</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_return</span>(<span class="ident">r</span>),
+            <span class="ident">Statement::Labelled</span>(<span class="ident">l</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_labelled</span>(<span class="ident">l</span>),
+            <span class="ident">Statement::Throw</span>(<span class="ident">th</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_throw</span>(<span class="ident">th</span>),
+            <span class="ident">Statement::Try</span>(<span class="ident">tr</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_try</span>(<span class="ident">tr</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">Statement::Block</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_block_mut</span>(<span class="ident">b</span>),
+            <span class="ident">Statement::Var</span>(<span class="ident">v</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_var_declaration_mut</span>(<span class="ident">v</span>),
+            <span class="ident">Statement::Empty</span> =&gt; {
+                <span class="comment">// do nothing; there is nothing to visit here</span>
+                <span class="ident">ControlFlow::Continue</span>(())
+            }
+            <span class="ident">Statement::Expression</span>(<span class="ident">e</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_expression_mut</span>(<span class="ident">e</span>),
+            <span class="ident">Statement::If</span>(<span class="ident">i</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_if_mut</span>(<span class="ident">i</span>),
+            <span class="ident">Statement::DoWhileLoop</span>(<span class="ident">dw</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_do_while_loop_mut</span>(<span class="ident">dw</span>),
+            <span class="ident">Statement::WhileLoop</span>(<span class="ident">w</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_while_loop_mut</span>(<span class="ident">w</span>),
+            <span class="ident">Statement::ForLoop</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_loop_mut</span>(<span class="ident">f</span>),
+            <span class="ident">Statement::ForInLoop</span>(<span class="ident">fi</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_in_loop_mut</span>(<span class="ident">fi</span>),
+            <span class="ident">Statement::ForOfLoop</span>(<span class="ident">fo</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_for_of_loop_mut</span>(<span class="ident">fo</span>),
+            <span class="ident">Statement::Switch</span>(<span class="ident">s</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_switch_mut</span>(<span class="ident">s</span>),
+            <span class="ident">Statement::Continue</span>(<span class="ident">c</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_continue_mut</span>(<span class="ident">c</span>),
+            <span class="ident">Statement::Break</span>(<span class="ident">b</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_break_mut</span>(<span class="ident">b</span>),
+            <span class="ident">Statement::Return</span>(<span class="ident">r</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_return_mut</span>(<span class="ident">r</span>),
+            <span class="ident">Statement::Labelled</span>(<span class="ident">l</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_labelled_mut</span>(<span class="ident">l</span>),
+            <span class="ident">Statement::Throw</span>(<span class="ident">th</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_throw_mut</span>(<span class="ident">th</span>),
+            <span class="ident">Statement::Try</span>(<span class="ident">tr</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_try_mut</span>(<span class="ident">tr</span>),
+        }
     }
 }
 </code></pre></div>

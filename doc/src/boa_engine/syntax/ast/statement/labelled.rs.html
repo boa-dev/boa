@@ -127,9 +127,55 @@
 <span id="125">125</span>
 <span id="126">126</span>
 <span id="127">127</span>
+<span id="128">128</span>
+<span id="129">129</span>
+<span id="130">130</span>
+<span id="131">131</span>
+<span id="132">132</span>
+<span id="133">133</span>
+<span id="134">134</span>
+<span id="135">135</span>
+<span id="136">136</span>
+<span id="137">137</span>
+<span id="138">138</span>
+<span id="139">139</span>
+<span id="140">140</span>
+<span id="141">141</span>
+<span id="142">142</span>
+<span id="143">143</span>
+<span id="144">144</span>
+<span id="145">145</span>
+<span id="146">146</span>
+<span id="147">147</span>
+<span id="148">148</span>
+<span id="149">149</span>
+<span id="150">150</span>
+<span id="151">151</span>
+<span id="152">152</span>
+<span id="153">153</span>
+<span id="154">154</span>
+<span id="155">155</span>
+<span id="156">156</span>
+<span id="157">157</span>
+<span id="158">158</span>
+<span id="159">159</span>
+<span id="160">160</span>
+<span id="161">161</span>
+<span id="162">162</span>
+<span id="163">163</span>
+<span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
+<span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">super</span>::Statement</span>;
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast::visitor</span>::{<span class="ident">VisitWith</span>, <span class="ident">Visitor</span>, <span class="ident">VisitorMut</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::ast</span>::{<span class="ident">function::Function</span>, <span class="ident">ContainsSymbol</span>};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::try_break</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
+<span class="kw">use</span> <span class="ident">core::ops::ControlFlow</span>;
 
 <span class="doccomment">/// The set of Parse Nodes that can be preceded by a label, as defined by the [spec].</span>
 <span class="doccomment">///</span>
@@ -189,6 +235,28 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Statement</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">LabelledItem</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">stmt</span>: <span class="ident">Statement</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Statement</span>(<span class="ident">stmt</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">LabelledItem</span> {
+    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">LabelledItem::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function</span>(<span class="ident">f</span>),
+            <span class="ident">LabelledItem::Statement</span>(<span class="ident">s</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_statement</span>(<span class="ident">s</span>),
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="kw">match</span> <span class="self">self</span> {
+            <span class="ident">LabelledItem::Function</span>(<span class="ident">f</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_function_mut</span>(<span class="ident">f</span>),
+            <span class="ident">LabelledItem::Statement</span>(<span class="ident">s</span>) =&gt; <span class="ident">visitor</span>.<span class="ident">visit_statement_mut</span>(<span class="ident">s</span>),
+        }
     }
 }
 
@@ -252,6 +320,24 @@
 <span class="kw">impl</span> <span class="ident">From</span><span class="op">&lt;</span><span class="ident">Labelled</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Statement</span> {
     <span class="kw">fn</span> <span class="ident">from</span>(<span class="ident">labelled</span>: <span class="ident">Labelled</span>) -&gt; <span class="self">Self</span> {
         <span class="ident"><span class="self">Self</span>::Labelled</span>(<span class="ident">labelled</span>)
+    }
+}
+
+<span class="kw">impl</span> <span class="ident">VisitWith</span> <span class="kw">for</span> <span class="ident">Labelled</span> {
+    <span class="kw">fn</span> <span class="ident">visit_with</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">Visitor</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_labelled_item</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">item</span>));
+        <span class="ident">visitor</span>.<span class="ident">visit_sym</span>(<span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">label</span>)
+    }
+
+    <span class="kw">fn</span> <span class="ident">visit_with_mut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span>, <span class="ident">V</span><span class="op">&gt;</span>(<span class="kw-2">&amp;</span><span class="lifetime">&#39;a</span> <span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">visitor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">V</span>) -&gt; <span class="ident">ControlFlow</span><span class="op">&lt;</span><span class="ident">V::BreakTy</span><span class="op">&gt;</span>
+    <span class="kw">where</span>
+        <span class="ident">V</span>: <span class="ident">VisitorMut</span><span class="op">&lt;</span><span class="lifetime">&#39;a</span><span class="op">&gt;</span>,
+    {
+        <span class="macro">try_break!</span>(<span class="ident">visitor</span>.<span class="ident">visit_labelled_item_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">item</span>));
+        <span class="ident">visitor</span>.<span class="ident">visit_sym_mut</span>(<span class="kw-2">&amp;mut</span> <span class="self">self</span>.<span class="ident">label</span>)
     }
 }
 </code></pre></div>

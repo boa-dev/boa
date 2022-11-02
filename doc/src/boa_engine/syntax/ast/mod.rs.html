@@ -129,6 +129,7 @@
 <span id="127">127</span>
 <span id="128">128</span>
 <span id="129">129</span>
+<span id="130">130</span>
 </pre><pre class="rust"><code><span class="doccomment">//! The Javascript Abstract Syntax Tree.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! This module contains representations of [**Parse Nodes**][grammar] as defined by the ECMAScript spec.</span>
@@ -155,6 +156,7 @@
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">pattern</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">property</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">statement</span>;
+<span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">visitor</span>;
 
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">ToIndentedString</span>, <span class="ident">ToInternedString</span>};
 
