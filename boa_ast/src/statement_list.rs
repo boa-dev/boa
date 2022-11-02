@@ -6,7 +6,6 @@ use crate::{
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
 };
-use arbitrary::Unstructured;
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -206,7 +205,7 @@ impl VisitWith for StatementList {
 
 #[cfg(feature = "fuzzer-not-safe-for-production")]
 impl<'a> arbitrary::Arbitrary<'a> for StatementList {
-    fn arbitrary(u: &mut Unstructured<'a>) -> arbitrary::Result<Self> {
+    fn arbitrary(u: &mut arbitrary::Unstructured<'a>) -> arbitrary::Result<Self> {
         Ok(Self {
             statements: u.arbitrary()?,
             strict: false, // disable strictness; this is *not* in source data
