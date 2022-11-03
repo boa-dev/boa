@@ -171,20 +171,20 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-update-expressions</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::left_hand_side::LeftHandSideExpression</span>;
+<span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">check_strict_arguments_or_eval</span>, <span class="ident">left_hand_side::LeftHandSideExpression</span>};
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">expression</span>::{
-            <span class="ident">operator</span>::{<span class="ident">unary::UnaryOp</span>, <span class="ident">Unary</span>},
-            <span class="ident">Identifier</span>,
-        },
-        <span class="ident">Expression</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::unary::UnaryExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
         <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">expression</span>::{
+        <span class="ident">operator</span>::{<span class="ident">unary::UnaryOp</span>, <span class="ident">Unary</span>},
+        <span class="ident">Identifier</span>,
+    },
+    <span class="ident">Expression</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -241,7 +241,7 @@
 
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
-                        <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
+                        <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
                     }
                 }
 
@@ -257,7 +257,7 @@
 
                 <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                     <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">target</span> {
-                        <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
+                        <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
                     }
                 }
 

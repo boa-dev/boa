@@ -757,13 +757,6 @@
 <span id="755">755</span>
 <span id="756">756</span>
 <span id="757">757</span>
-<span id="758">758</span>
-<span id="759">759</span>
-<span id="760">760</span>
-<span id="761">761</span>
-<span id="762">762</span>
-<span id="763">763</span>
-<span id="764">764</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -786,29 +779,29 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">expression</span>::{
-            <span class="ident">operator</span>::{
-                <span class="ident">binary</span>::{<span class="ident">BinaryOp</span>, <span class="ident">LogicalOp</span>},
-                <span class="ident">Binary</span>,
-            },
-            <span class="ident">Identifier</span>,
-        },
-        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::assignment::ExponentiationExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>,
         <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
-<span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
+
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">expression</span>::{
+        <span class="ident">operator</span>::{
+            <span class="ident">binary</span>::{<span class="ident">BinaryOp</span>, <span class="ident">LogicalOp</span>},
+            <span class="ident">Binary</span>,
+        },
+        <span class="ident">Identifier</span>,
+    },
+    <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
+};
+<span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="self">self</span>::{<span class="ident">assignment::AssignmentExpression</span>, <span class="ident">primary::Initializer</span>};
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">identifiers::RESERVED_IDENTIFIERS_STRICT</span>;
 <span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>) <span class="kw">use</span> {
     <span class="ident">identifiers</span>::{<span class="ident">BindingIdentifier</span>, <span class="ident">LabelIdentifier</span>},
     <span class="ident">left_hand_side::LeftHandSideExpression</span>,
@@ -816,22 +809,6 @@
         <span class="ident">AsyncGeneratorMethod</span>, <span class="ident">AsyncMethod</span>, <span class="ident">GeneratorMethod</span>, <span class="ident">PropertyName</span>,
     },
 };
-
-<span class="comment">// For use in the expression! macro to allow for both Punctuator and Keyword parameters.</span>
-<span class="comment">// Always returns false.</span>
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Keyword</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Punctuator</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="ident">Keyword</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">false</span>
-    }
-}
-
-<span class="comment">// For use in the expression! macro to allow for both Punctuator and Keyword parameters.</span>
-<span class="comment">// Always returns false.</span>
-<span class="kw">impl</span> <span class="ident">PartialEq</span><span class="op">&lt;</span><span class="ident">Punctuator</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="ident">Keyword</span> {
-    <span class="kw">fn</span> <span class="ident">eq</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">_other</span>: <span class="kw-2">&amp;</span><span class="ident">Punctuator</span>) -&gt; <span class="ident">bool</span> {
-        <span class="bool-val">false</span>
-    }
-}
 
 <span class="doccomment">/// Generates an expression parser for a number of expressions whose production rules are of the following pattern.</span>
 <span class="doccomment">///</span>
@@ -850,48 +827,42 @@
 <span class="doccomment">/// A list of punctuators (operands between the &lt;TargetExpression&gt; and &lt;InnerExpression&gt;) are passed as the third parameter.</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// The fifth parameter is an Option&lt;InputElement&gt; which sets the goal symbol to set before parsing (or None to leave it as is).</span>
-<span class="macro">macro_rules!</span> <span class="ident">expression</span> { (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower</span>:<span class="ident">ident</span>, [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">path</span> ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span>:<span class="ident">ident</span> ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>:<span class="ident">expr</span> ) =&gt; {
-    <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
-    <span class="kw">where</span>
-        <span class="ident">R</span>: <span class="ident">Read</span>
-    {
-        <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
+<span class="macro">macro_rules!</span> <span class="ident">expression</span> {
+    (<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>:<span class="ident">ident</span>, <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower</span>:<span class="ident">ident</span>, [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span>:<span class="ident">path</span> ),<span class="kw-2">*</span>], [$( <span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span>:<span class="ident">ident</span> ),<span class="kw-2">*</span>], <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>:<span class="ident">expr</span> ) =&gt; {
+        <span class="kw">impl</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="ident">TokenParser</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span> <span class="kw">for</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>
+        <span class="kw">where</span>
+            <span class="ident">R</span>: <span class="ident">Read</span>
+        {
+            <span class="kw">type</span> <span class="ident">Output</span> <span class="op">=</span> <span class="ident">ast::Expression</span>;
 
-        <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>)-&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">ast::Expression</span><span class="op">&gt;</span> {
-            <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot;Parsing&quot;</span>);
+            <span class="kw">fn</span> <span class="ident">parse</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">cursor</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Cursor</span><span class="op">&lt;</span><span class="ident">R</span><span class="op">&gt;</span>, <span class="ident">interner</span>: <span class="kw-2">&amp;mut</span> <span class="ident">Interner</span>)-&gt; <span class="ident">ParseResult</span><span class="op">&lt;</span><span class="ident">ast::Expression</span><span class="op">&gt;</span> {
+                <span class="kw">let</span> <span class="ident">_timer</span> <span class="op">=</span> <span class="ident">Profiler::global</span>().<span class="ident">start_event</span>(<span class="macro">stringify!</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">name</span>), <span class="string">&quot;Parsing&quot;</span>);
 
-            <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">is_some</span>() {
-                <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">unwrap</span>());
-            }
-
-            <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
-            <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
-            <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
-                <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
-                    <span class="ident">TokenKind::Punctuator</span>(<span class="ident">op</span>) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                            <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                            <span class="ident">lhs</span>,
-                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        ).<span class="ident">into</span>();
-                    }
-                    <span class="ident">TokenKind::Keyword</span>((<span class="ident">op</span>, <span class="bool-val">false</span>)) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
-                        <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
-                        <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
-                            <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
-                            <span class="ident">lhs</span>,
-                            <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
-                        ).<span class="ident">into</span>();
-                    }
-                    <span class="kw">_</span> =&gt; <span class="kw">break</span>
+                <span class="kw">if</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">is_some</span>() {
+                    <span class="ident">cursor</span>.<span class="ident">set_goal</span>(<span class="macro-nonterminal">$</span><span class="macro-nonterminal">goal</span>.<span class="ident">unwrap</span>());
                 }
-            }
 
-            <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">lhs</span> <span class="op">=</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>;
+                <span class="self">self</span>.<span class="ident">name</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">tok</span>) <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">peek</span>(<span class="number">0</span>, <span class="ident">interner</span>)<span class="question-mark">?</span> {
+                    <span class="kw">match</span> <span class="kw-2">*</span><span class="ident">tok</span>.<span class="ident">kind</span>() {
+                        <span class="ident">TokenKind::Punctuator</span>(<span class="ident">op</span>) <span class="kw">if</span> $( <span class="ident">op</span> <span class="op">==</span> <span class="macro-nonterminal">$</span><span class="macro-nonterminal">op</span> )<span class="op">|</span><span class="op">|</span><span class="op">*</span> =&gt; {
+                            <span class="kw">let</span> <span class="ident">_next</span> <span class="op">=</span> <span class="ident">cursor</span>.<span class="ident">next</span>(<span class="ident">interner</span>).<span class="ident">expect</span>(<span class="string">&quot;token disappeared&quot;</span>);
+                            <span class="ident">lhs</span> <span class="op">=</span> <span class="ident">Binary::new</span>(
+                                <span class="ident">op</span>.<span class="ident">as_binary_op</span>().<span class="ident">expect</span>(<span class="string">&quot;Could not get binary operation.&quot;</span>),
+                                <span class="ident">lhs</span>,
+                                <span class="macro-nonterminal">$</span><span class="macro-nonterminal">lower::new</span>($( <span class="self">self</span>.<span class="macro-nonterminal">$</span><span class="macro-nonterminal">low_param</span> ),<span class="kw-2">*</span>).<span class="ident">parse</span>(<span class="ident">cursor</span>, <span class="ident">interner</span>)<span class="question-mark">?</span>
+                            ).<span class="ident">into</span>();
+                        }
+                        <span class="kw">_</span> =&gt; <span class="kw">break</span>
+                    }
+                }
+
+                <span class="prelude-val">Ok</span>(<span class="ident">lhs</span>)
+            }
         }
-    }
-} }
+    };
+}
 
 <span class="doccomment">/// Expression parsing.</span>
 <span class="doccomment">///</span>
@@ -1528,5 +1499,20 @@
     [<span class="ident">name</span>, <span class="ident">allow_yield</span>, <span class="ident">allow_await</span>],
     <span class="prelude-val">Some</span>(<span class="ident">InputElement::Div</span>)
 );
+
+<span class="doccomment">/// Returns an error if `arguments` or `eval` are used as identifier in strict mode.</span>
+<span class="kw">fn</span> <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>: <span class="ident">Identifier</span>, <span class="ident">position</span>: <span class="ident">Position</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">match</span> <span class="ident">ident</span>.<span class="ident">sym</span>() {
+        <span class="ident">Sym::ARGUMENTS</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            <span class="string">&quot;unexpected identifier &#39;arguments&#39; in strict mode&quot;</span>,
+            <span class="ident">position</span>,
+        )),
+        <span class="ident">Sym::EVAL</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            <span class="string">&quot;unexpected identifier &#39;eval&#39; in strict mode&quot;</span>,
+            <span class="ident">position</span>,
+        )),
+        <span class="kw">_</span> =&gt; <span class="prelude-val">Ok</span>(()),
+    }
+}
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

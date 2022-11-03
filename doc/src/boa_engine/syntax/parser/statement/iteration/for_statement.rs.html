@@ -419,15 +419,6 @@
 <span id="417">417</span>
 <span id="418">418</span>
 <span id="419">419</span>
-<span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
-<span id="423">423</span>
-<span id="424">424</span>
-<span id="425">425</span>
-<span id="426">426</span>
-<span id="427">427</span>
-<span id="428">428</span>
 </pre><pre class="rust"><code><span class="doccomment">//! For statement parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -438,17 +429,6 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-for-statement</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">expression::operator::assign</span>::{
-            <span class="ident">array_decl_to_declaration_pattern</span>, <span class="ident">object_decl_to_declaration_pattern</span>,
-        },
-        <span class="ident">statement</span>::{
-            <span class="ident">iteration</span>::{<span class="ident">ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>},
-            <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>,
-        },
-        <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::Expression</span>,
@@ -456,6 +436,14 @@
         <span class="ident">statement</span>::{<span class="ident">variable::VariableDeclarationList</span>, <span class="ident">Statement</span>},
         <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">statement</span>::{
+        <span class="ident">iteration</span>::{<span class="ident">ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>},
+        <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>,
+    },
+    <span class="ident">Keyword</span>, <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -787,26 +775,20 @@
                 )))
             }
             <span class="ident">ast::Expression::Identifier</span>(<span class="ident">ident</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Identifier</span>(<span class="ident">ident</span>)),
-            <span class="ident">ast::Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
-                <span class="ident">array_decl_to_declaration_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">array</span>, <span class="ident">strict</span>)
-                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
-                        <span class="ident">message</span>: <span class="string">&quot;
-            invalid array destructuring pattern in iterable loop initializer
-            &quot;</span>,
-                        <span class="ident">position</span>,
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arr</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">arr</span>.<span class="ident">into</span>()))
-            }
-            <span class="ident">ast::Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
-                <span class="ident">object_decl_to_declaration_pattern</span>(<span class="kw-2">&amp;</span><span class="ident">object</span>, <span class="ident">strict</span>)
-                    .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
-                        <span class="ident">message</span>: <span class="string">&quot;
-            invalid object destructuring pattern in iterable loop initializer
-            &quot;</span>,
-                        <span class="ident">position</span>,
-                    })
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">obj</span>.<span class="ident">into</span>()))
-            }
+            <span class="ident">ast::Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; <span class="ident">array</span>
+                .<span class="ident">to_pattern</span>(<span class="ident">strict</span>)
+                .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
+                    <span class="ident">message</span>: <span class="string">&quot;invalid array destructuring pattern in iterable loop initializer&quot;</span>,
+                    <span class="ident">position</span>,
+                })
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">arr</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">arr</span>.<span class="ident">into</span>())),
+            <span class="ident">ast::Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; <span class="ident">object</span>
+                .<span class="ident">to_pattern</span>(<span class="ident">strict</span>)
+                .<span class="ident">ok_or</span>(<span class="ident">ParseError::General</span> {
+                    <span class="ident">message</span>: <span class="string">&quot;invalid object destructuring pattern in iterable loop initializer&quot;</span>,
+                    <span class="ident">position</span>,
+                })
+                .<span class="ident">map</span>(<span class="op">|</span><span class="ident">obj</span><span class="op">|</span> <span class="ident">IterableLoopInitializer::Pattern</span>(<span class="ident">obj</span>.<span class="ident">into</span>())),
             <span class="ident">ast::Expression::PropertyAccess</span>(<span class="ident">access</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="ident">IterableLoopInitializer::Access</span>(<span class="ident">access</span>)),
             <span class="kw">_</span> =&gt; <span class="prelude-val">Err</span>(<span class="ident">ParseError::lex</span>(<span class="ident">LexError::Syntax</span>(
                 <span class="string">&quot;invalid variable for iterable loop&quot;</span>.<span class="ident">into</span>(),

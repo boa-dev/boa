@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["AssignOp","An assignment operator assigns a value to its left operand based on the value of its right operand."],["AssignTarget","The valid left-hand-side expressions of an assignment operator. Also called `LeftHandSideExpression` in the spec."]],"mod":[["op",""]],"struct":[["Assign","An assignment operator expression."]]};

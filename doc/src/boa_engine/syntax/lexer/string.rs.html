@@ -347,15 +347,11 @@
 <span id="345">345</span>
 <span id="346">346</span>
 <span id="347">347</span>
-<span id="348">348</span>
-<span id="349">349</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for string literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
-    <span class="ident">lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{

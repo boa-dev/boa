@@ -70,10 +70,10 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::unary::UnaryExpression</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">expression::Await</span>, <span class="ident">Keyword</span>},
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{<span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">expression::Await</span>, <span class="ident">Keyword</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 

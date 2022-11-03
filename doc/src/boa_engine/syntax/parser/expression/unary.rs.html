@@ -149,19 +149,19 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-unary-operators</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">expression</span>::{
-            <span class="ident">access::PropertyAccess</span>,
-            <span class="ident">operator</span>::{<span class="ident">unary::UnaryOp</span>, <span class="ident">Unary</span>},
-            <span class="ident">Identifier</span>,
-        },
-        <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{<span class="ident">await_expr::AwaitExpression</span>, <span class="ident">update::UpdateExpression</span>},
         <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">expression</span>::{
+        <span class="ident">access::PropertyAccess</span>,
+        <span class="ident">operator</span>::{<span class="ident">unary::UnaryOp</span>, <span class="ident">Unary</span>},
+        <span class="ident">Identifier</span>,
+    },
+    <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;

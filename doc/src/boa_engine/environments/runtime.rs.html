@@ -849,11 +849,11 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident">std::cell::Cell</span>;
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environments::CompileTimeEnvironment</span>, <span class="ident">error::JsNativeError</span>, <span class="ident">object::JsObject</span>,
-    <span class="ident">syntax::ast::expression::Identifier</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>,
+    <span class="ident">environments::CompileTimeEnvironment</span>, <span class="ident">error::JsNativeError</span>, <span class="ident">object::JsObject</span>, <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span> <span class="kw">as</span> <span class="ident">GcCell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 
+<span class="kw">use</span> <span class="ident">boa_ast::expression::Identifier</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;
 
 <span class="doccomment">/// A declarative environment holds binding values at runtime.</span>

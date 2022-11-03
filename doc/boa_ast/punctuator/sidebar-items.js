@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Punctuator","All of the punctuators used in JavaScript."]]};

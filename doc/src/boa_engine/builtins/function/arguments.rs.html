@@ -299,9 +299,9 @@
     <span class="ident">object</span>::{<span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property::PropertyDescriptor</span>,
     <span class="ident">symbol</span>::{<span class="self">self</span>, <span class="ident">WellKnownSymbols</span>},
-    <span class="ident">syntax::ast::function::FormalParameterList</span>,
     <span class="ident">Context</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast::function::FormalParameterList</span>;
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
 
@@ -495,7 +495,7 @@
 
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">bindings</span> <span class="op">=</span> <span class="ident">FxHashMap::default</span>();
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">property_index</span> <span class="op">=</span> <span class="number">0</span>;
-        <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">formal</span> <span class="kw">in</span> <span class="ident">formals</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+        <span class="lifetime">&#39;outer</span>: <span class="kw">for</span> <span class="ident">formal</span> <span class="kw">in</span> <span class="ident">formals</span>.<span class="ident">as_ref</span>() {
             <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">formal</span>.<span class="ident">names</span>() {
                 <span class="kw">if</span> <span class="ident">property_index</span> <span class="op">&gt;</span><span class="op">=</span> <span class="ident">len</span> {
                     <span class="kw">break</span> <span class="lifetime">&#39;outer</span>;

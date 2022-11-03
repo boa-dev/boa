@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["UnaryOp","A unary operator is one that takes a single operand/argument and performs an operation."]]};

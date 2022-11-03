@@ -142,10 +142,10 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::StatementList</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">statement</span>, <span class="ident">Punctuator</span>},
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{<span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">statement</span>, <span class="ident">Punctuator</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};

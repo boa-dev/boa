@@ -659,6 +659,7 @@
 <span id="657">657</span>
 <span id="658">658</span>
 <span id="659">659</span>
+<span id="660">660</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Javascript context.</span>
 
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">intrinsics</span>;
@@ -681,11 +682,12 @@
     <span class="ident">object</span>::{<span class="ident">FunctionBuilder</span>, <span class="ident">GlobalPropertyMap</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>},
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">realm::Realm</span>,
-    <span class="ident">syntax</span>::{<span class="ident">ast::StatementList</span>, <span class="ident">parser::ParseError</span>, <span class="ident">Parser</span>},
+    <span class="ident">syntax</span>::{<span class="ident">parser::ParseError</span>, <span class="ident">Parser</span>},
     <span class="ident">vm</span>::{<span class="ident">CallFrame</span>, <span class="ident">CodeBlock</span>, <span class="ident">FinallyReturn</span>, <span class="ident">GeneratorResumeKind</span>, <span class="ident">Vm</span>},
     <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
 
+<span class="kw">use</span> <span class="ident">boa_ast::StatementList</span>;
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;

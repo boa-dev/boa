@@ -244,10 +244,6 @@
 <span id="242">242</span>
 <span id="243">243</span>
 <span id="244">244</span>
-<span id="245">245</span>
-<span id="246">246</span>
-<span id="247">247</span>
-<span id="248">248</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements all of the [Token]s used in the JavaScript programing language.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -255,14 +251,10 @@
 <span class="doccomment">//!</span>
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-tokens</span>
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>},
-    <span class="ident">lexer::template::TemplateString</span>,
-};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer::template::TemplateString</span>;
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
 <span class="doccomment">/// This represents the smallest individual words, phrases, or characters that JavaScript can understand.</span>
 <span class="doccomment">///</span>
@@ -270,7 +262,7 @@
 <span class="doccomment">///  - [ECMAScript reference][spec]</span>
 <span class="doccomment">///</span>
 <span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-tokens</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">PartialEq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">Token</span> {
     <span class="doccomment">/// The token kind, which contains the actual data of the token.</span>
@@ -305,7 +297,7 @@
 }
 
 <span class="doccomment">/// Represents the type different types of numeric literals.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Numeric</span> {
     <span class="doccomment">/// A floating point number</span>
@@ -340,7 +332,7 @@
 }
 
 <span class="doccomment">/// Represents the type of Token and the data it has inside.</span>
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>, <span class="ident">PartialEq</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">TokenKind</span> {
     <span class="doccomment">/// A boolean literal, which is either `true` or `false`.</span>

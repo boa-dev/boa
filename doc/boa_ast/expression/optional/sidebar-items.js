@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["OptionalOperationKind","List of valid operations in an [`Optional`] chain."]],"struct":[["Optional","An optional chain expression, as defined by the spec."],["OptionalOperation","Operation within an [`Optional`] chain."]]};

@@ -1571,11 +1571,11 @@
         <span class="ident">internal_methods::get_prototype_from_constructor</span>, <span class="ident">JsObject</span>, <span class="ident">ObjectData</span>, <span class="ident">PrivateElement</span>,
     },
     <span class="ident">property::PropertyDescriptor</span>,
-    <span class="ident">syntax::ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">function::FormalParameterList</span>},
     <span class="ident">vm::call_frame::GeneratorResumeKind</span>,
     <span class="ident">vm</span>::{<span class="ident">call_frame::FinallyReturn</span>, <span class="ident">CallFrame</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">function::FormalParameterList</span>};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>, <span class="ident">ToInternedString</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -2327,11 +2327,11 @@
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// Push function arguments to the stack.</span>
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
                     <span class="ident">v</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                         <span class="ident">JsValue::Undefined</span>;
-                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
+                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
                     ]);
                     <span class="ident">v</span>
                 } <span class="kw">else</span> {
@@ -2342,7 +2342,7 @@
                     <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
                 }
 
-                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
                 <span class="kw">let</span> <span class="ident">has_expressions</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
@@ -2450,11 +2450,11 @@
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// Push function arguments to the stack.</span>
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
                     <span class="ident">v</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                         <span class="ident">JsValue::Undefined</span>;
-                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
+                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
                     ]);
                     <span class="ident">v</span>
                 } <span class="kw">else</span> {
@@ -2465,7 +2465,7 @@
                     <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
                 }
 
-                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
                 <span class="kw">let</span> <span class="ident">has_expressions</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">has_expressions</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
@@ -2567,11 +2567,11 @@
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// Push function arguments to the stack.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
                     <span class="ident">v</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                         <span class="ident">JsValue::Undefined</span>;
-                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
+                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
                     ]);
                     <span class="ident">v</span>
                 } <span class="kw">else</span> {
@@ -2579,7 +2579,7 @@
                 };
                 <span class="ident">args</span>.<span class="ident">reverse</span>();
 
-                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
 
                 <span class="kw">let</span> <span class="ident">call_frame</span> <span class="op">=</span> <span class="ident">CallFrame</span> {
                     <span class="ident">code</span>,
@@ -2702,11 +2702,11 @@
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// Push function arguments to the stack.</span>
-                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
+                <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
                     <span class="ident">v</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                         <span class="ident">JsValue::Undefined</span>;
-                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
+                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
                     ]);
                     <span class="ident">v</span>
                 } <span class="kw">else</span> {
@@ -2714,7 +2714,7 @@
                 };
                 <span class="ident">args</span>.<span class="ident">reverse</span>();
 
-                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
 
                 <span class="kw">let</span> <span class="ident">call_frame</span> <span class="op">=</span> <span class="ident">CallFrame</span> {
                     <span class="ident">code</span>,
@@ -2920,7 +2920,7 @@
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">is_simple_parameter_list</span> <span class="op">=</span> <span class="bool-val">true</span>;
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="bool-val">false</span>;
 
-                <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+                <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">iter</span>() {
                     <span class="ident">has_parameter_expressions</span> <span class="op">=</span> <span class="ident">has_parameter_expressions</span> <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">init</span>().<span class="ident">is_some</span>();
                     <span class="ident">arguments_in_parameter_names</span> <span class="op">=</span> <span class="ident">arguments_in_parameter_names</span>
                         <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">names</span>().<span class="ident">contains</span>(<span class="kw-2">&amp;</span><span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>());
@@ -2953,11 +2953,11 @@
                 <span class="kw">let</span> <span class="ident">arg_count</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">len</span>();
 
                 <span class="comment">// Push function arguments to the stack.</span>
-                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
+                <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">&gt;</span> <span class="ident">args</span>.<span class="ident">len</span>() {
                     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">v</span> <span class="op">=</span> <span class="ident">args</span>.<span class="ident">to_vec</span>();
                     <span class="ident">v</span>.<span class="ident">extend</span>(<span class="macro">vec!</span>[
                         <span class="ident">JsValue::Undefined</span>;
-                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
+                        <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>() <span class="op">-</span> <span class="ident">args</span>.<span class="ident">len</span>()
                     ]);
                     <span class="ident">v</span>
                 } <span class="kw">else</span> {
@@ -2968,7 +2968,7 @@
                     <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push</span>(<span class="ident">arg</span>);
                 }
 
-                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">len</span>();
+                <span class="kw">let</span> <span class="ident">param_count</span> <span class="op">=</span> <span class="ident">code</span>.<span class="ident">params</span>.<span class="ident">as_ref</span>().<span class="ident">len</span>();
 
                 <span class="ident">context</span>.<span class="ident">vm</span>.<span class="ident">push_frame</span>(<span class="ident">CallFrame</span> {
                     <span class="ident">code</span>,

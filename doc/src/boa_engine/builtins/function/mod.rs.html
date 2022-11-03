@@ -1050,6 +1050,7 @@
 <span id="1048">1048</span>
 <span id="1049">1049</span>
 <span id="1050">1050</span>
+<span id="1051">1051</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements the global `Function` object as well as creates Native Functions.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! Objects wrap `Function`s and expose them via call/construct slots.</span>
@@ -1078,10 +1079,11 @@
     <span class="ident">property</span>::{<span class="ident">Attribute</span>, <span class="ident">PropertyDescriptor</span>, <span class="ident">PropertyKey</span>},
     <span class="ident">string::utf16</span>,
     <span class="ident">symbol::WellKnownSymbols</span>,
-    <span class="ident">syntax</span>::{<span class="ident">ast::function::FormalParameterList</span>, <span class="ident">ast::StatementList</span>, <span class="ident">Parser</span>},
+    <span class="ident">syntax::Parser</span>,
     <span class="ident">value::IntegerOrInfinity</span>,
     <span class="ident">Context</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">function::FormalParameterList</span>, <span class="ident">StatementList</span>};
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="self">self</span>, <span class="ident">custom_trace</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -1545,7 +1547,7 @@
         <span class="kw">let</span> <span class="ident">prototype</span> <span class="op">=</span> <span class="ident">get_prototype_from_constructor</span>(<span class="ident">new_target</span>, <span class="ident">default</span>, <span class="ident">context</span>)<span class="question-mark">?</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>((<span class="ident">body_arg</span>, <span class="ident">args</span>)) <span class="op">=</span> <span class="ident">args</span>.<span class="ident">split_last</span>() {
             <span class="kw">let</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="kw">if</span> <span class="ident">args</span>.<span class="ident">is_empty</span>() {
-                <span class="ident">FormalParameterList::empty</span>()
+                <span class="ident">FormalParameterList::default</span>()
             } <span class="kw">else</span> {
                 <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">parameters</span> <span class="op">=</span> <span class="ident">Vec::with_capacity</span>(<span class="ident">args</span>.<span class="ident">len</span>());
                 <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">args</span> {
@@ -1606,7 +1608,7 @@
             <span class="comment">// Early Error: If BindingIdentifier is present and the source text matched by BindingIdentifier is strict mode code,</span>
             <span class="comment">// it is a Syntax Error if the StringValue of BindingIdentifier is &quot;eval&quot; or &quot;arguments&quot;.</span>
             <span class="kw">if</span> <span class="ident">body</span>.<span class="ident">strict</span>() {
-                <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+                <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="ident">parameter</span>.<span class="ident">names</span>() {
                         <span class="kw">if</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::ARGUMENTS</span> <span class="op">|</span><span class="op">|</span> <span class="ident">name</span> <span class="op">==</span> <span class="ident">Sym::EVAL</span> {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">JsNativeError::syntax</span>()
@@ -1640,7 +1642,7 @@
             <span class="comment">// https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors</span>
             {
                 <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
-                <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
+                <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">for</span> <span class="ident">param_name</span> <span class="kw">in</span> <span class="ident">param</span>.<span class="ident">names</span>() {
                         <span class="kw">if</span> <span class="ident">lexically_declared_names</span>
                             .<span class="ident">iter</span>()
@@ -1679,7 +1681,7 @@
                 .<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>)
                 .<span class="ident">generator</span>(<span class="bool-val">true</span>)
                 .<span class="ident">compile</span>(
-                    <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::empty</span>(),
+                    <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::default</span>(),
                     <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
                     <span class="ident">context</span>,
                 )<span class="question-mark">?</span>;
@@ -1692,7 +1694,7 @@
             <span class="prelude-val">Ok</span>(<span class="ident">function_object</span>)
         } <span class="kw">else</span> {
             <span class="kw">let</span> <span class="ident">code</span> <span class="op">=</span> <span class="ident">FunctionCompiler::new</span>().<span class="ident">name</span>(<span class="ident">Sym::ANONYMOUS</span>).<span class="ident">compile</span>(
-                <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::empty</span>(),
+                <span class="kw-2">&amp;</span><span class="ident">FormalParameterList::default</span>(),
                 <span class="kw-2">&amp;</span><span class="ident">StatementList::default</span>(),
                 <span class="ident">context</span>,
             )<span class="question-mark">?</span>;

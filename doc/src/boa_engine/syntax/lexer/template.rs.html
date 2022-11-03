@@ -162,29 +162,19 @@
 <span id="160">160</span>
 <span id="161">161</span>
 <span id="162">162</span>
-<span id="163">163</span>
-<span id="164">164</span>
-<span id="165">165</span>
-<span id="166">166</span>
-<span id="167">167</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for template literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Tokenizer</span>};
-<span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">syntax::lexer::string</span>::{<span class="ident">StringLiteral</span>, <span class="ident">UTF16CodeUnitsBuffer</span>},
-    <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
-        <span class="ident">lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-    },
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{
+    <span class="ident">string</span>::{<span class="ident">StringLiteral</span>, <span class="ident">UTF16CodeUnitsBuffer</span>},
+    <span class="ident">Token</span>, <span class="ident">TokenKind</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io</span>::{<span class="self">self</span>, <span class="ident">ErrorKind</span>, <span class="ident">Read</span>};
 
-<span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>)]</span>
-<span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
-
-<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>))]</span>
+<span class="attribute">#[<span class="ident">cfg_attr</span>(<span class="ident">feature</span> <span class="op">=</span> <span class="string">&quot;deser&quot;</span>, <span class="ident">derive</span>(<span class="ident">serde::Serialize</span>, <span class="ident">serde::Deserialize</span>))]</span>
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>, <span class="ident">Eq</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">TemplateString</span> {
     <span class="doccomment">/// The template string of template literal with argument `raw` true.</span>

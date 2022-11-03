@@ -206,10 +206,10 @@
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">builtins::function::ThisMode</span>,
     <span class="ident">bytecompiler::ByteCompiler</span>,
-    <span class="ident">syntax::ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">StatementList</span>},
     <span class="ident">vm</span>::{<span class="ident">BindingOpcode</span>, <span class="ident">CodeBlock</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsResult</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">StatementList</span>};
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner::Sym</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;
@@ -322,7 +322,7 @@
             );
         }
 
-        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+        <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
             <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>() {
                 <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RestParameterInit</span>);
             }

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Keyword","List of keywords recognized by the JavaScript grammar."]],"struct":[["KeywordError","The error type which is returned from parsing a [`str`] into a [`Keyword`]."]]};

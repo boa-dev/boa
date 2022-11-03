@@ -150,15 +150,15 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">expression</span>::{<span class="ident">literal</span>, <span class="ident">Spread</span>},
-        <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
         <span class="ident">expression::AssignmentExpression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>,
         <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">expression</span>::{<span class="ident">literal</span>, <span class="ident">Spread</span>},
+    <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;

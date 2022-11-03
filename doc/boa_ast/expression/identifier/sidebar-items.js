@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":[["RESERVED_IDENTIFIERS_STRICT","List of reserved keywords exclusive to strict mode."]],"struct":[["Identifier","An `identifier` is a sequence of characters in the code that identifies a variable, function, or property."]]};

@@ -3709,32 +3709,32 @@
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
     <span class="ident">environments</span>::{<span class="ident">BindingLocator</span>, <span class="ident">CompileTimeEnvironment</span>},
-    <span class="ident">syntax::ast</span>::{
-        <span class="ident">declaration</span>::{<span class="ident">Binding</span>, <span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>},
-        <span class="ident">expression</span>::{
-            <span class="ident">access</span>::{<span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>},
-            <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">TemplateElement</span>},
-            <span class="ident">operator</span>::{
-                <span class="ident">assign</span>::{<span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
-                <span class="ident">binary</span>::{<span class="ident">ArithmeticOp</span>, <span class="ident">BinaryOp</span>, <span class="ident">BitwiseOp</span>, <span class="ident">LogicalOp</span>, <span class="ident">RelationalOp</span>},
-                <span class="ident">unary::UnaryOp</span>,
-            },
-            <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>, <span class="ident">Optional</span>, <span class="ident">OptionalOperationKind</span>,
-        },
-        <span class="ident">function</span>::{
-            <span class="ident">ArrowFunction</span>, <span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">ClassElement</span>, <span class="ident">FormalParameterList</span>,
-            <span class="ident">Function</span>, <span class="ident">Generator</span>,
-        },
-        <span class="ident">pattern</span>::{<span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>},
-        <span class="ident">property</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
-        <span class="ident">statement</span>::{
-            <span class="ident">iteration</span>::{<span class="ident">ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>},
-            <span class="ident">Block</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">LabelledItem</span>, <span class="ident">WhileLoop</span>,
-        },
-        <span class="ident">Declaration</span>, <span class="ident">Expression</span>, <span class="ident">Statement</span>, <span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>,
-    },
     <span class="ident">vm</span>::{<span class="ident">BindingOpcode</span>, <span class="ident">CodeBlock</span>, <span class="ident">Opcode</span>},
     <span class="ident">Context</span>, <span class="ident">JsBigInt</span>, <span class="ident">JsNativeError</span>, <span class="ident">JsResult</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">declaration</span>::{<span class="ident">Binding</span>, <span class="ident">LexicalDeclaration</span>, <span class="ident">VarDeclaration</span>},
+    <span class="ident">expression</span>::{
+        <span class="ident">access</span>::{<span class="ident">PropertyAccess</span>, <span class="ident">PropertyAccessField</span>},
+        <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">TemplateElement</span>},
+        <span class="ident">operator</span>::{
+            <span class="ident">assign</span>::{<span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
+            <span class="ident">binary</span>::{<span class="ident">ArithmeticOp</span>, <span class="ident">BinaryOp</span>, <span class="ident">BitwiseOp</span>, <span class="ident">LogicalOp</span>, <span class="ident">RelationalOp</span>},
+            <span class="ident">unary::UnaryOp</span>,
+        },
+        <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>, <span class="ident">Optional</span>, <span class="ident">OptionalOperationKind</span>,
+    },
+    <span class="ident">function</span>::{
+        <span class="ident">ArrowFunction</span>, <span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">Class</span>, <span class="ident">ClassElement</span>, <span class="ident">FormalParameterList</span>,
+        <span class="ident">Function</span>, <span class="ident">Generator</span>,
+    },
+    <span class="ident">pattern</span>::{<span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>},
+    <span class="ident">property</span>::{<span class="ident">MethodDefinition</span>, <span class="ident">PropertyDefinition</span>, <span class="ident">PropertyName</span>},
+    <span class="ident">statement</span>::{
+        <span class="ident">iteration</span>::{<span class="ident">ForLoopInitializer</span>, <span class="ident">IterableLoopInitializer</span>},
+        <span class="ident">Block</span>, <span class="ident">DoWhileLoop</span>, <span class="ident">ForInLoop</span>, <span class="ident">ForLoop</span>, <span class="ident">ForOfLoop</span>, <span class="ident">LabelledItem</span>, <span class="ident">WhileLoop</span>,
+    },
+    <span class="ident">Declaration</span>, <span class="ident">Expression</span>, <span class="ident">Statement</span>, <span class="ident">StatementList</span>, <span class="ident">StatementListItem</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_gc::Gc</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
@@ -5190,13 +5190,13 @@
             <span class="ident">Expression::Class</span>(<span class="ident">class</span>) =&gt; <span class="self">self</span>.<span class="ident">class</span>(<span class="ident">class</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>,
             <span class="ident">Expression::SuperCall</span>(<span class="ident">super_call</span>) =&gt; {
                 <span class="kw">let</span> <span class="ident">contains_spread</span> <span class="op">=</span> <span class="ident">super_call</span>
-                    .<span class="ident">args</span>()
+                    .<span class="ident">arguments</span>()
                     .<span class="ident">iter</span>()
                     .<span class="ident">any</span>(<span class="op">|</span><span class="ident">arg</span><span class="op">|</span> <span class="macro">matches!</span>(<span class="ident">arg</span>, <span class="ident">Expression::Spread</span>(<span class="kw">_</span>)));
 
                 <span class="kw">if</span> <span class="ident">contains_spread</span> {
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::PushNewArray</span>);
-                    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">super_call</span>.<span class="ident">args</span>() {
+                    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">super_call</span>.<span class="ident">arguments</span>() {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">arg</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Spread</span>(<span class="kw">_</span>) <span class="op">=</span> <span class="ident">arg</span> {
                             <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::InitIterator</span>);
@@ -5206,7 +5206,7 @@
                         }
                     }
                 } <span class="kw">else</span> {
-                    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">super_call</span>.<span class="ident">args</span>() {
+                    <span class="kw">for</span> <span class="ident">arg</span> <span class="kw">in</span> <span class="ident">super_call</span>.<span class="ident">arguments</span>() {
                         <span class="self">self</span>.<span class="ident">compile_expr</span>(<span class="ident">arg</span>, <span class="bool-val">true</span>)<span class="question-mark">?</span>;
                     }
                 }
@@ -5214,7 +5214,7 @@
                 <span class="kw">if</span> <span class="ident">contains_spread</span> {
                     <span class="self">self</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::SuperCallSpread</span>);
                 } <span class="kw">else</span> {
-                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SuperCall</span>, <span class="kw-2">&amp;</span>[<span class="ident">super_call</span>.<span class="ident">args</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]);
+                    <span class="self">self</span>.<span class="ident">emit</span>(<span class="ident">Opcode::SuperCall</span>, <span class="kw-2">&amp;</span>[<span class="ident">super_call</span>.<span class="ident">arguments</span>().<span class="ident">len</span>() <span class="kw">as</span> <span class="ident">u32</span>]);
                 }
 
                 <span class="kw">if</span> <span class="op">!</span><span class="ident">use_expr</span> {
@@ -6296,9 +6296,9 @@
                     <span class="kw">let</span> <span class="ident">push_env</span> <span class="op">=</span>
                         <span class="self">self</span>.<span class="ident">emit_opcode_with_two_operands</span>(<span class="ident">Opcode::PushDeclarativeEnvironment</span>);
 
-                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">finally</span>.<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
+                    <span class="self">self</span>.<span class="ident">create_decls</span>(<span class="ident">finally</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(), <span class="ident">configurable_globals</span>);
                     <span class="self">self</span>.<span class="ident">compile_statement_list</span>(
-                        <span class="ident">finally</span>.<span class="ident">statement_list</span>(),
+                        <span class="ident">finally</span>.<span class="ident">block</span>().<span class="ident">statement_list</span>(),
                         <span class="bool-val">false</span>,
                         <span class="ident">configurable_globals</span>,
                     )<span class="question-mark">?</span>;
@@ -6914,7 +6914,7 @@
                     .<span class="ident">context</span>
                     .<span class="ident">initialize_mutable_binding</span>(<span class="ident">Sym::ARGUMENTS</span>.<span class="ident">into</span>(), <span class="bool-val">false</span>),
             );
-            <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">expr</span>.<span class="ident">parameters</span>().<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+            <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">expr</span>.<span class="ident">parameters</span>().<span class="ident">as_ref</span>() {
                 <span class="kw">if</span> <span class="ident">parameter</span>.<span class="ident">is_rest_param</span>() {
                     <span class="ident">compiler</span>.<span class="ident">emit_opcode</span>(<span class="ident">Opcode::RestParameterInit</span>);
                 }

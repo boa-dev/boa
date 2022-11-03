@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":[["ast","The Javascript Abstract Syntax Tree."],["lexer","A lexical analyzer for JavaScript source code."],["parser","Boa parser implementation."]]};
+window.SIDEBAR_ITEMS = {"mod":[["lexer","A lexical analyzer for JavaScript source code."],["parser","Boa parser implementation."]]};

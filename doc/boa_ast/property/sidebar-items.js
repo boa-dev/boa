@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ClassElementName","`ClassElementName` can be either a property name or a private identifier."],["MethodDefinition","Method definition."],["PropertyDefinition","Describes the definition of a property within an object literal."],["PropertyName","`PropertyName` can be either a literal or computed."]]};

@@ -300,16 +300,12 @@
 <span id="298">298</span>
 <span id="299">299</span>
 <span id="300">300</span>
-<span id="301">301</span>
-<span id="302">302</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Cursor implementation for the parser.</span>
 <span class="kw">mod</span> <span class="ident">buffered_lexer</span>;
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">statement::PrivateElement</span>, <span class="ident">ParseError</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Punctuator</span>},
-    <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">Lexer</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">Lexer</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Position</span>, <span class="ident">Punctuator</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">buffered_lexer::BufferedLexer</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;

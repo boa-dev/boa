@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["LabelledItem","The set of Parse Nodes that can be preceded by a label, as defined by the spec."]],"struct":[["Labelled","Labelled statement nodes, as defined by the spec."]]};

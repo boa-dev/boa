@@ -420,17 +420,13 @@
 <span id="418">418</span>
 <span id="419">419</span>
 <span id="420">420</span>
-<span id="421">421</span>
-<span id="422">422</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">syntax</span>::{
-        <span class="ident">ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>},
-        <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>, <span class="ident">Tokenizer</span>},
-    },
+    <span class="ident">syntax::lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>, <span class="ident">Tokenizer</span>},
     <span class="ident">JsBigInt</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">Position</span>, <span class="ident">Span</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">num_bigint::BigInt</span>;

@@ -207,13 +207,13 @@
 <span id="205">205</span>
 <span id="206">206</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">statement</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>},
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
         <span class="ident">statement</span>::{<span class="ident">block::Block</span>, <span class="ident">ArrayBindingPattern</span>, <span class="ident">BindingIdentifier</span>, <span class="ident">ObjectBindingPattern</span>},
         <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">declaration::Binding</span>, <span class="ident">statement</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashSet</span>;

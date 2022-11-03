@@ -1301,20 +1301,10 @@
 <span id="1299">1299</span>
 <span id="1300">1300</span>
 <span id="1301">1301</span>
-<span id="1302">1302</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">expression::Identifier</span>,
-        <span class="ident">function</span>::{
-            <span class="self">self</span>, <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>, <span class="ident">Class</span>, <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>,
-        },
-        <span class="ident">property</span>::{<span class="ident">ClassElementName</span>, <span class="ident">MethodDefinition</span>},
-        <span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{
@@ -1322,9 +1312,17 @@
             <span class="ident">GeneratorMethod</span>, <span class="ident">LeftHandSideExpression</span>, <span class="ident">PropertyName</span>,
         },
         <span class="ident">function</span>::{<span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>, <span class="ident">FUNCTION_BREAK_TOKENS</span>},
+        <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>,
         <span class="ident">statement::StatementList</span>,
         <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">expression::Identifier</span>,
+    <span class="ident">function</span>::{<span class="self">self</span>, <span class="ident">Class</span>, <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>},
+    <span class="ident">property</span>::{<span class="ident">ClassElementName</span>, <span class="ident">MethodDefinition</span>},
+    <span class="ident">ContainsSymbol</span>, <span class="ident">Declaration</span>, <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">rustc_hash</span>::{<span class="ident">FxHashMap</span>, <span class="ident">FxHashSet</span>};
@@ -2223,7 +2221,7 @@
 
                         <span class="kw">let</span> <span class="ident">method</span> <span class="op">=</span> <span class="ident">MethodDefinition::Get</span>(<span class="ident">Function::new</span>(
                             <span class="prelude-val">None</span>,
-                            <span class="ident">FormalParameterList::empty</span>(),
+                            <span class="ident">FormalParameterList::default</span>(),
                             <span class="ident">body</span>,
                         ));
                         <span class="kw">if</span> <span class="ident">r#static</span> {

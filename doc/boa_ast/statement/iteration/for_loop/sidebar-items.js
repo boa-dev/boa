@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["ForLoopInitializer","A [`ForLoop`] initializer, as defined by the spec."]],"struct":[["ForLoop","The `for` statement creates a loop that consists of three optional expressions."],["InnerForLoop","Inner structure to avoid multiple indirections in the heap."]]};

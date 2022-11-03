@@ -55,16 +55,10 @@
 <span id="53">53</span>
 <span id="54">54</span>
 <span id="55">55</span>
-<span id="56">56</span>
-<span id="57">57</span>
-<span id="58">58</span>
-</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">statement</span>, <span class="ident">Keyword</span>},
-    <span class="ident">parser</span>::{
-        <span class="ident">statement::block::Block</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>,
-        <span class="ident">TokenParser</span>,
-    },
+</pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>::{
+    <span class="ident">statement::block::Block</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowReturn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">statement</span>, <span class="ident">Keyword</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;

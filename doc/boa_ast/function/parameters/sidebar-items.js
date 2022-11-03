@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["FormalParameter","“Formal parameter” is a fancy way of saying “function parameter”."],["FormalParameterList","A list of `FormalParameter`s that describes the parameters of a function, as defined by the spec."],["FormalParameterListFlags","Flags for a [`FormalParameterList`]."]]};

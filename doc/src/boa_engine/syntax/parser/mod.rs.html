@@ -428,6 +428,62 @@
 <span id="426">426</span>
 <span id="427">427</span>
 <span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
+<span id="450">450</span>
+<span id="451">451</span>
+<span id="452">452</span>
+<span id="453">453</span>
+<span id="454">454</span>
+<span id="455">455</span>
+<span id="456">456</span>
+<span id="457">457</span>
+<span id="458">458</span>
+<span id="459">459</span>
+<span id="460">460</span>
+<span id="461">461</span>
+<span id="462">462</span>
+<span id="463">463</span>
+<span id="464">464</span>
+<span id="465">465</span>
+<span id="466">466</span>
+<span id="467">467</span>
+<span id="468">468</span>
+<span id="469">469</span>
+<span id="470">470</span>
+<span id="471">471</span>
+<span id="472">472</span>
+<span id="473">473</span>
+<span id="474">474</span>
+<span id="475">475</span>
+<span id="476">476</span>
+<span id="477">477</span>
+<span id="478">478</span>
+<span id="479">479</span>
+<span id="480">480</span>
+<span id="481">481</span>
+<span id="482">482</span>
+<span id="483">483</span>
+<span id="484">484</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Boa parser implementation.</span>
 
 <span class="kw">mod</span> <span class="ident">cursor</span>;
@@ -457,9 +513,8 @@
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident"><span class="self">self</span>::error</span>::{<span class="ident">ParseError</span>, <span class="ident">ParseResult</span>};
-<span class="kw">pub</span>(<span class="kw">in</span> <span class="ident"><span class="kw">crate</span>::syntax</span>) <span class="kw">use</span> <span class="ident">expression::RESERVED_IDENTIFIERS_STRICT</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::ast</span>::{
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
     <span class="ident">expression::Identifier</span>, <span class="ident">function::FormalParameterList</span>, <span class="ident">ContainsSymbol</span>, <span class="ident">Position</span>, <span class="ident">StatementList</span>,
 };
 
@@ -855,6 +910,63 @@
 
         <span class="prelude-val">Ok</span>(<span class="ident">body</span>)
     }
+}
+
+<span class="comment">// Checks if a function contains a super call or super property access.</span>
+<span class="kw">fn</span> <span class="ident">function_contains_super</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
+        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>)
+            <span class="op">|</span><span class="op">|</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
+        {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+    }
+    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
+        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) <span class="op">|</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperProperty</span>)
+        {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+    }
+    <span class="bool-val">false</span>
+}
+
+<span class="doccomment">/// Returns `true` if the function parameters or body contain a direct `super` call.</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// More information:</span>
+<span class="doccomment">///  - [ECMAScript specification][spec]</span>
+<span class="doccomment">///</span>
+<span class="doccomment">/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper</span>
+<span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">has_direct_super</span>(<span class="ident">body</span>: <span class="kw-2">&amp;</span><span class="ident">StatementList</span>, <span class="ident">parameters</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>) -&gt; <span class="ident">bool</span> {
+    <span class="kw">for</span> <span class="ident">param</span> <span class="kw">in</span> <span class="ident">parameters</span>.<span class="ident">as_ref</span>() {
+        <span class="kw">if</span> <span class="ident">param</span>.<span class="ident">variable</span>().<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+    }
+    <span class="kw">for</span> <span class="ident">node</span> <span class="kw">in</span> <span class="ident">body</span>.<span class="ident">statements</span>() {
+        <span class="kw">if</span> <span class="ident">node</span>.<span class="ident">contains</span>(<span class="ident">ContainsSymbol::SuperCall</span>) {
+            <span class="kw">return</span> <span class="bool-val">true</span>;
+        }
+    }
+    <span class="bool-val">false</span>
+}
+
+<span class="doccomment">/// Helper to check if any parameter names are declared in the given list.</span>
+<span class="kw">fn</span> <span class="ident">name_in_lexically_declared_names</span>(
+    <span class="ident">parameter_list</span>: <span class="kw-2">&amp;</span><span class="ident">FormalParameterList</span>,
+    <span class="ident">names</span>: <span class="kw-2">&amp;</span>[<span class="ident">Identifier</span>],
+    <span class="ident">position</span>: <span class="ident">Position</span>,
+) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span>(), <span class="ident">ParseError</span><span class="op">&gt;</span> {
+    <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">parameter_list</span>.<span class="ident">as_ref</span>() {
+        <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">parameter</span>.<span class="ident">names</span>() {
+            <span class="kw">if</span> <span class="ident">names</span>.<span class="ident">contains</span>(<span class="ident">name</span>) {
+                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::General</span> {
+                    <span class="ident">message</span>: <span class="string">&quot;formal parameter declared in lexically declared names&quot;</span>,
+                    <span class="ident">position</span>,
+                });
+            }
+        }
+    }
+    <span class="prelude-val">Ok</span>(())
 }
 </code></pre></div>
 </section></div></main><div id="rustdoc-vars" data-root-path="../../../../" data-current-crate="boa_engine" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.64.0 (a55dd71d5 2022-09-19)" ></div></body></html>

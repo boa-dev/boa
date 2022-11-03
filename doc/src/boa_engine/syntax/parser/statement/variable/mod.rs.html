@@ -237,24 +237,20 @@
 <span id="235">235</span>
 <span id="236">236</span>
 <span id="237">237</span>
-<span id="238">238</span>
-<span id="239">239</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Variable statement parsing.</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">declaration</span>::{<span class="ident">VarDeclaration</span>, <span class="ident">Variable</span>},
-        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Statement</span>,
-    },
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
-        <span class="ident">cursor::Cursor</span>, <span class="ident">expression::Initializer</span>, <span class="ident">statement::BindingIdentifier</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>,
-        <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">cursor::Cursor</span>,
+        <span class="ident">expression::Initializer</span>,
+        <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">BindingIdentifier</span>, <span class="ident">ObjectBindingPattern</span>},
+        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
-    <span class="ident">parser</span>::{
-        <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">ObjectBindingPattern</span>},
-        <span class="ident">ParseResult</span>,
-    },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">declaration</span>::{<span class="ident">VarDeclaration</span>, <span class="ident">Variable</span>},
+    <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Statement</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;

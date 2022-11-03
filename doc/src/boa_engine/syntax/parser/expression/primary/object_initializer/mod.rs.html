@@ -985,6 +985,9 @@
 <span id="983">983</span>
 <span id="984">984</span>
 <span id="985">985</span>
+<span id="986">986</span>
+<span id="987">987</span>
+<span id="988">988</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Object initializer parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -998,22 +1001,22 @@
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">expression</span>::{
-            <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">Literal</span>},
-            <span class="ident">Identifier</span>,
-        },
-        <span class="ident">function</span>::{<span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>},
-        <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
-        <span class="ident">property</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
-        <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{<span class="ident">identifiers::IdentifierReference</span>, <span class="ident">AssignmentExpression</span>},
         <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameters</span>, <span class="ident">FunctionBody</span>, <span class="ident">UniqueFormalParameters</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">function_contains_super</span>, <span class="ident">has_direct_super</span>, <span class="ident">name_in_lexically_declared_names</span>, <span class="ident">AllowAwait</span>,
+        <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">expression</span>::{
+        <span class="ident">literal</span>::{<span class="self">self</span>, <span class="ident">Literal</span>},
+        <span class="ident">Identifier</span>,
+    },
+    <span class="ident">function</span>::{<span class="ident">AsyncFunction</span>, <span class="ident">AsyncGenerator</span>, <span class="ident">FormalParameterList</span>, <span class="ident">Function</span>, <span class="ident">Generator</span>},
+    <span class="ident">property</span>::{<span class="self">self</span>, <span class="ident">MethodDefinition</span>},
+    <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_macros::utf16</span>;
@@ -1432,7 +1435,7 @@
 
                 <span class="comment">// It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the LexicallyDeclaredNames of FunctionBody.</span>
                 <span class="kw">let</span> <span class="ident">lexically_declared_names</span> <span class="op">=</span> <span class="ident">body</span>.<span class="ident">lexically_declared_names</span>();
-                <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">parameters</span>.<span class="ident">iter</span>() {
+                <span class="kw">for</span> <span class="ident">parameter</span> <span class="kw">in</span> <span class="ident">params</span>.<span class="ident">as_ref</span>() {
                     <span class="kw">for</span> <span class="ident">name</span> <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="ident">parameter</span>.<span class="ident">names</span>() {
                         <span class="kw">if</span> <span class="ident">lexically_declared_names</span>.<span class="ident">contains</span>(<span class="kw-2">&amp;</span>(<span class="kw-2">*</span><span class="ident">name</span>, <span class="bool-val">false</span>)) {
                             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
@@ -1704,7 +1707,8 @@
 
         <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
         <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
-        <span class="ident">params</span>.<span class="ident">name_in_lexically_declared_names</span>(
+        <span class="ident">name_in_lexically_declared_names</span>(
+            <span class="kw-2">&amp;</span><span class="ident">params</span>,
             <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;
@@ -1818,7 +1822,8 @@
 
         <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
         <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
-        <span class="ident">params</span>.<span class="ident">name_in_lexically_declared_names</span>(
+        <span class="ident">name_in_lexically_declared_names</span>(
+            <span class="kw-2">&amp;</span><span class="ident">params</span>,
             <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;
@@ -1903,7 +1908,8 @@
 
         <span class="comment">// Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also</span>
         <span class="comment">// occurs in the LexicallyDeclaredNames of GeneratorBody.</span>
-        <span class="ident">params</span>.<span class="ident">name_in_lexically_declared_names</span>(
+        <span class="ident">name_in_lexically_declared_names</span>(
+            <span class="kw-2">&amp;</span><span class="ident">params</span>,
             <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
             <span class="ident">body_start</span>,
         )<span class="question-mark">?</span>;

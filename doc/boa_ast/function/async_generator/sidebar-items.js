@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AsyncGenerator","An async generator definition, as defined by the spec."]]};

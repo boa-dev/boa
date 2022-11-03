@@ -263,6 +263,10 @@
 <span id="261">261</span>
 <span id="262">262</span>
 <span id="263">263</span>
+<span id="264">264</span>
+<span id="265">265</span>
+<span id="266">266</span>
+<span id="267">267</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Assignment operator parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -278,14 +282,6 @@
 <span class="kw">mod</span> <span class="ident">r#yield</span>;
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">expression</span>::{
-            <span class="ident">operator::assign</span>::{<span class="ident">Assign</span>, <span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
-            <span class="ident">Identifier</span>,
-        },
-        <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression::assignment</span>::{
@@ -293,14 +289,25 @@
             <span class="ident">conditional::ConditionalExpression</span>,
             <span class="ident">r#yield</span><span class="ident">::YieldExpression</span>,
         },
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
+        <span class="ident">name_in_lexically_declared_names</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowIn</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>,
+        <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">expression</span>::{
+        <span class="ident">operator::assign</span>::{<span class="ident">Assign</span>, <span class="ident">AssignOp</span>, <span class="ident">AssignTarget</span>},
+        <span class="ident">Identifier</span>,
+    },
+    <span class="ident">Expression</span>, <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">use</span> <span class="ident">exponentiation::ExponentiationExpression</span>;
+
+<span class="kw">use</span> <span class="ident"><span class="kw">super</span>::check_strict_arguments_or_eval</span>;
 
 <span class="doccomment">/// Assignment expression parsing.</span>
 <span class="doccomment">///</span>
@@ -453,7 +460,8 @@
             <span class="comment">// It is a Syntax Error if any element of the BoundNames of ArrowParameters</span>
             <span class="comment">// also occurs in the LexicallyDeclaredNames of ConciseBody.</span>
             <span class="comment">// https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors</span>
-            <span class="ident">parameters</span>.<span class="ident">name_in_lexically_declared_names</span>(
+            <span class="ident">name_in_lexically_declared_names</span>(
+                <span class="kw-2">&amp;</span><span class="ident">parameters</span>,
                 <span class="kw-2">&amp;</span><span class="ident">body</span>.<span class="ident">lexically_declared_names_top_level</span>(),
                 <span class="ident">position</span>,
             )<span class="question-mark">?</span>;
@@ -467,7 +475,7 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">Punctuator::Assign</span>) =&gt; {
                     <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
-                            <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
+                            <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
                         }
                     }
 
@@ -492,7 +500,7 @@
                 <span class="ident">TokenKind::Punctuator</span>(<span class="ident">p</span>) <span class="kw">if</span> <span class="ident">p</span>.<span class="ident">as_assign_op</span>().<span class="ident">is_some</span>() =&gt; {
                     <span class="kw">if</span> <span class="ident">cursor</span>.<span class="ident">strict_mode</span>() {
                         <span class="kw">if</span> <span class="kw">let</span> <span class="ident">Expression::Identifier</span>(<span class="ident">ident</span>) <span class="op">=</span> <span class="ident">lhs</span> {
-                            <span class="ident">ident</span>.<span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">position</span>)<span class="question-mark">?</span>;
+                            <span class="ident">check_strict_arguments_or_eval</span>(<span class="ident">ident</span>, <span class="ident">position</span>)<span class="question-mark">?</span>;
                         }
                     }
 

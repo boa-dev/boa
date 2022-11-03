@@ -383,9 +383,9 @@
 <span id="381">381</span>
 <span id="382">382</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="kw">crate</span>::{
-    <span class="ident">environments::runtime::BindingLocator</span>, <span class="ident">property::PropertyDescriptor</span>,
-    <span class="ident">syntax::ast::expression::Identifier</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
+    <span class="ident">environments::runtime::BindingLocator</span>, <span class="ident">property::PropertyDescriptor</span>, <span class="ident">Context</span>, <span class="ident">JsString</span>, <span class="ident">JsValue</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast::expression::Identifier</span>;
 <span class="kw">use</span> <span class="ident">boa_gc</span>::{<span class="ident">Cell</span>, <span class="ident">Finalize</span>, <span class="ident">Gc</span>, <span class="ident">Trace</span>};
 
 <span class="kw">use</span> <span class="ident">rustc_hash::FxHashMap</span>;

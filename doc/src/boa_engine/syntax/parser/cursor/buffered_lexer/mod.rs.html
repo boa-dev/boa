@@ -256,10 +256,10 @@
 <span id="254">254</span>
 <span id="255">255</span>
 </pre><pre class="rust"><code><span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast::Position</span>,
     <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">Lexer</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser::error::ParseError</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast::Position</span>;
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;

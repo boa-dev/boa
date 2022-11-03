@@ -93,20 +93,14 @@
 <span id="91">91</span>
 <span id="92">92</span>
 <span id="93">93</span>
-<span id="94">94</span>
-<span id="95">95</span>
-<span id="96">96</span>
 </pre><pre class="rust"><code><span class="attribute">#[<span class="ident">cfg</span>(<span class="ident">test</span>)]</span>
 <span class="kw">mod</span> <span class="ident">tests</span>;
 
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast::function::AsyncFunction</span>,
-    <span class="ident">ast::Keyword</span>,
-    <span class="ident">parser</span>::{
-        <span class="ident">statement::declaration::hoistable</span>::{<span class="ident">parse_callable_declaration</span>, <span class="ident">CallableDeclaration</span>},
-        <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
-    },
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::parser</span>::{
+    <span class="ident">statement::declaration::hoistable</span>::{<span class="ident">parse_callable_declaration</span>, <span class="ident">CallableDeclaration</span>},
+    <span class="ident">AllowAwait</span>, <span class="ident">AllowDefault</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">function::AsyncFunction</span>, <span class="ident">Keyword</span>};
 <span class="kw">use</span> <span class="ident">boa_interner::Interner</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;
 

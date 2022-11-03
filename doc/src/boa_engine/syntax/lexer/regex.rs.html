@@ -217,16 +217,12 @@
 <span id="215">215</span>
 <span id="216">216</span>
 <span id="217">217</span>
-<span id="218">218</span>
-<span id="219">219</span>
 </pre><pre class="rust"><code><span class="doccomment">//! This module implements lexing for regex literals used in the JavaScript programing language.</span>
 
 <span class="kw">use</span> <span class="kw">super</span>::{<span class="ident">Cursor</span>, <span class="ident">Error</span>, <span class="ident">Span</span>, <span class="ident">Tokenizer</span>};
-<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast::Position</span>,
-    <span class="ident">lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>},
-};
+<span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax::lexer</span>::{<span class="ident">Token</span>, <span class="ident">TokenKind</span>};
 <span class="kw">use</span> <span class="ident">bitflags::bitflags</span>;
+<span class="kw">use</span> <span class="ident">boa_ast::Position</span>;
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std</span>::{

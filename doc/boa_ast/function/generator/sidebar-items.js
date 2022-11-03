@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Generator","A generator definition, as defined by the spec."]]};

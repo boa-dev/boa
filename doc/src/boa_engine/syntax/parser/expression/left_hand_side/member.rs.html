@@ -232,7 +232,6 @@
 <span id="230">230</span>
 <span id="231">231</span>
 <span id="232">232</span>
-<span id="233">233</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Member expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -242,17 +241,6 @@
 
 <span class="kw">use</span> <span class="ident"><span class="kw">super</span>::arguments::Arguments</span>;
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">expression</span>::{
-            <span class="ident">access</span>::{
-                <span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccessField</span>, <span class="ident">SimplePropertyAccess</span>,
-                <span class="ident">SuperPropertyAccess</span>,
-            },
-            <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
-        },
-        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">InputElement</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{
@@ -260,6 +248,16 @@
         },
         <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">expression</span>::{
+        <span class="ident">access</span>::{
+            <span class="ident">PrivatePropertyAccess</span>, <span class="ident">PropertyAccessField</span>, <span class="ident">SimplePropertyAccess</span>, <span class="ident">SuperPropertyAccess</span>,
+        },
+        <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
+    },
+    <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;

@@ -241,10 +241,10 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-identifiers</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">Keyword</span>},
     <span class="ident">lexer</span>::{<span class="ident">Error</span> <span class="kw">as</span> <span class="ident">LexError</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{<span class="ident">cursor::Cursor</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>},
 };
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{<span class="ident">expression::Identifier</span>, <span class="ident">Keyword</span>};
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
 <span class="kw">use</span> <span class="ident">std::io::Read</span>;

@@ -580,16 +580,6 @@
 <span id="578">578</span>
 <span id="579">579</span>
 <span id="580">580</span>
-<span id="581">581</span>
-<span id="582">582</span>
-<span id="583">583</span>
-<span id="584">584</span>
-<span id="585">585</span>
-<span id="586">586</span>
-<span id="587">587</span>
-<span id="588">588</span>
-<span id="589">589</span>
-<span id="590">590</span>
 </pre><pre class="rust"><code><span class="doccomment">//! Primary expression parsing.</span>
 <span class="doccomment">//!</span>
 <span class="doccomment">//! More information:</span>
@@ -619,24 +609,6 @@
     <span class="ident">object_initializer::ObjectLiteral</span>,
 };
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="self">self</span>,
-        <span class="ident">declaration::Variable</span>,
-        <span class="ident">expression</span>::{
-            <span class="ident">literal::Literal</span>,
-            <span class="ident">operator</span>::{
-                <span class="ident">assign</span>::{
-                    <span class="ident">array_decl_to_declaration_pattern</span>, <span class="ident">object_decl_to_declaration_pattern</span>,
-                    <span class="ident">AssignTarget</span>,
-                },
-                <span class="ident">binary::BinaryOp</span>,
-            },
-            <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
-        },
-        <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>},
-        <span class="ident">pattern</span>::{<span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>},
-        <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>,
-    },
     <span class="ident">lexer</span>::{<span class="ident">token::Numeric</span>, <span class="ident">InputElement</span>, <span class="ident">Token</span>, <span class="ident">TokenKind</span>},
     <span class="ident">parser</span>::{
         <span class="ident">expression</span>::{
@@ -646,6 +618,18 @@
         <span class="ident">statement</span>::{<span class="ident">ArrayBindingPattern</span>, <span class="ident">ObjectBindingPattern</span>},
         <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>, <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="self">self</span> <span class="kw">as</span> <span class="ident">ast</span>,
+    <span class="ident">declaration::Variable</span>,
+    <span class="ident">expression</span>::{
+        <span class="ident">literal::Literal</span>,
+        <span class="ident">operator</span>::{<span class="ident">assign::AssignTarget</span>, <span class="ident">binary::BinaryOp</span>},
+        <span class="ident">Call</span>, <span class="ident">Identifier</span>, <span class="ident">New</span>,
+    },
+    <span class="ident">function</span>::{<span class="ident">FormalParameter</span>, <span class="ident">FormalParameterList</span>},
+    <span class="ident">pattern</span>::{<span class="ident">ArrayPatternElement</span>, <span class="ident">ObjectPatternElement</span>, <span class="ident">Pattern</span>},
+    <span class="ident">Keyword</span>, <span class="ident">Punctuator</span>, <span class="ident">Span</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
@@ -1141,34 +1125,30 @@
             }
         },
         <span class="ident">ast::Expression::ObjectLiteral</span>(<span class="ident">object</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="ident">object_decl_to_declaration_pattern</span>(<span class="ident">object</span>, <span class="ident">strict</span>);
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">decl</span> {
-                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                    <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
-                    <span class="bool-val">false</span>,
-                ));
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">object</span>.<span class="ident">to_pattern</span>(<span class="ident">strict</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">ParseError::general</span>(
                     <span class="string">&quot;invalid object binding pattern in formal parameter list&quot;</span>,
                     <span class="ident">span</span>.<span class="ident">start</span>(),
-                ));
-            }
+                )
+            })<span class="question-mark">?</span>;
+
+            <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
+                <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+                <span class="bool-val">false</span>,
+            ));
         }
         <span class="ident">ast::Expression::ArrayLiteral</span>(<span class="ident">array</span>) =&gt; {
-            <span class="kw">let</span> <span class="ident">decl</span> <span class="op">=</span> <span class="ident">array_decl_to_declaration_pattern</span>(<span class="ident">array</span>, <span class="ident">strict</span>);
-
-            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">pattern</span>) <span class="op">=</span> <span class="ident">decl</span> {
-                <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
-                    <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
-                    <span class="bool-val">false</span>,
-                ));
-            } <span class="kw">else</span> {
-                <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::general</span>(
+            <span class="kw">let</span> <span class="ident">pattern</span> <span class="op">=</span> <span class="ident">array</span>.<span class="ident">to_pattern</span>(<span class="ident">strict</span>).<span class="ident">ok_or_else</span>(<span class="op">|</span><span class="op">|</span> {
+                <span class="ident">ParseError::general</span>(
                     <span class="string">&quot;invalid array binding pattern in formal parameter list&quot;</span>,
                     <span class="ident">span</span>.<span class="ident">start</span>(),
-                ));
-            }
+                )
+            })<span class="question-mark">?</span>;
+
+            <span class="ident">parameters</span>.<span class="ident">push</span>(<span class="ident">FormalParameter::new</span>(
+                <span class="ident">Variable::from_pattern</span>(<span class="ident">pattern</span>.<span class="ident">into</span>(), <span class="prelude-val">None</span>),
+                <span class="bool-val">false</span>,
+            ));
         }
         <span class="kw">_</span> =&gt; {
             <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">ParseError::unexpected</span>(

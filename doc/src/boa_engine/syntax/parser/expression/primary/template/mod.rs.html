@@ -124,15 +124,15 @@
 <span class="doccomment">//! [spec]: https://tc39.es/ecma262/#sec-template-literals</span>
 
 <span class="kw">use</span> <span class="ident"><span class="kw">crate</span>::syntax</span>::{
-    <span class="ident">ast</span>::{
-        <span class="ident">expression::literal</span>::{<span class="self">self</span>, <span class="ident">TemplateElement</span>},
-        <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
-    },
     <span class="ident">lexer::TokenKind</span>,
     <span class="ident">parser</span>::{
         <span class="ident">expression::Expression</span>, <span class="ident">AllowAwait</span>, <span class="ident">AllowYield</span>, <span class="ident">Cursor</span>, <span class="ident">ParseError</span>, <span class="ident">ParseResult</span>,
         <span class="ident">TokenParser</span>,
     },
+};
+<span class="kw">use</span> <span class="ident">boa_ast</span>::{
+    <span class="ident">expression::literal</span>::{<span class="self">self</span>, <span class="ident">TemplateElement</span>},
+    <span class="ident">Position</span>, <span class="ident">Punctuator</span>,
 };
 <span class="kw">use</span> <span class="ident">boa_interner</span>::{<span class="ident">Interner</span>, <span class="ident">Sym</span>};
 <span class="kw">use</span> <span class="ident">boa_profiler::Profiler</span>;
