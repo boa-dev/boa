@@ -1,11 +1,9 @@
 //! This module implements lexing for regex literals used in the JavaScript programing language.
 
 use super::{Cursor, Error, Span, Tokenizer};
-use crate::syntax::{
-    ast::Position,
-    lexer::{Token, TokenKind},
-};
+use crate::syntax::lexer::{Token, TokenKind};
 use bitflags::bitflags;
+use boa_ast::Position;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::{

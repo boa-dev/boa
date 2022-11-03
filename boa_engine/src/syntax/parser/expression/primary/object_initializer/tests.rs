@@ -1,18 +1,16 @@
-use crate::syntax::{
-    ast::{
-        declaration::{LexicalDeclaration, Variable},
-        expression::{
-            literal::{Literal, ObjectLiteral},
-            Identifier,
-        },
-        function::{
-            AsyncFunction, AsyncGenerator, FormalParameter, FormalParameterList,
-            FormalParameterListFlags, Function,
-        },
-        property::{MethodDefinition, PropertyDefinition, PropertyName},
-        Declaration, StatementList,
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{LexicalDeclaration, Variable},
+    expression::{
+        literal::{Literal, ObjectLiteral},
+        Identifier,
     },
-    parser::tests::{check_invalid, check_parser},
+    function::{
+        AsyncFunction, AsyncGenerator, FormalParameter, FormalParameterList,
+        FormalParameterListFlags, Function,
+    },
+    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    Declaration, StatementList,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
@@ -96,6 +94,17 @@ fn check_object_short_function() {
 fn check_object_short_function_arguments() {
     let mut interner = Interner::default();
 
+    let parameters = FormalParameterList::from(FormalParameter::new(
+        Variable::from_identifier(
+            interner.get_or_intern_static("test", utf16!("test")).into(),
+            None,
+        ),
+        false,
+    ));
+
+    assert_eq!(parameters.flags(), FormalParameterListFlags::default());
+    assert_eq!(parameters.length(), 1);
+
     let object_properties = vec![
         PropertyDefinition::Property(
             interner.get_or_intern_static("a", utf16!("a")).into(),
@@ -103,21 +112,7 @@ fn check_object_short_function_arguments() {
         ),
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Ordinary(Function::new(
-                None,
-                FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(
-                        Variable::from_identifier(
-                            interner.get_or_intern_static("test", utf16!("test")).into(),
-                            None,
-                        ),
-                        false,
-                    )]),
-                    flags: FormalParameterListFlags::default(),
-                    length: 1,
-                },
-                StatementList::default(),
-            )),
+            MethodDefinition::Ordinary(Function::new(None, parameters, StatementList::default())),
         ),
     ];
 
@@ -182,6 +177,17 @@ fn check_object_getter() {
 fn check_object_setter() {
     let mut interner = Interner::default();
 
+    let params = FormalParameterList::from(FormalParameter::new(
+        Variable::from_identifier(
+            interner.get_or_intern_static("test", utf16!("test")).into(),
+            None,
+        ),
+        false,
+    ));
+
+    assert_eq!(params.flags(), FormalParameterListFlags::default());
+    assert_eq!(params.length(), 1);
+
     let object_properties = vec![
         PropertyDefinition::Property(
             interner.get_or_intern_static("a", utf16!("a")).into(),
@@ -189,21 +195,7 @@ fn check_object_setter() {
         ),
         PropertyDefinition::MethodDefinition(
             interner.get_or_intern_static("b", utf16!("b")).into(),
-            MethodDefinition::Set(Function::new(
-                None,
-                FormalParameterList {
-                    parameters: Box::new([FormalParameter::new(
-                        Variable::from_identifier(
-                            interner.get_or_intern_static("test", utf16!("test")).into(),
-                            None,
-                        ),
-                        false,
-                    )]),
-                    flags: FormalParameterListFlags::default(),
-                    length: 1,
-                },
-                StatementList::default(),
-            )),
+            MethodDefinition::Set(Function::new(None, params, StatementList::default())),
         ),
     ];
 

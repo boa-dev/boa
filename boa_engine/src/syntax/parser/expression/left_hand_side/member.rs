@@ -7,17 +7,6 @@
 
 use super::arguments::Arguments;
 use crate::syntax::{
-    ast::{
-        self,
-        expression::{
-            access::{
-                PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess,
-                SuperPropertyAccess,
-            },
-            Call, Identifier, New,
-        },
-        Keyword, Punctuator,
-    },
     lexer::{InputElement, TokenKind},
     parser::{
         expression::{
@@ -25,6 +14,16 @@ use crate::syntax::{
         },
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast,
+    expression::{
+        access::{
+            PrivatePropertyAccess, PropertyAccessField, SimplePropertyAccess, SuperPropertyAccess,
+        },
+        Call, Identifier, New,
+    },
+    Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;

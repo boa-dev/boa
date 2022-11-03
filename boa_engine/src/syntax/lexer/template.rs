@@ -1,21 +1,16 @@
 //! This module implements lexing for template literals used in the JavaScript programing language.
 
 use super::{Cursor, Error, Tokenizer};
-use crate::{
-    syntax::lexer::string::{StringLiteral, UTF16CodeUnitsBuffer},
-    syntax::{
-        ast::{Position, Span},
-        lexer::{Token, TokenKind},
-    },
+use crate::syntax::lexer::{
+    string::{StringLiteral, UTF16CodeUnitsBuffer},
+    Token, TokenKind,
 };
+use boa_ast::{Position, Span};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::{self, ErrorKind, Read};
 
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
-
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct TemplateString {
     /// The template string of template literal with argument `raw` true.

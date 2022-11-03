@@ -1,9 +1,7 @@
 //! This module implements lexing for operators (+, - etc.) used in the JavaScript programing language.
 
-use crate::syntax::{
-    ast::{Position, Punctuator, Span},
-    lexer::{Cursor, Error, Token, TokenKind, Tokenizer},
-};
+use crate::syntax::lexer::{Cursor, Error, Token, TokenKind, Tokenizer};
+use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

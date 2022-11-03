@@ -1,18 +1,16 @@
-use crate::syntax::{
-    ast::{
-        declaration::{LexicalDeclaration, Variable},
-        expression::{
-            literal::Literal,
-            operator::{
-                assign::AssignOp,
-                binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
-                Assign, Binary,
-            },
-            Call, Identifier, New,
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{LexicalDeclaration, Variable},
+    expression::{
+        literal::Literal,
+        operator::{
+            assign::AssignOp,
+            binary::{ArithmeticOp, BitwiseOp, LogicalOp, RelationalOp},
+            Assign, Binary,
         },
-        Declaration, Expression, Statement,
+        Call, Identifier, New,
     },
-    parser::tests::{check_invalid, check_parser},
+    Declaration, Expression, Statement,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;

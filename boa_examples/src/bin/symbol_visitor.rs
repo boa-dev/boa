@@ -2,15 +2,11 @@
 // AST, namely: finding all the `Sym`s present in a script. See commuter_visitor.rs for an example
 // which mutates the AST.
 
-use boa_engine::syntax::ast::visitor::Visitor;
-use boa_engine::syntax::Parser;
-use boa_engine::Context;
+use boa_ast::visitor::Visitor;
+use boa_engine::{syntax::Parser, Context};
 use boa_interner::Sym;
 use core::ops::ControlFlow;
-use std::collections::HashSet;
-use std::convert::Infallible;
-use std::fs::File;
-use std::io::BufReader;
+use std::{collections::HashSet, convert::Infallible, fs::File, io::BufReader};
 
 #[derive(Debug, Clone, Default)]
 struct SymbolVisitor {

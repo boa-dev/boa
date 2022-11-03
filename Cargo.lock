@@ -56,9 +56,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
+name = "boa_ast"
+version = "0.16.0"
+dependencies = [
+ "bitflags",
+ "boa_interner",
+ "boa_macros",
+ "num-bigint",
+ "rustc-hash",
+ "serde",
+]
+
+[[package]]
 name = "boa_cli"
 version = "0.16.0"
 dependencies = [
+ "boa_ast",
  "boa_engine",
  "boa_interner",
  "clap 4.0.18",
@@ -76,6 +89,7 @@ name = "boa_engine"
 version = "0.16.0"
 dependencies = [
  "bitflags",
+ "boa_ast",
  "boa_gc",
  "boa_interner",
  "boa_macros",
@@ -117,6 +131,7 @@ dependencies = [
 name = "boa_examples"
 version = "0.16.0"
 dependencies = [
+ "boa_ast",
  "boa_engine",
  "boa_gc",
  "boa_interner",

@@ -1,12 +1,10 @@
 use std::convert::TryInto;
 
-use crate::syntax::{
-    ast::{
-        declaration::{LexicalDeclaration, VarDeclaration, Variable},
-        expression::literal::Literal,
-        Declaration, Statement,
-    },
-    parser::tests::{check_invalid, check_parser},
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{LexicalDeclaration, VarDeclaration, Variable},
+    expression::literal::Literal,
+    Declaration, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

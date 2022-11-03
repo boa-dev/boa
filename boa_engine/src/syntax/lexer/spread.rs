@@ -1,10 +1,8 @@
 //! This module implements lexing for spread (...) literals used in the JavaScript programing language.
 
 use super::{Cursor, Error, Tokenizer};
-use crate::syntax::{
-    ast::{Position, Punctuator, Span},
-    lexer::Token,
-};
+use crate::syntax::lexer::Token;
+use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

@@ -2,12 +2,14 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{self, expression::Identifier, statement, statement::Switch, Keyword, Punctuator},
     lexer::TokenKind,
     parser::{
         expression::Expression, statement::StatementList, AllowAwait, AllowReturn, AllowYield,
         Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast, expression::Identifier, statement, statement::Switch, Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

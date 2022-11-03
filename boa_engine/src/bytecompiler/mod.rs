@@ -3,32 +3,32 @@ mod expression;
 
 use crate::{
     environments::{BindingLocator, CompileTimeEnvironment},
-    syntax::ast::{
-        declaration::{Binding, LexicalDeclaration, VarDeclaration},
-        expression::{
-            access::{PropertyAccess, PropertyAccessField},
-            literal::TemplateElement,
-            operator::{
-                assign::{AssignOp, AssignTarget},
-                binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
-                unary::UnaryOp,
-            },
-            Call, Identifier, New, Optional, OptionalOperationKind,
-        },
-        function::{
-            ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
-            Function, Generator,
-        },
-        pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
-        property::{MethodDefinition, PropertyDefinition, PropertyName},
-        statement::{
-            iteration::{ForLoopInitializer, IterableLoopInitializer},
-            Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
-        },
-        Declaration, Expression, Statement, StatementList, StatementListItem,
-    },
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsBigInt, JsNativeError, JsResult, JsString, JsValue,
+};
+use boa_ast::{
+    declaration::{Binding, LexicalDeclaration, VarDeclaration},
+    expression::{
+        access::{PropertyAccess, PropertyAccessField},
+        literal::{self, TemplateElement},
+        operator::{
+            assign::{AssignOp, AssignTarget},
+            binary::{ArithmeticOp, BinaryOp, BitwiseOp, LogicalOp, RelationalOp},
+            unary::UnaryOp,
+        },
+        Call, Identifier, New, Optional, OptionalOperationKind,
+    },
+    function::{
+        ArrowFunction, AsyncFunction, AsyncGenerator, Class, ClassElement, FormalParameterList,
+        Function, Generator,
+    },
+    pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
+    property::{MethodDefinition, PropertyDefinition, PropertyName},
+    statement::{
+        iteration::{ForLoopInitializer, IterableLoopInitializer},
+        Block, DoWhileLoop, ForInLoop, ForLoop, ForOfLoop, LabelledItem, WhileLoop,
+    },
+    Declaration, Expression, Statement, StatementList, StatementListItem,
 };
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
@@ -1368,13 +1368,13 @@ impl<'b> ByteCompiler<'b> {
             Expression::Class(class) => self.class(class, true)?,
             Expression::SuperCall(super_call) => {
                 let contains_spread = super_call
-                    .args()
+                    .arguments()
                     .iter()
                     .any(|arg| matches!(arg, Expression::Spread(_)));
 
                 if contains_spread {
                     self.emit_opcode(Opcode::PushNewArray);
-                    for arg in super_call.args() {
+                    for arg in super_call.arguments() {
                         self.compile_expr(arg, true)?;
                         if let Expression::Spread(_) = arg {
                             self.emit_opcode(Opcode::InitIterator);
@@ -1384,7 +1384,7 @@ impl<'b> ByteCompiler<'b> {
                         }
                     }
                 } else {
-                    for arg in super_call.args() {
+                    for arg in super_call.arguments() {
                         self.compile_expr(arg, true)?;
                     }
                 }
@@ -1392,7 +1392,7 @@ impl<'b> ByteCompiler<'b> {
                 if contains_spread {
                     self.emit_opcode(Opcode::SuperCallSpread);
                 } else {
-                    self.emit(Opcode::SuperCall, &[super_call.args().len() as u32]);
+                    self.emit(Opcode::SuperCall, &[super_call.arguments().len() as u32]);
                 }
 
                 if !use_expr {
@@ -2474,9 +2474,9 @@ impl<'b> ByteCompiler<'b> {
                     let push_env =
                         self.emit_opcode_with_two_operands(Opcode::PushDeclarativeEnvironment);
 
-                    self.create_decls(finally.statement_list(), configurable_globals);
+                    self.create_decls(finally.block().statement_list(), configurable_globals);
                     self.compile_statement_list(
-                        finally.statement_list(),
+                        finally.block().statement_list(),
                         false,
                         configurable_globals,
                     )?;
@@ -3092,7 +3092,7 @@ impl<'b> ByteCompiler<'b> {
                     .context
                     .initialize_mutable_binding(Sym::ARGUMENTS.into(), false),
             );
-            for parameter in expr.parameters().parameters.iter() {
+            for parameter in expr.parameters().as_ref() {
                 if parameter.is_rest_param() {
                     compiler.emit_opcode(Opcode::RestParameterInit);
                 }

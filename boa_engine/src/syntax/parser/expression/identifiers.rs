@@ -6,10 +6,10 @@
 //! [spec]: https://tc39.es/ecma262/#sec-identifiers
 
 use crate::syntax::{
-    ast::{expression::Identifier, Keyword},
     lexer::{Error as LexError, TokenKind},
     parser::{cursor::Cursor, AllowAwait, AllowYield, ParseError, ParseResult, TokenParser},
 };
+use boa_ast::{expression::Identifier, Keyword};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;

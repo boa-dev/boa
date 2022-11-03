@@ -1,9 +1,7 @@
-use crate::syntax::{
-    ast::{
-        expression::{access::SimplePropertyAccess, Call, Identifier},
-        Expression, Statement,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    expression::{access::SimplePropertyAccess, Call, Identifier},
+    Expression, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

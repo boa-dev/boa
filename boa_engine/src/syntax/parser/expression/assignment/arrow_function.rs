@@ -9,23 +9,23 @@
 
 use super::AssignmentExpression;
 use crate::syntax::{
-    ast::{
-        self,
-        declaration::Variable,
-        expression::Identifier,
-        function::{FormalParameter, FormalParameterList, FormalParameterListFlags},
-        statement::Return,
-        Expression, Punctuator, StatementList,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         error::{ErrorContext, ParseError, ParseResult},
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, TokenParser,
     },
 };
-use boa_interner::{Interner, Sym};
+use boa_ast::{
+    self as ast,
+    declaration::Variable,
+    expression::Identifier,
+    function::{FormalParameter, FormalParameterList},
+    statement::Return,
+    Expression, Punctuator, StatementList,
+};
+use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;
 
@@ -78,40 +78,33 @@ where
         let _timer = Profiler::global().start_event("ArrowFunction", "Parsing");
         let next_token = cursor.peek(0, interner)?.ok_or(ParseError::AbruptEnd)?;
 
-        let (params, params_start_position) =
-            if let TokenKind::Punctuator(Punctuator::OpenParen) = &next_token.kind() {
-                // CoverParenthesizedExpressionAndArrowParameterList
-                let params_start_position = cursor
-                    .expect(Punctuator::OpenParen, "arrow function", interner)?
-                    .span()
-                    .end();
+        let (params, params_start_position) = if let TokenKind::Punctuator(Punctuator::OpenParen) =
+            &next_token.kind()
+        {
+            // CoverParenthesizedExpressionAndArrowParameterList
+            let params_start_position = cursor
+                .expect(Punctuator::OpenParen, "arrow function", interner)?
+                .span()
+                .end();
 
-                let params = FormalParameters::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)?;
-                cursor.expect(Punctuator::CloseParen, "arrow function", interner)?;
-                (params, params_start_position)
-            } else {
-                let params_start_position = next_token.span().start();
-                let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
-                    .parse(cursor, interner)
-                    .context("arrow function")?;
-                let has_arguments = param == Sym::ARGUMENTS;
-                let mut flags = FormalParameterListFlags::IS_SIMPLE;
-                if has_arguments {
-                    flags |= FormalParameterListFlags::HAS_ARGUMENTS;
-                }
-                (
-                    FormalParameterList::new(
-                        Box::new([FormalParameter::new(
-                            Variable::from_identifier(param, None),
-                            false,
-                        )]),
-                        flags,
-                        1,
-                    ),
-                    params_start_position,
-                )
-            };
+            let params = FormalParameters::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)?;
+            cursor.expect(Punctuator::CloseParen, "arrow function", interner)?;
+            (params, params_start_position)
+        } else {
+            let params_start_position = next_token.span().start();
+            let param = BindingIdentifier::new(self.allow_yield, self.allow_await)
+                .parse(cursor, interner)
+                .context("arrow function")?;
+            (
+                FormalParameterList::try_from(FormalParameter::new(
+                    Variable::from_identifier(param, None),
+                    false,
+                ))
+                .expect("a single binding identifier without init is always a valid param list"),
+                params_start_position,
+            )
+        };
 
         cursor.peek_expect_no_lineterminator(0, "arrow function", interner)?;
 
@@ -144,7 +137,8 @@ where
         // It is a Syntax Error if any element of the BoundNames of ArrowParameters
         // also occurs in the LexicallyDeclaredNames of ConciseBody.
         // https://tc39.es/ecma262/#sec-arrow-function-definitions-static-semantics-early-errors
-        params.name_in_lexically_declared_names(
+        name_in_lexically_declared_names(
+            &params,
             &body.lexically_declared_names_top_level(),
             params_start_position,
         )?;

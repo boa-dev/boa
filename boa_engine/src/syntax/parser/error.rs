@@ -1,9 +1,8 @@
 //! Error and result implementation for the parser.
 
-use crate::syntax::{
-    ast::{Position, Span},
-    lexer::Error as LexError,
-};
+use crate::syntax::lexer::Error as LexError;
+
+use boa_ast::{Position, Span};
 use std::fmt;
 
 /// Result of a parsing operation.

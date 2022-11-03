@@ -27,9 +27,8 @@ use rustc_hash::{FxHashMap, FxHashSet};
 use std::io::Read;
 
 pub use self::error::{ParseError, ParseResult};
-pub(in crate::syntax) use expression::RESERVED_IDENTIFIERS_STRICT;
 
-use super::ast::{
+use boa_ast::{
     expression::Identifier, function::FormalParameterList, ContainsSymbol, Position, StatementList,
 };
 
@@ -425,4 +424,61 @@ where
 
         Ok(body)
     }
+}
+
+// Checks if a function contains a super call or super property access.
+fn function_contains_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
+    for param in parameters.as_ref() {
+        if param.variable().contains(ContainsSymbol::SuperCall)
+            || param.variable().contains(ContainsSymbol::SuperProperty)
+        {
+            return true;
+        }
+    }
+    for node in body.statements() {
+        if node.contains(ContainsSymbol::SuperCall) || node.contains(ContainsSymbol::SuperProperty)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// Returns `true` if the function parameters or body contain a direct `super` call.
+///
+/// More information:
+///  - [ECMAScript specification][spec]
+///
+/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
+pub fn has_direct_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
+    for param in parameters.as_ref() {
+        if param.variable().contains(ContainsSymbol::SuperCall) {
+            return true;
+        }
+    }
+    for node in body.statements() {
+        if node.contains(ContainsSymbol::SuperCall) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Helper to check if any parameter names are declared in the given list.
+fn name_in_lexically_declared_names(
+    parameter_list: &FormalParameterList,
+    names: &[Identifier],
+    position: Position,
+) -> Result<(), ParseError> {
+    for parameter in parameter_list.as_ref() {
+        for name in &parameter.names() {
+            if names.contains(name) {
+                return Err(ParseError::General {
+                    message: "formal parameter declared in lexically declared names",
+                    position,
+                });
+            }
+        }
+    }
+    Ok(())
 }

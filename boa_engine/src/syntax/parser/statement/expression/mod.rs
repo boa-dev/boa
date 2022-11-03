@@ -1,11 +1,11 @@
 use crate::syntax::{
-    ast::{Keyword, Punctuator, Statement},
     lexer::TokenKind,
     parser::{
         expression::Expression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
     },
 };
+use boa_ast::{Keyword, Punctuator, Statement};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

@@ -8,13 +8,13 @@
 //! [spec]: https://tc39.es/ecma262/#prod-Arguments
 
 use crate::syntax::{
-    ast::{expression::Spread, Expression, Punctuator},
     lexer::{InputElement, TokenKind},
     parser::{
         expression::AssignmentExpression, AllowAwait, AllowYield, Cursor, ParseError, ParseResult,
         TokenParser,
     },
 };
+use boa_ast::{expression::Spread, Expression, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

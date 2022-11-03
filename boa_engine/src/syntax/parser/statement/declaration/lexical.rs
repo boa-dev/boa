@@ -8,7 +8,6 @@
 //! [spec]: https://tc39.es/ecma262/#sec-let-and-const-declarations
 
 use crate::syntax::{
-    ast::{self, declaration::Variable, pattern::Pattern, Keyword, Punctuator},
     lexer::{Error as LexError, TokenKind},
     parser::{
         cursor::{Cursor, SemicolonResult},
@@ -17,6 +16,7 @@ use crate::syntax::{
         AllowAwait, AllowIn, AllowYield, ParseError, ParseResult, TokenParser,
     },
 };
+use boa_ast::{self as ast, declaration::Variable, pattern::Pattern, Keyword, Punctuator};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::{convert::TryInto, io::Read};

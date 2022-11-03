@@ -8,19 +8,19 @@
 //! [spec]: https://tc39.es/ecma262/#sec-unary-operators
 
 use crate::syntax::{
-    ast::{
-        expression::{
-            access::PropertyAccess,
-            operator::{unary::UnaryOp, Unary},
-            Identifier,
-        },
-        Expression, Keyword, Punctuator,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::{await_expr::AwaitExpression, update::UpdateExpression},
         AllowAwait, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{
+        access::PropertyAccess,
+        operator::{unary::UnaryOp, Unary},
+        Identifier,
+    },
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

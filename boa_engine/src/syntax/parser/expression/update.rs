@@ -5,20 +5,20 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-update-expressions
 
-use super::left_hand_side::LeftHandSideExpression;
+use super::{check_strict_arguments_or_eval, left_hand_side::LeftHandSideExpression};
 use crate::syntax::{
-    ast::{
-        expression::{
-            operator::{unary::UnaryOp, Unary},
-            Identifier,
-        },
-        Expression, Punctuator,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::unary::UnaryExpression, AllowAwait, AllowYield, Cursor, ParseError,
         ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{
+        operator::{unary::UnaryOp, Unary},
+        Identifier,
+    },
+    Expression, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -75,7 +75,7 @@ where
 
                 if cursor.strict_mode() {
                     if let Expression::Identifier(ident) = target {
-                        ident.check_strict_arguments_or_eval(position)?;
+                        check_strict_arguments_or_eval(ident, position)?;
                     }
                 }
 
@@ -91,7 +91,7 @@ where
 
                 if cursor.strict_mode() {
                     if let Expression::Identifier(ident) = target {
-                        ident.check_strict_arguments_or_eval(position)?;
+                        check_strict_arguments_or_eval(ident, position)?;
                     }
                 }
 

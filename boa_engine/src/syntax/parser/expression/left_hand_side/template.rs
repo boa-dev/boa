@@ -1,11 +1,11 @@
 use crate::syntax::{
-    ast::{self, expression::TaggedTemplate, Position, Punctuator},
     lexer::TokenKind,
     parser::{
         cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
         TokenParser,
     },
 };
+use boa_ast::{self as ast, expression::TaggedTemplate, Position, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

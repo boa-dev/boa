@@ -19,11 +19,11 @@ use crate::{
         internal_methods::get_prototype_from_constructor, JsObject, ObjectData, PrivateElement,
     },
     property::PropertyDescriptor,
-    syntax::ast::{expression::Identifier, function::FormalParameterList},
     vm::call_frame::GeneratorResumeKind,
     vm::{call_frame::FinallyReturn, CallFrame, Opcode},
     Context, JsResult, JsString, JsValue,
 };
+use boa_ast::{expression::Identifier, function::FormalParameterList};
 use boa_gc::{Cell, Finalize, Gc, Trace};
 use boa_interner::{Interner, Sym, ToInternedString};
 use boa_profiler::Profiler;
@@ -775,11 +775,11 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = if code.params.parameters.len() > args.len() {
+                let args = if code.params.as_ref().len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
                         JsValue::Undefined;
-                        code.params.parameters.len() - args.len()
+                        code.params.as_ref().len() - args.len()
                     ]);
                     v
                 } else {
@@ -790,7 +790,7 @@ impl JsObject {
                     context.vm.push(arg);
                 }
 
-                let param_count = code.params.parameters.len();
+                let param_count = code.params.as_ref().len();
                 let has_expressions = code.params.has_expressions();
 
                 context.vm.push_frame(CallFrame {
@@ -898,11 +898,11 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = if code.params.parameters.len() > args.len() {
+                let args = if code.params.as_ref().len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
                         JsValue::Undefined;
-                        code.params.parameters.len() - args.len()
+                        code.params.as_ref().len() - args.len()
                     ]);
                     v
                 } else {
@@ -913,7 +913,7 @@ impl JsObject {
                     context.vm.push(arg);
                 }
 
-                let param_count = code.params.parameters.len();
+                let param_count = code.params.as_ref().len();
                 let has_expressions = code.params.has_expressions();
 
                 context.vm.push_frame(CallFrame {
@@ -1015,11 +1015,11 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let mut args = if code.params.parameters.len() > args.len() {
+                let mut args = if code.params.as_ref().len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
                         JsValue::Undefined;
-                        code.params.parameters.len() - args.len()
+                        code.params.as_ref().len() - args.len()
                     ]);
                     v
                 } else {
@@ -1027,7 +1027,7 @@ impl JsObject {
                 };
                 args.reverse();
 
-                let param_count = code.params.parameters.len();
+                let param_count = code.params.as_ref().len();
 
                 let call_frame = CallFrame {
                     code,
@@ -1150,11 +1150,11 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let mut args = if code.params.parameters.len() > args.len() {
+                let mut args = if code.params.as_ref().len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
                         JsValue::Undefined;
-                        code.params.parameters.len() - args.len()
+                        code.params.as_ref().len() - args.len()
                     ]);
                     v
                 } else {
@@ -1162,7 +1162,7 @@ impl JsObject {
                 };
                 args.reverse();
 
-                let param_count = code.params.parameters.len();
+                let param_count = code.params.as_ref().len();
 
                 let call_frame = CallFrame {
                     code,
@@ -1368,7 +1368,7 @@ impl JsObject {
                 let mut is_simple_parameter_list = true;
                 let mut has_parameter_expressions = false;
 
-                for param in code.params.parameters.iter() {
+                for param in code.params.as_ref().iter() {
                     has_parameter_expressions = has_parameter_expressions || param.init().is_some();
                     arguments_in_parameter_names = arguments_in_parameter_names
                         || param.names().contains(&Sym::ARGUMENTS.into());
@@ -1401,11 +1401,11 @@ impl JsObject {
                 let arg_count = args.len();
 
                 // Push function arguments to the stack.
-                let args = if code.params.parameters.len() > args.len() {
+                let args = if code.params.as_ref().len() > args.len() {
                     let mut v = args.to_vec();
                     v.extend(vec![
                         JsValue::Undefined;
-                        code.params.parameters.len() - args.len()
+                        code.params.as_ref().len() - args.len()
                     ]);
                     v
                 } else {
@@ -1416,7 +1416,7 @@ impl JsObject {
                     context.vm.push(arg);
                 }
 
-                let param_count = code.params.parameters.len();
+                let param_count = code.params.as_ref().len();
 
                 context.vm.push_frame(CallFrame {
                     code,

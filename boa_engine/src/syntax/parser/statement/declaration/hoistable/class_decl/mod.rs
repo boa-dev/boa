@@ -2,15 +2,6 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        self,
-        expression::Identifier,
-        function::{
-            self, function_contains_super, has_direct_super, Class, FormalParameterList, Function,
-        },
-        property::{ClassElementName, MethodDefinition},
-        ContainsSymbol, Declaration, Expression, Keyword, Punctuator,
-    },
     lexer::{Error as LexError, TokenKind},
     parser::{
         expression::{
@@ -18,9 +9,17 @@ use crate::syntax::{
             GeneratorMethod, LeftHandSideExpression, PropertyName,
         },
         function::{FormalParameters, FunctionBody, UniqueFormalParameters, FUNCTION_BREAK_TOKENS},
+        function_contains_super, has_direct_super,
         statement::StatementList,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    self as ast,
+    expression::Identifier,
+    function::{self, Class, FormalParameterList, Function},
+    property::{ClassElementName, MethodDefinition},
+    ContainsSymbol, Declaration, Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use rustc_hash::{FxHashMap, FxHashSet};
@@ -919,7 +918,7 @@ where
 
                         let method = MethodDefinition::Get(Function::new(
                             None,
-                            FormalParameterList::empty(),
+                            FormalParameterList::default(),
                             body,
                         ));
                         if r#static {
