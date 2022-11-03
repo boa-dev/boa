@@ -46,6 +46,7 @@ use boa_ast::{
         Call, Identifier, New,
     },
     function::{FormalParameter, FormalParameterList},
+    operations::{contains, ContainsSymbol},
     pattern::{ArrayPatternElement, ObjectPatternElement, Pattern},
     Keyword, Punctuator, Span,
 };
@@ -467,7 +468,7 @@ where
             }
         }
 
-        if parameters.contains_yield_expression() {
+        if contains(&parameters, ContainsSymbol::YieldExpression) {
             return Err(ParseError::general(
                 "yield expression is not allowed in formal parameter list of arrow function",
                 start_span.start(),

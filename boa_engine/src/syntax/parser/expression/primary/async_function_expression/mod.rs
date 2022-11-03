@@ -6,11 +6,15 @@ use crate::syntax::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        function_contains_super, name_in_lexically_declared_names, AllowYield, Cursor, ParseError,
-        ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
-use boa_ast::{expression::Identifier, function::AsyncFunction, Keyword, Position, Punctuator};
+use boa_ast::{
+    expression::Identifier,
+    function::AsyncFunction,
+    operations::{contains, ContainsSymbol},
+    Keyword, Position, Punctuator,
+};
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 use std::io::Read;
@@ -130,13 +134,15 @@ where
             params_start_position,
         )?;
 
-        if function_contains_super(&body, &params) {
+        let function = AsyncFunction::new(name, params, body);
+
+        if contains(&function, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 params_start_position,
             )));
         }
 
-        Ok(AsyncFunction::new(name, params, body))
+        Ok(function)
     }
 }

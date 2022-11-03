@@ -17,7 +17,6 @@
 use super::{
     expression::Identifier,
     function::{AsyncFunction, AsyncGenerator, Class, Function, Generator},
-    ContainsSymbol,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -114,42 +113,6 @@ impl Declaration {
                 }
                 names
             }
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    // TODO: replace with a visitor
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Function(_)
-            | Self::Generator(_)
-            | Self::AsyncGenerator(_)
-            | Self::AsyncFunction(_) => false,
-            Self::Lexical(decl) => decl.contains_arguments(),
-            Self::Class(class) => class.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    // TODO: replace with a visitor
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Function(_)
-            | Self::Generator(_)
-            | Self::AsyncGenerator(_)
-            | Self::AsyncFunction(_) => false,
-            Self::Class(class) => class.contains(symbol),
-            Self::Lexical(decl) => decl.contains(symbol),
         }
     }
 }

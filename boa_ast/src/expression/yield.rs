@@ -2,7 +2,6 @@ use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::ContainsSymbol;
 
 use super::Expression;
 
@@ -43,16 +42,6 @@ impl Yield {
             target: expr.map(Box::new),
             delegate,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains(symbol))
     }
 }
 

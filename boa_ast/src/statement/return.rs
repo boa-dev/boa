@@ -1,5 +1,8 @@
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, statement::Statement, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    statement::Statement,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -37,15 +40,6 @@ impl Return {
     #[must_use]
     pub fn new(expression: Option<Expression>) -> Self {
         Self { target: expression }
-    }
-
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self.target, Some(ref expr) if expr.contains(symbol))
     }
 }
 

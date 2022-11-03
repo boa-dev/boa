@@ -4,7 +4,6 @@ use crate::{
     pattern::Pattern,
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol,
 };
 use bitflags::bitflags;
 use boa_interner::{Interner, Sym, ToInternedString};
@@ -123,46 +122,6 @@ impl FormalParameterList {
     #[must_use]
     pub fn has_arguments(&self) -> bool {
         self.flags.contains(FormalParameterListFlags::HAS_ARGUMENTS)
-    }
-
-    /// Check if the any of the parameters contains a yield expression.
-    #[must_use]
-    pub fn contains_yield_expression(&self) -> bool {
-        for parameter in self.parameters.iter() {
-            if parameter
-                .variable()
-                .contains(ContainsSymbol::YieldExpression)
-            {
-                return true;
-            }
-        }
-        false
-    }
-
-    /// Check if the any of the parameters contains a await expression.
-    #[must_use]
-    pub fn contains_await_expression(&self) -> bool {
-        for parameter in self.parameters.iter() {
-            if parameter
-                .variable()
-                .contains(ContainsSymbol::AwaitExpression)
-            {
-                return true;
-            }
-        }
-        false
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.parameters
-            .iter()
-            .any(FormalParameter::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.parameters.iter().any(|param| param.contains(symbol))
     }
 }
 
@@ -300,15 +259,6 @@ impl FormalParameter {
     #[must_use]
     pub fn is_identifier(&self) -> bool {
         matches!(&self.variable.binding(), Binding::Identifier(_))
-    }
-
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.variable.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.variable.contains(symbol)
     }
 }
 

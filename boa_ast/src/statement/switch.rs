@@ -1,12 +1,14 @@
 //! Switch node.
 //!
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, statement::Statement, StatementList};
+use crate::{
+    expression::Expression,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    StatementList,
+};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
-
-use super::ContainsSymbol;
 
 /// A case clause inside a [`Switch`] statement, as defined by the [spec].
 ///
@@ -43,21 +45,6 @@ impl Case {
     #[must_use]
     pub fn body(&self) -> &StatementList {
         &self.body
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments() || self.body.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.condition.contains(symbol)
-            || self
-                .body
-                .statements()
-                .iter()
-                .any(|stmt| stmt.contains(symbol))
     }
 }
 
@@ -134,18 +121,6 @@ impl Switch {
     #[must_use]
     pub fn default(&self) -> Option<&StatementList> {
         self.default.as_ref()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.val.contains_arguments()
-            || self.cases.iter().any(Case::contains_arguments)
-            || matches!(self.default, Some(ref stmts) if stmts.contains_arguments())
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.val.contains(symbol) || self.cases.iter().any(|case| case.contains(symbol))
     }
 }
 

@@ -1,6 +1,9 @@
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, statement::Statement, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    statement::Statement,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -45,16 +48,6 @@ impl DoWhileLoop {
             body: body.into(),
             condition,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.body.contains_arguments() || self.condition.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.body.contains(symbol) || self.condition.contains(symbol)
     }
 }
 

@@ -338,7 +338,7 @@ where
     #[inline]
     fn increment(&mut self, n: u32) -> Result<(), Error> {
         for _ in 0..n {
-            if None == self.next_byte()? {
+            if (self.next_byte()?).is_none() {
                 break;
             }
         }

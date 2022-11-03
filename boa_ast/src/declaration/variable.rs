@@ -9,7 +9,7 @@ use crate::{
     expression::{Expression, Identifier},
     join_nodes,
     pattern::Pattern,
-    ContainsSymbol, Statement,
+    Statement,
 };
 use boa_interner::{Interner, ToInternedString};
 
@@ -47,17 +47,6 @@ use super::Declaration;
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug, PartialEq)]
 pub struct VarDeclaration(pub VariableList);
-
-impl VarDeclaration {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.as_ref().iter().any(Variable::contains_arguments)
-    }
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.as_ref().iter().any(|decl| decl.contains(symbol))
-    }
-}
 
 impl From<VarDeclaration> for Statement {
     fn from(var: VarDeclaration) -> Self {
@@ -123,22 +112,6 @@ impl LexicalDeclaration {
         match self {
             LexicalDeclaration::Const(list) | LexicalDeclaration::Let(list) => list,
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.variable_list()
-            .as_ref()
-            .iter()
-            .any(Variable::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.variable_list()
-            .as_ref()
-            .iter()
-            .any(|decl| decl.contains(symbol))
     }
 }
 
@@ -332,33 +305,6 @@ impl Variable {
     pub fn idents(&self) -> Vec<Identifier> {
         self.binding.idents()
     }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        if let Some(ref node) = self.init {
-            if node.contains_arguments() {
-                return true;
-            }
-        }
-        self.binding.contains_arguments()
-    }
-
-    /// Returns `true` if the variable declaration contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    #[must_use]
-    pub fn contains(&self, symbol: ContainsSymbol) -> bool {
-        if let Some(ref node) = self.init {
-            if node.contains(symbol) {
-                return true;
-            }
-        }
-        self.binding.contains(symbol)
-    }
 }
 
 impl VisitWith for Variable {
@@ -413,20 +359,6 @@ impl From<Pattern> for Binding {
 }
 
 impl Binding {
-    pub(crate) fn contains_arguments(&self) -> bool {
-        matches!(self, Binding::Pattern(ref pattern) if pattern.contains_arguments())
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        matches!(self, Binding::Pattern(ref pattern) if pattern.contains(symbol))
-    }
-
     /// Gets the list of declared identifiers.
     pub(crate) fn idents(&self) -> Vec<Identifier> {
         match self {

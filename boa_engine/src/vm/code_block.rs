@@ -521,6 +521,7 @@ pub(crate) fn create_function_object(
         Function::Async {
             code,
             environments: context.realm.environments.clone(),
+            home_object: None,
             promise_capability,
         }
     } else {
@@ -626,6 +627,7 @@ pub(crate) fn create_generator_function_object(
         let function = Function::AsyncGenerator {
             code,
             environments: context.realm.environments.clone(),
+            home_object: None,
         };
         JsObject::from_proto_and_data(
             function_prototype,
@@ -635,6 +637,7 @@ pub(crate) fn create_generator_function_object(
         let function = Function::Generator {
             code,
             environments: context.realm.environments.clone(),
+            home_object: None,
         };
         JsObject::from_proto_and_data(function_prototype, ObjectData::generator_function(function))
     };
@@ -831,6 +834,7 @@ impl JsObject {
                 code,
                 environments,
                 promise_capability,
+                ..
             } => {
                 let code = code.clone();
                 let mut environments = environments.clone();
@@ -949,7 +953,9 @@ impl JsObject {
 
                 Ok(promise.into())
             }
-            Function::Generator { code, environments } => {
+            Function::Generator {
+                code, environments, ..
+            } => {
                 let code = code.clone();
                 let mut environments = environments.clone();
                 drop(object);
@@ -1084,7 +1090,9 @@ impl JsObject {
 
                 Ok(generator.into())
             }
-            Function::AsyncGenerator { code, environments } => {
+            Function::AsyncGenerator {
+                code, environments, ..
+            } => {
                 let code = code.clone();
                 let mut environments = environments.clone();
                 drop(object);

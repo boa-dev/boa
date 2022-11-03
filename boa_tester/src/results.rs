@@ -187,7 +187,7 @@ fn update_gh_pages_repo(path: &Path, verbose: u8) {
 
         // We run the command to pull the gh-pages branch: git -C ../gh-pages/ pull origin
         Command::new("git")
-            .args(&["-C", "../gh-pages", "pull", "--ff-only"])
+            .args(["-C", "../gh-pages", "pull", "--ff-only"])
             .output()
             .expect("could not update GitHub Pages");
 

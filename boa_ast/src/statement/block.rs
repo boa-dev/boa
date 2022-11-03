@@ -1,8 +1,10 @@
 //! Block AST node.
 
-use super::Statement;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Identifier, ContainsSymbol, StatementList};
+use crate::{
+    expression::Identifier,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Statement, StatementList,
+};
 use boa_interner::{Interner, ToIndentedString};
 use core::ops::ControlFlow;
 
@@ -41,16 +43,6 @@ impl Block {
     #[must_use]
     pub fn lexically_declared_names(&self) -> Vec<(Identifier, bool)> {
         self.statements.lexically_declared_names()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.statements.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.statements.contains(symbol)
     }
 }
 

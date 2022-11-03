@@ -22,16 +22,15 @@
 //! [spec2]: https://tc39.es/ecma262/#prod-AssignmentPattern
 //! [destr]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment
 
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use boa_interner::{Interner, Sym, ToInternedString};
-use core::ops::ControlFlow;
-
-use super::{
+use crate::{
     expression::{access::PropertyAccess, Identifier},
     property::PropertyName,
-    ContainsSymbol, Expression,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+    Expression,
 };
+use boa_interner::{Interner, ToInternedString};
+use core::ops::ControlFlow;
 
 /// An object or array pattern binding or assignment.
 ///
@@ -87,34 +86,6 @@ impl Pattern {
         match &self {
             Pattern::Object(pattern) => pattern.idents(),
             Pattern::Array(pattern) => pattern.idents(),
-        }
-    }
-
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Pattern::Object(object) => object.contains_arguments(),
-            Pattern::Array(array) => array.contains_arguments(),
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Pattern::Object(object) => object.contains(symbol),
-            Pattern::Array(array) => array.contains(symbol),
         }
     }
 }
@@ -215,16 +186,6 @@ impl ObjectPattern {
             Some(ObjectPatternElement::RestProperty { .. })
         )
     }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(ObjectPatternElement::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.iter().any(|e| e.contains(symbol))
-    }
 }
 
 impl VisitWith for ObjectPattern {
@@ -310,15 +271,6 @@ impl ArrayPattern {
             .iter()
             .flat_map(ArrayPatternElement::idents)
             .collect()
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.0.iter().any(ArrayPatternElement::contains_arguments)
-    }
-
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.0.iter().any(|e| e.contains(symbol))
     }
 }
 
@@ -443,64 +395,6 @@ pub enum ObjectPatternElement {
 }
 
 impl ObjectPatternElement {
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            ObjectPatternElement::SingleName {
-                name,
-                ident,
-                default_init,
-            } => {
-                *ident == Sym::ARGUMENTS
-                    || name.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            ObjectPatternElement::RestProperty { ident, .. } => *ident == Sym::ARGUMENTS,
-            ObjectPatternElement::AssignmentPropertyAccess {
-                name,
-                access,
-                default_init,
-            } => {
-                name.contains_arguments()
-                    || access.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            ObjectPatternElement::AssignmentRestPropertyAccess { access, .. } => {
-                access.contains_arguments()
-            }
-            ObjectPatternElement::Pattern {
-                name,
-                pattern,
-                default_init,
-            } => {
-                name.contains_arguments()
-                    || pattern.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-        }
-    }
-
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::SingleName {
-                name, default_init, ..
-            } => {
-                name.contains(symbol) || matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::AssignmentRestPropertyAccess { access, .. } => access.contains(symbol),
-            Self::Pattern {
-                name,
-                pattern,
-                default_init,
-            } => {
-                name.contains(symbol)
-                    || matches!(default_init, Some(init) if init.contains(symbol))
-                    || pattern.contains(symbol)
-            }
-            _ => false,
-        }
-    }
-
     /// Gets the list of identifiers declared by the object binding pattern.
     #[inline]
     pub(crate) fn idents(&self) -> Vec<Identifier> {
@@ -853,64 +747,6 @@ pub enum ArrayPatternElement {
 }
 
 impl ArrayPatternElement {
-    /// Returns true if the node contains a identifier reference named 'arguments'.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-containsarguments
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        match self {
-            Self::Elision => false,
-            Self::SingleName {
-                ident,
-                default_init,
-            } => {
-                *ident == Sym::ARGUMENTS
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-            Self::SingleNameRest { ident } => *ident == Sym::ARGUMENTS,
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                access.contains_arguments()
-            }
-            Self::PatternRest { pattern } => pattern.contains_arguments(),
-            Self::Pattern {
-                pattern,
-                default_init,
-            } => {
-                pattern.contains_arguments()
-                    || matches!(default_init, Some(init) if init.contains_arguments())
-            }
-        }
-    }
-
-    /// Returns `true` if the node contains the given token.
-    ///
-    /// More information:
-    ///  - [ECMAScript specification][spec]
-    ///
-    /// [spec]: https://tc39.es/ecma262/#sec-static-semantics-contains
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        match self {
-            Self::Elision | Self::SingleNameRest { .. } => false,
-            Self::SingleName { default_init, .. } => {
-                matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::PropertyAccess { access } | Self::PropertyAccessRest { access } => {
-                access.contains(symbol)
-            }
-            Self::Pattern {
-                pattern,
-                default_init,
-            } => {
-                pattern.contains(symbol)
-                    || matches!(default_init, Some(init) if init.contains(symbol))
-            }
-            Self::PatternRest { pattern } => pattern.contains(symbol),
-        }
-    }
-
     /// Gets the list of identifiers in the array pattern element.
     #[inline]
     pub(crate) fn idents(&self) -> Vec<Identifier> {

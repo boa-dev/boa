@@ -63,6 +63,7 @@ pub mod declaration;
 pub mod expression;
 pub mod function;
 pub mod keyword;
+pub mod operations;
 pub mod pattern;
 pub mod property;
 pub mod statement;
@@ -79,32 +80,6 @@ pub use self::{
     statement::Statement,
     statement_list::{StatementList, StatementListItem},
 };
-
-/// Represents all the possible symbols searched for by the [`Contains`][contains] operation.
-///
-/// [contains]: https://tc39.es/ecma262/#sec-syntax-directed-operations-contains
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-#[non_exhaustive]
-pub enum ContainsSymbol {
-    /// A super property access (`super.prop`).
-    SuperProperty,
-    /// A super constructor call (`super(args)`).
-    SuperCall,
-    /// A yield expression (`yield 5`).
-    YieldExpression,
-    /// An await expression (`await 4`).
-    AwaitExpression,
-    /// The new target expression (`new.target`).
-    NewTarget,
-    /// The body of a class definition.
-    ClassBody,
-    /// The super class of a class definition.
-    ClassHeritage,
-    /// A this expression (`this`).
-    This,
-    /// A method definition.
-    MethodDefinition,
-}
 
 /// Utility to join multiple Nodes into a single string.
 fn join_nodes<N>(interner: &Interner, nodes: &[N]) -> String

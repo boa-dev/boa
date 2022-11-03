@@ -3,7 +3,6 @@ use crate::visitor::{VisitWith, Visitor, VisitorMut};
 use crate::{
     expression::Expression,
     statement::{iteration::IterableLoopInitializer, Statement},
-    ContainsSymbol,
 };
 use boa_interner::{Interner, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -54,20 +53,6 @@ impl ForInLoop {
     #[must_use]
     pub fn body(&self) -> &Statement {
         &self.body
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.initializer.contains_arguments()
-            || self.target.contains_arguments()
-            || self.body.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.initializer.contains(symbol)
-            || self.target.contains(symbol)
-            || self.body.contains(symbol)
     }
 }
 

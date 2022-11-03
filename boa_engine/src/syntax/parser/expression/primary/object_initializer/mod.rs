@@ -15,8 +15,8 @@ use crate::syntax::{
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        function_contains_super, has_direct_super, name_in_lexically_declared_names, AllowAwait,
-        AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        name_in_lexically_declared_names, AllowAwait, AllowIn, AllowYield, Cursor, ParseError,
+        ParseResult, TokenParser,
     },
 };
 use boa_ast::{
@@ -25,6 +25,7 @@ use boa_ast::{
         Identifier,
     },
     function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
+    operations::{contains, has_direct_super, ContainsSymbol},
     property::{self, MethodDefinition},
     Expression, Keyword, Punctuator,
 };
@@ -191,7 +192,7 @@ where
                             .parse(cursor, interner)?;
 
                     // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                    if has_direct_super(method.body(), method.parameters()) {
+                    if has_direct_super(&method) {
                         return Err(ParseError::general("invalid super usage", position));
                     }
 
@@ -227,7 +228,7 @@ where
                 };
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(method.body(), method.parameters()) {
+                if has_direct_super(&method) {
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
@@ -254,7 +255,7 @@ where
                 GeneratorMethod::new(self.allow_yield, self.allow_await).parse(cursor, interner)?;
 
             // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-            if has_direct_super(method.body(), method.parameters()) {
+            if has_direct_super(&method) {
                 return Err(ParseError::general("invalid super usage", position));
             }
 
@@ -324,19 +325,20 @@ where
                     "get method definition",
                     interner,
                 )?;
+                let method = MethodDefinition::Get(Function::new(
+                    None,
+                    FormalParameterList::default(),
+                    body,
+                ));
 
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&body, &FormalParameterList::default()) {
+                if has_direct_super(&method) {
                     return Err(ParseError::general("invalid super usage", position));
                 }
 
                 Ok(property::PropertyDefinition::MethodDefinition(
                     property_name,
-                    MethodDefinition::Get(Function::new(
-                        None,
-                        FormalParameterList::default(),
-                        body,
-                    )),
+                    method,
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> set ClassElementName[?Yield, ?Await] ( PropertySetParameterList ) { FunctionBody[~Yield, ~Await] }
@@ -383,8 +385,10 @@ where
                     )));
                 }
 
+                let method = MethodDefinition::Set(Function::new(None, parameters, body));
+
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&body, &parameters) {
+                if has_direct_super(&method) {
                     return Err(ParseError::general(
                         "invalid super usage",
                         params_start_position,
@@ -393,7 +397,7 @@ where
 
                 Ok(property::PropertyDefinition::MethodDefinition(
                     property_name,
-                    MethodDefinition::Set(Function::new(None, parameters, body)),
+                    method,
                 ))
             }
             // MethodDefinition[?Yield, ?Await] -> ClassElementName[?Yield, ?Await] ( UniqueFormalParameters[~Yield, ~Await] ) { FunctionBody[~Yield, ~Await] }
@@ -462,8 +466,10 @@ where
                     }
                 }
 
+                let method = MethodDefinition::Ordinary(Function::new(None, params, body));
+
                 // It is a Syntax Error if HasDirectSuper of MethodDefinition is true.
-                if has_direct_super(&body, &params) {
+                if has_direct_super(&method) {
                     return Err(ParseError::general(
                         "invalid super usage",
                         params_start_position,
@@ -472,7 +478,7 @@ where
 
                 Ok(property::PropertyDefinition::MethodDefinition(
                     property_name,
-                    MethodDefinition::Ordinary(Function::new(None, params, body)),
+                    method,
                 ))
             }
         }
@@ -723,17 +729,16 @@ where
             body_start,
         )?;
 
-        if function_contains_super(&body, &params) {
+        let method = MethodDefinition::Generator(Generator::new(None, params, body));
+
+        if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 body_start,
             )));
         }
 
-        Ok((
-            class_element_name,
-            MethodDefinition::Generator(Generator::new(None, params, body)),
-        ))
+        Ok((class_element_name, method))
     }
 }
 
@@ -789,7 +794,7 @@ where
         let params = UniqueFormalParameters::new(true, true).parse(cursor, interner)?;
 
         // It is a Syntax Error if FormalParameters Contains YieldExpression is true.
-        if params.contains_yield_expression() {
+        if contains(&params, ContainsSymbol::YieldExpression) {
             return Err(ParseError::lex(LexError::Syntax(
                 "yield expression not allowed in async generator method definition parameters"
                     .into(),
@@ -798,7 +803,7 @@ where
         }
 
         // It is a Syntax Error if FormalParameters Contains AwaitExpression is true.
-        if params.contains_await_expression() {
+        if contains(&params, ContainsSymbol::AwaitExpression) {
             return Err(ParseError::lex(LexError::Syntax(
                 "await expression not allowed in async generator method definition parameters"
                     .into(),
@@ -838,17 +843,16 @@ where
             body_start,
         )?;
 
-        if function_contains_super(&body, &params) {
+        let method = MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body));
+
+        if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 body_start,
             )));
         }
 
-        Ok((
-            name,
-            MethodDefinition::AsyncGenerator(AsyncGenerator::new(None, params, body)),
-        ))
+        Ok((name, method))
     }
 }
 
@@ -924,17 +928,16 @@ where
             body_start,
         )?;
 
-        if function_contains_super(&body, &params) {
+        let method = MethodDefinition::Async(AsyncFunction::new(None, params, body));
+
+        if contains(&method, ContainsSymbol::Super) {
             return Err(ParseError::lex(LexError::Syntax(
                 "invalid super usage".into(),
                 body_start,
             )));
         }
 
-        Ok((
-            class_element_name,
-            MethodDefinition::Async(AsyncFunction::new(None, params, body)),
-        ))
+        Ok((class_element_name, method))
     }
 }
 

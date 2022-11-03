@@ -24,14 +24,16 @@ use crate::syntax::{
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
-        function_contains_super, name_in_lexically_declared_names,
+        name_in_lexically_declared_names,
         statement::LexError,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
 };
 use boa_ast::{
-    expression::Identifier, function::FormalParameterList, Declaration, Keyword, Position,
-    Punctuator, StatementList,
+    expression::Identifier,
+    function::FormalParameterList,
+    operations::{contains, ContainsSymbol},
+    Declaration, Keyword, Position, Punctuator, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -134,7 +136,7 @@ trait CallableDeclaration {
     fn body_allow_await(&self) -> bool;
 }
 
-// This is a helper function to not duplicate code in the individual callable deceleration parsers.
+// This is a helper function to not duplicate code in the individual callable declaration parsers.
 #[inline]
 fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     c: &C,
@@ -216,7 +218,7 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
         params_start_position,
     )?;
 
-    if function_contains_super(&body, &params) {
+    if contains(&body, ContainsSymbol::Super) || contains(&params, ContainsSymbol::Super) {
         return Err(ParseError::lex(LexError::Syntax(
             "invalid super usage".into(),
             params_start_position,

@@ -1,6 +1,8 @@
-use crate::try_break;
-use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{expression::Expression, ContainsSymbol};
+use crate::{
+    expression::Expression,
+    try_break,
+    visitor::{VisitWith, Visitor, VisitorMut},
+};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -57,20 +59,6 @@ impl Conditional {
             if_true: Box::new(if_true),
             if_false: Box::new(if_false),
         }
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.condition.contains_arguments()
-            || self.if_true.contains_arguments()
-            || self.if_false.contains_arguments()
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.condition.contains(symbol)
-            || self.if_true.contains(symbol)
-            || self.if_false.contains(symbol)
     }
 }
 

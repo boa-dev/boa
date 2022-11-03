@@ -29,7 +29,10 @@ use std::io::Read;
 pub use self::error::{ParseError, ParseResult};
 
 use boa_ast::{
-    expression::Identifier, function::FormalParameterList, ContainsSymbol, Position, StatementList,
+    expression::Identifier,
+    function::FormalParameterList,
+    operations::{contains, contains_arguments, ContainsSymbol},
+    Position, StatementList,
 };
 
 /// Trait implemented by parsers.
@@ -199,25 +202,25 @@ impl<R> Parser<R> {
             _ => Flags::default(),
         };
 
-        if !flags.in_function && body.contains(ContainsSymbol::NewTarget) {
+        if !flags.in_function && contains(&body, ContainsSymbol::NewTarget) {
             return Err(ParseError::general(
                 "invalid `new.target` expression inside eval",
                 Position::new(1, 1),
             ));
         }
-        if !flags.in_method && body.contains(ContainsSymbol::SuperProperty) {
+        if !flags.in_method && contains(&body, ContainsSymbol::SuperProperty) {
             return Err(ParseError::general(
                 "invalid `super` reference inside eval",
                 Position::new(1, 1),
             ));
         }
-        if !flags.in_derived_constructor && body.contains(ContainsSymbol::SuperCall) {
+        if !flags.in_derived_constructor && contains(&body, ContainsSymbol::SuperCall) {
             return Err(ParseError::general(
                 "invalid `super` call inside eval",
                 Position::new(1, 1),
             ));
         }
-        if flags.in_class_field_initializer && body.contains_arguments() {
+        if flags.in_class_field_initializer && contains_arguments(&body) {
             return Err(ParseError::general(
                 "invalid `arguments` reference inside eval",
                 Position::new(1, 1),
@@ -401,9 +404,7 @@ where
                 // It is a Syntax Error if StatementList Contains super unless the source text containing super is eval
                 // code that is being processed by a direct eval.
                 // Additional early error rules for super within direct eval are defined in 19.2.1.1.
-                if node.contains(ContainsSymbol::SuperCall)
-                    || node.contains(ContainsSymbol::SuperProperty)
-                {
+                if contains(node, ContainsSymbol::Super) {
                     return Err(ParseError::general(
                         "invalid super usage",
                         Position::new(1, 1),
@@ -413,7 +414,7 @@ where
                 // It is a Syntax Error if StatementList Contains NewTarget unless the source text containing NewTarget
                 // is eval code that is being processed by a direct eval.
                 // Additional early error rules for NewTarget in direct eval are defined in 19.2.1.1.
-                if node.contains(ContainsSymbol::NewTarget) {
+                if contains(node, ContainsSymbol::NewTarget) {
                     return Err(ParseError::general(
                         "invalid new.target usage",
                         Position::new(1, 1),
@@ -424,44 +425,6 @@ where
 
         Ok(body)
     }
-}
-
-// Checks if a function contains a super call or super property access.
-fn function_contains_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
-    for param in parameters.as_ref() {
-        if param.variable().contains(ContainsSymbol::SuperCall)
-            || param.variable().contains(ContainsSymbol::SuperProperty)
-        {
-            return true;
-        }
-    }
-    for node in body.statements() {
-        if node.contains(ContainsSymbol::SuperCall) || node.contains(ContainsSymbol::SuperProperty)
-        {
-            return true;
-        }
-    }
-    false
-}
-
-/// Returns `true` if the function parameters or body contain a direct `super` call.
-///
-/// More information:
-///  - [ECMAScript specification][spec]
-///
-/// [spec]: https://tc39.es/ecma262/#sec-static-semantics-hasdirectsuper
-pub fn has_direct_super(body: &StatementList, parameters: &FormalParameterList) -> bool {
-    for param in parameters.as_ref() {
-        if param.variable().contains(ContainsSymbol::SuperCall) {
-            return true;
-        }
-    }
-    for node in body.statements() {
-        if node.contains(ContainsSymbol::SuperCall) {
-            return true;
-        }
-    }
-    false
 }
 
 /// Helper to check if any parameter names are declared in the given list.

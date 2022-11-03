@@ -8,7 +8,6 @@ use crate::{
     property::{MethodDefinition, PropertyDefinition, PropertyName},
     try_break,
     visitor::{VisitWith, Visitor, VisitorMut},
-    ContainsSymbol,
 };
 use boa_interner::{Interner, Sym, ToIndentedString, ToInternedString};
 use core::ops::ControlFlow;
@@ -204,18 +203,6 @@ impl ObjectLiteral {
         }
 
         Some(ObjectPattern::new(bindings.into()))
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.properties
-            .iter()
-            .any(PropertyDefinition::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.properties.iter().any(|prop| prop.contains(symbol))
     }
 }
 

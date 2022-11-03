@@ -1,6 +1,6 @@
+use crate::join_nodes;
 use crate::try_break;
 use crate::visitor::{VisitWith, Visitor, VisitorMut};
-use crate::{join_nodes, ContainsSymbol};
 use boa_interner::{Interner, ToInternedString};
 use core::ops::ControlFlow;
 
@@ -50,16 +50,6 @@ impl Call {
     #[must_use]
     pub fn args(&self) -> &[Expression] {
         &self.args
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.function.contains_arguments() || self.args.iter().any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.function.contains(symbol) || self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 
@@ -132,16 +122,6 @@ impl SuperCall {
     #[must_use]
     pub fn arguments(&self) -> &[Expression] {
         &self.args
-    }
-
-    #[inline]
-    pub(crate) fn contains_arguments(&self) -> bool {
-        self.args.iter().any(Expression::contains_arguments)
-    }
-
-    #[inline]
-    pub(crate) fn contains(&self, symbol: ContainsSymbol) -> bool {
-        self.args.iter().any(|expr| expr.contains(symbol))
     }
 }
 
