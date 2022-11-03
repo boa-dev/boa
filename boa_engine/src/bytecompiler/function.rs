@@ -1,10 +1,10 @@
 use crate::{
     builtins::function::ThisMode,
     bytecompiler::ByteCompiler,
-    syntax::ast::{declaration::Binding, function::FormalParameterList, StatementList},
     vm::{BindingOpcode, CodeBlock, Opcode},
     Context, JsResult,
 };
+use boa_ast::{declaration::Binding, function::FormalParameterList, StatementList};
 use boa_gc::Gc;
 use boa_interner::Sym;
 use rustc_hash::FxHashMap;
@@ -117,7 +117,7 @@ impl FunctionCompiler {
             );
         }
 
-        for parameter in parameters.parameters.iter() {
+        for parameter in parameters.as_ref() {
             if parameter.is_rest_param() {
                 compiler.emit_opcode(Opcode::RestParameterInit);
             }

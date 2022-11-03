@@ -20,11 +20,12 @@ use crate::{
     object::{FunctionBuilder, GlobalPropertyMap, JsObject, ObjectData},
     property::{Attribute, PropertyDescriptor, PropertyKey},
     realm::Realm,
-    syntax::{ast::StatementList, parser::ParseError, Parser},
+    syntax::{parser::ParseError, Parser},
     vm::{CallFrame, CodeBlock, FinallyReturn, GeneratorResumeKind, Vm},
     JsResult, JsString, JsValue,
 };
 
+use boa_ast::StatementList;
 use boa_gc::Gc;
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;

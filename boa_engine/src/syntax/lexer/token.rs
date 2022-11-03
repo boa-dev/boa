@@ -5,14 +5,10 @@
 //!
 //! [spec]: https://tc39.es/ecma262/#sec-tokens
 
-use crate::syntax::{
-    ast::{Keyword, Punctuator, Span},
-    lexer::template::TemplateString,
-};
+use crate::syntax::lexer::template::TemplateString;
+use boa_ast::{Keyword, Punctuator, Span};
 use boa_interner::{Interner, Sym};
 use num_bigint::BigInt;
-#[cfg(feature = "deser")]
-use serde::{Deserialize, Serialize};
 
 /// This represents the smallest individual words, phrases, or characters that JavaScript can understand.
 ///
@@ -20,7 +16,7 @@ use serde::{Deserialize, Serialize};
 ///  - [ECMAScript reference][spec]
 ///
 /// [spec]: https://tc39.es/ecma262/#sec-tokens
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Token {
     /// The token kind, which contains the actual data of the token.
@@ -55,7 +51,7 @@ impl Token {
 }
 
 /// Represents the type different types of numeric literals.
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum Numeric {
     /// A floating point number
@@ -90,7 +86,7 @@ impl From<BigInt> for Numeric {
 }
 
 /// Represents the type of Token and the data it has inside.
-#[cfg_attr(feature = "deser", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "deser", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, PartialEq, Debug)]
 pub enum TokenKind {
     /// A boolean literal, which is either `true` or `false`.

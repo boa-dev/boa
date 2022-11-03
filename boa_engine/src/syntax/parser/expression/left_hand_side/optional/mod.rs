@@ -7,13 +7,6 @@ use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
 
 use crate::syntax::{
-    ast::{
-        self,
-        expression::{
-            access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind,
-        },
-        Punctuator,
-    },
     lexer::{Token, TokenKind},
     parser::{
         cursor::Cursor, expression::Expression, AllowAwait, AllowYield, ParseError, ParseResult,
@@ -22,6 +15,11 @@ use crate::syntax::{
 };
 
 use super::arguments::Arguments;
+use boa_ast::{
+    self as ast,
+    expression::{access::PropertyAccessField, Optional, OptionalOperation, OptionalOperationKind},
+    Punctuator,
+};
 
 /// Parses an optional expression.
 ///

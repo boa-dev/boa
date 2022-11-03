@@ -8,15 +8,15 @@
 //! [spec]: https://tc39.es/ecma262/#sec-conditional-operator
 
 use crate::syntax::{
-    ast::{
-        expression::{operator::Conditional, Identifier},
-        Expression, Punctuator,
-    },
     lexer::TokenKind,
     parser::{
         expression::{AssignmentExpression, ShortCircuitExpression},
         AllowAwait, AllowIn, AllowYield, Cursor, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{operator::Conditional, Identifier},
+    Expression, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

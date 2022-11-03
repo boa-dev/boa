@@ -1,11 +1,9 @@
-use crate::syntax::{
-    ast::{
-        expression::literal::Literal,
-        function::{Class, ClassElement, FormalParameterList, Function},
-        property::{MethodDefinition, PropertyName},
-        Declaration, StatementList,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    expression::literal::Literal,
+    function::{Class, ClassElement, FormalParameterList, Function},
+    property::{MethodDefinition, PropertyName},
+    Declaration, StatementList,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;

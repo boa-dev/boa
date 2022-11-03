@@ -1,14 +1,11 @@
 #[cfg(test)]
 mod tests;
 
-use crate::syntax::{
-    ast::function::Generator,
-    ast::{Keyword, Punctuator},
-    parser::{
-        statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
-        AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
-    },
+use crate::syntax::parser::{
+    statement::declaration::hoistable::{parse_callable_declaration, CallableDeclaration},
+    AllowAwait, AllowDefault, AllowYield, Cursor, ParseResult, TokenParser,
 };
+use boa_ast::{function::Generator, Keyword, Punctuator};
 use boa_interner::Interner;
 use std::io::Read;
 

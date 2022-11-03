@@ -1,10 +1,8 @@
-use crate::syntax::{
-    ast::{statement::WhileLoop, Keyword, Punctuator},
-    parser::{
-        expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
-        ParseError, ParseResult, TokenParser,
-    },
+use crate::syntax::parser::{
+    expression::Expression, statement::Statement, AllowAwait, AllowReturn, AllowYield, Cursor,
+    ParseError, ParseResult, TokenParser,
 };
+use boa_ast::{statement::WhileLoop, Keyword, Punctuator};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

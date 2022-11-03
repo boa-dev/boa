@@ -1,7 +1,7 @@
 use crate::{
-    environments::runtime::BindingLocator, property::PropertyDescriptor,
-    syntax::ast::expression::Identifier, Context, JsString, JsValue,
+    environments::runtime::BindingLocator, property::PropertyDescriptor, Context, JsString, JsValue,
 };
+use boa_ast::expression::Identifier;
 use boa_gc::{Cell, Finalize, Gc, Trace};
 
 use rustc_hash::FxHashMap;

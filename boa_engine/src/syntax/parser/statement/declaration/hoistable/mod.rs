@@ -20,18 +20,18 @@ use self::{
     class_decl::ClassDeclaration, generator_decl::GeneratorDeclaration,
 };
 use crate::syntax::{
-    ast::{
-        expression::Identifier,
-        function::{function_contains_super, FormalParameterList},
-        Declaration, Keyword, Position, Punctuator, StatementList,
-    },
     lexer::TokenKind,
     parser::{
         expression::BindingIdentifier,
         function::{FormalParameters, FunctionBody},
+        function_contains_super, name_in_lexically_declared_names,
         statement::LexError,
         AllowAwait, AllowDefault, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::Identifier, function::FormalParameterList, Declaration, Keyword, Position,
+    Punctuator, StatementList,
 };
 use boa_interner::{Interner, Sym};
 use boa_profiler::Profiler;
@@ -210,7 +210,8 @@ fn parse_callable_declaration<R: Read, C: CallableDeclaration>(
     // It is a Syntax Error if any element of the BoundNames of FormalParameters
     // also occurs in the LexicallyDeclaredNames of FunctionBody.
     // https://tc39.es/ecma262/#sec-function-definitions-static-semantics-early-errors
-    params.name_in_lexically_declared_names(
+    name_in_lexically_declared_names(
+        &params,
         &body.lexically_declared_names_top_level(),
         params_start_position,
     )?;

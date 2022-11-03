@@ -11,22 +11,22 @@
 mod tests;
 
 use crate::syntax::{
-    ast::{
-        expression::{
-            literal::{self, Literal},
-            Identifier,
-        },
-        function::{function_contains_super, has_direct_super},
-        function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
-        property::{self, MethodDefinition},
-        Expression, Keyword, Punctuator,
-    },
     lexer::{token::Numeric, Error as LexError, TokenKind},
     parser::{
         expression::{identifiers::IdentifierReference, AssignmentExpression},
         function::{FormalParameter, FormalParameters, FunctionBody, UniqueFormalParameters},
-        AllowAwait, AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
+        function_contains_super, has_direct_super, name_in_lexically_declared_names, AllowAwait,
+        AllowIn, AllowYield, Cursor, ParseError, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{
+        literal::{self, Literal},
+        Identifier,
+    },
+    function::{AsyncFunction, AsyncGenerator, FormalParameterList, Function, Generator},
+    property::{self, MethodDefinition},
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::{Interner, Sym};
 use boa_macros::utf16;
@@ -445,7 +445,7 @@ where
 
                 // It is a Syntax Error if any element of the BoundNames of FormalParameters also occurs in the LexicallyDeclaredNames of FunctionBody.
                 let lexically_declared_names = body.lexically_declared_names();
-                for parameter in params.parameters.iter() {
+                for parameter in params.as_ref() {
                     for name in &parameter.names() {
                         if lexically_declared_names.contains(&(*name, false)) {
                             return Err(ParseError::general(
@@ -717,7 +717,8 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        params.name_in_lexically_declared_names(
+        name_in_lexically_declared_names(
+            &params,
             &body.lexically_declared_names_top_level(),
             body_start,
         )?;
@@ -831,7 +832,8 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        params.name_in_lexically_declared_names(
+        name_in_lexically_declared_names(
+            &params,
             &body.lexically_declared_names_top_level(),
             body_start,
         )?;
@@ -916,7 +918,8 @@ where
 
         // Early Error: It is a Syntax Error if any element of the BoundNames of UniqueFormalParameters also
         // occurs in the LexicallyDeclaredNames of GeneratorBody.
-        params.name_in_lexically_declared_names(
+        name_in_lexically_declared_names(
+            &params,
             &body.lexically_declared_names_top_level(),
             body_start,
         )?;

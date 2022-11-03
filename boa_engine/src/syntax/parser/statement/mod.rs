@@ -41,13 +41,13 @@ use super::{
     TokenParser,
 };
 use crate::syntax::{
-    ast::{
-        self,
-        pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
-        Keyword, Punctuator,
-    },
     lexer::{Error as LexError, InputElement, Token, TokenKind},
     parser::expression::{BindingIdentifier, Initializer},
+};
+use boa_ast::{
+    self as ast,
+    pattern::{ArrayPattern, ArrayPatternElement, ObjectPatternElement},
+    Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

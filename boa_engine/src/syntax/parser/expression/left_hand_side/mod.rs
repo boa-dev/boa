@@ -17,10 +17,6 @@ mod optional;
 mod template;
 
 use crate::syntax::{
-    ast::{
-        expression::{Identifier, SuperCall},
-        Expression, Keyword, Punctuator,
-    },
     lexer::{InputElement, TokenKind},
     parser::{
         expression::left_hand_side::{
@@ -29,6 +25,10 @@ use crate::syntax::{
         },
         AllowAwait, AllowYield, Cursor, ParseResult, TokenParser,
     },
+};
+use boa_ast::{
+    expression::{Identifier, SuperCall},
+    Expression, Keyword, Punctuator,
 };
 use boa_interner::Interner;
 use boa_profiler::Profiler;

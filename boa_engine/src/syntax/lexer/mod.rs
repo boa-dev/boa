@@ -42,7 +42,7 @@ use self::{
     string::StringLiteral,
     template::TemplateLiteral,
 };
-use crate::syntax::ast::{Position, Punctuator, Span};
+use boa_ast::{Position, Punctuator, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use std::io::Read;

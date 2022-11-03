@@ -2,17 +2,18 @@
 // are used to swap the operands of commutable arithmetic operations. For an example which simply
 // inspects the AST without modifying it, see symbol_visitor.rs.
 
-use boa_engine::syntax::ast::expression::operator::binary::{ArithmeticOp, BinaryOp};
-use boa_engine::syntax::ast::expression::operator::Binary;
-use boa_engine::syntax::ast::visitor::{VisitWith, VisitorMut};
-use boa_engine::syntax::ast::Expression;
-use boa_engine::syntax::Parser;
-use boa_engine::Context;
+use boa_ast::{
+    expression::operator::{
+        binary::{ArithmeticOp, BinaryOp},
+        Binary,
+    },
+    visitor::{VisitWith, VisitorMut},
+    Expression,
+};
+use boa_engine::{syntax::Parser, Context};
 use boa_interner::ToInternedString;
 use core::ops::ControlFlow;
-use std::convert::Infallible;
-use std::fs::File;
-use std::io::BufReader;
+use std::{convert::Infallible, fs::File, io::BufReader};
 
 /// Visitor which, when applied to a binary expression, will swap the operands. Use in other
 /// circumstances is undefined.
@@ -44,21 +45,18 @@ impl<'ast> VisitorMut<'ast> for CommutorVisitor {
     type BreakTy = Infallible;
 
     fn visit_binary_mut(&mut self, node: &'ast mut Binary) -> ControlFlow<Self::BreakTy> {
-        match node.op() {
-            BinaryOp::Arithmetic(op) => {
-                match op {
-                    ArithmeticOp::Add | ArithmeticOp::Mul => {
-                        // set up the exchanger and swap lhs and rhs
-                        let mut exchanger = OpExchanger::default();
-                        assert!(matches!(
-                            exchanger.visit_binary_mut(node),
-                            ControlFlow::Break(_)
-                        ));
-                    }
-                    _ => {}
+        if let BinaryOp::Arithmetic(op) = node.op() {
+            match op {
+                ArithmeticOp::Add | ArithmeticOp::Mul => {
+                    // set up the exchanger and swap lhs and rhs
+                    let mut exchanger = OpExchanger::default();
+                    assert!(matches!(
+                        exchanger.visit_binary_mut(node),
+                        ControlFlow::Break(_)
+                    ));
                 }
+                _ => {}
             }
-            _ => {}
         }
         // traverse further in; there may nested binary operations
         node.visit_with_mut(self)

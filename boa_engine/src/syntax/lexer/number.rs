@@ -1,12 +1,10 @@
 //! This module implements lexing for number literals (123, 787) used in the JavaScript programing language.
 
 use crate::{
-    syntax::{
-        ast::{Position, Span},
-        lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer},
-    },
+    syntax::lexer::{token::Numeric, Cursor, Error, Token, TokenKind, Tokenizer},
     JsBigInt,
 };
+use boa_ast::{Position, Span};
 use boa_interner::Interner;
 use boa_profiler::Profiler;
 use num_bigint::BigInt;

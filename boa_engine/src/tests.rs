@@ -1616,6 +1616,123 @@ fn test_strict_mode_dup_func_parameters() {
 }
 
 #[test]
+fn strict_mode_global() {
+    let scenario = r#"
+        'use strict';
+        let throws = false;
+        try {
+            delete Boolean.prototype;
+        } catch (e) {
+            throws = true;
+        }
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "true")]);
+}
+
+#[test]
+fn strict_mode_function() {
+    let scenario = r#"
+        let throws = false;
+        function t() {
+            'use strict';
+            try {
+                delete Boolean.prototype;
+            } catch (e) {
+                throws = true;
+            }
+        }
+        t()
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "true")]);
+}
+
+#[test]
+fn strict_mode_function_after() {
+    let scenario = r#"
+        function t() {
+            'use strict';
+        }
+        t()
+        let throws = false;
+        try {
+            delete Boolean.prototype;
+        } catch (e) {
+            throws = true;
+        }
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "false")]);
+}
+
+#[test]
+fn strict_mode_global_active_in_function() {
+    let scenario = r#"
+        'use strict'
+        let throws = false;
+        function a(){
+            try {
+                delete Boolean.prototype;
+            } catch (e) {
+                throws = true;
+            }
+        }
+        a();
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "true")]);
+}
+
+#[test]
+fn strict_mode_function_in_function() {
+    let scenario = r#"
+        let throws = false;
+        function a(){
+            try {
+                delete Boolean.prototype;
+            } catch (e) {
+                throws = true;
+            }
+        }
+        function b(){
+            'use strict';
+            a();
+        }
+        b();
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "false")]);
+}
+
+#[test]
+fn strict_mode_function_return() {
+    let scenario = r#"
+        let throws = false;
+        function a() {
+            'use strict';
+        
+            return function () {
+                try {
+                    delete Boolean.prototype;
+                } catch (e) {
+                    throws = true;
+                }
+            }
+        }
+        a()();
+        throws
+    "#;
+
+    check_output(&[TestAction::TestEq(scenario, "true")]);
+}
+
+#[test]
 fn test_empty_statement() {
     let src = r#"
         ;;;let a = 10;;
@@ -1642,4 +1759,1078 @@ fn test_labelled_block() {
         result;
     "#;
     assert_eq!(&exec(src), "true");
+}
+
+#[test]
+fn simple_try() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            a = 20;
+        } catch {
+            a = 30;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn finally() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            a = 20;
+        } finally {
+            a = 30;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "30");
+}
+
+#[test]
+fn catch_finally() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            a = 20;
+        } catch {
+            a = 40;
+        } finally {
+            a = 30;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "30");
+}
+
+#[test]
+fn catch() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            throw "error";
+        } catch {
+            a = 20;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn catch_binding() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            throw 20;
+        } catch(err) {
+            a = err;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn catch_binding_pattern_object() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            throw {
+                n: 30,
+            };
+        } catch ({ n }) {
+            a = n;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "30");
+}
+
+#[test]
+fn catch_binding_pattern_array() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            throw [20, 30];
+        } catch ([, n]) {
+            a = n;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "30");
+}
+
+#[test]
+fn catch_binding_finally() {
+    let scenario = r#"
+        let a = 10;
+        try {
+            throw 20;
+        } catch(err) {
+            a = err;
+        } finally {
+            a = 30;
+        }
+
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "30");
+}
+
+#[test]
+fn single_case_switch() {
+    let scenario = r#"
+        let a = 10;
+        switch (a) {
+            case 10:
+                a = 20;
+                break;
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn no_cases_switch() {
+    let scenario = r#"
+        let a = 10;
+        switch (a) {
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "10");
+}
+
+#[test]
+fn no_true_case_switch() {
+    let scenario = r#"
+        let a = 10;
+        switch (a) {
+            case 5:
+                a = 15;
+                break;
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "10");
+}
+
+#[test]
+fn two_case_switch() {
+    let scenario = r#"
+        let a = 10;
+        switch (a) {
+            case 5:
+                a = 15;
+                break;
+            case 10:
+                a = 20;
+                break;
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn two_case_no_break_switch() {
+    let scenario = r#"
+        let a = 10;
+        let b = 10;
+
+        switch (a) {
+            case 10:
+                a = 150;
+            case 20:
+                b = 150;
+                break;
+        }
+        
+        a + b;
+    "#;
+    assert_eq!(&exec(scenario), "300");
+}
+
+#[test]
+fn three_case_partial_fallthrough() {
+    let scenario = r#"
+        let a = 10;
+        let b = 10;
+
+        switch (a) {
+            case 10:
+                a = 150;
+            case 20:
+                b = 150;
+                break;
+            case 15:
+                b = 1000;
+                break;
+        }
+        
+        a + b;
+    "#;
+    assert_eq!(&exec(scenario), "300");
+}
+
+#[test]
+fn default_taken_switch() {
+    let scenario = r#"
+        let a = 10;
+
+        switch (a) {
+            case 5:
+                a = 150;
+                break;
+            default:
+                a = 70;
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "70");
+}
+
+#[test]
+fn default_not_taken_switch() {
+    let scenario = r#"
+        let a = 5;
+
+        switch (a) {
+            case 5:
+                a = 150;
+                break;
+            default:
+                a = 70;
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "150");
+}
+
+#[test]
+fn string_switch() {
+    let scenario = r#"
+        let a = "hello";
+
+        switch (a) {
+            case "hello":
+                a = "world";
+                break;
+            default:
+                a = "hi";
+        }
+        
+        a;
+    "#;
+    assert_eq!(&exec(scenario), "\"world\"");
+}
+
+#[test]
+fn bigger_switch_example() {
+    let expected = [
+        "\"Mon\"",
+        "\"Tue\"",
+        "\"Wed\"",
+        "\"Thurs\"",
+        "\"Fri\"",
+        "\"Sat\"",
+        "\"Sun\"",
+    ];
+
+    for (i, val) in expected.iter().enumerate() {
+        let scenario = format!(
+            r#"
+            let a = {i};
+            let b = "unknown";
+
+            switch (a) {{
+                case 0:
+                    b = "Mon";
+                    break;
+                case 1:
+                    b = "Tue";
+                    break;
+                case 2:
+                    b = "Wed";
+                    break;
+                case 3:
+                    b = "Thurs";
+                    break;
+                case 4:
+                    b = "Fri";
+                    break;
+                case 5:
+                    b = "Sat";
+                    break;
+                case 6:
+                    b = "Sun";
+                    break; 
+            }}
+
+            b;
+
+            "#,
+        );
+
+        assert_eq!(&exec(&scenario), val);
+    }
+}
+
+#[test]
+fn while_loop_late_break() {
+    // Ordering with statement before the break.
+    let scenario = r#"
+        let a = 1;
+        while (a < 5) {
+            a++;
+            if (a == 3) {
+                break;
+            }
+        }
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn while_loop_early_break() {
+    // Ordering with statements after the break.
+    let scenario = r#"
+        let a = 1;
+        while (a < 5) {
+            if (a == 3) {
+                break;
+            }
+            a++;
+        }
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn for_loop_break() {
+    let scenario = r#"
+        let a = 1;
+        for (; a < 5; a++) {
+            if (a == 3) {
+                break;
+            }
+        }
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn for_loop_return() {
+    let scenario = r#"
+    function foo() {
+        for (let a = 1; a < 5; a++) {
+            if (a == 3) {
+                return a;
+            }
+        }
+    }
+
+    foo();
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn do_loop_late_break() {
+    // Ordering with statement before the break.
+    let scenario = r#"
+        let a = 1;
+        do {
+            a++;
+            if (a == 3) {
+                break;
+            }
+        } while (a < 5);
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn do_loop_early_break() {
+    // Ordering with statements after the break.
+    let scenario = r#"
+        let a = 1;
+        do {
+            if (a == 3) {
+                break;
+            }
+            a++;
+        } while (a < 5);
+        a;
+    "#;
+
+    assert_eq!(&exec(scenario), "3");
+}
+
+#[test]
+fn break_out_of_inner_loop() {
+    let scenario = r#"
+        var a = 0, b = 0;
+        for (let i = 0; i < 2; i++) {
+            a++;
+            for (let j = 0; j < 10; j++) {
+                b++;
+                if (j == 3)
+                    break;
+            }
+            a++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 4, 8 ]");
+}
+
+#[test]
+fn continue_inner_loop() {
+    let scenario = r#"
+        var a = 0, b = 0;
+        for (let i = 0; i < 2; i++) {
+            a++;
+            for (let j = 0; j < 10; j++) {
+                if (j < 3)
+                    continue;
+                b++;
+            }
+            a++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 4, 14 ]");
+}
+
+#[test]
+fn for_loop_continue_out_of_switch() {
+    let scenario = r#"
+        var a = 0, b = 0, c = 0;
+        for (let i = 0; i < 3; i++) {
+            a++;
+            switch (i) {
+            case 0:
+               continue;
+               c++;
+            case 1:
+               continue;
+            case 5:
+               c++;
+            }
+            b++;
+        }
+        [a, b, c]
+    "#;
+    assert_eq!(&exec(scenario), "[ 3, 1, 0 ]");
+}
+
+#[test]
+fn while_loop_continue() {
+    let scenario = r#"
+        var i = 0, a = 0, b = 0;
+        while (i < 3) {
+            i++;
+            if (i < 2) {
+               a++;
+               continue;
+            }
+            b++;
+        }
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}
+
+#[test]
+fn do_while_loop_continue() {
+    let scenario = r#"
+        var i = 0, a = 0, b = 0;
+        do {
+            i++;
+            if (i < 2) {
+               a++;
+               continue;
+            }
+            b++;
+        } while (i < 3)
+        [a, b]
+    "#;
+    assert_eq!(&exec(scenario), "[ 1, 2 ]");
+}
+
+#[test]
+fn for_of_loop_declaration() {
+    let scenario = r#"
+        var result = 0;
+        for (i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "3"),
+        TestAction::TestEq("i", "3"),
+    ]);
+}
+
+#[test]
+fn for_of_loop_var() {
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "3"),
+        TestAction::TestEq("i", "3"),
+    ]);
+}
+
+#[test]
+fn for_of_loop_let() {
+    let scenario = r#"
+        var result = 0;
+        for (let i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "3"),
+        TestAction::TestEq(
+            r#"
+        try {
+            i
+        } catch(e) {
+            e.toString()
+        }
+    "#,
+            "\"ReferenceError: i is not defined\"",
+        ),
+    ]);
+}
+
+#[test]
+fn for_of_loop_const() {
+    let scenario = r#"
+        var result = 0;
+        for (let i of [1, 2, 3]) {
+            result = i;
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "3"),
+        TestAction::TestEq(
+            r#"
+        try {
+            i
+        } catch(e) {
+            e.toString()
+        }
+    "#,
+            "\"ReferenceError: i is not defined\"",
+        ),
+    ]);
+}
+
+#[test]
+fn for_of_loop_break() {
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            if (i > 1)
+                break;
+            result = i
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "1"),
+        TestAction::TestEq("i", "2"),
+    ]);
+}
+
+#[test]
+fn for_of_loop_continue() {
+    let scenario = r#"
+        var result = 0;
+        for (var i of [1, 2, 3]) {
+            if (i == 3)
+                continue;
+            result = i
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("result", "2"),
+        TestAction::TestEq("i", "3"),
+    ]);
+}
+
+#[test]
+fn for_of_loop_return() {
+    let scenario = r#"
+        function foo() {
+            for (i of [1, 2, 3]) {
+                if (i > 1)
+                    return i;
+            }
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(scenario),
+        TestAction::TestEq("foo()", "2"),
+    ]);
+}
+
+#[test]
+fn for_loop_break_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i = 0; i < 5; i++) {
+            inner: for (let b = 0; b < 5; b++) {
+                if (b === 2) {
+                break outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"01\"");
+}
+
+#[test]
+fn for_loop_continue_label() {
+    let scenario = r#"
+    var count = 0;
+    label: for (let x = 0; x < 10;) {
+        while (true) {
+            x++;
+            count++;
+            continue label;
+        }
+    }
+    count
+    "#;
+    assert_eq!(&exec(scenario), "10");
+}
+
+#[test]
+fn for_in_declaration() {
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        var i;
+        for (i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(
+            "result.length === 2 && result.includes('a') && result.includes('b')",
+            "true",
+        ),
+    ]);
+}
+
+#[test]
+fn for_in_var_object() {
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        for (var i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(
+            "result.length === 2 && result.includes('a') && result.includes('b')",
+            "true",
+        ),
+    ]);
+}
+
+#[test]
+fn for_in_var_array() {
+    let init = r#"
+        let result = [];
+        let arr = ["a", "b"];
+        for (var i in arr) {
+            result = result.concat([i]);
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(
+            "result.length === 2 && result.includes('0') && result.includes('1')",
+            "true",
+        ),
+    ]);
+}
+
+#[test]
+fn for_in_let_object() {
+    let init = r#"
+        let result = [];
+        let obj = { a: "a", b: 2};
+        for (let i in obj) {
+            result = result.concat([i]);
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(
+            "result.length === 2 && result.includes('a') && result.includes('b')",
+            "true",
+        ),
+    ]);
+}
+
+#[test]
+fn for_in_const_array() {
+    let init = r#"
+        let result = [];
+        let arr = ["a", "b"];
+        for (const i in arr) {
+            result = result.concat([i]);
+        }
+    "#;
+    check_output(&[
+        TestAction::Execute(init),
+        TestAction::TestEq(
+            "result.length === 2 && result.includes('0') && result.includes('1')",
+            "true",
+        ),
+    ]);
+}
+
+#[test]
+fn for_in_break_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i in [1, 2]) {
+            inner: for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    break outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"0\"");
+}
+
+#[test]
+fn for_in_continue_label() {
+    let scenario = r#"
+        var str = "";
+
+        outer: for (let i in [1, 2]) {
+            inner: for (let b in [2, 3, 4]) {
+                if (b === "1") {
+                    continue outer;
+                }
+                str = str + b;
+            }
+            str = str + i;
+        }
+        str
+    "#;
+    assert_eq!(&exec(scenario), "\"00\"");
+}
+
+#[test]
+fn tagged_template() {
+    let scenario = r#"
+        function tag(t, ...args) {
+           let a = []
+           a = a.concat([t[0], t[1], t[2]]);
+           a = a.concat([t.raw[0], t.raw[1], t.raw[2]]);
+           a = a.concat([args[0], args[1]]);
+           return a
+        }
+        let a = 10;
+        tag`result: ${a} \x26 ${a+10}`;
+        "#;
+
+    assert_eq!(
+        &exec(scenario),
+        r#"[ "result: ", " & ", "", "result: ", " \x26 ", "", 10, 20 ]"#
+    );
+}
+
+#[test]
+fn spread_shallow_clone() {
+    let scenario = r#"
+        var a = { x: {} };
+        var aClone = { ...a };
+
+        a.x === aClone.x
+    "#;
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn spread_merge() {
+    let scenario = r#"
+        var a = { x: 1, y: 2 };
+        var b = { x: -1, z: -3, ...a };
+
+        (b.x === 1) && (b.y === 2) && (b.z === -3)
+    "#;
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn spread_overriding_properties() {
+    let scenario = r#"
+        var a = { x: 0, y: 0 };
+        var aWithOverrides = { ...a, ...{ x: 1, y: 2 } };
+
+        (aWithOverrides.x === 1) && (aWithOverrides.y === 2)
+    "#;
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn spread_getters_in_initializer() {
+    let scenario = r#"
+        var a = { x: 42 };
+        var aWithXGetter = { ...a, get x() { throw new Error('not thrown yet') } };
+    "#;
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn spread_getters_in_object() {
+    let scenario = r#"
+        var a = { x: 42 };
+        var aWithXGetter = { ...a, ... { get x() { throw new Error('not thrown yet') } } };
+    "#;
+    assert_eq!(&exec(scenario), "\"Error\": \"not thrown yet\"");
+}
+
+#[test]
+fn spread_setters() {
+    let scenario = r#"
+        var z = { set x(nexX) { throw new Error() }, ... { x: 1 } };
+    "#;
+    assert_eq!(&exec(scenario), "undefined");
+}
+
+#[test]
+fn spread_null_and_undefined_ignored() {
+    let scenario = r#"
+        var a = { ...null, ...undefined };
+        var count = 0;
+
+        for (key in a) { count++; }
+
+        count === 0
+    "#;
+
+    assert_eq!(&exec(scenario), "true");
+}
+
+#[test]
+fn template_literal() {
+    let scenario = r#"
+        let a = 10;
+        `result: ${a} and ${a+10}`;
+        "#;
+
+    assert_eq!(&exec(scenario), "\"result: 10 and 20\"");
+}
+
+#[test]
+fn assignmentoperator_lhs_not_defined() {
+    let scenario = r#"
+        try {
+          a += 5
+        } catch (err) {
+          err.toString()
+        }
+        "#;
+
+    assert_eq!(&exec(scenario), "\"ReferenceError: a is not defined\"");
+}
+
+#[test]
+fn assignmentoperator_rhs_throws_error() {
+    let scenario = r#"
+        try {
+          let a;
+          a += b
+        } catch (err) {
+          err.toString()
+        }
+        "#;
+
+    assert_eq!(&exec(scenario), "\"ReferenceError: b is not defined\"");
+}
+
+#[test]
+fn instanceofoperator_rhs_not_object() {
+    let scenario = r#"
+        try {
+          let s = new String();
+          s instanceof 1
+        } catch (err) {
+          err.toString()
+        }
+        "#;
+
+    assert_eq!(
+        &exec(scenario),
+        "\"TypeError: right-hand side of 'instanceof' should be an object, got number\""
+    );
+}
+
+#[test]
+fn instanceofoperator_rhs_not_callable() {
+    let scenario = r#"
+        try {
+          let s = new String();
+          s instanceof {}
+        } catch (err) {
+          err.toString()
+        }
+        "#;
+
+    assert_eq!(
+        &exec(scenario),
+        "\"TypeError: right-hand side of 'instanceof' is not callable\""
+    );
+}
+
+#[test]
+fn logical_nullish_assignment() {
+    let scenario = r#"
+        let a = undefined;
+        a ??= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "10");
+
+    let scenario = r#"
+        let a = 20;
+        a ??= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn logical_assignment() {
+    let scenario = r#"
+        let a = false;
+        a &&= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "false");
+
+    let scenario = r#"
+        let a = 20;
+        a &&= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "10");
+
+    let scenario = r#"
+        let a = null;
+        a ||= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "10");
+    let scenario = r#"
+        let a = 20;
+        a ||= 10;
+        a;
+        "#;
+
+    assert_eq!(&exec(scenario), "20");
+}
+
+#[test]
+fn duplicate_function_name() {
+    let scenario = r#"
+    function f () {}
+    function f () {return 12;}
+    f()
+    "#;
+
+    assert_eq!(&exec(scenario), "12");
+}
+
+#[test]
+fn spread_with_new() {
+    let scenario = r#"
+    function F(m) {
+        this.m = m;
+    }
+    function f(...args) {
+        return new F(...args);
+    }
+    let a = f('message');
+    a.m;
+    "#;
+    assert_eq!(&exec(scenario), r#""message""#);
+}
+
+#[test]
+fn spread_with_call() {
+    let scenario = r#"
+    function f(m) {
+        return m;
+    }
+    function g(...args) {
+        return f(...args);
+    }
+    let a = g('message');
+    a;
+    "#;
+    assert_eq!(&exec(scenario), r#""message""#);
 }

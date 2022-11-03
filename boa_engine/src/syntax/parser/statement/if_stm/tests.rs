@@ -1,10 +1,8 @@
-use crate::syntax::{
-    ast::{
-        expression::literal::Literal,
-        statement::{Block, If},
-        Statement,
-    },
-    parser::tests::check_parser,
+use crate::syntax::parser::tests::check_parser;
+use boa_ast::{
+    expression::literal::Literal,
+    statement::{Block, If},
+    Statement,
 };
 use boa_interner::Interner;
 

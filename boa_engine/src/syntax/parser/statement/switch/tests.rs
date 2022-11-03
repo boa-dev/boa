@@ -1,11 +1,9 @@
-use crate::syntax::{
-    ast::{
-        declaration::{LexicalDeclaration, Variable},
-        expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
-        statement::{Break, Case, Switch},
-        Declaration, Expression, Statement,
-    },
-    parser::tests::{check_invalid, check_parser},
+use crate::syntax::parser::tests::{check_invalid, check_parser};
+use boa_ast::{
+    declaration::{LexicalDeclaration, Variable},
+    expression::{access::SimplePropertyAccess, literal::Literal, Call, Identifier},
+    statement::{Break, Case, Switch},
+    Declaration, Expression, Statement,
 };
 use boa_interner::Interner;
 use boa_macros::utf16;
